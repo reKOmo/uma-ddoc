@@ -1,0 +1,24 @@
+{
+  "name": "uma-puller",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.26.2",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "update-cards": "node scripts/update-cards.js",
+    "update-code": "node scripts/update-code.js",
+    "rank": "node tierlist/cli.js"
+  },
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "vite": "^8.3.2",
+    "vitest": "^4.1.11"
+  }
+}
