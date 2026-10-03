@@ -1,0 +1,34 @@
+# Compares our tier list calculation with upstream's current code
+# (test/upstream/). A failure means upstream changed something — the weights,
+# scenarios, deck presets or the calculation — and GitHub emails you; port the
+# change by hand. Deploys don't depend on this check.
+name: Upstream check
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "37 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Clone upstream
+        run: pnpm clone-upstream
+      # Card data from the same upstream commit as the clone.
+      - name: Generate card data
+        run: pnpm update-cards
+      - name: Compare with upstream
+        run: pnpm test:upstream

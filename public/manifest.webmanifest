@@ -1,0 +1,11 @@
+{
+  "name": "Uma Puller",
+  "short_name": "Uma Puller",
+  "description": "Uma Musume support card tier list and gacha banner calendar.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#15171a",
+  "theme_color": "#d6457a",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

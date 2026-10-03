@@ -1,0 +1,557 @@
+.banners-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.banners-header {
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.banners-header h1 {
+  margin-bottom: 8px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.toolbar-end {
+  display: flex;
+  gap: 8px;
+}
+
+.toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.toolbar button:disabled {
+  opacity: 0.4;
+}
+
+/* A <fieldset> of toggle buttons; reset the fieldset's own box. */
+.segmented {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.segmented button {
+  border-radius: 0;
+}
+
+.segmented button + button {
+  border-left: 0;
+}
+
+.segmented button:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.segmented button:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.segmented button[aria-pressed="true"] {
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.banners-page .status {
+  padding: 0 12px;
+}
+
+/* ── Timeline: one scroll area; the axis sticks to the top, labels to the left ── */
+
+.timeline {
+  --lane-height: 52px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* Mouse drag-to-pan (src/useDragScroll.js); touch screens ignore cursors. */
+.timeline {
+  cursor: grab;
+}
+
+.timeline.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* --day (pixels per day) is set inline; it spaces the faint day gridlines. */
+.timeline-canvas {
+  position: relative;
+  min-height: 100%;
+  padding-bottom: 16px;
+  background-image: repeating-linear-gradient(90deg, var(--gridline) 0 1px, transparent 1px var(--day));
+}
+
+/* Stacking: today line (1) < lanes (2) < section labels (3) < axis (4). */
+.axis {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.axis-months,
+.axis-days {
+  position: relative;
+}
+
+.axis-months {
+  height: 24px;
+}
+
+.axis-days {
+  height: 22px;
+}
+
+.tick {
+  position: absolute;
+  top: 0;
+  bottom: -22px;
+  padding: 5px 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border-left: 1px solid var(--muted);
+}
+
+.tick.year {
+  font-weight: 800;
+  color: var(--accent);
+  border-left: 2px solid var(--accent);
+}
+
+.day {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 32px;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.day.today {
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.lane-group {
+  padding-top: 4px;
+}
+
+.lane-label {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  display: inline-block;
+  margin: 8px 0 4px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 0;
+  border-radius: 0 999px 999px 0;
+}
+
+.lane {
+  position: relative;
+  z-index: 2;
+  height: var(--lane-height);
+  margin-bottom: 4px;
+}
+
+/* Each bar is the banner art behind a darkened label, edged in a type colour. */
+.bar {
+  --edge: #8b93a1;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 0 8px;
+  overflow: hidden;
+  color: #fff;
+  text-align: left;
+  background-color: #444b55;
+  background-position: left center;
+  background-size: cover;
+  border: 0;
+  border-left: 4px solid var(--edge);
+  border-radius: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.45));
+}
+
+.bar strong,
+.bar small {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.bar strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.bar small {
+  font-size: 0.72rem;
+  opacity: 0.9;
+}
+
+.bar.ended {
+  opacity: 0.75;
+}
+
+.bar.live {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.bar:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.bar.characters {
+  --edge: #d6457a;
+}
+.bar.type-speed {
+  --edge: #3d8bfd;
+}
+.bar.type-stamina {
+  --edge: #e5484d;
+}
+.bar.type-power {
+  --edge: #f08c00;
+}
+.bar.type-guts {
+  --edge: #e64980;
+}
+.bar.type-intelligence {
+  --edge: #2fb344;
+}
+.bar.type-friend {
+  --edge: #f5c518;
+}
+
+/* Below the .bar rules: Biome wants rules in ascending specificity. */
+.timeline.dragging .bar {
+  cursor: grabbing;
+}
+
+/* ── Detail sheet: slides up from the bottom on phones, centred on desktop ── */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.sheet {
+  position: relative;
+  width: 100%;
+  max-height: 85dvh;
+  overflow-y: auto;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  background: var(--panel);
+  border-radius: 16px 16px 0 0;
+  animation: sheet-in 180ms ease-out;
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+/* Floats over the banner image's top-right corner. */
+.sheet-close {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border: 0;
+  border-radius: 50%;
+}
+
+.sheet-banner {
+  display: block;
+  width: 100%;
+  aspect-ratio: 512 / 188;
+  border-radius: 10px;
+}
+
+.sheet-dates {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+
+.badge {
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.badge.live,
+.badge.new {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+.badge.upcoming {
+  color: #fff;
+  background: #3d8bfd;
+}
+
+.featured-heading {
+  margin: 16px 0 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.featured {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.featured li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+
+/* Card and character icons are square. */
+.item-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 68px;
+  height: 68px;
+}
+
+.item-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.item-icon .badge {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 0 2px var(--panel);
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Name with the card/outfit title beside it on one line; the title gives way
+   (with an ellipsis) when space runs out. */
+.item-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.item-name strong {
+  flex-shrink: 0;
+  font-size: 1.05rem;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.item-title {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--muted);
+}
+
+/* Wraps "See more" onto its own line on very narrow screens instead of overflowing. */
+.item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.featured .empty {
+  color: var(--muted);
+}
+
+.rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* Sits at the right end of the rank row. */
+.see-more {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  margin-left: auto;
+  min-height: 32px;
+  padding: 0 4px 0 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  text-decoration: none;
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+}
+
+.see-more:active {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+/* line-height = height, so the letter sits in the middle of the chip. */
+.rank-tier {
+  display: inline-block;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  line-height: 26px;
+  text-align: center;
+  font-weight: 800;
+  color: #1c1f24;
+  border-radius: 6px;
+}
+
+.rank.pending,
+.rank.missing {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.rank-note {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+@media (min-width: 768px) {
+  .banners-header {
+    padding: 16px 16px 12px;
+  }
+
+  .timeline {
+    --lane-height: 60px;
+  }
+
+  .bar strong {
+    font-size: 1rem;
+  }
+
+  .bar small {
+    font-size: 0.78rem;
+  }
+
+  .sheet-backdrop {
+    align-items: center;
+  }
+
+  .sheet {
+    max-width: 480px;
+    border-radius: 16px;
+  }
+}

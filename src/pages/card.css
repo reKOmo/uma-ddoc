@@ -1,0 +1,429 @@
+.card-page {
+  max-width: 760px;
+}
+
+.card-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.card-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.back-button {
+  padding-left: 8px;
+}
+
+/* ── Art and facts: stacked on phones, side by side on desktop ── */
+
+.card-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Full card art is 3:4 portrait. */
+.card-art {
+  display: block;
+  width: min(100%, 300px);
+  aspect-ratio: 3 / 4;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.card-facts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.card-facts h1 {
+  margin: 0;
+}
+
+.card-title {
+  margin: 0;
+  color: var(--muted);
+}
+
+.card-tags {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+}
+
+.tag {
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.gametora-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+}
+
+.gametora-link:active {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+/* ── Scenario × limit break tier table ── */
+
+.card-section {
+  margin: 24px 0 8px;
+  font-size: 1.05rem;
+}
+
+.scenario-tiers {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.85rem;
+}
+
+.scenario-tiers th,
+.scenario-tiers td {
+  padding: 6px 4px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.scenario-tiers thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  border-top: 0;
+}
+
+.scenario-tiers tbody th {
+  padding-left: 10px;
+  text-align: left;
+}
+
+/* Averaged rows sit under a heavier rule, apart from the real scenarios. */
+.scenario-tiers tbody.averaged tr:first-child > * {
+  border-top: 2px solid var(--border);
+}
+
+.scenario-tiers tr.current th[scope="row"] {
+  color: var(--accent);
+}
+
+.scenario-tiers .position {
+  padding-right: 10px;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+/* line-height = height, so the letter sits in the middle of the chip. */
+.tier-chip {
+  display: inline-block;
+  min-width: 26px;
+  height: 26px;
+  line-height: 26px;
+  font-weight: 800;
+  color: #1c1f24;
+  border-radius: 6px;
+}
+
+.tier-chip.pending {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.card-page .rank-note {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* ── Rank over time ── */
+
+.history-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.history-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.history-controls select {
+  min-height: 36px;
+  padding: 4px 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.history-controls button {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 6px;
+  font-size: 0.85rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.history-summary {
+  margin: 8px 0;
+  font-size: 0.9rem;
+}
+
+/* Fixed rank axis on the left, scrolling plot on the right. */
+.rank-chart {
+  position: relative;
+  display: flex;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.rank-axis {
+  flex: none;
+  border-right: 1px solid var(--border);
+}
+
+.rank-scroller {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+/* Mouse drag-to-pan (src/useDragScroll.js); touch screens ignore cursors. */
+.rank-scroller {
+  cursor: grab;
+}
+
+.rank-scroller.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.rank-chart svg {
+  display: block;
+  outline: none;
+}
+
+.rank-chart svg:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+.rank-chart .grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.rank-chart .axis-label {
+  font-size: 11px;
+  fill: var(--muted);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.rank-chart .year-label {
+  font-weight: 700;
+  fill: var(--text);
+}
+
+.rank-chart .month-tick {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+/* Year boundaries run the full plot height, a step darker than the rank gridlines. */
+.rank-chart .grid.year {
+  stroke: var(--muted);
+  stroke-opacity: 0.35;
+}
+
+.rank-chart .today-line {
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-opacity: 0.5;
+}
+
+.rank-chart .end-label {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--text);
+}
+
+.rank-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Surface ring keeps dots legible where they sit on the line. */
+.rank-dot {
+  fill: var(--accent);
+  stroke: var(--panel);
+  stroke-width: 2;
+}
+
+.crosshair line {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
+.chart-tooltip {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 180px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  pointer-events: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translate(-50%, -100%);
+}
+
+.tooltip-date {
+  color: var(--muted);
+}
+
+.tooltip-rank {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.tooltip-note {
+  color: var(--muted);
+}
+
+.passed-heading {
+  margin: 20px 0 8px;
+  font-size: 0.95rem;
+}
+
+.passed-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.passed-list li {
+  display: flex;
+  gap: 12px;
+  padding: 8px 10px;
+}
+
+.passed-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.passed-date {
+  display: flex;
+  flex: 0 0 96px;
+  flex-direction: column;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.passed-date span {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.passed-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  min-width: 0;
+}
+
+.passed-cards a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* Support card icons are square. */
+.passed-cards img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .card-hero {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .card-facts {
+    align-items: flex-start;
+    padding-top: 8px;
+    text-align: left;
+  }
+
+  .scenario-tiers {
+    font-size: 0.95rem;
+  }
+
+  .tier-chip {
+    min-width: 32px;
+  }
+}

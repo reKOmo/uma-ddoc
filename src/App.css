@@ -4,9 +4,14 @@
   --text: #1c1f24;
   --muted: #69707a;
   --border: #dde1e6;
+  --accent: #d6457a;
+  --accent-text: #ffffff;
+  --gridline: rgba(0, 0, 0, 0.05);
+  --tabbar-height: 56px;
   font-family: system-ui, sans-serif;
   color: var(--text);
   background: var(--bg);
+  -webkit-text-size-adjust: 100%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -16,7 +21,14 @@
     --text: #e7e9ec;
     --muted: #9aa1aa;
     --border: #33373d;
+    --accent: #ef6c9b;
+    --accent-text: #15171a;
+    --gridline: rgba(255, 255, 255, 0.05);
   }
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -24,44 +36,123 @@ body {
   background: var(--bg);
 }
 
-main {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px 16px;
+button,
+select {
+  font: inherit;
+  color: var(--text);
 }
 
 h1 {
-  margin: 0 0 16px;
-  font-size: 1.5rem;
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+}
+
+.status {
+  color: var(--muted);
+}
+
+/* ── App shell: page area plus a bottom tab bar (top bar on wide screens) ── */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.app-main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Pages that manage their own scrolling (the banner timeline). */
+.app-main.full-height {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tabbar {
+  display: flex;
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+}
+
+.tabbar a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--tabbar-height);
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabbar a.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tab-icon {
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .tabbar {
+    order: -1;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    border-top: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tabbar a {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 16px;
+    font-size: 0.95rem;
+  }
+}
+
+/* ── Tier list page ── */
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 12px 24px;
 }
 
 .controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .controls label {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 
 .controls select {
-  min-width: 140px;
+  width: 100%;
+  min-height: 40px;
   padding: 6px 8px;
-  font-size: 0.95rem;
-  color: var(--text);
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 6px;
-}
-
-.status {
-  color: var(--muted);
+  border-radius: 8px;
 }
 
 .tier {
@@ -74,52 +165,75 @@ h1 {
 }
 
 .tier-label {
-  flex: 0 0 56px;
+  flex: 0 0 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #1c1f24;
 }
 
-.tier-0 { background: #ff7f7f; }
-.tier-1 { background: #ffbf7f; }
-.tier-2 { background: #ffdf7f; }
-.tier-3 { background: #ffff7f; }
-.tier-4 { background: #bfff7f; }
-.tier-5 { background: #7fff7f; }
-.tier-6 { background: #7fffff; }
-.tier-7 { background: #7fbfff; }
+.tier-0 {
+  background: #ff7f7f;
+}
+.tier-1 {
+  background: #ffbf7f;
+}
+.tier-2 {
+  background: #ffdf7f;
+}
+.tier-3 {
+  background: #ffff7f;
+}
+.tier-4 {
+  background: #bfff7f;
+}
+.tier-5 {
+  background: #7fff7f;
+}
+.tier-6 {
+  background: #7fffff;
+}
+.tier-7 {
+  background: #7fbfff;
+}
 
 .tier-cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  gap: 6px;
+  flex: 1;
+  padding: 6px;
 }
 
 .card {
   position: relative;
-  width: 84px;
-  margin: 0;
+  display: block;
+  min-width: 0;
   text-align: center;
+  color: inherit;
+  text-decoration: none;
 }
 
+.card figure {
+  margin: 0;
+}
+
+/* Support card icons are square. */
 .card img {
-  width: 84px;
-  height: 112px;
-  object-fit: cover;
-  border-radius: 6px;
-  background: var(--border);
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
 }
 
 .card .lb {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  padding: 1px 5px;
-  font-size: 0.7rem;
+  top: 3px;
+  right: 3px;
+  padding: 1px 4px;
+  font-size: 0.65rem;
   font-weight: 600;
   color: #fff;
   background: rgba(0, 0, 0, 0.65);
@@ -129,7 +243,7 @@ h1 {
 .card figcaption {
   display: flex;
   flex-direction: column;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   line-height: 1.25;
 }
 
@@ -141,4 +255,34 @@ h1 {
 
 .card .score {
   color: var(--muted);
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding: 24px 16px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .controls {
+    display: flex;
+    gap: 16px;
+  }
+
+  .controls select {
+    min-width: 160px;
+  }
+
+  .tier-label {
+    flex-basis: 56px;
+    font-size: 1.6rem;
+  }
+
+  .tier-cards {
+    grid-template-columns: repeat(auto-fill, 84px);
+    gap: 8px;
+    padding: 8px;
+  }
 }

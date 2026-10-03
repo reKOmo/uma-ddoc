@@ -3,13 +3,13 @@
 // char_name is in its own language, which scenarioLink relies on.
 
 // Which metadata name each server's char_name comes from.
-export const NAME_FIELD = { gl: "name_en", jp: "name_jp" }
+export const NAME_FIELD = { gl: 'name_en', jp: 'name_jp' };
 
 export function joinCards(server, metadata, stats) {
-  const cards = []
+  const cards = [];
   // Integer keys iterate in ascending order, so cards come out sorted by id.
   for (const [id, levels] of Object.entries(stats)) {
-    const meta = metadata[id]
+    const meta = metadata[id];
     levels.forEach((levelStats, limit_break) => {
       cards.push({
         id: meta.id,
@@ -19,8 +19,8 @@ export function joinCards(server, metadata, stats) {
         limit_break,
         ...levelStats,
         char_name: meta[NAME_FIELD[server]],
-      })
-    })
+      });
+    });
   }
-  return cards
+  return cards;
 }

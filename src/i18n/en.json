@@ -1,0 +1,98 @@
+{
+  "nav": {
+    "tierList": "Tier list",
+    "banners": "Banners"
+  },
+  "common": {
+    "server": "Server",
+    "scenario": "Scenario",
+    "stat": "Stat",
+    "averaged": "Averaged",
+    "back": "Back",
+    "close": "Close",
+    "loading": "Loading…",
+    "ranking": "Ranking…",
+    "calculating": "Calculating…",
+    "rank": "#{{position}}",
+    "rankOf": "#{{position}} of {{total}}",
+    "dateRange": "{{start}} – {{end}}"
+  },
+  "stat": {
+    "speed": "Speed",
+    "stamina": "Stamina",
+    "power": "Power",
+    "guts": "Guts",
+    "wisdom": "Wit",
+    "friend": "Friend"
+  },
+  "server": {
+    "gl": "Global",
+    "jp": "Japan"
+  },
+  "scenario": {
+    "overall": "Overall",
+    "upcoming": "Current + future"
+  },
+  "lb": {
+    "level": "LB{{lb}}",
+    "max": "MLB"
+  },
+  "rarity": {
+    "1": "R",
+    "2": "SR",
+    "3": "SSR"
+  },
+  "tierList": {
+    "title": "Support Card Tier List"
+  },
+  "banners": {
+    "title": "Banners",
+    "today": "Today",
+    "zoom": "Zoom",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "loading": "Loading banners…",
+    "characters": "Characters",
+    "supportCards": "Support cards",
+    "barLabel": "{{name}} +{{count}}",
+    "barTitle": "{{label}} · {{dates}}",
+    "status": {
+      "live": "live",
+      "upcoming": "upcoming",
+      "ended": "ended"
+    },
+    "details": "Banner details",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "featuredCards": "Featured cards",
+    "featuredTrainees": "Featured trainees",
+    "new": "new",
+    "seeMore": "See more",
+    "noItems": "No rate-up items listed.",
+    "notRanked": "Not ranked yet",
+    "rankNote": "Ranks are for MLB copies in the {{scenario}} tier list."
+  },
+  "card": {
+    "notFound": "There's no support card with id {{id}}.",
+    "group": "Group",
+    "viewOnGameTora": "View on GameTora",
+    "tierByScenario": "Tier by scenario",
+    "notReleased": "Not released on {{server}} yet.",
+    "mlbRank": "MLB rank",
+    "rankSlash": "#{{position}} / {{total}}",
+    "tableNote": "Tiers and ranks are within the {{stat}} tier list of each scenario on {{server}}.",
+    "averages": "{{name}} averages {{scenarios, list}}.",
+    "rankOverTime": "Rank over time",
+    "limitBreak": "Limit break",
+    "noReleaseDate": "GameTora has no {{server}} release date for this card.",
+    "historySummary": "Released {{date}} at <strong>#{{start}}</strong> of {{startTotal}}; now <strong>#{{now}}</strong> of {{nowTotal}}.",
+    "historyNote": "Position among {{lb}} copies of the {{stat}} cards out on {{server}} at each date, in the {{scenario}} tier list. Cards without a release date are left out.",
+    "passedBy": "Passed by",
+    "noneAbove": "No newer card has ranked above it.",
+    "passedTo": "→ {{rank}}"
+  },
+  "chart": {
+    "label": "Tier list position over time: {{start}} at release, {{now}} now",
+    "passedBy": "Passed by {{names, list}}"
+  }
+}

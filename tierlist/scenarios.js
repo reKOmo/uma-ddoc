@@ -1,21 +1,15 @@
-// Copied from https://github.com/Euophrys/umamusume-tierlist/blob/main/src/scenarios.js
-// verbatim apart from this header and import paths, and kept in sync with
-// upstream main by scripts/update-*.js — do not edit by hand.
-
-// Scenario configurations for the Uma Musume tier list.
+// Scenario weights, training gains and per-server deck presets for the tier
+// list calculation (tierlist-calc.js). Originally from
+// https://github.com/Euophrys/umamusume-tierlist (src/scenarios.js, MIT — see
+// LICENSE); maintained here now. test/upstream/ checks the scenarios, defaults
+// and presets still match upstream's.
 //
-// Each scenario describes weights and training gains used by the calculator.
 // The JP and Global servers tweak a few constants (most notably bondPerDay
-// and certain scenarioLink character names), so we keep one full bundle per
-// server here. The shape of every scenario object is identical to the
-// previous inline `defaultXxxState()` returns inside Weights.jsx so the
-// component can consume them as-is.
+// and certain scenarioLink character names), so there's one bundle per server.
+// availableScenarios is newest first; defaultScenario is the server's current one.
 
 const jp = {
   DYI: {
-    version: 30,
-    currentState: "speed",
-    show: false,
     general: {
       bondPerDay: 15,
       races: [10, 2, 0, 3],
@@ -44,7 +38,7 @@ const jp = {
       multi: 1,
       bonusSpec: 20,
       motivation: 0.2,
-      scenarioLink: ["タッカーブライン"],
+      scenarioLink: ['タッカーブライン'],
       scenarioBonus: 1000,
       fanBonus: 0.05,
     },
@@ -96,9 +90,6 @@ const jp = {
     },
   },
   GM: {
-    version: 26,
-    currentState: "speed",
-    show: false,
     general: {
       bondPerDay: 15,
       races: [10, 2, 0, 5],
@@ -127,7 +118,7 @@ const jp = {
       multi: 1.25,
       bonusSpec: 0,
       motivation: 0.2,
-      scenarioLink: ["ダーレーアラビアン"],
+      scenarioLink: ['ダーレーアラビアン'],
       scenarioBonus: 150,
       fanBonus: 0.1,
     },
@@ -179,9 +170,6 @@ const jp = {
     },
   },
   GL: {
-    version: 18,
-    currentState: "speed",
-    show: false,
     general: {
       bondPerDay: 20,
       races: [7, 2, 0, 3],
@@ -211,16 +199,16 @@ const jp = {
       bonusSpec: 20,
       motivation: 0.2,
       scenarioLink: [
-        "ミホノブルボン",
-        "Mihono Bourbon",
-        "ライトハロー",
-        "Light Hello",
-        "スマートファルコン",
-        "Smart Falcon",
-        "アグネスタキオン",
-        "Agnes Tachyon",
-        "サイレンススズカ",
-        "Silence Suzuka",
+        'ミホノブルボン',
+        'Mihono Bourbon',
+        'ライトハロー',
+        'Light Hello',
+        'スマートファルコン',
+        'Smart Falcon',
+        'アグネスタキオン',
+        'Agnes Tachyon',
+        'サイレンススズカ',
+        'Silence Suzuka',
       ],
       scenarioBonus: 75,
       fanBonus: 0.05,
@@ -273,9 +261,6 @@ const jp = {
     },
   },
   MANT: {
-    version: 18,
-    currentState: "speed",
-    show: false,
     general: {
       bondPerDay: 20,
       races: [15, 10, 2, 3],
@@ -356,9 +341,6 @@ const jp = {
     },
   },
   Aoharu: {
-    version: 18,
-    currentState: "wisdom",
-    show: false,
     general: {
       bondPerDay: 20,
       races: [7, 2, 0, 3],
@@ -387,13 +369,7 @@ const jp = {
       multi: 1,
       bonusSpec: 0,
       motivation: 0.2,
-      scenarioLink: [
-        "マチカネフクキタル",
-        "ハルウララ",
-        "樫本理子",
-        "ライスシャワー",
-        "タイキシャトル",
-      ],
+      scenarioLink: ['マチカネフクキタル', 'ハルウララ', '樫本理子', 'ライスシャワー', 'タイキシャトル'],
       scenarioBonus: 40,
       fanBonus: 0.05,
     },
@@ -445,9 +421,6 @@ const jp = {
     },
   },
   URA: {
-    version: 18,
-    currentState: "speed",
-    show: false,
     general: {
       bondPerDay: 20,
       races: [7, 2, 0, 3],
@@ -476,7 +449,7 @@ const jp = {
       multi: 1,
       bonusSpec: 0,
       motivation: 0.2,
-      scenarioLink: ["桐生院葵"],
+      scenarioLink: ['桐生院葵'],
       scenarioBonus: 16,
       fanBonus: 0.05,
     },
@@ -527,7 +500,7 @@ const jp = {
       minimum: 0,
     },
   },
-}
+};
 
 // Global server scenarios. They share the JP shape but tweak a few constants
 // (notably bondPerDay defaults and a translated URA scenarioLink name).
@@ -541,82 +514,55 @@ const gl = {
     general: {
       ...jp.URA.general,
       bondPerDay: 10,
-      scenarioLink: ["Aoi Kiryuin"],
+      scenarioLink: ['Aoi Kiryuin'],
     },
   },
-}
+};
 
-export const SCENARIOS_BY_SERVER = { jp, gl }
+export const SCENARIOS_BY_SERVER = { jp, gl };
 
 export const SERVER_CONFIG = {
   jp: {
-    availableScenarios: ["DYI", "GM", "GL", "MANT", "Aoharu", "URA"],
-    defaultScenario: "DYI",
-    referenceDocUrl:
-      "https://docs.google.com/document/d/1gNcV7XLmxx0OI2DEAR8gmKb8P9BBhcwGhlJOVbYaXeo/edit?usp=sharing",
-    defaultLocale: "en-jp",
+    availableScenarios: ['DYI', 'GM', 'GL', 'MANT', 'Aoharu', 'URA'],
+    defaultScenario: 'DYI',
     defaultPresetCards: [30226, 30256, 30187, 30233, 30257],
-    defaultFilters: {
-      ssr: [true, false, false, false, false],
-      sr: [true, false, false, false, false],
-      r: [false, false, false, false, false],
-    },
-    defaultTierListDropdown: "none",
-    // The JP cards.js stores fs_bonus in a different format than Global.
-    // Preserve the original per-server display formula.
-    useLegacyFsBonusDisplay: true,
-    // Preset deck IDs shown in SelectedCards.
+    // Typical decks; rankByUsefulness averages over these and defaultPresetCards.
     deckPresets: [
-      { key: "speed-power", cards: [20023, 20033, 20009, 20003, 30137] },
-      { key: "speed-stamina", cards: [20023, 20033, 20008, 30022, 30137] },
-      { key: "speed-int", cards: [20023, 20033, 20012, 20002, 30137] },
-      { key: "guts-int", cards: [30028, 20048, 20041, 20012, 20002] },
-      { key: "aoharu-parent", cards: [20012, 20016, 20025, 20002, 10060] },
-      { key: "highlander", cards: [30028, 20008, 20009, 30019, 20012] },
-      { key: "race-bonus", cards: [20031, 30074, 20027, 20012, 30054] },
+      { key: 'speed-power', cards: [20023, 20033, 20009, 20003, 30137] },
+      { key: 'speed-stamina', cards: [20023, 20033, 20008, 30022, 30137] },
+      { key: 'speed-int', cards: [20023, 20033, 20012, 20002, 30137] },
+      { key: 'guts-int', cards: [30028, 20048, 20041, 20012, 20002] },
+      { key: 'aoharu-parent', cards: [20012, 20016, 20025, 20002, 10060] },
+      { key: 'highlander', cards: [30028, 20008, 20009, 30019, 20012] },
+      { key: 'race-bonus', cards: [20031, 30074, 20027, 20012, 30054] },
     ],
   },
   gl: {
-    availableScenarios: ["DYI", "GM", "GL", "MANT", "Aoharu", "URA"],
-    defaultScenario: "GL",
-    referenceDocUrl:
-      "https://docs.google.com/document/d/11X2P7pLuh-k9E7PhRiD20nDX22rNWtCpC1S4IMx_8pQ/edit?usp=sharing",
-    defaultLocale: "en-gl",
+    availableScenarios: ['DYI', 'GM', 'GL', 'MANT', 'Aoharu', 'URA'],
+    defaultScenario: 'GL',
     defaultPresetCards: [20031, 20033, 20012, 20015, 30052],
-    defaultFilters: {
-      ssr: [true, false, true, false, true],
-      sr: [true, false, true, false, true],
-      r: [false, false, false, false, true],
-    },
-    defaultTierListDropdown: "race_bonus",
-    useLegacyFsBonusDisplay: false,
     deckPresets: [
-      { key: "speed-power", cards: [30028, 20031, 20033, 20009, 20003] },
-      { key: "speed-stamina", cards: [30028, 20031, 20033, 20008, 30022] },
-      { key: "speed-int", cards: [30028, 20031, 20033, 20012, 20002] },
-      { key: "guts-int", cards: [30011, 30030, 30019, 20012, 20002] },
-      { key: "race-bonus", cards: [20031, 30074, 20027, 20012, 30054] },
+      { key: 'speed-power', cards: [30028, 20031, 20033, 20009, 20003] },
+      { key: 'speed-stamina', cards: [30028, 20031, 20033, 20008, 30022] },
+      { key: 'speed-int', cards: [30028, 20031, 20033, 20012, 20002] },
+      { key: 'guts-int', cards: [30011, 30030, 30019, 20012, 20002] },
+      { key: 'race-bonus', cards: [20031, 30074, 20027, 20012, 30054] },
     ],
   },
-}
+};
 
 export function getServerConfig(server) {
-  return SERVER_CONFIG[server] || SERVER_CONFIG.jp
+  return SERVER_CONFIG[server] || SERVER_CONFIG.jp;
 }
 
 export function getScenarios(server) {
-  return SCENARIOS_BY_SERVER[server] || SCENARIOS_BY_SERVER.jp
+  return SCENARIOS_BY_SERVER[server] || SCENARIOS_BY_SERVER.jp;
 }
 
-// Clone-on-read so component state mutation does not leak back into the
-// shared scenario definitions.
+// A copy, so callers can't modify the shared definitions. An unknown key falls
+// back to the server's default scenario (as upstream does).
 export function getScenario(server, scenarioKey) {
-  const scenarios = getScenarios(server)
-  const scenario =
-    scenarios[scenarioKey] || scenarios[getServerConfig(server).defaultScenario]
-  return JSON.parse(JSON.stringify(scenario))
-}
-
-export function getDefaultScenario(server) {
-  return getScenario(server, getServerConfig(server).defaultScenario)
+  const scenarios = getScenarios(server);
+  const scenario = scenarios[scenarioKey] || scenarios[getServerConfig(server).defaultScenario];
+  return JSON.parse(JSON.stringify(scenario));
 }

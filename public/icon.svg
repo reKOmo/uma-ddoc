@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>uma-puller</title>
+  <rect width="512" height="512" rx="112" fill="#d6457a"/>
+  <rect x="96" y="150" width="200" height="56" rx="28" fill="#fff"/>
+  <rect x="176" y="228" width="240" height="56" rx="28" fill="#fff" opacity=".85"/>
+  <rect x="128" y="306" width="160" height="56" rx="28" fill="#fff" opacity=".7"/>
+</svg>

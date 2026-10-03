@@ -6,6 +6,5 @@ dist/
 generated/
 generated.tmp/
 
-# Scratch state from `pnpm update-code`
-.update-backup/
-update-status.json
+# Upstream clone for `pnpm test:upstream` (`pnpm clone-upstream`)
+/upstream/

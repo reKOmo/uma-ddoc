@@ -1,0 +1,21 @@
+# Biome on the staged files (see biome.json): apply formatting + safe lint fixes,
+# re-stage them, then fail the commit on anything left that can't be auto-fixed.
+#
+# Files that also have unstaged changes are only checked, not fixed: re-staging
+# them would sneak the unstaged changes into the commit. Fix those with
+# `pnpm format` and re-stage by hand.
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+unstaged=$(git diff --name-only)
+
+fixable=$(printf '%s\n' "$staged" | while IFS= read -r file; do
+  printf '%s\n' "$unstaged" | grep -qxF "$file" || printf '%s\n' "$file"
+done)
+
+if [ -n "$fixable" ]; then
+  printf '%s\n' "$fixable" | tr '\n' '\0' | xargs -0 pnpm exec biome check --write --no-errors-on-unmatched --files-ignore-unknown=true >/dev/null 2>&1
+  printf '%s\n' "$fixable" | tr '\n' '\0' | xargs -0 git add --
+fi
+
+pnpm exec biome check --staged --no-errors-on-unmatched

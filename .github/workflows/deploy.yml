@@ -31,8 +31,14 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Lint and format check
+        run: pnpm lint
       - name: Generate card data
         run: pnpm update-cards
+      - name: Scrape gacha banners from GameTora
+        run: pnpm scrape-banners
+      - name: Map banner cards to card data
+        run: pnpm map-banner-cards
       - name: Test
         run: pnpm test
       - name: Build
