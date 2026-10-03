@@ -6,7 +6,7 @@ import { STAT_OF_TYPE, TIER_NAMES, cardRanks } from '../tiers.js';
 import { DAY, buildTimeline } from '../timeline.js';
 import { useDragScroll } from '../useDragScroll.js';
 import { useTranslation } from 'react-i18next';
-import i18n, { formatDate, scenarioName, serverName, statName } from '../i18n/index.js';
+import i18n, { formatDate, scenarioName, statName } from '../i18n/index.js';
 import './banners.css';
 
 // Banner data is only downloaded when this page opens.
@@ -40,7 +40,7 @@ function barLabel(banner) {
   return others > 0 ? i18n.t('banners.barLabel', { name: banner.main.name, count: others }) : banner.main.name;
 }
 
-export default function BannersPage({ server, scenario, onServerChange }) {
+export default function BannersPage({ server, scenario }) {
   const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [zoom, setZoom] = useState(2);
@@ -105,15 +105,7 @@ export default function BannersPage({ server, scenario, onServerChange }) {
   return (
     <div className="banners-page">
       <header className="banners-header">
-        <h1>{t('banners.title')}</h1>
         <div className="toolbar">
-          <fieldset className="segmented" aria-label={t('common.server')}>
-            {Object.keys(SERVERS).map((key) => (
-              <button type="button" key={key} aria-pressed={key === server} onClick={() => onServerChange(key)}>
-                {serverName(key)}
-              </button>
-            ))}
-          </fieldset>
           <div className="toolbar-end">
             <button type="button" onClick={scrollToToday} disabled={!timeline}>
               <LocateFixed size={18} aria-hidden="true" />

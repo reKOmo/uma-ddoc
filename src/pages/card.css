@@ -2,31 +2,6 @@
   max-width: 760px;
 }
 
-.card-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.card-toolbar button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 44px;
-  min-height: 36px;
-  padding: 0 12px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.back-button {
-  padding-left: 8px;
-}
-
 /* ── Art and facts: stacked on phones, side by side on desktop ── */
 
 .card-hero {

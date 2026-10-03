@@ -5,6 +5,8 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
 - **Tier list** — ranks support cards per server, scenario and stat. The calculation
   started as a copy of [Euophrys/umamusume-tierlist](https://github.com/Euophrys/umamusume-tierlist)'s
   (MIT, see `tierlist/LICENSE`) and is maintained here now; tests compare it with upstream.
+  A collapsible rarity × LB filter picks which copies are shown (default: MLB of everything, plus
+  LB0 and LB3 of SSR and SR); tiers are banded on the full ranking, so filtering doesn't move cards between tiers.
 - **Banners** — a horizontal, scrollable/draggable calendar of past and current
   gacha banners (scraped from GameTora), with a detail sheet per banner that
   shows each featured support card's tier-list rank.
@@ -57,7 +59,8 @@ scripts/
   scrape-banners.js  GameTora banner history + per-card URL/titles/release dates
   map-banner-cards.js
 src/
-  App.jsx            shell: hash routes (#/, #/banners, #/card/<id>), tab bar, shared server + scenario state
+  App.jsx            shell: hash routes (#/, #/banners, #/card/<id>), top bar (title or back button + server
+                     switch), tab bar, shared server + scenario state
   pages/TierListPage.jsx
   pages/BannersPage.jsx, banners.css   calendar + detail sheet
   pages/CardPage.jsx, card.css         one card: art, GameTora link, tier per scenario × LB
@@ -200,7 +203,8 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   and `src/servers.js` hold keys only. Dates go through `formatDate()` so they use the
   UI's locale. A new language is a new JSON file registered in `RESOURCES`.
 - **Mobile first.** Base CSS targets phones; `@media (min-width: 768px)` adds desktop
-  tweaks. Bottom tab bar on phones, top on desktop. Check layouts at 360–390px wide.
+  tweaks. Top bar (page title or back button, server switch) always on top; tab bar at
+  the bottom on phones, under the top bar on desktop. Pages don't render their own title. Check layouts at 360–390px wide.
 - Colour tokens live on `:root` in `src/App.css`, with a dark-mode override; use them
   instead of literal colours (tier colours `.tier-0`… are the exception).
 - Hash routing only — GitHub Pages can't serve deep links. `vite.config.js` uses
@@ -213,7 +217,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 - Charts are hand-written SVG (no chart library): colour tokens for marks and text,
   hairline gridlines, a hover/keyboard crosshair + tooltip. Long time axes scroll
   sideways with `useDragScroll` instead of squeezing labels.
-- Toggle groups are `<fieldset className="segmented">` (box reset in `banners.css`);
+- Toggle groups are `<fieldset className="segmented">` (shared styles in `App.css`);
   every `<button>` has an explicit `type`.
 - Scenario pickers list the real scenarios, then the `COMBINED` ones in an "Averaged"
   `<optgroup>`; display names go through `scenarioName()` (from `src/i18n`).

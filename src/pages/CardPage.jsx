@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { COMBINED, STATS, rankByUsefulness, scenarioOptions, scenariosOf } from '../../tierlist/index.js';
 import { loadCards, metadata } from '../../tierlist/cards.js';
 import { NAME_FIELD } from '../../tierlist/join-cards.js';
 import { getScenario, getServerConfig } from '../../tierlist/scenarios.js';
-import { SERVERS } from '../servers.js';
 import { TIER_NAMES, cardRanks } from '../tiers.js';
 import { rankHistory } from '../rankHistory.js';
 import RankChart, { formatDay } from './RankChart.jsx';
@@ -52,12 +51,7 @@ function useScenarioRankings(server, stat, enabled) {
   return rankings;
 }
 
-function goBack() {
-  if (window.history.length > 1) window.history.back();
-  else window.location.hash = '#/';
-}
-
-export default function CardPage({ cardId, server, scenario, onServerChange }) {
+export default function CardPage({ cardId, server, scenario }) {
   const { t } = useTranslation();
   const meta = metadata[cardId];
   const [gametora, setGametora] = useState(null);
@@ -85,7 +79,6 @@ export default function CardPage({ cardId, server, scenario, onServerChange }) {
   if (!meta) {
     return (
       <div className="page card-page">
-        <BackButton />
         <p className="status">{t('card.notFound', { id: cardId })}</p>
       </div>
     );
@@ -99,17 +92,6 @@ export default function CardPage({ cardId, server, scenario, onServerChange }) {
 
   return (
     <div className="page card-page">
-      <div className="card-toolbar">
-        <BackButton />
-        <fieldset className="segmented" aria-label={t('common.server')}>
-          {Object.keys(SERVERS).map((key) => (
-            <button type="button" key={key} aria-pressed={key === server} onClick={() => onServerChange(key)}>
-              {serverName(key)}
-            </button>
-          ))}
-        </fieldset>
-      </div>
-
       <div className="card-hero">
         <img className="card-art" src={artUrl(cardId)} alt={name} />
         <div className="card-facts">
@@ -193,16 +175,6 @@ export default function CardPage({ cardId, server, scenario, onServerChange }) {
         </>
       )}
     </div>
-  );
-}
-
-function BackButton() {
-  const { t } = useTranslation();
-  return (
-    <button type="button" className="back-button" onClick={goBack}>
-      <ArrowLeft size={18} aria-hidden="true" />
-      {t('common.back')}
-    </button>
   );
 }
 

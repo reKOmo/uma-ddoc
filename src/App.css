@@ -51,6 +51,40 @@ h1 {
   color: var(--muted);
 }
 
+/* A <fieldset> of toggle buttons; reset the fieldset's own box. */
+.segmented {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.segmented button {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.segmented button + button {
+  border-left: 0;
+}
+
+.segmented button:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.segmented button:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.segmented button[aria-pressed="true"] {
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 /* ── App shell: page area plus a bottom tab bar (top bar on wide screens) ── */
 
 .app {
@@ -63,6 +97,51 @@ h1 {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+}
+
+/* Top bar: the page title (or a back button on detail pages), server switch on the right. */
+.topbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 52px;
+  padding: env(safe-area-inset-top) 12px 0;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar h1 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px 0 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.server-switch {
+  flex-shrink: 0;
+}
+
+.server-switch.segmented button {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 /* Pages that manage their own scrolling (the banner timeline). */
@@ -113,6 +192,12 @@ h1 {
     border-bottom: 1px solid var(--border);
   }
 
+  /* Title bar first, then the tabs. */
+  .topbar {
+    order: -2;
+    padding: 0 16px;
+  }
+
   .tabbar a {
     flex: 0 0 auto;
     flex-direction: row;
@@ -153,6 +238,90 @@ h1 {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+/* Collapsible: a row of limit-break toggles per rarity (a .segmented fieldset). */
+.lb-filter {
+  margin-bottom: 16px;
+}
+
+.lb-filter summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.lb-filter summary::-webkit-details-marker {
+  display: none;
+}
+
+.lb-filter summary:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.lb-filter .chevron {
+  transition: transform 0.15s;
+}
+
+.lb-filter[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.lb-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.lb-filter .rarity-label {
+  flex: 0 0 36px;
+  align-self: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.lb-filter .segmented button {
+  min-width: 44px;
+  min-height: 28px;
+  padding: 0 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+}
+
+.lb-filter .segmented button:hover {
+  border-color: var(--accent);
+}
+
+.lb-filter .segmented button:active {
+  box-shadow: none;
+  transform: translateY(1px);
+}
+
+/* The label isn't a button, so round the first button's corners by position. */
+.lb-filter .segmented button:nth-child(2) {
+  border-radius: 6px 0 0 6px;
+}
+
+.lb-filter .segmented button:last-child {
+  border-radius: 0 6px 6px 0;
 }
 
 .tier {
@@ -273,6 +442,12 @@ h1 {
 
   .controls select {
     min-width: 160px;
+  }
+
+  .lb-rows {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
   }
 
   .tier-label {

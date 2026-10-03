@@ -43,7 +43,9 @@
     "3": "SSR"
   },
   "tierList": {
-    "title": "Support Card Tier List"
+    "title": "Support Card Tier List",
+    "filter": "Filter",
+    "noneShown": "No cards match the filter. Pick a limit break above."
   },
   "banners": {
     "title": "Banners",
