@@ -1,5 +1,6 @@
 {
   "name": "uma-puller",
+  "version": "0.1.0-beta",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.26.2",
@@ -14,8 +15,13 @@
     "update-cards": "node scripts/update-cards.js",
     "clone-upstream": "node scripts/clone-upstream.js",
     "rank": "node tierlist/cli.js",
-    "scrape-banners": "node scripts/scrape-banners.js",
+    "scrape-gametora": "node scripts/scrape-gametora.js",
     "map-banner-cards": "node scripts/map-banner-cards.js",
+    "fetch-news": "node scripts/fetch-news.js",
+    "update-global": "node scripts/update-global.js",
+    "setup-ml": "uv venv --allow-existing --python 3.13 ml/.venv && uv pip install --python ml/.venv -r ml/requirements.txt",
+    "predict-gl": "ml/.venv/bin/python ml/predict.py",
+    "predict-gl:backtest": "ml/.venv/bin/python ml/backtest.py",
     "prepare": "husky"
   },
   "dependencies": {

@@ -32,7 +32,14 @@ describe('rankHistory', () => {
 
   it('only compares against the same limit break', () => {
     const history = rankHistory(ranking, 2, 0, releaseOf);
-    expect(history).toEqual([{ date: '2024-06-01', position: 1, total: 1, tier: 0, overtakenBy: [] }]);
+    expect(history).toEqual([
+      { date: '2024-06-01', position: 1, total: 1, tier: 0, overtakenBy: [], predicted: false },
+    ]);
+  });
+
+  it('marks the dates where a card with a predicted release date comes out', () => {
+    const history = rankHistory(ranking, 1, 4, releaseOf, (id) => id === 4);
+    expect(history.map((p) => p.predicted)).toEqual([false, false, true]);
   });
 
   it('returns null for cards without a release date or ranking', () => {

@@ -54,7 +54,7 @@ describe('catalogs', () => {
       ...STATS.map((s) => `stat.${s}`),
       ...Object.keys(SERVERS).map((s) => `server.${s}`),
       ...Object.keys(COMBINED).map((k) => `scenario.${k}`),
-      ...['live', 'upcoming', 'ended'].map((s) => `banners.status.${s}`),
+      ...['live', 'upcoming', 'ended', 'predicted', 'confirmed'].map((s) => `banners.status.${s}`),
       ...[1, 2, 3].map((r) => `rarity.${r}`),
     ];
     expect(dynamic.filter((key) => !keys.has(key))).toEqual([]);

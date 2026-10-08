@@ -4,11 +4,12 @@
 # change by hand. Deploys don't depend on this check.
 name: Upstream check
 
+# Manual runs only for now; uncomment push/schedule to run automatically again.
 on:
-  push:
-    branches: [main]
-  schedule:
-    - cron: "37 6 * * *"
+  # push:
+  #   branches: [main]
+  # schedule:
+  #   - cron: "37 6 * * *"
   workflow_dispatch:
 
 permissions:

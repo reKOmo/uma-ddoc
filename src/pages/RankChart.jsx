@@ -48,8 +48,9 @@ function useWidth(ref) {
 }
 
 // Step chart of a card's tier list position over time (#1 at the top), from
-// rankHistory() points. The last step runs on to today. Scrolls sideways, and
-// opens scrolled to today.
+// rankHistory() points. The last real step runs on to today; points marked
+// `predicted` continue from there as a dashed line. Scrolls sideways, and opens
+// scrolled to today.
 export default function RankChart({ history, nameOf }) {
   const { t } = useTranslation();
   const wrapper = useRef(null);
@@ -61,7 +62,7 @@ export default function RankChart({ history, nameOf }) {
   useDragScroll(scroller);
 
   const now = Date.now();
-  const months = monthStarts(toTime(history[0].date), now);
+  const months = monthStarts(toTime(history[0].date), Math.max(now, toTime(history.at(-1).date)));
   const from = months[0];
   const to = months.at(-1);
   const maxRank = Math.max(...history.map((p) => p.position), 2);
@@ -73,20 +74,28 @@ export default function RankChart({ history, nameOf }) {
   const y = (rank) => MARGIN.top + ((rank - 1) / (maxRank - 1)) * plotH;
 
   const points = history.map((p) => ({ ...p, x: x(toTime(p.date)), y: y(p.position) }));
-  const todayX = Math.max(x(now), points.at(-1).x);
-  let path = `M${points[0].x},${points[0].y}`;
-  for (const p of points.slice(1)) path += `H${p.x}V${p.y}`;
-  path += `H${todayX}`;
-  // Dots where the position changed, plus the start and the current position.
-  const marked = points.filter((p, i) => i === 0 || i === points.length - 1 || p.position !== points[i - 1].position);
+  const actual = points.filter((p) => !p.predicted);
+  const future = points.filter((p) => p.predicted);
+  // Today, or the last real step if that's later (a release dated today in another time zone).
+  const todayX = Math.max(x(now), actual.at(-1)?.x ?? 0);
+  const steps = (from, rest) => `M${from.x},${from.y}${rest.map((p) => `H${p.x}V${p.y}`).join('')}`;
+  const realPath = actual.length > 0 && `${steps(actual[0], actual.slice(1))}H${todayX}`;
+  const futureStart = actual.length > 0 ? { x: todayX, y: actual.at(-1).y } : future[0];
+  const futurePath = future.length > 0 && steps(futureStart, actual.length > 0 ? future : future.slice(1));
+  // Dots where the position changed, plus the start and the current and last positions.
+  const marked = points.filter(
+    (p, i) => i === 0 || p === actual.at(-1) || i === points.length - 1 || p.position !== points[i - 1].position
+  );
+  const current = actual.at(-1);
   const last = points.at(-1);
   const ticks = rankTicks(maxRank);
 
-  // Open on the most recent months: on first layout and when the data changes.
+  // Open on today (a third of the way in when predictions follow it, else at the right edge):
+  // on first layout and when the data changes.
   // biome-ignore lint/correctness/useExhaustiveDependencies: these deps are the triggers, not values the effect reads.
   useLayoutEffect(() => {
     const el = scroller.current;
-    el.scrollLeft = el.scrollWidth;
+    el.scrollLeft = future.length > 0 ? todayX - el.clientWidth / 3 : el.scrollWidth;
   }, [history, viewWidth > 0]);
 
   // Keep the point picked with the arrow keys in view.
@@ -144,7 +153,12 @@ export default function RankChart({ history, nameOf }) {
             width={width}
             height={HEIGHT}
             role="img"
-            aria-label={t('chart.label', { start: t('common.rank', history[0]), now: t('common.rank', last) })}
+            aria-label={[
+              current && t('chart.label', { start: t('common.rank', history[0]), now: t('common.rank', current) }),
+              last.predicted && t('chart.labelPredicted', { end: t('common.rank', last), date: formatDay(last.date) }),
+            ]
+              .filter(Boolean)
+              .join('. ')}
             // biome-ignore lint/a11y/noNoninteractiveTabindex: focusable so keyboard users can step through the points with the arrow keys.
             tabIndex={0}
             onPointerMove={(e) => setActive(pointAt(e.clientX))}
@@ -186,17 +200,36 @@ export default function RankChart({ history, nameOf }) {
               );
             })}
             <line className="today-line" x1={todayX} x2={todayX} y1={MARGIN.top} y2={MARGIN.top + plotH} />
-            <path className="rank-line" d={path} />
+            {realPath && <path className="rank-line" d={realPath} />}
+            {futurePath && <path className="rank-line predicted" d={futurePath} />}
             {marked.map((p) => (
-              <circle key={p.date} className="rank-dot" cx={p.x} cy={p.y} r={4} />
+              <circle
+                key={p.date}
+                className={p.predicted ? 'rank-dot predicted' : 'rank-dot'}
+                cx={p.x}
+                cy={p.y}
+                r={4}
+              />
             ))}
-            <text className="end-label" x={todayX + 4} y={last.y - 10} textAnchor="middle">
-              {t('common.rank', last)}
-            </text>
+            {current && (
+              <text className="end-label" x={todayX + 4} y={current.y - 10} textAnchor="middle">
+                {t('common.rank', current)}
+              </text>
+            )}
+            {last.predicted && (
+              <text className="end-label predicted" x={last.x + 4} y={last.y - 10} textAnchor="middle">
+                {t('common.rank', last)}
+              </text>
+            )}
             {hovered && (
               <g className="crosshair">
                 <line x1={hovered.x} x2={hovered.x} y1={MARGIN.top} y2={MARGIN.top + plotH} />
-                <circle className="rank-dot" cx={hovered.x} cy={hovered.y} r={5} />
+                <circle
+                  className={hovered.predicted ? 'rank-dot predicted' : 'rank-dot'}
+                  cx={hovered.x}
+                  cy={hovered.y}
+                  r={5}
+                />
               </g>
             )}
           </svg>
@@ -207,7 +240,9 @@ export default function RankChart({ history, nameOf }) {
           className="chart-tooltip"
           style={{ left: Math.min(Math.max(tooltipX, 90), wrapperWidth - 90), top: Math.max(hovered.y - 12, 0) }}
         >
-          <span className="tooltip-date">{formatDay(hovered.date)}</span>
+          <span className="tooltip-date">
+            {hovered.predicted ? t('chart.predictedDate', { date: formatDay(hovered.date) }) : formatDay(hovered.date)}
+          </span>
           <span className="tooltip-rank">
             <span className={`tier-chip tier-${hovered.tier}`}>{TIER_NAMES[hovered.tier]}</span>
             {t('common.rankOf', hovered)}

@@ -4,11 +4,12 @@
 # stays live.
 name: Deploy site
 
+# Manual runs only for now; uncomment push/schedule to run automatically again.
 on:
-  push:
-    branches: [main]
-  schedule:
-    - cron: "17 6 * * *"
+  # push:
+  #   branches: [main]
+  # schedule:
+  #   - cron: "17 6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -35,10 +36,20 @@ jobs:
         run: pnpm lint
       - name: Generate card data
         run: pnpm update-cards
-      - name: Scrape gacha banners from GameTora
-        run: pnpm scrape-banners
+      - name: Scrape JP banners and card links from GameTora
+        run: pnpm scrape-gametora
+      # Normally already done and committed by news.yml; rerun so a news commit made any other way
+      # still shows up (not committed from here).
+      - name: Apply the official news to Global's banners
+        run: pnpm update-global
       - name: Map banner cards to card data
         run: pnpm map-banner-cards
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: ml/requirements.txt
+      - name: Predict Global release dates of JP cards
+        run: pnpm setup-ml && pnpm predict-gl
       - name: Test
         run: pnpm test
       - name: Build

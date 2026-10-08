@@ -1,25 +1,63 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight, LocateFixed, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { ChevronDown, ChevronRight, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
 import { rankByUsefulness } from '../../tierlist/index.js';
 import { SERVERS } from '../servers.js';
 import { STAT_OF_TYPE, TIER_NAMES, cardRanks } from '../tiers.js';
 import { DAY, buildTimeline } from '../timeline.js';
 import { useDragScroll } from '../useDragScroll.js';
-import { useTranslation } from 'react-i18next';
-import i18n, { formatDate, scenarioName, statName } from '../i18n/index.js';
+import { Trans, useTranslation } from 'react-i18next';
+import { timeZoneOptions, useSettings } from '../settings.jsx';
+import i18n, { formatDate, formatDateTime, scenarioName, statName } from '../i18n/index.js';
 import './banners.css';
 
 // Banner data is only downloaded when this page opens.
 const BANNERS = {
-  global: () => import('../../generated/global_banners.json'),
+  global: () => import('../../data/global_banners.json'), // ours: seeded from GameTora, kept up from the news
   jp: () => import('../../generated/jp_banners.json'),
 };
+// Global's future banners, predicted from JP's by `pnpm predict-gl` (ml/). Optional: the glob is
+// empty when the file hasn't been generated, and the page goes without. (Banners announced in the
+// news are real ones in data/, with `announced` + `news_url`.)
+const PREDICTED = {
+  global: Object.values(import.meta.glob('../../generated/predicted_global_banners.json', { import: 'default' })),
+};
+
+async function loadBanners(name) {
+  const [real, ...predicted] = await Promise.all([
+    BANNERS[name]().then((m) => m.default),
+    ...(PREDICTED[name] ?? []).map((load) => load()),
+  ]);
+  return predicted.reduce(
+    (all, more) => ({ characters: [...all.characters, ...more.characters], cards: [...all.cards, ...more.cards] }),
+    real
+  );
+}
 const ZOOMS = [4, 8, 16, 32]; // pixels per day
 // Trainee icons don't show rarity (card icons do), so it's spelled out.
 const TRAINEE_RARITY = ['', '★1', '★2', '★3'];
 
-const formatLong = (iso) => formatDate(iso, { year: 'numeric', month: 'short', day: 'numeric' });
-const formatShort = (iso) => formatDate(iso, { month: 'short', day: 'numeric' });
+// Banner times in the timezone picked in Settings: UTC (as the game announces them, the default)
+// or the viewer's own.
+function dateFormats(timeZone) {
+  const zone = timeZoneOptions(timeZone);
+  return {
+    long: (iso) => formatDate(iso, { ...zone, year: 'numeric', month: 'short', day: 'numeric' }),
+    short: (iso) => formatDate(iso, { ...zone, month: 'short', day: 'numeric' }),
+    // The sheet's exact times: "Oct 14, 2026, 10:00 PM UTC".
+    time: (iso) =>
+      formatDateTime(iso, {
+        ...zone,
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      }),
+    month: (date, withYear) => formatDate(date, { ...zone, month: 'short', ...(withYear && { year: 'numeric' }) }),
+    isJanuary: (date) => (timeZone === 'utc' ? date.getUTCMonth() : date.getMonth()) === 0,
+  };
+}
 const dateRange = (banner, format) =>
   i18n.t('common.dateRange', { start: format(banner.start), end: format(banner.end) });
 
@@ -29,9 +67,16 @@ const dayLabelStep = (px) => (px >= 16 ? 1 : px >= 8 ? 2 : 7);
 const showDayLabel = (date, step) => (date - 1) % step === 0 && (step < 7 || date <= 22);
 
 function status(banner, now = Date.now()) {
+  if (banner.confirmed) return 'confirmed';
+  if (banner.predicted) return 'predicted';
   if (now < Date.parse(banner.start)) return 'upcoming';
   if (now > Date.parse(banner.end)) return 'ended';
   return 'live';
+}
+
+function barTitleKey(banner) {
+  if (banner.confirmed) return 'banners.confirmedBarTitle';
+  return banner.predicted ? 'banners.predictedBarTitle' : 'banners.barTitle';
 }
 
 function barLabel(banner) {
@@ -45,6 +90,8 @@ export default function BannersPage({ server, scenario }) {
   const [data, setData] = useState(null);
   const [zoom, setZoom] = useState(2);
   const [selected, setSelected] = useState(null);
+  const { timeZone } = useSettings().settings;
+  const format = useMemo(() => dateFormats(timeZone), [timeZone]);
   const scroller = useRef(null);
   // Day to centre on after the next render (initial load, zoom, "Today").
   const centerOn = useRef(null);
@@ -52,8 +99,8 @@ export default function BannersPage({ server, scenario }) {
   useEffect(() => {
     let cancelled = false;
     setData(null);
-    BANNERS[SERVERS[server].banners]().then((m) => {
-      if (!cancelled) setData(m.default);
+    loadBanners(SERVERS[server].banners).then((banners) => {
+      if (!cancelled) setData(banners);
     });
     return () => {
       cancelled = true;
@@ -63,11 +110,14 @@ export default function BannersPage({ server, scenario }) {
   const timeline = useMemo(
     () =>
       data &&
-      buildTimeline([
-        { key: 'characters', label: t('banners.characters'), banners: data.characters },
-        { key: 'cards', label: t('banners.supportCards'), banners: data.cards },
-      ]),
-    [data, t]
+      buildTimeline(
+        [
+          { key: 'characters', label: t('banners.characters'), banners: data.characters },
+          { key: 'cards', label: t('banners.supportCards'), banners: data.cards },
+        ],
+        { utc: timeZone === 'utc' }
+      ),
+    [data, t, timeZone]
   );
   const px = ZOOMS[zoom];
   // The scroller only exists once the timeline has loaded.
@@ -145,8 +195,8 @@ export default function BannersPage({ server, scenario }) {
             <div className="axis">
               <div className="axis-months">
                 {timeline.months.map(({ date, day }) => (
-                  <span key={day} className={date.getMonth() === 0 ? 'tick year' : 'tick'} style={{ left: day * px }}>
-                    {formatDate(date, date.getMonth() === 0 ? { year: 'numeric', month: 'short' } : { month: 'short' })}
+                  <span key={day} className={format.isJanuary(date) ? 'tick year' : 'tick'} style={{ left: day * px }}>
+                    {format.month(date, format.isJanuary(date))}
                   </span>
                 ))}
               </div>
@@ -176,17 +226,20 @@ export default function BannersPage({ server, scenario }) {
                       <button
                         type="button"
                         key={banner.id}
-                        className={`bar ${section.key} ${status(banner)} type-${banner.main?.type ?? 'none'}`}
+                        className={`bar ${section.key} ${status(banner)} type-${banner.main?.type ?? 'none'}${banner.announced ? ' official-art' : ''}`}
                         style={{
                           left: from * px,
                           width: Math.max(length * px, 6),
                           backgroundImage: `url(${banner.image})`,
                         }}
-                        title={t('banners.barTitle', { label: barLabel(banner), dates: dateRange(banner, formatLong) })}
+                        title={t(barTitleKey(banner), {
+                          label: barLabel(banner),
+                          dates: dateRange(banner, format.long),
+                        })}
                         onClick={() => setSelected({ banner, kind: section.key })}
                       >
                         <strong>{barLabel(banner)}</strong>
-                        <small>{dateRange(banner, formatShort)}</small>
+                        <small>{dateRange(banner, format.short)}</small>
                       </button>
                     ))}
                   </div>
@@ -197,7 +250,15 @@ export default function BannersPage({ server, scenario }) {
         </div>
       )}
 
-      {selected && <BannerSheet {...selected} server={server} scenario={scenario} onClose={() => setSelected(null)} />}
+      {selected && (
+        <BannerSheet
+          {...selected}
+          server={server}
+          scenario={scenario}
+          format={format}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }
@@ -239,12 +300,14 @@ function CardRank({ item, rankings }) {
   );
 }
 
-function BannerSheet({ banner, kind, server, scenario, onClose }) {
+function BannerSheet({ banner, kind, server, scenario, format, onClose }) {
   const { t } = useTranslation();
   const days = Math.round((Date.parse(banner.end) - Date.parse(banner.start)) / DAY);
   const state = status(banner);
   const stats = kind === 'cards' ? [...new Set(banner.featured.map((i) => STAT_OF_TYPE[i.type]).filter(Boolean))] : [];
-  const rankings = useRankings(server, scenario, stats);
+  // A predicted or announced banner's new cards aren't in Global's card data yet; JP's tier list has them.
+  const fromJp = banner.predicted || banner.announced;
+  const rankings = useRankings(fromJp ? 'jp' : server, scenario, stats);
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tapping outside the sheet closes it; Escape (handled in BannersPage) and the close button cover keyboards.
     <div className="sheet-backdrop" onClick={onClose}>
@@ -257,13 +320,37 @@ function BannerSheet({ banner, kind, server, scenario, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <button type="button" className="sheet-close" onClick={onClose} aria-label={t('common.close')}>
-          <X size={20} aria-hidden="true" />
+          <ChevronDown size={24} aria-hidden="true" />
         </button>
         <img className="sheet-banner" src={banner.image} alt="" />
         <p className="sheet-dates">
           <span className={`badge ${state}`}>{t(`banners.status.${state}`)}</span>
-          {dateRange(banner, formatLong)} · {t('banners.days', { count: days })}
+          {dateRange(banner, format.time)} · {t('banners.days', { count: days })}
         </p>
+        {banner.confirmed && (
+          <p className="sheet-prediction">
+            {t('banners.confirmedFrom', {
+              dates: dateRange({ start: banner.jp_start, end: banner.jp_end }, format.long),
+            })}
+          </p>
+        )}
+        {banner.predicted && !banner.confirmed && (
+          <p className="sheet-prediction">
+            {t('banners.predictedFrom', {
+              dates: dateRange({ start: banner.jp_start, end: banner.jp_end }, format.long),
+              count: banner.margin_days,
+            })}
+          </p>
+        )}
+        {banner.announced && (
+          <p className="sheet-prediction">
+            <Trans
+              i18nKey="banners.announced"
+              // biome-ignore lint/a11y/useAnchorContent: <Trans> fills the link with the catalog's <a> text.
+              components={{ a: <a href={banner.news_url} target="_blank" rel="noreferrer" /> }}
+            />
+          </p>
+        )}
         <h2 className="featured-heading">
           {t(kind === 'cards' ? 'banners.featuredCards' : 'banners.featuredTrainees')}
         </h2>
@@ -298,7 +385,13 @@ function BannerSheet({ banner, kind, server, scenario, onClose }) {
           ))}
           {banner.featured.length === 0 && <li className="empty">{t('banners.noItems')}</li>}
         </ul>
-        {stats.length > 0 && <p className="rank-note">{t('banners.rankNote', { scenario: scenarioName(scenario) })}</p>}
+        {stats.length > 0 && (
+          <p className="rank-note">
+            {t(fromJp ? 'banners.predictedRankNote' : 'banners.rankNote', {
+              scenario: scenarioName(scenario),
+            })}
+          </p>
+        )}
       </div>
     </div>
   );

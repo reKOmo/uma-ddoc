@@ -1,7 +1,8 @@
 {
   "nav": {
     "tierList": "Tier list",
-    "banners": "Banners"
+    "banners": "Banners",
+    "settings": "Settings"
   },
   "common": {
     "server": "Server",
@@ -61,8 +62,16 @@
     "status": {
       "live": "live",
       "upcoming": "upcoming",
-      "ended": "ended"
+      "ended": "ended",
+      "predicted": "predicted",
+      "confirmed": "confirmed"
     },
+    "predictedBarTitle": "{{label}} · predicted {{dates}}",
+    "confirmedBarTitle": "{{label}} · confirmed {{dates}}",
+    "confirmedFrom": "Dates confirmed by the official release schedule; art and cards from the JP banner of {{dates}}.",
+    "predictedFrom_one": "Predicted from the JP banner of {{dates}}; could be {{count}} day earlier or later.",
+    "predictedFrom_other": "Predicted from the JP banner of {{dates}}; could be {{count}} days earlier or later.",
+    "announced": "From the <a>official announcement</a>.",
     "details": "Banner details",
     "days_one": "{{count}} day",
     "days_other": "{{count}} days",
@@ -72,7 +81,8 @@
     "seeMore": "See more",
     "noItems": "No rate-up items listed.",
     "notRanked": "Not ranked yet",
-    "rankNote": "Ranks are for MLB copies in the {{scenario}} tier list."
+    "rankNote": "Ranks are for MLB copies in the {{scenario}} tier list.",
+    "predictedRankNote": "Ranks are for MLB copies in Japan's {{scenario}} tier list, which has every card on this banner (Global's may not yet)."
   },
   "card": {
     "notFound": "There's no support card with id {{id}}.",
@@ -80,21 +90,47 @@
     "viewOnGameTora": "View on GameTora",
     "tierByScenario": "Tier by scenario",
     "notReleased": "Not released on {{server}} yet.",
+    "notReleasedPredicted": "Not released on {{server}} yet; predicted around {{date}}.",
+    "notReleasedConfirmed": "Not released on {{server}} yet; confirmed for {{date}}.",
     "mlbRank": "MLB rank",
     "rankSlash": "#{{position}} / {{total}}",
     "tableNote": "Tiers and ranks are within the {{stat}} tier list of each scenario on {{server}}.",
     "averages": "{{name}} averages {{scenarios, list}}.",
     "rankOverTime": "Rank over time",
     "limitBreak": "Limit break",
-    "noReleaseDate": "GameTora has no {{server}} release date for this card.",
+    "noReleaseDate": "No {{server}} release date for this card yet.",
     "historySummary": "Released {{date}} at <strong>#{{start}}</strong> of {{startTotal}}; now <strong>#{{now}}</strong> of {{nowTotal}}.",
     "historyNote": "Position among {{lb}} copies of the {{stat}} cards out on {{server}} at each date, in the {{scenario}} tier list. Cards without a release date are left out.",
+    "predictedNote": "Dashed: JP cards not on Global yet, at their predicted Global release dates and ranked with their JP stats. JP's newest cards aren't in the card data yet and are left out.",
+    "arrivalSummary": "Predicted to arrive {{date}} at <strong>#{{start}}</strong> of {{startTotal}}.",
+    "predictedSummary": "By {{date}}, predicted <strong>#{{end}}</strong> of {{endTotal}}.",
+    "tierDrop": "Expected to drop from {{from}} to {{to}} tier around {{date}}.",
+    "tierHolds": "Expected to stay {{tier}} tier through {{date}}.",
+    "predicted": "predicted",
     "passedBy": "Passed by",
     "noneAbove": "No newer card has ranked above it.",
-    "passedTo": "→ {{rank}}"
+    "rankUp": "Up to",
+    "rankDown": "Down to",
+    "seeCard": "See card",
+    "morePasses_one": "See {{count}} more",
+    "morePasses_other": "See {{count}} more",
+    "showLess": "Show less",
+    "passedAfter": "{{duration}} after release",
+    "passedLater": "{{duration}} later",
+    "releasedOn": "Released {{date}}",
+    "arrivesOn": "Predicted to arrive {{date}}"
   },
   "chart": {
     "label": "Tier list position over time: {{start}} at release, {{now}} now",
+    "labelPredicted": "Predicted {{end}} by {{date}}",
+    "predictedDate": "{{date}} (predicted)",
     "passedBy": "Passed by {{names, list}}"
+  },
+  "settings": {
+    "title": "Settings",
+    "timeZone": "Banner times",
+    "timeZoneHint": "The game announces banners in UTC. Show their days and times in UTC, or in your own timezone.",
+    "utc": "UTC",
+    "local": "Local ({{zone}})"
   }
 }

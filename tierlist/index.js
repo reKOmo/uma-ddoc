@@ -9,7 +9,7 @@
 
 import { processCards } from './tierlist-calc.js';
 import { getScenario, getScenarios, getServerConfig } from './scenarios.js';
-import { loadCards } from './cards.js';
+import { loadCards, loadCardsWithUpcoming } from './cards.js';
 
 // The stat tabs every scenario defines (display names live in src/i18n).
 export const STATS = ['speed', 'stamina', 'power', 'guts', 'wisdom', 'friend'];
@@ -51,8 +51,8 @@ export function presetDecks(server) {
   return [{ key: 'default', cards: config.defaultPresetCards }, ...config.deckPresets];
 }
 
-async function setup(server, scenario, stat) {
-  const cards = await loadCards(server);
+async function setup(server, scenario, stat, upcoming) {
+  const cards = await (upcoming ? loadCardsWithUpcoming(server) : loadCards(server));
   const preset = getScenario(server, scenario);
   const weights = { ...preset[stat], ...preset.general };
   const candidates = cards.filter((c) => c.type === weights.type);
@@ -73,14 +73,16 @@ export async function rankCards(server, scenario, stat, deckIds) {
 // the same character, so when a deck already holds the candidate's character
 // the candidate is scored against the remaining 4 cards instead.
 // A COMBINED key ranks by the average over its scenarios (see computeCombined).
-// Results are cached per server/scenario/stat.
+// { upcoming: true } also ranks JP's cards the server doesn't have yet (see
+// loadCardsWithUpcoming); every other card keeps exactly the score it has without them.
+// Results are cached per server/scenario/stat/upcoming.
 const usefulnessCache = new Map();
 
-export function rankByUsefulness(server, scenario, stat) {
-  const key = `${server}/${scenario}/${stat}`;
+export function rankByUsefulness(server, scenario, stat, { upcoming = false } = {}) {
+  const key = `${server}/${scenario}/${stat}${upcoming ? '/upcoming' : ''}`;
   if (!usefulnessCache.has(key)) {
     const compute = COMBINED[scenario] ? computeCombined : computeUsefulness;
-    usefulnessCache.set(key, compute(server, scenario, stat));
+    usefulnessCache.set(key, compute(server, scenario, stat, upcoming));
   }
   return usefulnessCache.get(key);
 }
@@ -88,15 +90,18 @@ export function rankByUsefulness(server, scenario, stat) {
 // Scores aren't comparable across scenarios, so each scenario's ranking is
 // rescaled to 0 (its lowest card) – 1000 (its top card) and those are averaged.
 // Every scenario ranks the same candidates, so each card gets one per scenario.
-async function computeCombined(server, key, stat) {
+// With upcoming cards the scale still comes from the server's own cards, so theirs
+// don't move (an upcoming card can score above 1000).
+async function computeCombined(server, key, stat, upcoming) {
   const scenarios = COMBINED[key].scenarios(server);
   const totals = new Map();
   for (const scenario of scenarios) {
     // Yield between scenarios (each blocks for ~100-300 ms) so the UI can paint.
     await new Promise((resolve) => setTimeout(resolve));
-    const ranking = await rankByUsefulness(server, scenario, stat);
-    const top = ranking[0].score;
-    const range = top - ranking[ranking.length - 1].score || 1;
+    const ranking = await rankByUsefulness(server, scenario, stat, { upcoming });
+    const own = upcoming ? await rankByUsefulness(server, scenario, stat) : ranking;
+    const top = own[0].score;
+    const range = top - own[own.length - 1].score || 1;
     for (const r of ranking) {
       const id = `${r.id}/${r.lb}`;
       const t = totals.get(id) ?? { id: r.id, lb: r.lb, char_name: r.char_name, score: 0 };
@@ -107,8 +112,8 @@ async function computeCombined(server, key, stat) {
   return [...totals.values()].sort((a, b) => b.score - a.score);
 }
 
-async function computeUsefulness(server, scenario, stat) {
-  const { weights, candidates, toDeck } = await setup(server, scenario, stat);
+async function computeUsefulness(server, scenario, stat, upcoming) {
+  const { weights, candidates, toDeck } = await setup(server, scenario, stat, upcoming);
   const decks = presetDecks(server).map((d) => toDeck(d.cards));
 
   const totals = new Map();

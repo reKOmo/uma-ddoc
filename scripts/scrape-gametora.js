@@ -1,9 +1,13 @@
-// Scrapes the gacha banner history from GameTora
+// Scrapes JP's gacha banner history and the support card list from GameTora
 // (https://gametora.com/umamusume/gacha/history) into:
 //   generated/jp_banners.json
-//   generated/global_banners.json
 //   generated/gametora_cards.json
-// Each banner file holds { source, characters: [banner…], cards: [banner…] }, newest first,
+// Global isn't scraped any more: it has its own record in data/ (scripts/lib/global.js), kept up
+// from the official news. `--seed-global` writes that record's starting point from GameTora's
+// Global data (data/global_banners.json + data/global_cards.json); it refuses to overwrite one
+// unless `--force` is given too.
+//
+// A banner file holds { source, characters: [banner…], cards: [banner…] }, newest first,
 // where a banner is
 //   { id, image, start, end, main, featured: [item…] }
 // and an item is { id, char_id, name, title, rarity, icon, rate, new }, plus
@@ -16,16 +20,18 @@
 //   { url, title_en, title_jp, release_gl, release_jp }
 // for the card page (GameTora's URL slugs can't be derived from the name alone).
 // Release dates are "YYYY-MM-DD", or null if the card isn't out on that server
-// (a few Global promo cards have no date either).
+// (a few Global promo cards have no date either). Its Global fields are GameTora's: the site
+// reads Global titles and dates from data/global_cards.json instead (src/cardInfo.js, ml/data.py).
 //
 // The history page loads its data from GameTora's versioned JSON files, so
 // this reads those directly instead of parsing HTML.
 //
-// Usage: pnpm scrape-banners
+// Usage: pnpm scrape-gametora [--seed-global [--force]]
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { GENERATED_DIR } from './lib/upstream.js';
+import { DATA_DIR, GENERATED_DIR } from './lib/paths.js';
+import { BANNERS_FILE, pickMain, writeGlobal } from './lib/global.js';
 
 const SITE = 'https://gametora.com';
 const HEADERS = { 'User-Agent': 'uma-puller banner scraper (static tier list site)' };
@@ -58,12 +64,7 @@ const iso = (unixSeconds) => new Date(unixSeconds * 1000).toISOString();
 
 function toBanner(raw, server, describe) {
   const featured = raw.pickups.map(([id, rate, isNew]) => ({ ...describe(id), rate, new: isNew }));
-  const main =
-    featured.reduce(
-      (best, item) =>
-        !best || item.rarity > best.rarity || (item.rarity === best.rarity && item.rate > best.rate) ? item : best,
-      null
-    ) ?? null;
+  const main = pickMain(featured);
   return {
     id: raw.id,
     image: `${SITE}/images/umamusume/${server.prefix}gacha/img_bnr_gacha_${raw.id}.png`,
@@ -74,9 +75,12 @@ function toBanner(raw, server, describe) {
   };
 }
 
-export async function scrapeBanners() {
+export async function scrapeBanners({ seedGlobal = false, force = false } = {}) {
+  if (seedGlobal && existsSync(BANNERS_FILE) && !force)
+    throw new Error('data/ already has Global banners; --force overwrites them (and every news-made entry)');
+  const servers = seedGlobal ? SERVERS : { jp: SERVERS.jp };
   const names = ['character-cards', 'support-cards'];
-  for (const server of Object.values(SERVERS)) {
+  for (const server of Object.values(servers)) {
     names.push(`${server.prefix}gacha/char-standard`, `${server.prefix}gacha/support-standard`);
   }
   const data = await loadData(names);
@@ -98,7 +102,7 @@ export async function scrapeBanners() {
   );
   writeFileSync(`${GENERATED_DIR}gametora_cards.json`, `${JSON.stringify(cardInfo)}\n`);
   console.log(`gametora_cards: ${Object.keys(cardInfo).length} support cards`);
-  for (const [name, server] of Object.entries(SERVERS)) {
+  for (const [name, server] of Object.entries(servers)) {
     const describeCharacter = (id) => {
       const c = characters.get(id);
       if (!c) return { id, char_id: null, name: null, title: null, rarity: null, icon: null };
@@ -129,6 +133,16 @@ export async function scrapeBanners() {
         .map((b) => toBanner(b, server, describeCard))
         .sort(newestFirst),
     };
+    if (name === 'global') {
+      mkdirSync(DATA_DIR, { recursive: true });
+      const released = data['support-cards'].filter((c) => c.release_en);
+      const cards = Object.fromEntries(
+        released.map((c) => [c.support_id, { title_en: c.title_en ?? null, release_gl: c.release_en }])
+      );
+      writeGlobal({ global: result, cards });
+      console.log(`seeded data/: ${result.characters.length + result.cards.length} banners, ${released.length} cards`);
+      continue;
+    }
     writeFileSync(`${GENERATED_DIR}${name}_banners.json`, `${JSON.stringify(result, null, 1)}\n`);
     console.log(`${name}: ${result.characters.length} character banners, ${result.cards.length} card banners`);
   }
@@ -136,7 +150,10 @@ export async function scrapeBanners() {
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    await scrapeBanners();
+    await scrapeBanners({
+      seedGlobal: process.argv.includes('--seed-global'),
+      force: process.argv.includes('--force'),
+    });
   } catch (err) {
     console.error(`Banner scrape failed: ${err.message}`);
     process.exit(1);

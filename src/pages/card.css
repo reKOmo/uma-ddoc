@@ -277,11 +277,25 @@
   stroke-linecap: round;
 }
 
+/* Predicted: dashed line, hollow dots. */
+.rank-line.predicted {
+  stroke-dasharray: 6 5;
+}
+
 /* Surface ring keeps dots legible where they sit on the line. */
 .rank-dot {
   fill: var(--accent);
   stroke: var(--panel);
   stroke-width: 2;
+}
+
+.rank-dot.predicted {
+  fill: var(--panel);
+  stroke: var(--accent);
+}
+
+.rank-chart .end-label.predicted {
+  fill: var(--muted);
 }
 
 .crosshair line {
@@ -326,59 +340,200 @@
   font-size: 0.95rem;
 }
 
+/* A vertical timeline: a dot per date, joined by a line labelled with the time between them. */
 .passed-list {
+  --rail: 15px;
+  /* The dot's centre: the middle of the first line (date) of each entry. */
+  --head: 22px;
+  --dot-y: calc(4px + var(--head) / 2);
+  /* Space between a dot's edge and the line. */
+  --dot-gap: 10px;
   margin: 0;
-  padding: 0;
+  padding: 8px 10px 8px 0;
   list-style: none;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
 
-.passed-list li {
-  display: flex;
-  gap: 12px;
-  padding: 8px 10px;
+.passed-list > li {
+  position: relative;
 }
 
-.passed-list li + li {
-  border-top: 1px solid var(--border);
+.passed-entry {
+  position: relative;
+  padding: 4px 0 4px calc(var(--rail) * 2);
 }
 
-.passed-date {
+/* One line per row, from just below its dot to just above the next row's dot, so each
+   stretch is a single solid or dashed piece. The next dot sits --dot-y below this row's bottom. */
+.passed-list > li.has-next::after {
+  position: absolute;
+  top: calc(var(--dot-y) + var(--dot-gap));
+  bottom: calc(var(--dot-gap) - var(--dot-y));
+  left: calc(var(--rail) - 1px);
+  width: 2px;
+  content: "";
+  background: var(--accent);
+}
+
+/* Into a predicted date. */
+.passed-list > li.next-predicted::after {
+  background: repeating-linear-gradient(to bottom, var(--accent) 0 5px, transparent 5px 9px);
+}
+
+/* Dots sit next to their entry's date. */
+.passed-dot {
+  position: absolute;
+  top: var(--dot-y);
+  left: calc(var(--rail) - 6px);
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+/* The release: hollow. */
+.passed-list > li:first-child .passed-dot {
+  background: var(--panel);
+  border: 2px solid var(--accent);
+}
+
+.passed-list > li.predicted .passed-dot {
+  background: var(--panel);
+  border: 2px dashed var(--accent);
+}
+
+/* How long it took to get from one date to the next. */
+.passed-gap {
   display: flex;
-  flex: 0 0 96px;
-  flex-direction: column;
-  font-size: 0.8rem;
+  align-items: center;
+  /* As tall as a card row (its icon), so the time between dates gets as much room as a card. */
+  min-height: 52px;
+  padding: 4px 0 4px calc(var(--rail) * 2);
+  font-size: 0.75rem;
+  font-style: italic;
   color: var(--muted);
 }
 
-.passed-date span {
-  font-weight: 600;
-  color: var(--text);
+/* The first hidden entry, fading out under the "See more" button. */
+.passed-list > li.passed-fade {
+  max-height: 140px;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 10%, transparent);
+}
+
+/* Holds the list and, over its faded bottom, the "See more" button. */
+.passed-box {
+  position: relative;
+}
+
+/* .see-more (App.css) has no background; these sit over the list, so they need one. */
+.see-more.passed-more {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  z-index: 2;
+  cursor: pointer;
+  background: var(--panel);
+  transform: translateX(-50%);
+}
+
+.see-more.passed-less {
+  display: flex;
+  width: fit-content;
+  margin: 8px auto 0;
+  cursor: pointer;
+  background: var(--panel);
+}
+
+.passed-head {
+  display: flex;
+  min-height: var(--head);
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.passed-date {
+  color: var(--muted);
+}
+
+.passed-body {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* The new rank, left of the cards that pushed it there. */
+.passed-rank {
+  display: inline-flex;
+  flex: 0 0 52px;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.passed-rank.up svg {
+  color: var(--rank-up);
+}
+
+.passed-rank.down svg {
+  color: var(--rank-down);
 }
 
 .passed-cards {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 12px;
+  flex-direction: column;
+  flex: 1;
+  gap: 16px;
   min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.passed-cards a {
-  display: inline-flex;
+.passed-cards li {
+  display: flex;
+  gap: 8px;
   align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
+}
+
+.passed-card {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
   color: var(--text);
   text-decoration: none;
 }
 
 /* Support card icons are square. */
-.passed-cards img {
-  width: 36px;
-  height: 36px;
+.passed-card img {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
+}
+
+.passed-card span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.95rem;
+}
+
+.passed-card small {
+  overflow: hidden;
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 @media (min-width: 768px) {
@@ -401,4 +556,18 @@
   .tier-chip {
     min-width: 32px;
   }
+}
+
+.passed-list li.predicted .passed-card {
+  opacity: 0.7;
+}
+
+.badge-predicted {
+  padding: 1px 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px dashed var(--muted);
+  border-radius: 999px;
 }

@@ -6,7 +6,8 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignoreUnknown": true
+    "ignoreUnknown": true,
+    "includes": ["**", "!data/global_*.json", "!data/news/announcements.json"]
   },
   "formatter": {
     "enabled": true,

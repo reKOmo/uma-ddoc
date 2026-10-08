@@ -1,5 +1,5 @@
-// Maps the support cards featured on scraped banners (generated/*_banners.json,
-// from scripts/scrape-banners.js) to the cards in our card data
+// Maps the support cards featured on banners (Global's data/global_banners.json, see
+// scripts/lib/global.js; JP's generated/jp_banners.json, from scripts/scrape-gametora.js) to the cards in our card data
 // (generated/metadata.json, from scripts/update-cards.js), writing
 // generated/card_banners.json:
 //   cards      { [id]: { id, group, name_en, name_jp, first_banner: { global, jp },
@@ -16,10 +16,12 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { GENERATED_DIR } from './lib/upstream.js';
+import { GENERATED_DIR } from './lib/paths.js';
+import { BANNERS_FILE } from './lib/global.js';
 import { ensureCards } from './update-cards.js';
 
 const SERVERS = { global: 'name_en', jp: 'name_jp' };
+const BANNER_FILES = { global: BANNERS_FILE, jp: `${GENERATED_DIR}jp_banners.json` };
 
 export async function mapBannerCards() {
   await ensureCards();
@@ -41,7 +43,7 @@ export async function mapBannerCards() {
   const unmatched = { global: [], jp: [] };
   const nameMismatches = [];
   for (const [server, nameField] of Object.entries(SERVERS)) {
-    const { cards: banners } = JSON.parse(readFileSync(`${GENERATED_DIR}${server}_banners.json`, 'utf8'));
+    const { cards: banners } = JSON.parse(readFileSync(BANNER_FILES[server], 'utf8'));
     // Oldest first, so appearance lists and first_banner come out in order.
     for (const banner of [...banners].reverse()) {
       for (const item of banner.featured) {

@@ -63,3 +63,24 @@ for (const server of ['gl', 'jp']) {
     });
   });
 }
+
+describe('rankings with upcoming cards', () => {
+  it("add JP's cards Global doesn't have, without changing any Global card's score", async () => {
+    const own = await loadCards('gl');
+    const ids = new Set(own.map((c) => c.id));
+    for (const scenario of [getServerConfig('gl').defaultScenario, 'overall']) {
+      const base = await rankByUsefulness('gl', scenario, 'speed');
+      const ranking = await rankByUsefulness('gl', scenario, 'speed', { upcoming: true });
+      const scores = new Map(ranking.map((r) => [`${r.id}/${r.lb}`, r.score]));
+      expect(ranking.length, scenario).toBeGreaterThan(base.length);
+      expect(
+        ranking.some((r) => !ids.has(r.id)),
+        scenario
+      ).toBe(true);
+      expect(
+        base.filter((r) => scores.get(`${r.id}/${r.lb}`) !== r.score),
+        scenario
+      ).toEqual([]);
+    }
+  });
+});

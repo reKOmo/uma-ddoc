@@ -7,6 +7,8 @@
   --accent: #d6457a;
   --accent-text: #ffffff;
   --gridline: rgba(0, 0, 0, 0.05);
+  --rank-up: #1f8a4c;
+  --rank-down: #c8372d;
   --tabbar-height: 56px;
   font-family: system-ui, sans-serif;
   color: var(--text);
@@ -24,6 +26,8 @@
     --accent: #ef6c9b;
     --accent-text: #15171a;
     --gridline: rgba(255, 255, 255, 0.05);
+    --rank-up: #4cc47f;
+    --rank-down: #f07167;
   }
 }
 
@@ -460,4 +464,26 @@ h1 {
     gap: 8px;
     padding: 8px;
   }
+}
+
+/* A pill-shaped link to a card page ("See more", "See card"). */
+.see-more {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 4px 0 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  text-decoration: none;
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+}
+
+.see-more:active {
+  color: var(--accent-text);
+  background: var(--accent);
 }

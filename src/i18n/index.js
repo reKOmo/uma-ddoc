@@ -48,3 +48,19 @@ export const lbName = (lb) => (lb === 4 ? i18n.t('lb.max') : i18n.t('lb.level', 
 
 // Dates in the UI's locale. Takes anything Date accepts.
 export const formatDate = (date, options) => new Date(date).toLocaleDateString(locale(), options);
+export const formatDateTime = (date, options) => new Date(date).toLocaleString(locale(), options);
+
+// How long from one "YYYY-MM-DD" date to a later one, in the UI's locale: "1 year, 2 months",
+// "5 months", or days when it's under a month.
+export function formatDuration(from, to) {
+  const [y1, m1, d1] = from.split('-').map(Number);
+  const [y2, m2, d2] = to.split('-').map(Number);
+  const months = (y2 - y1) * 12 + (m2 - m1) - (d2 < d1 ? 1 : 0);
+  const unit = (value, name) =>
+    new Intl.NumberFormat(locale(), { style: 'unit', unit: name, unitDisplay: 'long' }).format(value);
+  if (months < 1) return unit(Math.round((Date.parse(to) - Date.parse(from)) / 86400000), 'day');
+  const parts = [];
+  if (months >= 12) parts.push(unit(Math.floor(months / 12), 'year'));
+  if (months % 12) parts.push(unit(months % 12, 'month'));
+  return new Intl.ListFormat(locale(), { style: 'narrow', type: 'unit' }).format(parts);
+}

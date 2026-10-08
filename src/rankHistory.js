@@ -7,12 +7,14 @@ import { toTiers } from './tiers.js';
 //
 // ranking:   rankByUsefulness() result (sorted by score, every id × LB)
 // releaseOf: id → "YYYY-MM-DD" on the server, or null (left out of the history)
+// isPredicted: id → whether releaseOf's date is a prediction, not a real release
 // Compares the card against every other card at the same limit break.
 // Returns one point per date the field changed, from the card's own release:
-//   { date, position, total, tier, overtakenBy: [entry…] }
-// where overtakenBy lists the cards released that day that score higher.
+//   { date, position, total, tier, overtakenBy: [entry…], predicted }
+// where overtakenBy lists the cards released that day that score higher, and
+// predicted says a card released that day only has a predicted date.
 // Returns null if the card isn't ranked or has no release date.
-export function rankHistory(ranking, cardId, lb, releaseOf) {
+export function rankHistory(ranking, cardId, lb, releaseOf, isPredicted = () => false) {
   const field = ranking.filter((c) => c.lb === lb && releaseOf(c.id));
   const self = field.find((c) => c.id === cardId);
   if (!self) return null;
@@ -28,6 +30,7 @@ export function rankHistory(ranking, cardId, lb, releaseOf) {
       total: available.length,
       tier: toTiers(available).findIndex((tier) => tier.includes(self)),
       overtakenBy: available.filter((c) => c.score > self.score && releaseOf(c.id) === date && date > start),
+      predicted: available.some((c) => releaseOf(c.id) === date && isPredicted(c.id)),
     };
   });
 }

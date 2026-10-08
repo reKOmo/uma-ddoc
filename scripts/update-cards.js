@@ -2,7 +2,8 @@ import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, writeFileSync }
 import { dirname } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import { DATA_FILES, GENERATED_DIR, REPO, ROOT, download, latestRef } from './lib/upstream.js';
+import { DATA_FILES, REPO, download, latestRef } from './lib/upstream.js';
+import { GENERATED_DIR, ROOT } from './lib/paths.js';
 import { NAME_FIELD, joinCards } from '../tierlist/join-cards.js';
 
 const statsOf = ({ id, limit_break, char_name, type, group, rarity, ...stats }) => stats;

@@ -9,8 +9,8 @@
 //          clone in upstream/ (scripts/clone-upstream.js).
 
 export const REPO = 'Euophrys/umamusume-tierlist';
-export const ROOT = new URL('../../', import.meta.url).pathname;
-export const GENERATED_DIR = `${ROOT}generated/`;
+import { ROOT } from './paths.js';
+
 export const UPSTREAM_DIR = `${ROOT}upstream/`;
 
 // `local` is relative to generated/.

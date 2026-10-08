@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, CalendarRange, ListOrdered } from 'lucide-react';
+import { ArrowLeft, CalendarRange, ListOrdered, Settings } from 'lucide-react';
 import { getServerConfig } from '../tierlist/scenarios.js';
 import { scenarioOptions } from '../tierlist/index.js';
 import { SERVERS } from './servers.js';
@@ -7,9 +7,11 @@ import { serverName } from './i18n/index.js';
 import TierListPage from './pages/TierListPage.jsx';
 import BannersPage from './pages/BannersPage.jsx';
 import CardPage from './pages/CardPage.jsx';
+import SettingsPage from './pages/SettingsPage.jsx';
 import { useTranslation } from 'react-i18next';
 
 // Hash routes, so GitHub Pages never has to serve a deep link. These are the tabs.
+// Settings (src/settings.jsx) come through context, not props.
 const ROUTES = {
   '#/': { label: 'nav.tierList', title: 'tierList.title', Icon: ListOrdered, Page: TierListPage },
   '#/banners': {
@@ -19,6 +21,7 @@ const ROUTES = {
     Page: BannersPage,
     fullHeight: true,
   },
+  '#/settings': { label: 'nav.settings', title: 'settings.title', Icon: Settings, Page: SettingsPage },
 };
 // Detail pages (not tabs, no title; the top bar shows a back button): #/card/<id>.
 const CARD_ROUTE = /^#\/card\/(\d+)$/;
