@@ -20,3 +20,60 @@
   padding: 8px 10px;
   overflow-wrap: anywhere;
 }
+
+.setting + .setting {
+  margin-top: 28px;
+}
+
+/* ── About: version, disclaimer, credits ── */
+
+.about-app {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.about h3 {
+  margin: 16px 0 8px;
+  font-size: 0.95rem;
+}
+
+.credits {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.credits a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 12px;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.credits a:hover {
+  border-color: var(--accent);
+}
+
+.credits strong {
+  display: block;
+}
+
+.credits small {
+  display: block;
+  color: var(--muted);
+}
+
+.credits svg {
+  flex: none;
+  color: var(--muted);
+}

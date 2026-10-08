@@ -27,7 +27,7 @@ pnpm predict-gl            # predictions with the best one → generated/predict
   `{ "dates": [{ "release_jp": "2023-02-24", "release_gl": "2026-11-26", "note": "…" }],
      "banners": [{ "id": 30137, "start": "2026-10-14T22:00:00.000Z", "end": "2026-10-23T21:59:59.000Z", "source": "…" }] }`.
   A banner entry is a known date (its JP start → its Global start; a JP day's earliest wins), and
-  `banners.py` gives that predicted banner its exact dates with `confirmed: true` (the Banners page shows it
+  `banners.py` gives that predicted banner its exact dates with `confirmed: true` (the Timeline page shows it
   as "confirmed"); cards on a confirmed JP day get `confirmed: true` and no range.
   Predictions are linear between known dates and use the model's pace past the last one. Entries
   whose JP date Global has already released are ignored, so stale ones are harmless. In a backtest,
@@ -36,8 +36,12 @@ pnpm predict-gl            # predictions with the best one → generated/predict
   (start 22:00 UTC; same length as in JP, which Global keeps for 88% of card banners), with the JP art
   and English names where known → `generated/predicted_global_banners.json`, same shape as
   `data/global_banners.json` plus `predicted`, `jp_start`, `jp_end`, `margin_days`; ids Global already has
-  are left out. The Banners page
+  are left out. The Timeline page
   draws them on Global's calendar.
+- `scenarios.py` — predicted Global launches of Career scenarios, written into `data/scenarios.json` (start dates
+  `{ date, tag: 'predicted', lo, hi }`; confirmed / out dates from the news are never touched). A scenario's JP launch
+  day goes through the same model and known dates as cards: Aoharu, MANT and GL each launched on Global the same day
+  as the cards from their JP launch day.
 - `backtest.py` — fits on the batches Global had released at each point, predicts the rest.
 - `predict.py` — best model, ranges from the backtest's 90th-percentile error per JP day from the
   nearest fixed point (last release or known date). Deploys rerun it after the banner scrape.

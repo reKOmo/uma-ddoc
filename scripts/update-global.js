@@ -1,6 +1,7 @@
 // Brings Global's own banner + card release record (data/, see scripts/lib/global.js) up to date
 // with the official news (data/news/announcements.json, from `pnpm fetch-news`): every scout post's
-// banners become Global banners, and their cards Global releases. Idempotent: the news-made
+// banners become Global banners, their cards Global releases, and the Career scenario launches the
+// posts name go into data/scenarios.json (en_start_date, official names; see scripts/lib/scenarios.js). Idempotent: the news-made
 // entries are rebuilt from all posts each time, the seeded ones are left alone.
 //
 // Needs JP's banners (generated/jp_banners.json, `pnpm scrape-gametora`) for the banners' items,
@@ -12,6 +13,7 @@ import { appendFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { GENERATED_DIR, NEWS_DIR } from './lib/paths.js';
 import { BANNERS_FILE, CARDS_FILE, applyNews, englishNames, readJson, writeGlobal } from './lib/global.js';
+import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.js';
 import { ensureCards } from './update-cards.js';
 
 const NEWS_FILE = `${NEWS_DIR}announcements.json`;
@@ -33,6 +35,14 @@ export async function updateGlobal() {
   const result = applyNews({ posts, global, cards, jp, names: englishNames(global, jp, metadata) });
   writeGlobal(result);
 
+  // Scenarios: JP's side comes from scrape-gametora; nothing to apply the news to before it ran.
+  const stored = readScenarios();
+  const scenarios = applyScenarioNews({ posts, scenarios: stored.scenarios });
+  if (stored.scenarios.length) {
+    await fillColors(scenarios.scenarios); // a new scenario's cover colour (one image)
+    writeScenarios(stored.source, scenarios.scenarios);
+  }
+
   const before = new Map(
     [...global.characters, ...global.cards].filter((b) => b.news_url).map((b) => [b.id, `${b.start} ${b.end}`])
   );
@@ -53,9 +63,17 @@ export async function updateGlobal() {
   for (const [id, c] of released)
     lines.push(`- Card ${id} ${c.title_en ?? ''} out on Global ${c.release_gl}`.replace('  ', ' '));
   for (const s of result.skipped) lines.push(`- Skipped banner ${s.id} (${s.post}): ${s.reason}`);
+  for (const s of scenarios.changed) {
+    const start =
+      s.en_start_date && s.en_start_date.tag !== 'predicted'
+        ? `starts on Global ${when(s.en_start_date.date)} (${s.en_start_date.tag})`
+        : 'announced, no Global date yet';
+    lines.push(`- Scenario ${s.key}: "${s.full_en}" ${start}`);
+  }
+  for (const name of scenarios.unmatched) lines.push(`- Scenario "${name}" doesn't match any JP scenario`);
 
   const summary = lines.length ? `## Global repository (data/)\n\n${lines.join('\n')}\n` : '';
-  return { ...result, changed, released, summary };
+  return { ...result, changed, released, scenarios, summary };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

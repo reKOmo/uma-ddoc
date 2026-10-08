@@ -1,2 +1,338 @@
-# Umamusume news — 2026-10-08 11:33 UTC
-No new announcements.
+# Umamusume news — 2026-10-08 14:14 UTC
+
+153 new, 0 updated.
+
+## New: Banners
+
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1073/) — posted 2026-09-28
+  - Spotlight Scout Availability Period: 2026-09-28 22:00 UTC → 2026-10-12 21:59 UTC
+  - Trainees: ★★★ [Fiery Aqua Vitae] Vodka, ★★★ [Nuit Étoilée de Scarlet] Daiwa Scarlet
+  - Support cards: SSR [Glad Tidings] Narita Brian, SSR [Are You Merry?] Air Groove, R [Tracen Academy] Sakura Laurel
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1072/) — posted 2026-09-27
+  - Spotlight Scout Availability Period: 2026-09-28 22:00 UTC → 2026-10-12 21:59 UTC
+  - Trainees: ★★★ [Fiery Aqua Vitae] Vodka, ★★★ [Nuit Étoilée de Scarlet] Daiwa Scarlet
+  - Support cards: SSR [Glad Tidings] Narita Brian, SSR [Are You Merry?] Air Groove, R [Tracen Academy] Sakura Laurel
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1052/) — posted 2026-09-23
+  - Spotlight Scout Availability Period: 2026-09-23 22:00 UTC → 2026-10-04 21:59 UTC
+  - Trainees: ★★★ [Butterfly Sting] Wonder Acute
+  - Support cards: SSR [Danke Schön] Eishin Flash, SR [Stop, Prez!] Narita Top Road
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1051/) — posted 2026-09-22
+  - Spotlight Scout Availability Period: 2026-09-23 22:00 UTC → 2026-10-04 21:59 UTC
+  - Trainees: ★★★ [Butterfly Sting] Wonder Acute
+  - Support cards: SSR [Danke Schön] Eishin Flash, SR [Stop, Prez!] Narita Top Road
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1040/) — posted 2026-09-15
+  - Spotlight Scout Availability Period: 2026-09-15 22:00 UTC → 2026-09-23 21:59 UTC
+  - Trainees: ★★★ [Desperate Measures] Nakayama Festa
+  - Support cards: SSR [Dear Mr. C.B.] Mr. C.B., SSR [Piece of Mind] Super Creek
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1039/) — posted 2026-09-14
+  - Spotlight Scout Availability Period: 2026-09-15 22:00 UTC → 2026-09-23 21:59 UTC
+  - Trainees: ★★★ [Desperate Measures] Nakayama Festa
+  - Support cards: SSR [Dear Mr. C.B.] Mr. C.B., SSR [Piece of Mind] Super Creek
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1026/) — posted 2026-09-07
+  - Spotlight Scout Availability Period: 2026-09-07 22:00 UTC → 2026-09-19 21:59 UTC
+  - Trainees: ★★★ [Raging Thunder] Tamamo Cross, ★★★ [Golden Dream] Inari One
+  - Support cards: SSR [Run Forth! Dash On! Ever Forward!] Oguri Cap, SSR [Pious Flame, Heavens Scorcher] Yaeno Muteki
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1025/) — posted 2026-09-06
+  - Spotlight Scout Availability Period: 2026-09-07 22:00 UTC → 2026-09-19 21:59 UTC
+  - Trainees: ★★★ [Raging Thunder] Tamamo Cross, ★★★ [Golden Dream] Inari One
+  - Support cards: SSR [Run Forth! Dash On! Ever Forward!] Oguri Cap, SSR [Pious Flame, Heavens Scorcher] Yaeno Muteki
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1006/) — posted 2026-09-01
+  - Spotlight Scout Availability Period: 2026-09-01 22:00 UTC → 2026-09-10 21:59 UTC
+  - Trainees: ★★★ [Fluttertail Spirit] Yamanin Zephyr
+  - Support cards: SSR [A Win Foreshadowed] Symboli Kris S, SR [Go, Go! Tsuyoshi!] Tsurumaru Tsuyoshi, R [Tracen Academy] Symboli Kris S, R [Tracen Academy] Tanino Gimlet
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1005/) — posted 2026-08-31
+  - Spotlight Scout Availability Period: 2026-09-01 22:00 UTC → 2026-09-10 21:59 UTC
+  - Trainees: ★★★ [Fluttertail Spirit] Yamanin Zephyr
+  - Support cards: SSR [A Win Foreshadowed] Symboli Kris S, SR [Go, Go! Tsuyoshi!] Tsurumaru Tsuyoshi, R [Tracen Academy] Symboli Kris S, R [Tracen Academy] Tanino Gimlet
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/990/) — posted 2026-08-25
+  - Spotlight Scout Availability Period: 2026-08-25 22:00 UTC → 2026-09-02 21:59 UTC
+  - Trainees: ★★★ [Flare] Aston Machan
+  - Support cards: SSR [Sentimental Flare ♪] Maruzensky, SSR [Wave of Gratitude] Fine Motion
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/989/) — posted 2026-08-24
+  - Spotlight Scout Availability Period: 2026-08-25 22:00 UTC → 2026-09-02 21:59 UTC
+  - Trainees: ★★★ [Flare] Aston Machan
+  - Support cards: SSR [Sentimental Flare ♪] Maruzensky, SSR [Wave of Gratitude] Fine Motion
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/967/) — posted 2026-08-18
+  - Spotlight Scout Availability Period: 2026-08-18 22:00 UTC → 2026-08-30 21:59 UTC
+  - Trainees: ★★★ [Fanatic♡Jiangshi] Agnes Digital, ★★★ [Dot-o'-Lantern] Meisho Doto
+  - Support cards: SSR [Moonlit Devil ♪] Mejiro Palmer, SSR [Sunlit Angel ♪] Daitaku Helios
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/966/) — posted 2026-08-17
+  - Spotlight Scout Availability Period: 2026-08-18 22:00 UTC → 2026-08-30 21:59 UTC
+  - Trainees: ★★★ [Fanatic♡Jiangshi] Agnes Digital, ★★★ [Dot-o'-Lantern] Meisho Doto
+  - Support cards: SSR [Moonlit Devil ♪] Mejiro Palmer, SSR [Sunlit Angel ♪] Daitaku Helios
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/947/) — posted 2026-08-12
+  - Spotlight Scout Availability Period: 2026-08-12 22:00 UTC → 2026-08-21 21:59 UTC
+  - Trainees: ★★★ [Rocket☆Star] Seeking the Pearl
+  - Support cards: SSR [Ah, Such Majesty] Daiichi Ruby, SR [The 3rd Miracle] K.S.Miracle, R [Tracen Academy] Daiichi Ruby, R [Tracen Academy] K.S.Miracle
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/946/) — posted 2026-08-11
+  - Spotlight Scout Availability Period: 2026-08-12 22:00 UTC → 2026-08-21 21:59 UTC
+  - Trainees: ★★★ [Rocket☆Star] Seeking the Pearl
+  - Support cards: SSR [Ah, Such Majesty] Daiichi Ruby, SR [The 3rd Miracle] K.S.Miracle, R [Tracen Academy] Daiichi Ruby, R [Tracen Academy] K.S.Miracle
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/934/) — posted 2026-08-05
+  - Spotlight Scout Availability Period: 2026-08-05 22:00 UTC → 2026-08-13 21:59 UTC
+  - Trainees: ★★★ [Darl'n Snowflake] Yukino Bijin
+  - Support cards: SSR [My Umadol Way! ☆] Smart Falcon, SSR [Beyond This Shining Moment] Silence Suzuka
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/933/) — posted 2026-08-04
+  - Spotlight Scout Availability Period: 2026-08-05 22:00 UTC → 2026-08-13 21:59 UTC
+  - Trainees: ★★★ [Darl'n Snowflake] Yukino Bijin
+  - Support cards: SSR [My Umadol Way! ☆] Smart Falcon, SSR [Beyond This Shining Moment] Silence Suzuka
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/907/) — posted 2026-07-27
+  - Spotlight Scout Availability Period: 2026-07-27 22:00 UTC → 2026-08-10 21:59 UTC
+  - Trainees: ★★★ [Dream Deliverer] Winning Ticket, ★★★ [Difference Engineer] Narita Taishin
+  - Support cards: SSR [Teio-Oo-Oo!!!] Tokai Teio, SSR [TT Ignition!] Twin Turbo
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/906/) — posted 2026-07-26
+  - Spotlight Scout Availability Period: 2026-07-27 22:00 UTC → 2026-08-10 21:59 UTC
+  - Trainees: ★★★ [Dream Deliverer] Winning Ticket, ★★★ [Difference Engineer] Narita Taishin
+  - Support cards: SSR [Teio-Oo-Oo!!!] Tokai Teio, SSR [TT Ignition!] Twin Turbo
+- [New Career Scenario Celebration Pretty Derby and Support Card Scouts out now!](https://umamusume.com/news/899/) — posted 2026-07-22
+  - New Career Scenario Celebration Scout Availability Period: 2026-07-22 22:00 UTC → 2026-08-10 21:59 UTC
+  - Trainees: ★★★ [Twilight Triumph] Smart Falcon
+  - Support cards: SSR [From the Ground Up] Light Hello, SSR [Q≠0] Agnes Tachyon, R [Event Producer] Light Hello
+- [3★ Guaranteed and SSR Guaranteed 1.5-Year Anniversary Scouts now available!](https://umamusume.com/news/897/) — posted 2026-07-22
+  - Availability Period: 2026-07-22 22:00 UTC → 2026-08-27 21:59 UTC
+- [Up to 100 free scouts! Daily Free 10x Scout has begun!](https://umamusume.com/news/901/) — posted 2026-07-22
+  - Daily Free 10x Scout Event Availability Period: 2026-07-22 22:00 UTC → 2026-08-01 14:59 UTC
+- [New Career Scenario Celebration Pretty Derby and Support Card Scouts coming soon!](https://umamusume.com/news/898/) — posted 2026-07-21
+  - New Career Scenario Celebration Scout Availability Period: 2026-07-22 22:00 UTC → 2026-08-10 21:59 UTC
+  - Trainees: ★★★ [Twilight Triumph] Smart Falcon
+  - Support cards: SSR [From the Ground Up] Light Hello, SSR [Q≠0] Agnes Tachyon, R [Event Producer] Light Hello
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/890/) — posted 2026-07-16
+  - Spotlight Scout Availability Period: 2026-07-16 22:00 UTC → 2026-07-26 21:59 UTC
+  - Trainees: ★★★ [Eightfold☆Fortune] Copano Rickey, ★★★ [Eightfold☆Fortune] Copano Rickey's Unique Skill, "Luck Runs My Way," includes an effect described as "increase velocity and acceleration based on how many passive skills the skill user has in effect." This effect increases the user's velocity and acceleration based on the number of skills with a green icon in effect, such as "Firm Conditions ○" or "Pace Chaser Savvy ○," up to a maximum of six such skills.
+  - Support cards: SSR [It's on the House] Manhattan Cafe, SR [Bobbing with the Waves] Seiun Sky
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/889/) — posted 2026-07-15
+  - Spotlight Scout Availability Period: 2026-07-16 22:00 UTC → 2026-07-26 21:59 UTC
+  - Trainees: ★★★ [Eightfold☆Fortune] Copano Rickey
+  - Support cards: SSR [It's on the House] Manhattan Cafe, SR [Bobbing with the Waves] Seiun Sky
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/877/) — posted 2026-07-07
+  - Spotlight Scout Availability Period: 2026-07-07 22:00 UTC → 2026-07-16 21:59 UTC
+  - Trainees: ★★★ [Iron Ambition] Bamboo Memory
+  - Support cards: SSR [Warm Heart, Soft Steps] Ikuno Dictus, SSR [Hometown Cheers] Yukino Bijin
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/876/) — posted 2026-07-06
+  - Spotlight Scout Availability Period: 2026-07-07 22:00 UTC → 2026-07-16 21:59 UTC
+  - Trainees: ★★★ [Iron Ambition] Bamboo Memory
+  - Support cards: SSR [Warm Heart, Soft Steps] Ikuno Dictus, SSR [Hometown Cheers] Yukino Bijin
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/869/) — posted 2026-07-02
+  - Spotlight Scout Availability Period: 2026-07-02 22:00 UTC → 2026-07-14 21:59 UTC
+  - Trainees: ★★★ [Fair Lady of the Waves] Mejiro McQueen, ★★★ [RUN! RUIN! LAUNCHER!] Gold Ship, ★★★ [RUN! RUIN! LAUNCHER!] Gold Ship's Unique Skill, "564 Escapades," selects two rare skills at random from among those she currently possesses and activates them regardless of any activation conditions.
+  - Support cards: SSR [Sentimental Flare ♪] Maruzensky, SSR [Trusting the Dice] Nakayama Festa
+- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/868/) — posted 2026-07-01
+  - Spotlight Scout Availability Period: 2026-07-02 22:00 UTC → 2026-07-14 21:59 UTC
+  - Trainees: ★★★ [Fair Lady of the Waves] Mejiro McQueen, ★★★ [RUN! RUIN! LAUNCHER!] Gold Ship
+  - Support cards: SSR [Sentimental Flare ♪] Maruzensky, SSR [Trusting the Dice] Nakayama Festa
+- [3★ and SSR Guaranteed Head Start Scouts now available!](https://umamusume.com/news/122/) — posted 2025-06-26
+  - Availability Period: 2025-06-26 00:00 UTC → open-ended
+  - Trainees: ★★★ [Special Dreamer] Special Week, ★★★ [Innocent Silence] Silence Suzuka, ★★★ [Peak Joy] Tokai Teio, ★★★ [Formula R] Maruzensky, ★★★ [Starlight Beat] Oguri Cap, ★★★ [Wild Frontier] Taiki Shuttle, ★★★ [Frontline Elegance] Mejiro McQueen, ★★★ [Emperor's Path] Symboli Rudolf, ★★★ [Rosy Dreams] Rice Shower
+  - Support cards: SSR [The Brightest Star in Japan!] Special Week, SSR [Beyond This Shining Moment] Silence Suzuka, SSR [Dream Big!] Tokai Teio, SSR [Breakaway Battleship] Gold Ship, SSR [Wild Rider] Vodka, SSR [Fairest Fleur] Grass Wonder, SSR [Champion's Passion] El Condor Pasa, SSR [Foolproof Plan] Seiun Sky, SSR [Split the Sky, White Lightning!] Tamamo Cross, SSR [Wave of Gratitude] Fine Motion, SSR [Watch My Star Fly!] Ines Fujin, SSR [BNWinner!] Winning Ticket, SSR [7 More Centimeters] Air Shakur, SSR [Run(my)way] Gold City, SSR [Eat Fast! Yum Fast!] Sakura Bakushin O, SSR [Piece of Mind] Super Creek, SSR [My Umadol Way! ☆] Smart Falcon, SSR [Even the Littlest Bud] Nishino Flower, SSR [Double Carrot Punch!] Biko Pegasus, SSR [Tracen Reception] Tazuna Hayakawa
+
+## New: Events
+
+- [The story event Illuminate the Heart is here!](https://umamusume.com/news/1077/) — posted 2026-09-28
+  - Event Availability Period: 2026-09-28 22:00 UTC → 2026-10-12 21:59 UTC
+- [Holiday Celebration Part 1 now available!](https://umamusume.com/news/1079/) — posted 2026-09-28
+  - Availability Period: 2026-09-28 22:00 UTC → 2026-10-29 21:59 UTC
+- [The event Aim for the Stars! Dream Team is here!](https://umamusume.com/news/1055/) — posted 2026-09-27
+  - Event Availability Period: 2026-09-27 22:00 UTC → 2026-10-04 21:59 UTC
+- [The race event Champions Meeting: Sagittarius Cup is coming in early October!](https://umamusume.com/news/1065/) — posted 2026-09-26
+  - Event Availability Period: 2026-10-07 22:00 UTC → open-ended
+- [The event Aim for the Stars! Dream Team is coming soon!](https://umamusume.com/news/1054/) — posted 2026-09-26
+  - Availability Period: 2026-09-27 22:00 UTC → 2026-10-04 21:59 UTC
+- [The story event Illuminate the Heart is coming soon!](https://umamusume.com/news/1076/) — posted 2026-09-24
+  - Event Availability Period: 2026-09-28 22:00 UTC → 2026-10-12 21:59 UTC
+- [The race event Champions Meeting: Scorpio Cup is here!](https://umamusume.com/news/1050/) — posted 2026-09-19
+  - Event Availability Period: 2026-09-19 22:00 UTC → 2026-09-25 21:59 UTC
+- [The story event "Hark Back, Run Forward" has ended!](https://umamusume.com/news/1024/) — posted 2026-09-19
+  - Reward Collection Period: 2026-09-19 22:00 UTC → 2026-09-22 21:59 UTC
+- [The league selection period for the Champions Meeting: Scorpio Cup has begun!](https://umamusume.com/news/1049/) — posted 2026-09-15
+  - Event Availability Period: 2026-09-19 22:00 UTC → 2026-09-25 21:59 UTC
+- [Fall G1 Celebration Part 2 now available!](https://umamusume.com/news/1001/) — posted 2026-09-08
+- [The story event "Hark Back, Run Forward" is here!](https://umamusume.com/news/1023/) — posted 2026-09-07
+  - Event Availability Period: 2026-09-07 22:00 UTC → 2026-09-19 21:59 UTC
+- [The race event Champions Meeting: Scorpio Cup is coming in mid-September!](https://umamusume.com/news/997/) — posted 2026-09-04
+  - Event Availability Period: 2026-09-15 22:00 UTC → open-ended
+- [The story event "Hark Back, Run Forward" is coming soon!](https://umamusume.com/news/1022/) — posted 2026-09-03
+  - Event Availability Period: 2026-09-07 22:00 UTC → 2026-09-19 21:59 UTC
+- [A Legend Race is here!](https://umamusume.com/news/1021/) — posted 2026-09-03
+  - Availability Period: 2026-09-03 22:00 UTC → 2026-09-06 14:59 UTC
+- [Increased Daily Race Tickets event coming soon!](https://umamusume.com/news/1018/) — posted 2026-09-02
+  - Availability Period: 2026-09-03 15:00 UTC → 2026-09-17 14:59 UTC
+- [Let's Go! Uma Outing now available!](https://umamusume.com/news/1010/) — posted 2026-09-01
+  - Event Availability Period: 2026-09-01 22:00 UTC → 2026-09-10 14:59 UTC
+- [A Legend Race is coming soon!](https://umamusume.com/news/1020/) — posted 2026-08-31
+  - Availability Period: 2026-09-03 22:00 UTC → 2026-09-06 14:59 UTC
+- [Let's Go! Uma Outing coming soon!](https://umamusume.com/news/1009/) — posted 2026-08-31
+  - Event Availability Period: 2026-09-01 22:00 UTC → 2026-09-10 14:59 UTC
+- [The story event "Days Flying By" has ended!](https://umamusume.com/news/974/) — posted 2026-08-30
+- [The race event Champions Meeting: Libra Cup is here!](https://umamusume.com/news/992/) — posted 2026-08-28
+  - Event Availability Period: 2026-08-28 22:00 UTC → 2026-09-03 21:59 UTC
+- [A special Umayuru Celebration has begun!](https://umamusume.com/news/994/) — posted 2026-08-26
+  - Gift Period: No time limit
+- [The league selection period for the Champions Meeting: Libra Cup has begun!](https://umamusume.com/news/991/) — posted 2026-08-25
+  - Event Availability Period: 2026-08-28 22:00 UTC → 2026-09-03 21:59 UTC
+- [1.5-Year Anniversary Celebrations ending soon!](https://umamusume.com/news/963/) — posted 2026-08-23
+- [The event "Trainer Aptitude Test" has ended!](https://umamusume.com/news/957/) — posted 2026-08-21
+- [The story event "Days Flying By" is here!](https://umamusume.com/news/973/) — posted 2026-08-18
+  - Event Availability Period: 2026-08-18 22:00 UTC → 2026-08-30 21:59 UTC
+- [The race event Champions Meeting: Libra Cup is coming in late August!](https://umamusume.com/news/945/) — posted 2026-08-15
+  - Event Availability Period: 2026-08-25 22:00 UTC → open-ended
+- [The story event "Days Flying By" is coming soon!](https://umamusume.com/news/972/) — posted 2026-08-14
+  - Event Availability Period: 2026-08-18 22:00 UTC → 2026-08-30 21:59 UTC
+- [A Legend Race is here!](https://umamusume.com/news/954/) — posted 2026-08-13
+  - Race Availability Period: 2026-08-13 22:00 UTC → 2026-08-16 14:59 UTC
+- [The event "Trainer Aptitude Test" is here!](https://umamusume.com/news/956/) — posted 2026-08-12
+  - Event Availability Period: 2026-08-12 22:00 UTC → 2026-08-21 21:59 UTC
+- [Fall G1 Celebration Part 1 now available!](https://umamusume.com/news/948/) — posted 2026-08-12
+  - Availability Period: Sprinters Stakes Missions
+- [The event "Trainer Aptitude Test" is coming soon!](https://umamusume.com/news/955/) — posted 2026-08-11
+  - Availability Period: 2026-08-12 22:00 UTC → 2026-08-21 21:59 UTC
+- [The story event "Wings of Steam and Steel" has ended!](https://umamusume.com/news/916/) — posted 2026-08-10
+- [A Legend Race is coming soon!](https://umamusume.com/news/953/) — posted 2026-08-09
+  - Race Availability Period: 2026-08-13 22:00 UTC → 2026-08-16 14:59 UTC
+- [The race event Champions Meeting: Virgo Cup is here!](https://umamusume.com/news/936/) — posted 2026-08-08
+  - Event Availability Period: 2026-08-08 22:00 UTC → 2026-08-14 21:59 UTC
+- [The league selection period for the Champions Meeting: Virgo Cup has begun!](https://umamusume.com/news/935/) — posted 2026-08-05
+  - Event Availability Period: 2026-08-08 22:00 UTC → 2026-08-14 21:59 UTC
+- [The story event "Wings of Steam and Steel" is here!](https://umamusume.com/news/915/) — posted 2026-07-27
+  - Event Availability Period: 2026-07-27 22:00 UTC → 2026-08-10 21:59 UTC
+- [1.5-Year Anniversary Celebration Part 3 now available!](https://umamusume.com/news/917/) — posted 2026-07-27
+  - Sale Period: 2026-07-27 22:00 UTC → 2026-08-24 14:59 UTC
+- [1.5-Year Anniversary Celebration Part 2 items now available on the Cygames WebStore!](https://umamusume.com/news/100084/) — posted 2026-07-27
+  - Sale Availability Period: 2026-07-27 22:00 UTC → 2026-08-24 14:59 UTC
+- [Umamusume: Pretty Derby Brighter Together: Our Grand Concert Support Event](https://umamusume.com/news/200014/) — posted 2026-07-27
+  - Event Period: 2026-07-27 00:00 UTC → 2026-08-02 23:59 UTC
+- [The story event "Wings of Steam and Steel" is coming soon!](https://umamusume.com/news/914/) — posted 2026-07-23
+  - Event Availability Period: 2026-07-27 22:00 UTC → 2026-08-10 21:59 UTC
+- [Umamusume: Pretty Derby Brighter Together: Our Grand Concert Celebration Event](https://umamusume.com/news/200013/) — posted 2026-07-23
+  - Event Period: 2026-07-23 00:00 UTC → 2026-07-26 23:59 UTC
+- [The race event Champions Meeting: Virgo Cup is coming in early August!](https://umamusume.com/news/908/) — posted 2026-07-22
+  - Event Availability Period: 2026-08-05 22:00 UTC → open-ended
+- [1.5-Year Anniversary Celebration Part 2 now available!](https://umamusume.com/news/902/) — posted 2026-07-22
+  - Availability Period: 2026-07-22 22:00 UTC → 2026-08-01 14:59 UTC
+- [1.5-Year Anniversary Celebration items now available on the Cygames WebStore!](https://umamusume.com/news/100083/) — posted 2026-07-22
+  - Sale Availability Period: 2026-07-22 22:00 UTC → 2026-08-28 14:59 UTC
+- [Umamusume: Pretty Derby Brighter Together: Our Grand Concert Release Support Event](https://umamusume.com/news/200012/) — posted 2026-07-20
+  - Event Period: 2026-07-20 00:00 UTC → 2026-07-25 23:59 UTC
+- [Unveiling the Latest Details on Umamusume – 7th EVENT WORLD TOUR: THE STAGE in LOS ANGELES](https://umamusume.com/news/200011/) — posted 2026-07-16
+- [The race event Champions Meeting: Leo Cup is here!](https://umamusume.com/news/881/) — posted 2026-07-15
+  - Event Availability Period: 2026-07-15 22:00 UTC → 2026-07-21 21:59 UTC
+- [The story event "Make a Splash! Summer Showdown! ☆" has ended!](https://umamusume.com/news/867/) — posted 2026-07-14
+- [1.5-Year Anniversary Celebration Part 1 now available!](https://umamusume.com/news/887/) — posted 2026-07-14
+  - Availability Period: 2026-07-14 22:00 UTC → 2026-08-27 21:59 UTC
+- [The league selection period for the Champions Meeting: Leo Cup has begun!](https://umamusume.com/news/880/) — posted 2026-07-12
+  - Event Availability Period: 2026-07-15 22:00 UTC → 2026-07-21 21:59 UTC
+- [The event "Aim for the Stars! Dream Team" has ended!](https://umamusume.com/news/854/) — posted 2026-07-03
+- [The story event "Make a Splash! Summer Showdown! ☆" is here!](https://umamusume.com/news/866/) — posted 2026-07-02
+  - Event Availability Period: 2026-07-02 22:00 UTC → 2026-07-14 21:59 UTC
+- [The race event Champions Meeting: Leo Cup is coming in mid-July!](https://umamusume.com/news/862/) — posted 2026-07-01
+  - Event Availability Period: 2026-07-12 22:00 UTC → open-ended
+- [Umamusume: Pretty Derby Golshi Week Celebration Event](https://umamusume.com/news/200010/) — posted 2026-04-27
+  - Event Period: 2026-04-27 00:00 UTC → 2026-05-03 23:59 UTC
+- [Umamusume: Pretty Derby Glorious Golden Vinyl Event](https://umamusume.com/news/200009/) — posted 2026-04-07
+  - Event Period: 2026-04-07 00:00 UTC → 2026-04-13 23:59 UTC
+- [Umamusume: Pretty Derby Trackblazer: Start of the Climax Celebration Event](https://umamusume.com/news/200008/) — posted 2026-03-13
+  - Event Period: 2026-03-13 00:00 UTC → 2026-03-16 23:59 UTC
+- [Umamusume: Pretty Derby Trackblazer: Start of the Climax Release Support Event](https://umamusume.com/news/200007/) — posted 2026-03-09
+  - Event Period: 2026-03-09 00:00 UTC → 2026-03-14 23:59 UTC
+- [Umamusume: Pretty Derby Unity Cup Celebration Event](https://umamusume.com/news/200006/) — posted 2025-11-06
+  - Event Period: 2025-11-06 00:00 UTC → 2025-11-10 23:59 UTC
+- [Umamusume: Pretty Derby Unity Cup Support Event](https://umamusume.com/news/200005/) — posted 2025-10-31
+  - Event Period: 2025-10-31 00:00 UTC → 2025-11-06 23:59 UTC
+- [Umamusume: Pretty Derby ― 6th EVENT: The New Frontier Giveaway](https://umamusume.com/news/200004/) — posted 2025-10-06
+  - Event Period: 2025-10-06 00:00 UTC → 2025-10-09 23:59 UTC
+- [Steam Release Celebration Event!](https://umamusume.com/news/100009/) — posted 2025-06-26
+- [Umamusume: Pretty Derby English Launch Celebration Event](https://umamusume.com/news/200001/) — posted 2025-06-26
+  - Event Period: 2025-06-26 00:00 UTC → 2025-07-10 23:59 UTC
+
+## New: Game updates
+
+- [New Functions and Songs coming soon to the Uma Jukebox!](https://umamusume.com/news/1046/) — posted 2026-09-12
+- [Check out all the latest updates!](https://umamusume.com/news/1029/) — posted 2026-09-06
+- [Check out all the latest updates!](https://umamusume.com/news/979/) — posted 2026-08-17
+- [Check out all the latest updates!](https://umamusume.com/news/904/) — posted 2026-07-21
+- [Check out all the latest updates!](https://umamusume.com/news/871/) — posted 2026-07-02
+- [Guidelines for Visiting Stables](https://umamusume.com/news/200003/) — posted 2025-07-10
+- [Check out all the launch countdown illustrations!](https://umamusume.com/news/146/) — posted 2025-07-03
+- [A Letter from the Developers](https://umamusume.com/news/200002/) — posted 2025-06-26
+
+## New: Other news
+
+- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/1004/) — posted 2026-09-28
+- [Updates to Recommended Devices](https://umamusume.com/news/100101/) — posted 2026-08-28
+- [Transfer Requests now available!](https://umamusume.com/news/1058/) — posted 2026-09-24
+  - Availability Period: 2026-09-24 22:00 UTC → 2026-09-28 21:59 UTC
+- [Transfer Requests coming soon!](https://umamusume.com/news/1057/) — posted 2026-09-23
+  - Availability Period: 2026-09-24 22:00 UTC → 2026-09-28 21:59 UTC
+- [Check out Sakura Chiyono O's SUPER KEEN ADVICE!](https://umamusume.com/news/1064/) — posted 2026-09-23
+- [Special Snowy Integrity outfits!](https://umamusume.com/news/1047/) — posted 2026-09-15
+  - Gift Period: 2026-09-15 22:00 UTC → open-ended
+- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/1003/) — posted 2026-09-15
+  - Availability Period: 2026-09-15 15:00 UTC → 2026-09-17 14:59 UTC
+- [New Functions and Songs added to the Uma Jukebox!](https://umamusume.com/news/1048/) — posted 2026-09-15
+- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/1002/) — posted 2026-09-13
+- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/952/) — posted 2026-09-06
+- [Transfer Requests now available!](https://umamusume.com/news/1016/) — posted 2026-09-01
+  - Availability Period: 2026-09-01 22:00 UTC → 2026-09-05 21:59 UTC
+- [Transfer Requests coming soon!](https://umamusume.com/news/1015/) — posted 2026-08-31
+  - Availability Period: 2026-09-01 22:00 UTC → 2026-09-05 21:59 UTC
+- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/951/) — posted 2026-08-30
+- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/950/) — posted 2026-08-23
+- [Issue with Independent Training](https://umamusume.com/news/100100/) — posted 2026-08-13
+- [New Team Ranks Added](https://umamusume.com/news/969/) — posted 2026-08-18
+- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/949/) — posted 2026-08-17
+- [Transfer Requests now available!](https://umamusume.com/news/959/) — posted 2026-08-12
+  - Availability Period: 2026-08-12 22:00 UTC → 2026-08-16 21:59 UTC
+- [Transfer Requests coming soon!](https://umamusume.com/news/958/) — posted 2026-08-11
+  - Availability Period: 2026-08-12 22:00 UTC → 2026-08-16 21:59 UTC
+- [Regarding the Three Cheers for Trainer! August Giveaway Gift Contents](https://umamusume.com/news/100099/) — posted 2026-08-06
+- [Timing of Addition of Future Trainees as Singers](https://umamusume.com/news/943/) — posted 2026-08-05
+- [List of Known Issues](https://umamusume.com/news/155/) — posted 2025-06-26
+- [Issue with Abnormal Attribute Gains in Independent Training](https://umamusume.com/news/100098/) — posted 2026-07-23
+- [Issue with Yaeno Muteki's Independent Training](https://umamusume.com/news/100097/) — posted 2026-07-23
+- [The new Career scenario "Brighter Together! Our Grand Concert" is here!](https://umamusume.com/news/905/) — posted 2026-07-22
+- [Maintenance Announcement](https://umamusume.com/news/100089/) — posted 2026-07-21
+- [Career Mode Race Rewards Adjustment Announcement](https://umamusume.com/news/100094/) — posted 2026-07-22
+- [Update Announcement](https://umamusume.com/news/100093/) — posted 2026-07-22
+- [Introducing the Independent Training Feature](https://umamusume.com/news/100087/) — posted 2026-07-22
+- [Special song present: "Ms. Victoria"!](https://umamusume.com/news/1011/) — posted 2026-07-21
+  - Gift Period: 2026-07-21 22:00 UTC → open-ended
+- [Transfer Requests now available!](https://umamusume.com/news/894/) — posted 2026-07-20
+  - Availability Period: 2026-07-20 22:00 UTC → 2026-07-26 21:59 UTC
+- [Transfer Requests coming soon!](https://umamusume.com/news/893/) — posted 2026-07-19
+  - Availability Period: 2026-07-20 22:00 UTC → 2026-07-26 21:59 UTC
+- [Maintenance Announcement](https://umamusume.com/news/100085/) — posted 2026-07-13
+- [New racecourses and Dirt races now available!](https://umamusume.com/news/896/) — posted 2026-07-14
+- [New racecourses and Dirt races coming soon!](https://umamusume.com/news/895/) — posted 2026-07-11
+- [Issue with the Unique Perk of [Sunny Passion ♪] Haru Urara](https://umamusume.com/news/100096/) — posted 2026-07-08
+- [Issue with Career Events](https://umamusume.com/news/100095/) — posted 2026-07-06
+- [Issue with the Skill "See Ya Later!" in Career](https://umamusume.com/news/100092/) — posted 2026-07-02
+- [Career Maintenance Announcement](https://umamusume.com/news/100091/) — posted 2026-07-02
+- [Maintenance Announcement](https://umamusume.com/news/100080/) — posted 2026-07-01
+- [Update Announcement](https://umamusume.com/news/100081/) — posted 2026-07-01
+- [Regarding Google Play Points](https://umamusume.com/news/498/) — posted 2026-01-19
+- [Regarding Connection Issues](https://umamusume.com/news/100028/) — posted 2025-07-30
+- [A Gift to Celebrate 150,000 Members on the Official Discord!](https://umamusume.com/news/100027/) — posted 2025-07-29
+- [A Gift to Celebrate 150,000 Followers on X!](https://umamusume.com/news/100026/) — posted 2025-07-25
+- [Error Code 100 issue](https://umamusume.com/news/100017/) — posted 2025-07-09
+- [Update Announcement [7:00 a.m., Jun 30 (UTC)]](https://umamusume.com/news/100011/) — posted 2025-06-30
+- [Error Code 102 issue](https://umamusume.com/news/100013/) — posted 2025-06-26
+- [Issue with Scout feature](https://umamusume.com/news/100012/) — posted 2025-06-26
+- [Only once each!<br>Rookie Starter Packs are now available!](https://umamusume.com/news/100001/) — posted 2025-06-26
+  - Purchase Period: 2025-06-26 00:30 UTC → open-ended
+- [Umamusume: Pretty Derby now available on Google Play Games (Beta) and Steam!](https://umamusume.com/news/100002/) — posted 2025-06-26
+- [Check out "Sakura Bakushin O's BAKUSHIN ADVICE!"](https://umamusume.com/news/128/) — posted 2025-06-26
+
+## Global repository (data/)
+
+- Scenario Brighter Together Our Grand Concert (GL): "Brighter Together! Our Grand Concert" starts 2026-07-22 22:00 UTC
+
+## Global repository (data/)
+
+- Scenario Grand Concert (GL): "Brighter Together! Our Grand Concert" starts 2026-07-22 22:00 UTC
+
+## Global repository (data/)
+
+- Scenario GL: "Brighter Together! Our Grand Concert" starts on Global 2026-07-22 22:00 UTC
+
+## Global repository (data/)
+
+- Scenario GL: "Brighter Together! Our Grand Concert" starts on Global 2026-07-22 22:00 UTC (out)

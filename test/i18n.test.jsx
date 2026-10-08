@@ -55,6 +55,10 @@ describe('catalogs', () => {
       ...Object.keys(SERVERS).map((s) => `server.${s}`),
       ...Object.keys(COMBINED).map((k) => `scenario.${k}`),
       ...['live', 'upcoming', 'ended', 'predicted', 'confirmed'].map((s) => `banners.status.${s}`),
+      ...['out', 'confirmed', 'predicted'].map((s) => `banners.scenarioTag.${s}`),
+      ...['out', 'confirmed', 'predicted'].map((s) => `scenarioPage.status.${s}`),
+      'scenarioPage.link.gametora',
+      ...['gametora', 'tierList'].flatMap((k) => [`settings.credit.${k}.name`, `settings.credit.${k}.description`]),
       ...[1, 2, 3].map((r) => `rarity.${r}`),
     ];
     expect(dynamic.filter((key) => !keys.has(key))).toEqual([]);

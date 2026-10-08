@@ -1,0 +1,151 @@
+/* The app's dropdown (Dropdown.jsx): a field with its label, a button, and a listbox popup under it. */
+.dropdown {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.dropdown-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 8px;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+
+.dropdown-button:hover {
+  background: color-mix(in srgb, var(--accent) 6%, var(--panel));
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+
+.dropdown-button[aria-expanded="true"] {
+  border-color: var(--accent);
+}
+
+.dropdown-chevron {
+  flex: none;
+  transition: transform 0.15s;
+}
+
+.dropdown-button[aria-expanded="true"] .dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+.dropdown-button .dropdown-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* e.g. scenarios not launched on the selected server yet: in the list, and on the button. */
+.italic .dropdown-label {
+  font-style: italic;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+  min-width: 100%;
+  max-height: 60vh;
+  margin: 4px 0 0;
+  padding: 4px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.dropdown-list:focus {
+  outline: none;
+}
+
+.dropdown-group {
+  margin-top: 4px;
+  padding: 8px 10px 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 6px 10px;
+  color: var(--text);
+  white-space: nowrap;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+/* Hover and the keyboard's active option look the same (pointer movement sets the active one). */
+.dropdown-option:hover,
+.dropdown-option.active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+}
+
+.dropdown-option[aria-selected="true"] {
+  font-weight: 600;
+}
+
+/* The tick only shows on the selected option; it keeps its space so labels line up. */
+.dropdown-check {
+  flex: none;
+  visibility: hidden;
+  color: var(--accent);
+}
+
+.dropdown-option[aria-selected="true"] .dropdown-check {
+  visibility: visible;
+}
+
+.dropdown-note {
+  margin-left: auto;
+  padding-left: 12px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* Right-aligned like .dropdown-note (an option has one or the other). */
+.dropdown-badge {
+  margin-left: auto;
+  padding: 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+/* Can't be chosen (e.g. scenarios the tier list doesn't rank yet): greyed out, no highlight. */
+.dropdown-option.disabled {
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.6;
+}
+
+.dropdown-option.disabled:hover {
+  background: none;
+}

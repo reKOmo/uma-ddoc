@@ -5,8 +5,10 @@
 // A record is
 //   { id, url, label, kind, title, posted, updated, from, to, image,
 //     periods: [{ heading, text, start, end }], banners: [{ id, start, end }],
-//     trainees: [{ stars, title, name }], cards: [{ rarity, title, name }], message }
-// `banners` are the scouts a post announces, by gacha id (see gachaBanners).
+//     trainees: [{ stars, title, name }], cards: [{ rarity, title, name }],
+//     scenarios: [{ full, start }], message }
+// `banners` are the scouts a post announces, by gacha id (see gachaBanners); `scenarios` the new
+// Career scenarios it names (see scenarioMentions).
 // `kind` is banner / event / update / other (a heuristic on title + headings).
 // Dates are ISO strings in UTC, or null. `message` is the post's HTML as served.
 
@@ -117,6 +119,31 @@ function featured(lines) {
   return { cards: [...cards.values()], trainees: [...trainees.values()] };
 }
 
+// New Career scenarios a post names: 'the new Career scenario "X" has been added', 'A new career
+// scenario, titled "X," will be added … at 10:00 p.m., Jul 22, 2026 (UTC)', 'the new "X" Career
+// Scenario'. Only these phrasings: plain "scenario" shows up all over (known issues, scout fine print).
+// start: the time in the same sentence when it says the scenario is added / begins, else null.
+const SCENARIO_RE = [
+  /new career scenario,?\s*(?:titled\s*)?["“]([^"”]+?)[\s,]*["”]/i,
+  /new\s*["“]([^"”]+?)[\s,]*["”]\s*career scenario/i,
+];
+
+function scenarioMentions(lines, year) {
+  const found = new Map();
+  for (const line of lines) {
+    const match = SCENARIO_RE.map((re) => line.match(re)).find(Boolean);
+    if (!match) continue;
+    const full = match[1].trim();
+    const dated = /\b(added|begins?|launch(es|ed)?)\b/i.test(line) && /\d{1,2}:\d{2}\s*[ap]\.?m/i.test(line);
+    const start = dated ? parsePeriod(line, year).start : null;
+    const key = full.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const mention = found.get(key) ?? { full, start: null };
+    if (start && !mention.start) mention.start = start;
+    found.set(key, mention);
+  }
+  return [...found.values()];
+}
+
 const ISSUE_RE = /\b(issue|issues|maintenance|bug|error|compensation)\b/i;
 const EVENT_RE = /\bevent\b|champions meeting|legend race|league selection|celebration|campaign/i;
 
@@ -157,6 +184,7 @@ export function toRecord(item, detail) {
     periods,
     banners: gachaBanners(all, periods),
     ...featured(toLines(html)),
+    scenarios: scenarioMentions([decodeEntities(item.title), ...toLines(html)], year),
     message: html,
   };
   record.kind = classify({ title: record.title, label: item.announce_label, periods });

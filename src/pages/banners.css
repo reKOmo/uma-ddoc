@@ -72,7 +72,7 @@
   background-image: repeating-linear-gradient(90deg, var(--gridline) 0 1px, transparent 1px var(--day));
 }
 
-/* Stacking: today / Global lines (1) < lanes (2) < section labels (3) < axis (4). */
+/* Stacking: scenario / today / Global lines (1) < lanes (2) < section labels (3) < axis (4). */
 .axis {
   position: sticky;
   top: 0;
@@ -81,9 +81,139 @@
   border-bottom: 1px solid var(--border);
 }
 
+/* Rows: scenarios (32) + months (24) + days (22) + 1px border; marks below the axis use this. */
+.timeline-canvas {
+  --axis-height: 79px;
+}
+
+.axis-scenarios,
 .axis-months,
 .axis-days {
   position: relative;
+}
+
+/* Which Career scenario runs when: one segment per scenario in its cover's main colour
+   (--scenario-color), its label kept in view while scrolling. `overflow: clip`, not hidden: hidden
+   would make each segment its own scroll container, and the sticky label would stick to that. */
+.axis-scenarios {
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: clip;
+  border-bottom: 1px solid var(--border);
+}
+
+.scenario {
+  --scenario-color: var(--muted);
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  display: flex;
+  align-items: center;
+  overflow: clip;
+  font-size: 0.8rem;
+  color: var(--text);
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--scenario-color) 35%, var(--panel));
+  border: 1px solid var(--scenario-color);
+  border-radius: 4px;
+}
+
+/* The one running now: its colour in full. */
+.scenario.current {
+  font-weight: 600;
+  background: var(--scenario-color);
+}
+
+.scenario.current.ink-dark {
+  color: var(--ink-dark);
+}
+
+.scenario.current.ink-light {
+  color: var(--ink-light);
+}
+
+/* Not launched yet: confirmed is faint, predicted faint and dashed. */
+.scenario.tag-confirmed,
+.scenario.tag-predicted {
+  background: color-mix(in srgb, var(--scenario-color) 12%, var(--panel));
+}
+
+.scenario.tag-predicted {
+  border-style: dashed;
+}
+
+/* The whole segment opens the scenario's page. */
+.scenario-link {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.scenario:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 0 1px var(--scenario-color);
+}
+
+.scenario-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+/* The arrow says "opens a page". Phones: at the right edge, sticky like the label. Desktop (below):
+   right after the name, inside the sticky label, so it moves with it. */
+.scenario-arrow {
+  flex: none;
+  opacity: 0.7;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+
+.scenario:hover .scenario-arrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.scenario-arrow.edge {
+  position: sticky;
+  right: 4px;
+  margin-left: auto;
+}
+
+.scenario-arrow.inline {
+  display: none;
+}
+
+.scenario-label {
+  position: sticky;
+  left: 0;
+  max-width: 100%;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.scenario-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 768px) {
+  .scenario-arrow.inline {
+    display: block;
+  }
+
+  .scenario-arrow.edge {
+    display: none;
+  }
 }
 
 .axis-months {
@@ -131,6 +261,22 @@
   border-radius: 4px;
 }
 
+/* A Career scenario begins: a thin line in its colour (dashed while only predicted), under the lanes. */
+.scenario-line {
+  --scenario-color: var(--muted);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 0;
+  border-left: 2px solid color-mix(in srgb, var(--scenario-color) 70%, transparent);
+  pointer-events: none;
+}
+
+.scenario-line.tag-predicted {
+  border-left-style: dashed;
+}
+
 .today-line {
   position: absolute;
   top: 0;
@@ -144,7 +290,7 @@
 
 /* On JP's calendar: where Global is now. The window is the stretch of JP's history it's going through
    (from the JP banner it's running to its next banner's); the dashed line is the estimate within it,
-   dashed so it never reads as today. Its tag sits just under the axis (24 + 22 + 1px border). */
+   dashed so it never reads as today. Its tag sits just under the axis (--axis-height). */
 .global-window {
   position: absolute;
   top: 0;
@@ -175,7 +321,7 @@
 .global-line::before {
   content: attr(data-label);
   position: absolute;
-  top: 51px;
+  top: calc(var(--axis-height) + 4px);
   left: 2px;
   padding: 1px 6px;
   font-size: 0.7rem;

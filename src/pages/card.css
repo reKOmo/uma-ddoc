@@ -164,12 +164,9 @@
   color: var(--muted);
 }
 
-.history-controls select {
+.history-controls .dropdown-button {
+  min-width: 120px;
   min-height: 36px;
-  padding: 4px 8px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
 }
 
 .history-controls button {

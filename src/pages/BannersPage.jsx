@@ -5,6 +5,8 @@ import { SERVERS } from '../servers.js';
 import { STAT_OF_TYPE, TIER_NAMES, cardRanks } from '../tiers.js';
 import { DAY, buildTimeline } from '../timeline.js';
 import { globalProgress } from '../globalProgress.js';
+import { scenarioSegments } from '../scenarioStrip.js';
+import scenarioData from '../../data/scenarios.json' with { type: 'json' };
 import { useDragScroll } from '../useDragScroll.js';
 import { Trans, useTranslation } from 'react-i18next';
 import { timeZoneOptions, useSettings } from '../settings.jsx';
@@ -156,6 +158,9 @@ export default function BannersPage({ server, scenario }) {
     el.scrollTo({ left: day * px - el.clientWidth / 2, behavior: 'smooth' });
   }
 
+  // The Career scenario strip at the top: which scenario runs when on this server.
+  const scenarios = useMemo(() => scenarioSegments(scenarioData.scenarios, server), [server]);
+
   // Where Global is in JP's history, as timeline days: the window it's going through and the estimate.
   const globalMark = useMemo(() => {
     if (server !== 'jp' || !timeline || !globalBanners) return null;
@@ -224,6 +229,44 @@ export default function BannersPage({ server, scenario }) {
             style={{ width: `calc(${timeline.days * px}px + 50vw)`, '--day': `${px}px` }}
           >
             <div className="axis">
+              <ul className="axis-scenarios" aria-label={t('banners.scenarios')}>
+                {scenarios.map((s) => {
+                  const from = timeline.at(s.start);
+                  const to = s.end === null ? timeline.days : timeline.at(s.end);
+                  if (to <= 0 || from >= timeline.days) return null;
+                  const dates =
+                    s.end === null
+                      ? t('banners.since', { date: format.long(s.start) })
+                      : dateRange({ start: s.start, end: s.end }, format.long);
+                  return (
+                    <li
+                      key={s.key}
+                      className={`scenario tag-${s.tag}${s.current ? ' current' : ''}${s.ink ? ` ink-${s.ink}` : ''}`}
+                      style={{
+                        left: Math.max(from, 0) * px,
+                        width: (to - Math.max(from, 0)) * px,
+                        ...(s.color && { '--scenario-color': s.color }),
+                      }}
+                      title={t('banners.scenarioTitle', {
+                        name: s.name,
+                        status: t(`banners.scenarioTag.${s.tag}`),
+                        dates,
+                      })}
+                    >
+                      <a className="scenario-link" href={`#/scenario/${s.key}`}>
+                        {/* The arrow: right after the name on desktop (moves with it), at the right edge on phones. */}
+                        <span className="scenario-label">
+                          <span className="scenario-name">
+                            <strong>{scenarioName(s.key)}</strong> {s.name}
+                          </span>
+                          <ChevronRight className="scenario-arrow inline" size={16} aria-hidden="true" />
+                        </span>
+                        <ChevronRight className="scenario-arrow edge" size={16} aria-hidden="true" />
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
               <div className="axis-months">
                 {timeline.months.map(({ date, day }) => (
                   <span key={day} className={format.isJanuary(date) ? 'tick year' : 'tick'} style={{ left: day * px }}>
@@ -245,6 +288,16 @@ export default function BannersPage({ server, scenario }) {
                   ))}
               </div>
             </div>
+            {/* Where each Career scenario begins, down the whole calendar (the strip in the axis names them). */}
+            {scenarios
+              .filter((s) => timeline.at(s.start) > 0 && timeline.at(s.start) < timeline.days)
+              .map((s) => (
+                <div
+                  key={s.key}
+                  className={`scenario-line tag-${s.tag}`}
+                  style={{ left: timeline.at(s.start) * px, ...(s.color && { '--scenario-color': s.color }) }}
+                />
+              ))}
             <div className="today-line" style={{ left: timeline.today * px }} />
             {globalMark && (
               <>

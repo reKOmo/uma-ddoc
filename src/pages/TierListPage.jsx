@@ -6,7 +6,9 @@ import { getServerConfig } from '../../tierlist/scenarios.js';
 import source from '../../generated/SOURCE.json';
 import { TIER_NAMES, toTiers } from '../tiers.js';
 import { useTranslation } from 'react-i18next';
-import { lbName, scenarioName, statName } from '../i18n/index.js';
+import { lbName, statName } from '../i18n/index.js';
+import Dropdown from '../Dropdown.jsx';
+import ScenarioPicker from '../ScenarioPicker.jsx';
 
 // Images from the same upstream commit as the card data.
 const imageUrl = (id) =>
@@ -53,33 +55,20 @@ export default function TierListPage({ server, scenario, onScenarioChange }) {
   return (
     <div className="page">
       <div className="controls">
-        <label>
-          {t('common.scenario')}
-          <select value={scenario} onChange={(e) => onScenarioChange(e.target.value)}>
-            {scenarios.map((key) => (
-              <option key={key} value={key}>
-                {key}
-              </option>
-            ))}
-            <optgroup label={t('common.averaged')}>
-              {Object.keys(COMBINED).map((key) => (
-                <option key={key} value={key}>
-                  {scenarioName(key)}
-                </option>
-              ))}
-            </optgroup>
-          </select>
-        </label>
-        <label>
-          {t('common.stat')}
-          <select value={stat} onChange={(e) => setStat(e.target.value)}>
-            {STATS.map((key) => (
-              <option key={key} value={key}>
-                {statName(key)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <ScenarioPicker
+          label={t('common.scenario')}
+          value={scenario}
+          scenarios={scenarios}
+          combined={Object.keys(COMBINED)}
+          server={server}
+          onChange={onScenarioChange}
+        />
+        <Dropdown
+          label={t('common.stat')}
+          value={stat}
+          options={STATS.map((key) => ({ value: key, label: statName(key) }))}
+          onChange={setStat}
+        />
       </div>
 
       <details className="lb-filter">

@@ -1,6 +1,7 @@
 """Predicts the Global release date of every JP support card that isn't on Global yet, with the
 model that did best in the walk-forward backtest. Also predicts Global's future banners from JP's
-(generated/predicted_global_banners.json, see banners.py). Writes generated/predicted_gl_releases.json:
+(generated/predicted_global_banners.json, see banners.py) and Career scenarios (into data/scenarios.json,
+see scenarios.py). Writes generated/predicted_gl_releases.json:
 
   { model, fitted_at, anchor: { release_jp, release_gl }, global_days_per_jp_day,
     known_dates: [{ release_jp, release_gl }], backtest: { "<lo>-<hi>": [median, p90, n] },
@@ -25,6 +26,7 @@ import numpy as np
 from adjust import load_known_dates, snap_weekday, with_known_dates
 from backtest import errors, run
 from banners import BANNERS_OUTPUT, predict_banners
+from scenarios import SCENARIOS, predict_scenarios
 from data import GENERATED, batches, load_cards, to_date
 
 OUTPUT = GENERATED / 'predicted_gl_releases.json'
@@ -80,6 +82,7 @@ def main():
     }
     OUTPUT.write_text(json.dumps(result, indent=1, ensure_ascii=False) + '\n')
     banners = predict_banners(predict, model.anchor[0], result['fitted_at'])
+    scenarios = predict_scenarios(predict)
 
     skipped = cards[cards['status'] == 'skipped']
     print(f'model: {model.name}, {model.slope:.3f} Global days per JP day, anchored at '
@@ -95,6 +98,11 @@ def main():
     print(f'\n{len(upcoming)} cards → {OUTPUT.relative_to(GENERATED.parent)}')
     print(f'{len(banners["characters"])} character + {len(banners["cards"])} card banners → '
           f'{BANNERS_OUTPUT.relative_to(GENERATED.parent)}')
+    print(f'\n{"scenario":<11}{"JP launch":<12}{"Global (predicted)":<20}range')
+    for s in scenarios:
+        en = s['en_start_date']
+        print(f'{s["key"]:<11}{s["jp_start_date"]["date"][:10]:<12}{en["date"][:10]:<20}{en["lo"]} – {en["hi"]}')
+    print(f'{len(scenarios)} scenario launches → {SCENARIOS.relative_to(GENERATED.parent)}')
 
 
 if __name__ == '__main__':

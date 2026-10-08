@@ -14,6 +14,8 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import en from './en.json' with { type: 'json' };
 import { COMBINED } from '../../tierlist/index.js';
+import { scenarioByKey } from '../scenarioRelease.js';
+import { getSetting } from '../settingsStore.js';
 
 const RESOURCES = { en: { translation: en } };
 
@@ -41,8 +43,15 @@ const locale = () => i18n.language || 'en';
 // Display names for keys that live in code.
 export const statName = (stat) => i18n.t(`stat.${stat}`);
 export const serverName = (server) => i18n.t(`server.${server}`);
-// Real scenarios go by their key (DYI, GL…); the averaged ones have names.
-export const scenarioName = (key) => (key in COMBINED ? i18n.t(`scenario.${key}`) : key);
+// A scenario's short name: the averaged ones have names; real ones go by the "Scenario names" setting —
+// Global's short name (Unity, TB, GC…), JP's where Global has none yet — or JP's (Aoharu, MANT, GL…),
+// from data/scenarios.json; the key if it isn't there.
+export function scenarioName(key) {
+  if (key in COMBINED) return i18n.t(`scenario.${key}`);
+  const short = scenarioByKey(key)?.short;
+  if (!short) return key;
+  return (getSetting('scenarioNames') === 'global' && short.en) || short.jp;
+}
 // A limit break's label: LB0–LB3, and MLB (max limit break) for LB4.
 export const lbName = (lb) => (lb === 4 ? i18n.t('lb.max') : i18n.t('lb.level', { lb }));
 

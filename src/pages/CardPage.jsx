@@ -8,6 +8,7 @@ import { TIER_NAMES, cardRanks } from '../tiers.js';
 import { rankHistory } from '../rankHistory.js';
 import { loadPredictions } from '../predictions.js';
 import { loadCardInfo } from '../cardInfo.js';
+import ScenarioPicker from '../ScenarioPicker.jsx';
 import RankChart, { formatDay } from './RankChart.jsx';
 import { Trans, useTranslation } from 'react-i18next';
 import { formatDuration, lbName, scenarioName, serverName, statName } from '../i18n/index.js';
@@ -234,7 +235,9 @@ export default function CardPage({ cardId, server, scenario }) {
           <p className="rank-note">
             {t('card.tableNote', { stat: statName(stat), server: serverName(server) })}{' '}
             {combined
-              .map((key) => t('card.averages', { name: scenarioName(key), scenarios: scenariosOf(server, key) }))
+              .map((key) =>
+                t('card.averages', { name: scenarioName(key), scenarios: scenariosOf(server, key).map(scenarioName) })
+              )
               .join(' ')}
           </p>
 
@@ -315,23 +318,14 @@ function RankOverTime({ cardId, server, scenarios, combined, defaultScenario, ra
     <section>
       <h2 className="card-section">{t('card.rankOverTime')}</h2>
       <div className="history-controls">
-        <label>
-          {t('common.scenario')}
-          <select value={shown} onChange={(e) => setScenario(e.target.value)}>
-            {scenarios.map((key) => (
-              <option key={key} value={key}>
-                {key}
-              </option>
-            ))}
-            <optgroup label={t('common.averaged')}>
-              {combined.map((key) => (
-                <option key={key} value={key}>
-                  {scenarioName(key)}
-                </option>
-              ))}
-            </optgroup>
-          </select>
-        </label>
+        <ScenarioPicker
+          label={t('common.scenario')}
+          value={shown}
+          scenarios={scenarios}
+          combined={combined}
+          server={server}
+          onChange={setScenario}
+        />
         <fieldset className="segmented" aria-label={t('card.limitBreak')}>
           {LIMIT_BREAKS.map((n) => (
             <button type="button" key={n} aria-pressed={n === lb} onClick={() => setLb(n)}>

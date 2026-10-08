@@ -1,11 +1,13 @@
-// Scrapes JP's gacha banner history and the support card list from GameTora
+// Scrapes JP's gacha banner history, the support card list and the Career scenarios from GameTora
 // (https://gametora.com/umamusume/gacha/history) into:
 //   generated/jp_banners.json
 //   generated/gametora_cards.json
+//   data/scenarios.json              JP's side only: launch times, links, new scenarios
+//                                    (see scripts/lib/scenarios.js)
 // Global isn't scraped any more: it has its own record in data/ (scripts/lib/global.js), kept up
 // from the official news. `--seed-global` writes that record's starting point from GameTora's
-// Global data (data/global_banners.json + data/global_cards.json); it refuses to overwrite one
-// unless `--force` is given too.
+// Global data: data/global_banners.json + data/global_cards.json if missing (or with `--force`), and
+// Global launch times of scenarios that have none yet.
 //
 // A banner file holds { source, characters: [banner…], cards: [banner…] }, newest first,
 // where a banner is
@@ -32,6 +34,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { DATA_DIR, GENERATED_DIR } from './lib/paths.js';
 import { BANNERS_FILE, pickMain, writeGlobal } from './lib/global.js';
+import { fillColors, mergeGametora, readScenarios, writeScenarios } from './lib/scenarios.js';
 
 const SITE = 'https://gametora.com';
 const HEADERS = { 'User-Agent': 'uma-ddoc scraper (Umaddoc, static tier list site)' };
@@ -76,10 +79,12 @@ function toBanner(raw, server, describe) {
 }
 
 export async function scrapeBanners({ seedGlobal = false, force = false } = {}) {
-  if (seedGlobal && existsSync(BANNERS_FILE) && !force)
-    throw new Error('data/ already has Global banners; --force overwrites them (and every news-made entry)');
-  const servers = seedGlobal ? SERVERS : { jp: SERVERS.jp };
-  const names = ['character-cards', 'support-cards'];
+  // Seeding writes Global's banners + cards if missing (--force: rewrite them, news-made entries too).
+  const seedBanners = seedGlobal && (force || !existsSync(BANNERS_FILE));
+  if (seedGlobal && !seedBanners)
+    console.log('data/ has Global banners already (--force rewrites them); not seeding those');
+  const servers = seedBanners ? SERVERS : { jp: SERVERS.jp };
+  const names = ['character-cards', 'support-cards', 'scenarios'];
   for (const server of Object.values(servers)) {
     names.push(`${server.prefix}gacha/char-standard`, `${server.prefix}gacha/support-standard`);
   }
@@ -102,6 +107,15 @@ export async function scrapeBanners({ seedGlobal = false, force = false } = {}) 
   );
   writeFileSync(`${GENERATED_DIR}gametora_cards.json`, `${JSON.stringify(cardInfo)}\n`);
   console.log(`gametora_cards: ${Object.keys(cardInfo).length} support cards`);
+
+  mkdirSync(DATA_DIR, { recursive: true });
+  const scenarios = mergeGametora(readScenarios().scenarios, data.scenarios, { seedGlobal });
+  // Cover colours: only covers without one are downloaded (once each).
+  const colored = await fillColors(scenarios, HEADERS);
+  if (colored) console.log(`scenario colours: ${colored} computed from their covers`);
+  writeScenarios({ jp: `${SITE}/umamusume/scenarios`, en: 'official news (pnpm update-global)' }, scenarios);
+  const onGlobal = scenarios.filter((s) => s.en_start_date && s.en_start_date.tag !== 'predicted').length;
+  console.log(`scenarios: ${scenarios.length} on JP, ${onGlobal} with a known Global launch`);
   for (const [name, server] of Object.entries(servers)) {
     const describeCharacter = (id) => {
       const c = characters.get(id);

@@ -1,0 +1,106 @@
+.scenarios-page {
+  max-width: 760px;
+}
+
+.scenario-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One scenario: thumbnail, names, dates; the whole row opens its page. Its colour comes from the
+   <li>'s inline --scenario-color (muted when it has none). */
+.scenario-list li {
+  --scenario-color: var(--muted);
+}
+
+.scenario-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--scenario-color);
+  border-radius: 10px;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+
+.scenario-item:hover {
+  background: color-mix(in srgb, var(--scenario-color) 10%, var(--panel));
+  border-color: var(--scenario-color);
+}
+
+.scenario-item.current {
+  background: color-mix(in srgb, var(--scenario-color) 18%, var(--panel));
+  border-color: var(--scenario-color);
+}
+
+/* Key art is square; shown whole on a wash of the scenario's colour. */
+.scenario-thumb {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  background: color-mix(in srgb, var(--scenario-color) 25%, var(--panel));
+  border-radius: 8px;
+}
+
+.scenario-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.scenario-item-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.scenario-item-name .tag {
+  padding: 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 999px;
+}
+
+.scenario-item-when {
+  font-size: 0.85rem;
+}
+
+.scenario-item-when.predicted,
+.scenario-item-when.none {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.scenario-item-newest {
+  align-self: flex-start;
+  padding: 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.scenario-item-arrow {
+  flex: none;
+  margin-left: auto;
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+
+.scenario-item:hover .scenario-item-arrow {
+  transform: translateX(2px);
+}

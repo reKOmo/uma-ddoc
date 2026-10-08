@@ -1,7 +1,8 @@
 {
   "nav": {
     "tierList": "Tier list",
-    "banners": "Banners",
+    "banners": "Timeline",
+    "scenarios": "Scenarios",
     "settings": "Settings"
   },
   "common": {
@@ -9,6 +10,8 @@
     "scenario": "Scenario",
     "stat": "Stat",
     "averaged": "Averaged",
+    "notReleased": "Not released yet",
+    "notRanked": "Not in the tier list yet",
     "back": "Back",
     "close": "Close",
     "loading": "Loading…",
@@ -16,7 +19,8 @@
     "calculating": "Calculating…",
     "rank": "#{{position}}",
     "rankOf": "#{{position}} of {{total}}",
-    "dateRange": "{{start}} – {{end}}"
+    "dateRange": "{{start}} - {{end}}",
+    "current": "Current"
   },
   "stat": {
     "speed": "Speed",
@@ -34,6 +38,36 @@
     "overall": "Overall",
     "upcoming": "Current + future"
   },
+  "scenarioPage": {
+    "notFound": "There's no scenario {{key}}.",
+    "current": "Newest on {{server}}",
+    "openTierList": "Open its tier list",
+    "launch": "Launch",
+    "status": {
+      "out": "Launched",
+      "confirmed": "Confirmed",
+      "predicted": "Predicted"
+    },
+    "today": "today",
+    "ago": "{{duration}} ago",
+    "in": "in {{duration}}",
+    "range": "Could be {{dates}}.",
+    "noDate": "No date for {{server}} yet.",
+    "lag": "Global got it {{duration}} after JP.",
+    "lagExpected": "Expected on Global {{duration}} after JP.",
+    "links": "Links",
+    "link": {
+      "gametora": "GameTora"
+    },
+    "others": "Other scenarios",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "scenarioList": {
+    "title": "Career scenarios",
+    "when": "{{status}} {{date}}",
+    "noDate": "No date yet"
+  },
   "lb": {
     "level": "LB{{lb}}",
     "max": "MLB"
@@ -49,15 +83,23 @@
     "noneShown": "No cards match the filter. Pick a limit break above."
   },
   "banners": {
-    "title": "Banners",
+    "title": "Timeline",
     "today": "Today",
     "globalNow": "Global now",
     "globalNowTitle": "Jump to where Global is in JP's history (estimated)",
     "globalLine": "Global ≈ {{date}}",
+    "scenarios": "Career scenarios",
+    "scenarioTitle": "{{name}} ({{status}}) · {{dates}}",
+    "scenarioTag": {
+      "out": "launched",
+      "confirmed": "confirmed",
+      "predicted": "predicted"
+    },
+    "since": "from {{date}}",
     "zoom": "Zoom",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
-    "loading": "Loading banners…",
+    "loading": "Loading timeline…",
     "characters": "Characters",
     "supportCards": "Support cards",
     "barLabel": "{{name}} +{{count}}",
@@ -134,6 +176,24 @@
     "timeZone": "Banner times",
     "timeZoneHint": "The game announces banners in UTC. Show their days and times in UTC, or in your own timezone.",
     "utc": "UTC",
-    "local": "Local ({{zone}})"
+    "local": "Local ({{zone}})",
+    "scenarioNames": "Scenario names",
+    "scenarioNamesHint": "Short names for Career scenarios. Global's are used where Global has one; JP's otherwise.",
+    "scenarioNamesGlobal": "Global (Unity, TB, GC)",
+    "scenarioNamesJp": "JP (Aoharu, MANT, GL)",
+    "about": "About",
+    "version": "Umaddoc {{version}}",
+    "disclaimer": "Umaddoc is not affiliated with the developers of Umamusume: Pretty Derby. All the materials from the Umamusume: Pretty Derby game are copyrights of Cygames, Inc.",
+    "credits": "Credits",
+    "credit": {
+      "gametora": {
+        "name": "GameTora",
+        "description": "Banner history, scenarios, card links and images"
+      },
+      "tierList": {
+        "name": "Uma Tiers by Euophrys",
+        "description": "The tier list calculation Umaddoc's is based on, and its card data"
+      }
+    }
   }
 }

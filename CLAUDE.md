@@ -7,18 +7,35 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   (MIT, see `tierlist/LICENSE`) and is maintained here now; tests compare it with upstream.
   A collapsible rarity × LB filter picks which copies are shown (default: MLB of everything, plus
   LB0 and LB3 of SSR and SR); tiers are banded on the full ranking, so filtering doesn't move cards between tiers.
-- **Banners** — a horizontal, scrollable/draggable calendar of past and current
+- **Timeline** (`#/timeline`, a tab; `#/banners` still works) — a horizontal, scrollable/draggable calendar of past and current
   gacha banners (Global: our own record in `data/`, kept up from the official news; JP: scraped
   from GameTora), with a detail sheet per banner that
   shows each featured support card's tier-list rank. Global's calendar continues into the
   future with JP's banners at their predicted Global dates (`ml/`), drawn half-transparent
   with JP art (nearly solid and "confirmed" when `data/known_dates.json` has their exact dates); their sheets rank the cards in JP's tier list. Banners from the news use the
   official art and link to their post.
+  A strip above the date axis shows which Career scenario runs when on that server (`data/scenarios.json`,
+  `src/scenarioStrip.js`), each in its cover's colour: the current one solid, unlaunched ones faint (confirmed) or
+  dashed (predicted), with a line down the calendar where each begins; labels stick to the left edge while scrolling, with a › arrow (it opens the scenario page) right after the
+  name on desktop and at the segment's right edge on phones (`overflow: clip`, not hidden, keeps sticky working).
   JP's calendar marks where Global is: a window from the JP banner Global is running to its next banner's
   JP start (announced / confirmed / predicted; faded end when predicted), a dashed estimate line inside it
   (linear in time between the two), and a "Global now" button that scrolls there.
+- **Scenarios** (`#/scenarios`, a tab) and the **scenario page** (`#/scenario/<key>`) are **server-agnostic**: they
+  show both servers (JP, then Global) whatever the top bar says, and "Newest on <server>" for each server a scenario is
+  the latest launched on (`isCurrent`). The tab lists every Career scenario in launch order: key art thumbnail in its
+  colour, name + key (a pill in the scenario's colour), each server's status and date; each opens its page. Its one
+  exception to being server-agnostic: only the newest on the top bar's server gets the coloured background.
+  The page: key art, English + Japanese names, launch as one card, JP on the left → Global on the right (launched /
+  confirmed / predicted with range, how long ago or until, in the Settings timezone; the gap in the middle), Global's
+  lag behind JP, a Links section (external pages from `links`, now GameTora), "Open its tier list" (when either
+  server's tier list ranks it) and previous / next scenario (on top on phones, at the bottom on desktop; CSS order
+  only). Opened from a segment of the banner calendar's scenario strip (that one is per server) or an entry on the
+  Scenarios tab (which stays highlighted); the page isn't a tab.
 - **Settings** (`#/settings`, a tab) — banner times in UTC (default, as the game announces them) or the
-  viewer's timezone; remembered in the browser.
+  viewer's timezone; scenario names Global (Unity, TB, GC; JP's where Global has none yet, the default) or JP
+  (Aoharu, MANT, GL); remembered in the browser. At the bottom, About: version (package.json), the Cygames
+  disclaimer, and credits linking GameTora and the original tier list (Euophrys' Uma Tiers).
 - **Card page** (`#/card/<id>`) — one support card's full art, GameTora link (if GameTora has it), and its
   tier at each limit break in every scenario (plus the averaged "Overall" and
   "Current + future" rankings), then a "rank over time" chart (pick scenario + LB)
@@ -41,9 +58,9 @@ pnpm test:upstream     # compare our calculation with upstream's (~25s; needs th
 pnpm rank gl GL speed  # print a ranking in the terminal (scenario may be overall / upcoming)
 
 pnpm update-cards      # card data from upstream main → generated/
-pnpm scrape-gametora    # JP banner history + card links/titles/JP dates from GameTora → generated/
+pnpm scrape-gametora    # JP banner history + card links/titles/JP dates + JP scenarios from GameTora → generated/
                        # (--seed-global [--force]: rewrite data/ from GameTora's Global data; one-off)
-pnpm update-global     # official news → Global's banners + card releases in data/ (needs scrape-gametora)
+pnpm update-global     # official news → Global's banners, card releases + scenario launches in data/ (needs scrape-gametora)
 pnpm map-banner-cards  # link banner cards to our card data → generated/card_banners.json
 pnpm clone-upstream    # clone/update upstream main into upstream/ (for test:upstream)
 pnpm fetch-news        # new posts from umamusume.com/news → data/news/ (+ summary.md); --backfill for the archive,
@@ -55,7 +72,7 @@ pnpm predict-gl:backtest   # walk-forward backtest of the candidate models
 ```
 
 `ml/` is Python in its own venv (`pnpm setup-ml`). Deploys rerun it after the banner scrape, so predictions
-restart from Global's latest release. The Banners page reads `generated/predicted_global_banners.json`
+restart from Global's latest release. The Timeline page reads `generated/predicted_global_banners.json`
 through an `import.meta.glob`, so it's optional: without `pnpm predict-gl` there are just no predicted bars. Announced Global dates go in
 `data/known_dates.json` (committed; predictions pass through them).
 
@@ -84,24 +101,35 @@ scripts/
   scrape-gametora.js  GameTora: JP banner history + per-card URL/titles/release dates (+ the one-off Global seed)
   update-global.js   data/news/ → Global's banners + card releases in data/, appends to data/news/summary.md
   lib/global.js      pure: applyNews() (news posts + JP banners → Global banners/releases), data/ reader/writer
+  lib/colors.js      PNG decoder (zlib only) + main colour of an image, for scenario covers
+  lib/scenarios.js   Career scenarios (data/scenarios.json): SCENARIO_NAMES (slug → key + JP/Global short names, by hand),
+                     mergeGametora() (JP side), applyScenarioNews() (Global side, from the news)
   map-banner-cards.js
   fetch-news.js      official news API → data/news/announcements.json + data/news/summary.md (incremental)
   lib/news.js        pure parsing of news posts: kind, periods, announced banner ids, featured trainees/cards
 src/
-  App.jsx            shell: hash routes (#/, #/banners, #/settings, #/card/<id>), top bar (title or back button +
+  App.jsx            shell: hash routes (#/, #/timeline, #/scenarios, #/settings, #/card/<id>, #/scenario/<key>), top bar (title or back button +
                      server switch), tab bar, shared server + scenario state
-  settings.jsx       SettingsProvider/useSettings(): user settings via context, kept in localStorage (try/catch;
-                     defaults without it). timeZone: 'utc' (default) | 'local'
+  settingsStore.js   user settings as a plain store (getSetting / setSetting / subscribe), kept in localStorage
+                     (try/catch; defaults without it): timeZone 'utc' | 'local', scenarioNames 'global' | 'jp'
+  settings.jsx       useSettings() (useSyncExternalStore over the store); App calls it so plain readers like
+                     scenarioName() refresh on change
   pages/SettingsPage.jsx, settings.css  the Settings tab
   pages/TierListPage.jsx
-  pages/BannersPage.jsx, banners.css   calendar + detail sheet
+  pages/BannersPage.jsx, banners.css   the Timeline tab: calendar + detail sheet (code still says "banners")
   pages/CardPage.jsx, card.css         one card: art, GameTora link, tier per scenario × LB
   cardInfo.js        card page info: GameTora's link/JP fields + Global's title/date from data/
+  pages/ScenariosPage.jsx, scenarios.css  the Scenarios tab (list)
+  pages/ScenarioPage.jsx, scenario.css  one scenario (reuses card.css's tag / link / section classes)
   pages/RankChart.jsx                  SVG step chart of rank over time: fixed rank axis, sideways-scrolling
                                        plot (20px/month, quarters + years labelled), crosshair tooltip
   rankHistory.js     pure: a card's position at each release date (marks predicted ones)
   predictions.js     optional loader for generated/predicted_gl_releases.json
   timeline.js        pure calendar layout (row packing, months, days; `at(ms)` → position)
+  Dropdown.jsx, .css the app's dropdown (custom listbox; every dropdown uses it)
+  ScenarioPicker.jsx scenario dropdown on top of it (italic + note when unreleased);
+                     scenarioRelease.js: SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
+  scenarioStrip.js   pure: scenario segments (launch → next launch, cover colour + text ink) for the calendar's strip
   globalProgress.js  pure: where Global is in JP's history (window between banners + linear estimate)
   tiers.js           toTiers(), cardRanks(), TIER_NAMES, STAT_OF_TYPE
   servers.js         SERVERS: gl/jp ↔ banner file names
@@ -114,10 +142,12 @@ ml/                  Python (own venv, ml/.venv): predicts Global release dates 
                      card info (data.py: GameTora's JP dates + data/'s Global ones), models.py, adjust.py
                      (known dates: by hand + Global banners rerunning newer JP ones; no JP weekends),
                      backtest.py, predict.py, banners.py (JP banners → predicted Global ones),
+                     scenarios.py (predicted Global scenario launches → data/scenarios.json),
                      (see ml/README.md)
 data/                ours, committed (nothing can regenerate it; generated/ is rebuilt every deploy):
   global_banners.json, global_cards.json   Global's banners + card releases: seeded from GameTora once,
                                            then from the news (`update-global`); news-made entries carry news_url
+  scenarios.json     every Career scenario: key, full_en, full_jp, en/jp_start_date, links.gametora
   known_dates.json   Global dates known ahead of time, by hand (`dates` by JP date, `banners` by gacha id)
   news/              official Global news (`fetch-news`): announcements.json, summary.md (last run)
 generated/           build-time data, gitignored — never edit or commit
@@ -135,6 +165,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 | JP banner history | `generated/jp_banners.json`, `card_banners.json` | no | `pnpm scrape-gametora`, `pnpm map-banner-cards` (every deploy) |
 | Global banner history + card releases | `data/global_banners.json`, `data/global_cards.json` | yes | seeded from GameTora once; `pnpm update-global` from `data/news/` (`news.yml`; deploys rerun it) |
 | GameTora card URLs, titles, JP release dates | `generated/gametora_cards.json` | no | `pnpm scrape-gametora` (every deploy) |
+| Career scenarios + launch times on both servers | `data/scenarios.json` | yes | JP side: `pnpm scrape-gametora` (every deploy); Global side: `pnpm update-global` from the news (seeded once from GameTora) |
 | Predicted Global release dates of JP-only cards and future Global banners | `generated/predicted_gl_releases.json`, `predicted_global_banners.json` | no | `pnpm predict-gl` (every deploy) |
 | Announced Global dates | `data/known_dates.json` (`dates` by JP date, `banners` by JP gacha id with exact start/end) | yes | by hand, e.g. from the monthly release schedule image (Global's banners in `data/` add more) |
 | Official Global news (banners, events, updates) | `data/news/announcements.json`, `data/news/summary.md` (last run's additions) | yes | `pnpm fetch-news` (`news.yml`, daily) |
@@ -193,6 +224,27 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   from all posts (idempotent; a later post about a banner wins) and never touches seeded ones. Verified: from the
   news alone it rebuilt 30134/30135 identical to GameTora's. A post whose banner id JP lacks is skipped (listed in
   the summary).
+- **Scenarios** (`data/scenarios.json`, `scripts/lib/scenarios.js`): one entry per scenario in JP launch order,
+  `{ key, full_en, full_jp, en_start_date, jp_start_date, links: { gametora, cover }, color }`; a start date is `{ date, tag }` (or null):
+  tag `out` (launched), `confirmed` (known, still ahead), `predicted` (+ `lo`/`hi` range, from `ml/scenarios.py`).
+  Known dates are re-tagged (confirmed → out) whenever the file is written, by JS or Python (same format). `key` is the tier list's where it ranks the
+  scenario (URA, Aoharu, MANT, GL, GM, DYI), else ours — an id (URLs, lookups), never shown. `short: { jp, en }`: the
+  names shown, via `scenarioName()` and the Scenario names setting (JP's from upstream's en-jp locale + GameTora's
+  "for short"; Global's from upstream's en-gl locale, null until Global has one). Both from the hand table
+  `SCENARIO_NAMES` (add new GameTora slugs there). `full_en`: Global's official name once the news gives it, else GameTora's English, else null;
+  `full_jp`: the Japanese name (GameTora, every scrape). `links.cover`: GameTora's key art
+  (`media.gametora.com/umamusume/scenarios/hero/<id>.png`, no text, so one for both servers; no official EN
+  covers for now). `color`: the cover's main colour
+  (`scripts/lib/colors.js`: own PNG decoder, skin/hair hues left out since the art is mostly characters), computed
+  once per cover by `fillColors` and kept. GameTora's own `bg_color` per scenario is a curated alternative. Dates
+  are ISO UTC; `en_start_date` is predicted until the news gives Global's (a dated mention replaces the prediction). Links: `https://gametora.com/umamusume/<slug>`
+  (GameTora's scenario pages; there's no `/scenarios/<slug>`). `scrape-gametora` refreshes the JP side and adds new
+  scenarios; `update-global` the Global side from the news. The news parser only takes "new Career scenario "…""
+  phrasings (plain "scenario" is everywhere: known issues, scout fine print); a launch time only when the sentence
+  says it's added/begins. A news name matches by name/key/slug, else JP's next scenario Global hasn't launched
+  (Global follows JP's order). Predictions (`pnpm predict-gl` → `ml/scenarios.py`): a scenario's JP launch day
+  through the card release model + known dates, 22:00 UTC, no JP weekend, after Global's latest known launch —
+  each past launch (Aoharu, MANT, GL) came out on Global the same day as its JP launch day's cards.
 - **Known dates from Global's banners** (`ml/adjust.py`): every Global banner rerunning a JP banner newer than the
   anchor is a known date (JP start's JST date → Global start's UTC date), merged with `known_dates.json` (hand
   entries win; out-of-order ones dropped with a warning). Predicted banners skip ids `data/` already has.
@@ -248,6 +300,15 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 - `calc.test.js`: one known score (Kitasan Black ≈ 372, from upstream's own test).
 - `rank-history.test.js`: `rankHistory()` on a small synthetic ranking.
 - `global-progress.test.js`: the Global-in-JP estimate, window ends (known vs. predicted), reruns ignored.
+- `scenarios.test.js`: scenario mentions in news (dated vs. not, false positives), `fromGametora`, `applyScenarioNews`.
+- `scenario-strip.test.js`: scenario segments per server, current one, Japanese name fallback.
+- `colors.test.js`: PNG decoding through row filters, main colour (skin/hair left out, fallbacks).
+- `scenario-release.test.js`: launched vs. not per server (predictions never count), unknown keys.
+- `scenario-picker.test.jsx`: the closed Dropdown / ScenarioPicker markup (listbox button, italic + hint when unreleased).
+- `scenario-page.test.jsx`: the scenario page's markup (names, launches, predicted range, links), `isCurrent`, the
+  Scenarios tab's list.
+- `scenario-names.test.js`: `scenarioName()` under the Scenario names setting (Global with JP fallback, JP).
+- `settings-page.test.jsx`: About shows the version, the disclaimer and both credit links.
 - `timeline.test.js`: calendar days in UTC vs. the viewer's timezone (TZ pinned to Europe/Warsaw).
 - `i18n.test.jsx`: every key used in `src/` exists (literal `t('…')`, `i18nKey="…"`, tab
   labels, and dynamically built ones); other catalogs match `en.json`'s keys; plurals,
@@ -284,7 +345,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   and `src/servers.js` hold keys only. Dates go through `formatDate()` / `formatDateTime()` so they use the
   UI's locale. Banner times (calendar days, bars, sheet) follow the **Settings** timezone: UTC by default, as
   the game announces them, or the viewer's own (`timeZoneOptions()` for Intl, `buildTimeline(…, { utc })` for
-  days). All stored times are UTC. Other settings go in `src/settings.jsx` (DEFAULTS + OPTIONS). A new language is a new JSON file registered in `RESOURCES`.
+  days). All stored times are UTC. Other settings go in `src/settingsStore.js` (DEFAULTS + OPTIONS) + a row on the Settings page. A new language is a new JSON file registered in `RESOURCES`.
 - **Mobile first.** Base CSS targets phones; `@media (min-width: 768px)` adds desktop
   tweaks. Top bar (page title or back button, server switch) always on top; tab bar at
   the bottom on phones, under the top bar on desktop. Pages don't render their own title. Check layouts at 360–390px wide.
@@ -302,14 +363,16 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   sideways with `useDragScroll` instead of squeezing labels.
 - Toggle groups are `<fieldset className="segmented">` (shared styles in `App.css`);
   every `<button>` has an explicit `type`.
-- Scenario pickers list the real scenarios, then the `COMBINED` ones in an "Averaged"
-  `<optgroup>`; display names go through `scenarioName()` (from `src/i18n`).
-
-## CI / deploy
-
-**All workflows are manual-only for now** (`workflow_dispatch`): their push/schedule triggers and news.yml's
-redeploy step are commented out. Uncomment them to run automatically again.
-
+- **Dropdowns are `src/Dropdown.jsx`**, never a native `<select>` (phones' native pickers ignore `<option>` styling,
+  and it looks the same everywhere): options `{ value, label, group?, note?, badge?, italic?, disabled? }` (disabled: greyed, can't be
+  chosen, skipped by the keyboard), groups under headings, hover +
+  keyboard-active highlight. WAI-ARIA select-only combobox pattern (aria-activedescendant; ↑/↓, Home/End,
+  Enter/Space, Esc, type-ahead). Scenario pickers are `src/ScenarioPicker.jsx` on top of it: the real scenarios,
+  then the `COMBINED` ones in an "Averaged" group; display names via `scenarioName()` (short names per the setting; never show a raw key). Scenarios not launched on the
+  selected server (`isReleased()`, `src/scenarioRelease.js`, from `data/scenarios.json`) are in italics with a
+  "Not released yet" note, on the button too; the one running now on it (`isCurrent()`) has a "Current" badge
+  (none on JP while its newest scenario isn't one the tier list ranks). Every scenario in `data/scenarios.json` is
+  listed, newest first; those the tier list doesn't rank yet are disabled with "Not in the tier list yet".
 - `deploy.yml` — on push to main, daily, and manually: install → `pnpm lint` → `update-cards` →
   `scrape-gametora` → `update-global` (not committed) → `map-banner-cards` → `setup-ml` + `predict-gl` → `pnpm test` → build → GitHub Pages. If any
   step fails the job fails and the last good deploy stays live.

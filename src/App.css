@@ -10,6 +10,9 @@
   --rank-up: #1f8a4c;
   --rank-down: #c8372d;
   --global-line: #2f6fd6;
+  /* Text on data-driven colours (scenario covers): pick by the colour's luminance, not the theme. */
+  --ink-dark: #1c1f24;
+  --ink-light: #ffffff;
   --tabbar-height: 56px;
   font-family: system-ui, sans-serif;
   color: var(--text);
@@ -42,8 +45,7 @@ body {
   background: var(--bg);
 }
 
-button,
-select {
+button {
   font: inherit;
   color: var(--text);
 }
@@ -237,13 +239,20 @@ h1 {
   color: var(--muted);
 }
 
-.controls select {
-  width: 100%;
-  min-height: 40px;
-  padding: 6px 8px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+/* A scenario's key as a pill in its cover colour (--scenario-color, set by the page / list item),
+   text dark or light by the colour's luminance (ink() in src/scenarioStrip.js). */
+.tag.scenario-key {
+  color: var(--text);
+  background: var(--scenario-color, var(--panel));
+  border-color: var(--scenario-color, var(--border));
+}
+
+.tag.scenario-key.ink-dark {
+  color: var(--ink-dark);
+}
+
+.tag.scenario-key.ink-light {
+  color: var(--ink-light);
 }
 
 /* Collapsible: a row of limit-break toggles per rarity (a .segmented fieldset). */
@@ -446,7 +455,7 @@ h1 {
     gap: 16px;
   }
 
-  .controls select {
+  .controls .dropdown-button {
     min-width: 160px;
   }
 
