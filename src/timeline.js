@@ -57,6 +57,8 @@ export function buildTimeline(sections, { now = Date.now(), utc = true } = {}) {
   }
 
   return {
+    // A time (ms) → its position in days, for marks that aren't banners.
+    at: day,
     days: day(last),
     today: day(now),
     dayDates,

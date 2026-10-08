@@ -72,7 +72,7 @@
   background-image: repeating-linear-gradient(90deg, var(--gridline) 0 1px, transparent 1px var(--day));
 }
 
-/* Stacking: today line (1) < lanes (2) < section labels (3) < axis (4). */
+/* Stacking: today / Global lines (1) < lanes (2) < section labels (3) < axis (4). */
 .axis {
   position: sticky;
   top: 0;
@@ -140,6 +140,50 @@
   margin-left: -1px;
   background: var(--accent);
   pointer-events: none;
+}
+
+/* On JP's calendar: where Global is now. The window is the stretch of JP's history it's going through
+   (from the JP banner it's running to its next banner's); the dashed line is the estimate within it,
+   dashed so it never reads as today. Its tag sits just under the axis (24 + 22 + 1px border). */
+.global-window {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--global-line) 12%, transparent);
+  border-inline: 1px solid color-mix(in srgb, var(--global-line) 45%, transparent);
+  pointer-events: none;
+}
+
+/* Its end is a prediction, not a known date: fade it out instead of a hard edge. */
+.global-window.open-end {
+  background: linear-gradient(to right, color-mix(in srgb, var(--global-line) 12%, transparent) 60%, transparent);
+  border-right: 0;
+}
+
+.global-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 0;
+  margin-left: -1px;
+  border-left: 2px dashed var(--global-line);
+  pointer-events: none;
+}
+
+.global-line::before {
+  content: attr(data-label);
+  position: absolute;
+  top: 51px;
+  left: 2px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--global-line);
+  border-radius: 0 4px 4px 0;
 }
 
 .lane-group {

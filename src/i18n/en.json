@@ -51,6 +51,9 @@
   "banners": {
     "title": "Banners",
     "today": "Today",
+    "globalNow": "Global now",
+    "globalNowTitle": "Jump to where Global is in JP's history (estimated)",
+    "globalLine": "Global ≈ {{date}}",
     "zoom": "Zoom",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",

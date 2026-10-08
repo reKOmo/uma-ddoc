@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
+import { ChevronDown, ChevronRight, Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
 import { rankByUsefulness } from '../../tierlist/index.js';
 import { SERVERS } from '../servers.js';
 import { STAT_OF_TYPE, TIER_NAMES, cardRanks } from '../tiers.js';
 import { DAY, buildTimeline } from '../timeline.js';
+import { globalProgress } from '../globalProgress.js';
 import { useDragScroll } from '../useDragScroll.js';
 import { Trans, useTranslation } from 'react-i18next';
 import { timeZoneOptions, useSettings } from '../settings.jsx';
@@ -107,6 +108,16 @@ export default function BannersPage({ server, scenario }) {
     };
   }, [server]);
 
+  // On JP's calendar: Global's banners (real + predicted, kept apart) to place Global in JP's history.
+  const [globalBanners, setGlobalBanners] = useState(null);
+  useEffect(() => {
+    if (server !== 'jp' || globalBanners) return;
+    const predicted = PREDICTED.global[0];
+    Promise.all([BANNERS.global().then((m) => m.default), predicted ? predicted() : null]).then(([global, future]) =>
+      setGlobalBanners({ global, predicted: future })
+    );
+  }, [server, globalBanners]);
+
   const timeline = useMemo(
     () =>
       data &&
@@ -140,10 +151,19 @@ export default function BannersPage({ server, scenario }) {
     setZoom(next);
   }
 
-  function scrollToToday() {
+  function scrollToDay(day) {
     const el = scroller.current;
-    el.scrollTo({ left: timeline.today * px - el.clientWidth / 2, behavior: 'smooth' });
+    el.scrollTo({ left: day * px - el.clientWidth / 2, behavior: 'smooth' });
   }
+
+  // Where Global is in JP's history, as timeline days: the window it's going through and the estimate.
+  const globalMark = useMemo(() => {
+    if (server !== 'jp' || !timeline || !globalBanners) return null;
+    const progress = globalProgress({ ...globalBanners, jp: data });
+    if (!progress) return null;
+    const { estimate, from, to, toKnown } = progress;
+    return { day: timeline.at(estimate), from: timeline.at(from), to: timeline.at(to), toKnown, estimate };
+  }, [server, timeline, globalBanners, data]);
 
   useEffect(() => {
     if (!selected) return;
@@ -157,7 +177,18 @@ export default function BannersPage({ server, scenario }) {
       <header className="banners-header">
         <div className="toolbar">
           <div className="toolbar-end">
-            <button type="button" onClick={scrollToToday} disabled={!timeline}>
+            {server === 'jp' && (
+              <button
+                type="button"
+                onClick={() => scrollToDay(globalMark.day)}
+                disabled={!globalMark}
+                title={t('banners.globalNowTitle')}
+              >
+                <Globe size={18} aria-hidden="true" />
+                {t('banners.globalNow')}
+              </button>
+            )}
+            <button type="button" onClick={() => scrollToDay(timeline.today)} disabled={!timeline}>
               <LocateFixed size={18} aria-hidden="true" />
               {t('banners.today')}
             </button>
@@ -215,6 +246,20 @@ export default function BannersPage({ server, scenario }) {
               </div>
             </div>
             <div className="today-line" style={{ left: timeline.today * px }} />
+            {globalMark && (
+              <>
+                {/* The stretch of JP's history Global is going through now (to its next banner's JP start). */}
+                <div
+                  className={globalMark.toKnown ? 'global-window' : 'global-window open-end'}
+                  style={{ left: globalMark.from * px, width: Math.max((globalMark.to - globalMark.from) * px, 2) }}
+                />
+                <div
+                  className="global-line"
+                  style={{ left: globalMark.day * px }}
+                  data-label={t('banners.globalLine', { date: format.short(globalMark.estimate) })}
+                />
+              </>
+            )}
 
             {timeline.sections.map((section) => (
               <section key={section.key} className="lane-group">

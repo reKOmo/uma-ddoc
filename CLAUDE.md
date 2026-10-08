@@ -14,6 +14,9 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   future with JP's banners at their predicted Global dates (`ml/`), drawn half-transparent
   with JP art (nearly solid and "confirmed" when `data/known_dates.json` has their exact dates); their sheets rank the cards in JP's tier list. Banners from the news use the
   official art and link to their post.
+  JP's calendar marks where Global is: a window from the JP banner Global is running to its next banner's
+  JP start (announced / confirmed / predicted; faded end when predicted), a dashed estimate line inside it
+  (linear in time between the two), and a "Global now" button that scrolls there.
 - **Settings** (`#/settings`, a tab) — banner times in UTC (default, as the game announces them) or the
   viewer's timezone; remembered in the browser.
 - **Card page** (`#/card/<id>`) — one support card's full art, GameTora link (if GameTora has it), and its
@@ -98,7 +101,8 @@ src/
                                        plot (20px/month, quarters + years labelled), crosshair tooltip
   rankHistory.js     pure: a card's position at each release date (marks predicted ones)
   predictions.js     optional loader for generated/predicted_gl_releases.json
-  timeline.js        pure calendar layout (row packing, months, days)
+  timeline.js        pure calendar layout (row packing, months, days; `at(ms)` → position)
+  globalProgress.js  pure: where Global is in JP's history (window between banners + linear estimate)
   tiers.js           toTiers(), cardRanks(), TIER_NAMES, STAT_OF_TYPE
   servers.js         SERVERS: gl/jp ↔ banner file names
   i18n/index.js      i18next setup; statName/serverName/scenarioName/lbName, formatDate
@@ -243,6 +247,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   score 0–1000.
 - `calc.test.js`: one known score (Kitasan Black ≈ 372, from upstream's own test).
 - `rank-history.test.js`: `rankHistory()` on a small synthetic ranking.
+- `global-progress.test.js`: the Global-in-JP estimate, window ends (known vs. predicted), reruns ignored.
 - `timeline.test.js`: calendar days in UTC vs. the viewer's timezone (TZ pinned to Europe/Warsaw).
 - `i18n.test.jsx`: every key used in `src/` exists (literal `t('…')`, `i18nKey="…"`, tab
   labels, and dynamically built ones); other catalogs match `en.json`'s keys; plurals,
