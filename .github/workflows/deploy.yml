@@ -38,6 +38,8 @@ jobs:
         run: pnpm update-cards
       - name: Scrape JP banners and card links from GameTora
         run: pnpm scrape-gametora
+      - name: Fetch pull advice from Luh's Support Card Encyclopedia
+        run: pnpm fetch-pull-guide
       # Normally already done and committed by news.yml; rerun so a news commit made any other way
       # still shows up (not committed from here).
       - name: Apply the official news to Global's banners

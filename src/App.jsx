@@ -30,6 +30,8 @@ const ROUTES = {
 // Detail pages (not tabs, no title; the top bar shows a back button): #/card/<id>, #/scenario/<key>.
 const CARD_ROUTE = /^#\/card\/(\d+)$/;
 const SCENARIO_ROUTE = /^#\/scenario\/([\w-]+)$/;
+// The Timeline with one card banner open, on a given server (the card page's "See banner").
+const BANNER_ROUTE = /^#\/timeline\/(gl|jp)\/(\d+)$/;
 
 // Old addresses that still work.
 const ALIASES = { '#/banners': '#/timeline' };
@@ -41,6 +43,14 @@ function parseHash(raw) {
   const scenario = hash.match(SCENARIO_ROUTE);
   // A scenario's page keeps the Scenarios tab highlighted.
   if (scenario) return { route: hash, tab: '#/scenarios', Page: ScenarioPage, params: { scenarioKey: scenario[1] } };
+  const banner = hash.match(BANNER_ROUTE);
+  if (banner) {
+    return {
+      route: '#/timeline',
+      ...ROUTES['#/timeline'],
+      params: { linkServer: banner[1], bannerId: Number(banner[2]) },
+    };
+  }
   const route = ROUTES[hash] ? hash : '#/';
   return { route, ...ROUTES[route], params: {} };
 }
@@ -73,6 +83,13 @@ export default function App() {
     setServer(next);
     if (!scenarioOptions(next).includes(scenario)) setScenario(getServerConfig(next).defaultScenario);
   }
+
+  // A banner link names its server; switch to it.
+  const { linkServer } = params;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only a new link switches; picking a server by hand afterwards stays.
+  useEffect(() => {
+    if (linkServer && linkServer !== server) changeServer(linkServer);
+  }, [linkServer]);
 
   return (
     <div className="app">

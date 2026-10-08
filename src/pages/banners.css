@@ -541,36 +541,6 @@
   font-size: 0.9rem;
 }
 
-.badge {
-  padding: 2px 8px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  border-radius: 999px;
-  background: var(--border);
-}
-
-.badge.live,
-.badge.new {
-  color: var(--accent-text);
-  background: var(--accent);
-}
-
-.badge.upcoming {
-  color: #fff;
-  background: #3d8bfd;
-}
-
-.badge.predicted {
-  color: #fff;
-  background: #8b93a1;
-}
-
-.badge.confirmed {
-  color: #fff;
-  background: #2f9e6e;
-}
-
 .featured-heading {
   margin: 16px 0 4px;
   font-size: 0.8rem;

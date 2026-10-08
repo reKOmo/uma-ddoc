@@ -1,13 +1,16 @@
 import { ExternalLink } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import pkg from '../../package.json' with { type: 'json' };
 import { SETTING_OPTIONS, localTimeZone, useSettings } from '../settings.jsx';
 import './settings.css';
+
+const PULL_GUIDE_URL = 'https://docs.google.com/spreadsheets/d/1zZOBxjcgJEKna7ftYKq0AlZS25Q3hE_occ7kXB-Q6MQ';
 
 // Sites Umaddoc builds on, credited in About (name and description in en.json under settings.credit.<key>).
 const CREDITS = [
   ['gametora', 'https://gametora.com/umamusume'],
   ['tierList', 'https://euophrys.github.io/uma-tiers/'],
+  ['pullGuide', PULL_GUIDE_URL],
 ];
 
 // One setting: a heading, a hint, and a segmented toggle over its options (labels by option).
@@ -54,6 +57,13 @@ export default function SettingsPage() {
         <h2>{t('settings.about')}</h2>
         <p className="about-app">{t('settings.version', { version: pkg.version })}</p>
         <p className="setting-hint">{t('settings.disclaimer')}</p>
+        <p className="setting-hint">
+          <Trans
+            i18nKey="settings.pullGuideDisclaimer"
+            // biome-ignore lint/a11y/useAnchorContent: <Trans> fills the link with the catalog's <a> text.
+            components={{ a: <a href={PULL_GUIDE_URL} target="_blank" rel="noreferrer" /> }}
+          />
+        </p>
         <h3>{t('settings.credits')}</h3>
         <ul className="credits">
           {CREDITS.map(([key, url]) => (

@@ -165,6 +165,24 @@
     "releasedOn": "Released {{date}}",
     "arrivesOn": "Predicted to arrive {{date}}"
   },
+  "pullGuide": {
+    "upcomingBanner": "Upcoming banner",
+    "shouldPull": "Should pull?",
+    "verdict": {
+      "yes": "Yes",
+      "no": "No",
+      "free": "Free"
+    },
+    "freePulls_one": "{{count}} free pull on the banner",
+    "freePulls_other": "{{count}} free pulls on the banner",
+    "early": "early {{month}} (estimate)",
+    "mid": "mid {{month}} (estimate)",
+    "late": "late {{month}} (estimate)",
+    "month": "{{month}} (estimate)",
+    "noUpcoming": "No upcoming banners :c",
+    "seeBanner": "See banner",
+    "seeMore": "See more on Luh's encyclopedia"
+  },
   "chart": {
     "label": "Tier list position over time: {{start}} at release, {{now}} now",
     "labelPredicted": "Predicted {{end}} by {{date}}",
@@ -184,11 +202,16 @@
     "about": "About",
     "version": "Umaddoc {{version}}",
     "disclaimer": "Umaddoc is not affiliated with the developers of Umamusume: Pretty Derby. All the materials from the Umamusume: Pretty Derby game are copyrights of Cygames, Inc.",
+    "pullGuideDisclaimer": "Pull advice on the card pages comes from <a>Luh's Umamusume Support Card Encyclopedia</a>: one player's opinions on Global's banners, at the time of each banner. Take it with a grain of salt and consider your own account.",
     "credits": "Credits",
     "credit": {
       "gametora": {
         "name": "GameTora",
         "description": "Banner history, scenarios, card links and images"
+      },
+      "pullGuide": {
+        "name": "Luh's Umamusume Support Card Encyclopedia",
+        "description": "Pull advice and notes on the card pages"
       },
       "tierList": {
         "name": "Uma Tiers by Euophrys",

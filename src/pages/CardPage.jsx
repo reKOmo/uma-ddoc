@@ -8,10 +8,14 @@ import { TIER_NAMES, cardRanks } from '../tiers.js';
 import { rankHistory } from '../rankHistory.js';
 import { loadPredictions } from '../predictions.js';
 import { loadCardInfo } from '../cardInfo.js';
+import { findBanner, loadPullGuide, notesParagraph, sheetLink, upcomingEntry } from '../pullGuide.js';
+import { loadBanners } from '../bannerData.js';
+import StatusBadge from '../StatusBadge.jsx';
 import ScenarioPicker from '../ScenarioPicker.jsx';
 import RankChart, { formatDay } from './RankChart.jsx';
 import { Trans, useTranslation } from 'react-i18next';
-import { formatDuration, lbName, scenarioName, serverName, statName } from '../i18n/index.js';
+import { formatDate, formatDuration, lbName, scenarioName, serverName, statName } from '../i18n/index.js';
+import { timeZoneOptions, useSettings } from '../settings.jsx';
 import './card.css';
 
 const LIMIT_BREAKS = [0, 1, 2, 3, 4];
@@ -178,6 +182,8 @@ export default function CardPage({ cardId, server, scenario }) {
         </div>
       </div>
 
+      <PullAdvice cardId={cardId} />
+
       <h2 className="card-section">{t('card.tierByScenario')}</h2>
       {released === null ? (
         <p className="status">{t('common.loading')}</p>
@@ -246,6 +252,112 @@ export default function CardPage({ cardId, server, scenario }) {
       )}
     </div>
   );
+}
+
+// The pull guide's advice for the card's next Global banner (or the one running now), with links to
+// that banner on the Timeline and to the card's row in the guide; "no upcoming banners" when the guide
+// lists none still to come. Nothing while it loads, without the guide, or for cards it doesn't cover.
+function PullAdvice({ cardId }) {
+  const { t } = useTranslation();
+  const { timeZone } = useSettings().settings;
+  const [guide, setGuide] = useState(null);
+  const [banners, setBanners] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    loadPullGuide().then((g) => !cancelled && setGuide(g));
+    loadBanners('global').then((b) => !cancelled && setBanners(b.cards));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const entries = guide?.cards[cardId];
+  if (!entries) return null;
+  const entry = upcomingEntry(entries, new Date().toISOString().slice(0, 10));
+  const banner = entry && banners && findBanner(banners, cardId, entries, entry);
+
+  return (
+    <section className="pull-guide">
+      <div className="pull-entry">
+        {/* The banner's art behind it, as on the Timeline's bars. */}
+        <div
+          className={banner ? `pull-banner has-art${banner.announced ? ' official-art' : ''}` : 'pull-banner'}
+          style={banner ? { backgroundImage: `url(${banner.image})` } : undefined}
+        >
+          <h2 className="pull-heading">{t('pullGuide.upcomingBanner')}</h2>
+          {entry ? (
+            <>
+              <p className="pull-when">
+                {banner ? <BannerDates banner={banner} timeZone={timeZone} /> : bannerDate(entry, t)}
+              </p>
+              {(entry.label || banner) && (
+                <div className="pull-head">
+                  {entry.label && <span className="pull-label">{entry.label}</span>}
+                  {banner && (
+                    <a className="gametora-link pull-banner-link" href={`#/timeline/gl/${banner.id}`}>
+                      {t('pullGuide.seeBanner')}
+                      <ChevronRight size={16} aria-hidden="true" />
+                    </a>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="status">{t('pullGuide.noUpcoming')}</p>
+          )}
+        </div>
+
+        {entry && (entry.verdict || entry.advice || entry.notes.length > 0) && (
+          <div className="pull-should">
+            <h2 className="pull-heading">
+              {t('pullGuide.shouldPull')}
+              {entry.verdict && (
+                <span className={`verdict-chip verdict-${entry.verdict}`}>
+                  {entry.pill ?? t(`pullGuide.verdict.${entry.verdict}`)}
+                </span>
+              )}
+            </h2>
+            {entry.advice && <p className="pull-advice">{entry.advice}</p>}
+            {entry.free_pulls && <p className="pull-free">{t('pullGuide.freePulls', { count: entry.free_pulls })}</p>}
+            {entry.notes.length > 0 && <p className="pull-note">{notesParagraph(entry.notes)}</p>}
+          </div>
+        )}
+        <div className="pull-actions">
+          <a
+            className="gametora-link"
+            href={sheetLink(guide.source.url, entry ?? entries.at(-1))}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t('pullGuide.seeMore')}
+            <ExternalLink size={16} aria-hidden="true" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// The banner's status badge and dates, in the Settings timezone, as in the Timeline's banner sheet.
+function BannerDates({ banner, timeZone }) {
+  const { t } = useTranslation();
+  const format = (iso) =>
+    formatDate(iso, { ...timeZoneOptions(timeZone), year: 'numeric', month: 'short', day: 'numeric' });
+  return (
+    <>
+      <StatusBadge banner={banner} />
+      <span className="pull-dates">
+        {t('common.dateRange', { start: format(banner.start), end: format(banner.end) })}
+      </span>
+    </>
+  );
+}
+
+// A banner's date as the guide gives it: a day, or early / late in a month for estimates.
+function bannerDate(entry, t) {
+  if (entry.date) return formatDay(entry.date);
+  if (!entry.month) return entry.date_text ?? '';
+  const month = formatDay(`${entry.month}-01`, { year: 'numeric', month: 'short' });
+  return t(`pullGuide.${entry.part ?? 'month'}`, { month });
 }
 
 function ScenarioRow({ scenario, ranking, cardId, current }) {

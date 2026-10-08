@@ -13,28 +13,9 @@ import { timeZoneOptions, useSettings } from '../settings.jsx';
 import i18n, { formatDate, formatDateTime, scenarioName, statName } from '../i18n/index.js';
 import './banners.css';
 
-// Banner data is only downloaded when this page opens.
-const BANNERS = {
-  global: () => import('../../data/global_banners.json'), // ours: seeded from GameTora, kept up from the news
-  jp: () => import('../../generated/jp_banners.json'),
-};
-// Global's future banners, predicted from JP's by `pnpm predict-gl` (ml/). Optional: the glob is
-// empty when the file hasn't been generated, and the page goes without. (Banners announced in the
-// news are real ones in data/, with `announced` + `news_url`.)
-const PREDICTED = {
-  global: Object.values(import.meta.glob('../../generated/predicted_global_banners.json', { import: 'default' })),
-};
+import { PREDICTED, bannerStatus as status, loadBanners, loadRealBanners } from '../bannerData.js';
+import StatusBadge from '../StatusBadge.jsx';
 
-async function loadBanners(name) {
-  const [real, ...predicted] = await Promise.all([
-    BANNERS[name]().then((m) => m.default),
-    ...(PREDICTED[name] ?? []).map((load) => load()),
-  ]);
-  return predicted.reduce(
-    (all, more) => ({ characters: [...all.characters, ...more.characters], cards: [...all.cards, ...more.cards] }),
-    real
-  );
-}
 const ZOOMS = [4, 8, 16, 32]; // pixels per day
 // Trainee icons don't show rarity (card icons do), so it's spelled out.
 const TRAINEE_RARITY = ['', '★1', '★2', '★3'];
@@ -69,14 +50,6 @@ const dateRange = (banner, format) =>
 const dayLabelStep = (px) => (px >= 16 ? 1 : px >= 8 ? 2 : 7);
 const showDayLabel = (date, step) => (date - 1) % step === 0 && (step < 7 || date <= 22);
 
-function status(banner, now = Date.now()) {
-  if (banner.confirmed) return 'confirmed';
-  if (banner.predicted) return 'predicted';
-  if (now < Date.parse(banner.start)) return 'upcoming';
-  if (now > Date.parse(banner.end)) return 'ended';
-  return 'live';
-}
-
 function barTitleKey(banner) {
   if (banner.confirmed) return 'banners.confirmedBarTitle';
   return banner.predicted ? 'banners.predictedBarTitle' : 'banners.barTitle';
@@ -88,7 +61,8 @@ function barLabel(banner) {
   return others > 0 ? i18n.t('banners.barLabel', { name: banner.main.name, count: others }) : banner.main.name;
 }
 
-export default function BannersPage({ server, scenario }) {
+// `bannerId` (from #/timeline/<server>/<id>): a card banner to open and centre on once loaded.
+export default function BannersPage({ server, scenario, bannerId }) {
   const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [zoom, setZoom] = useState(2);
@@ -115,7 +89,7 @@ export default function BannersPage({ server, scenario }) {
   useEffect(() => {
     if (server !== 'jp' || globalBanners) return;
     const predicted = PREDICTED.global[0];
-    Promise.all([BANNERS.global().then((m) => m.default), predicted ? predicted() : null]).then(([global, future]) =>
+    Promise.all([loadRealBanners('global'), predicted ? predicted() : null]).then(([global, future]) =>
       setGlobalBanners({ global, predicted: future })
     );
   }, [server, globalBanners]);
@@ -136,9 +110,17 @@ export default function BannersPage({ server, scenario }) {
   // The scroller only exists once the timeline has loaded.
   useDragScroll(scroller, !!timeline);
 
+  const linked = useMemo(() => (bannerId && data?.cards.find((b) => b.id === bannerId)) || null, [bannerId, data]);
+
   useLayoutEffect(() => {
-    if (timeline && centerOn.current === null) centerOn.current = timeline.today;
-  }, [timeline]);
+    if (!timeline || centerOn.current !== null) return;
+    centerOn.current = linked ? timeline.at((Date.parse(linked.start) + Date.parse(linked.end)) / 2) : timeline.today;
+  }, [timeline, linked]);
+
+  // A linked banner opens its sheet.
+  useEffect(() => {
+    if (linked) setSelected({ banner: linked, kind: 'cards' });
+  }, [linked]);
 
   useLayoutEffect(() => {
     const el = scroller.current;
@@ -401,7 +383,6 @@ function CardRank({ item, rankings }) {
 function BannerSheet({ banner, kind, server, scenario, format, onClose }) {
   const { t } = useTranslation();
   const days = Math.round((Date.parse(banner.end) - Date.parse(banner.start)) / DAY);
-  const state = status(banner);
   const stats = kind === 'cards' ? [...new Set(banner.featured.map((i) => STAT_OF_TYPE[i.type]).filter(Boolean))] : [];
   // A predicted or announced banner's new cards aren't in Global's card data yet; JP's tier list has them.
   const fromJp = banner.predicted || banner.announced;
@@ -422,7 +403,7 @@ function BannerSheet({ banner, kind, server, scenario, format, onClose }) {
         </button>
         <img className="sheet-banner" src={banner.image} alt="" />
         <p className="sheet-dates">
-          <span className={`badge ${state}`}>{t(`banners.status.${state}`)}</span>
+          <StatusBadge banner={banner} />
           {dateRange(banner, format.time)} · {t('banners.days', { count: days })}
         </p>
         {banner.confirmed && (

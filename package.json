@@ -16,6 +16,7 @@
     "clone-upstream": "node scripts/clone-upstream.js",
     "rank": "node tierlist/cli.js",
     "scrape-gametora": "node scripts/scrape-gametora.js",
+    "fetch-pull-guide": "node scripts/fetch-pull-guide.js",
     "map-banner-cards": "node scripts/map-banner-cards.js",
     "fetch-news": "node scripts/fetch-news.js",
     "update-global": "node scripts/update-global.js",
