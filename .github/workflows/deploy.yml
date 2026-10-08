@@ -44,7 +44,7 @@ jobs:
         run: pnpm update-global
       - name: Map banner cards to card data
         run: pnpm map-banner-cards
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.2.0 # no floating v10 tag (setup-uv stopped publishing major tags after v7)
         with:
           enable-cache: true
           cache-dependency-glob: ml/requirements.txt
