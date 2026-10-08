@@ -61,7 +61,7 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
     24 characters (shorter, e.g. "With Kitasan", it leads the notes instead; `parsePull`), free pulls, then the notes as one paragraph (`notesParagraph()`: a full stop added where a sentence has none).
   - The box's footer (under both halves): a centred "See more on Luh's encyclopedia" (the card's row in the sheet). The guide's disclaimer (with a link
     to the sheet) is in About, not on the card page.
-  Opened from tier-list cards and the banner sheet's "See more"; it isn't a tab.
+  Opened from tier-list cards and the banner sheet's "See more"; it isn't a tab, but keeps the Cards tab highlighted.
 
 Stack: React 19 + Vite 8, i18next + react-i18next, Vitest, Biome + husky, `lucide-react` icons, pnpm (never npm). No
 backend: all data is generated at build time.

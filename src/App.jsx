@@ -39,9 +39,9 @@ const ALIASES = { '#/banners': '#/timeline' };
 function parseHash(raw) {
   const hash = ALIASES[raw] ?? raw;
   const card = hash.match(CARD_ROUTE);
-  if (card) return { route: '#/card', Page: CardPage, params: { cardId: Number(card[1]) } };
+  // A card's page keeps the Cards tab highlighted, a scenario's the Scenarios tab.
+  if (card) return { route: '#/card', tab: '#/', Page: CardPage, params: { cardId: Number(card[1]) } };
   const scenario = hash.match(SCENARIO_ROUTE);
-  // A scenario's page keeps the Scenarios tab highlighted.
   if (scenario) return { route: hash, tab: '#/scenarios', Page: ScenarioPage, params: { scenarioKey: scenario[1] } };
   const banner = hash.match(BANNER_ROUTE);
   if (banner) {
