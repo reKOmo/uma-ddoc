@@ -2,11 +2,18 @@
 
 A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
 
-- **Tier list** — ranks support cards per server, scenario and stat. The calculation
+- **Tier list** (the "Cards" tab, `#/`) — ranks support cards per server, scenario and stat. The calculation
   started as a copy of [Euophrys/umamusume-tierlist](https://github.com/Euophrys/umamusume-tierlist)'s
   (MIT, see `tierlist/LICENSE`) and is maintained here now; tests compare it with upstream.
   A collapsible rarity × LB filter picks which copies are shown (default: MLB of everything, plus
   LB0 and LB3 of SSR and SR); tiers are banded on the full ranking, so filtering doesn't move cards between tiers.
+  A search box filters by character name and card title (English + Japanese; titles from `loadCardInfo()`, every
+  word must match, accents/punctuation ignored); like the LB filter, it doesn't move cards between tiers.
+  Stat, LB filter and search are remembered (`src/tierListFilters.js`: kept across pages and in localStorage); the
+  scenario is App's (kept across pages, not reloads). "Reset filters" (inside the Filter dropdown; disabled at the defaults) restores all four,
+  scenario = the server's default.
+  A floating "Back to top" button shows once scrolled past a screen.
+  On desktop the tiers are a bit right of centre (left column 1.25× the right), the pickers and filter in a sticky column to their left (`.tier-sidebar`); on phones, above the tiers.
 - **Timeline** (`#/timeline`, a tab; `#/banners` still works) — a horizontal, scrollable/draggable calendar of past and current
   gacha banners (Global: our own record in `data/`, kept up from the official news; JP: scraped
   from GameTora), with a detail sheet per banner that
@@ -28,9 +35,9 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   exception to being server-agnostic: only the newest on the top bar's server gets the coloured background.
   The page: key art, English + Japanese names, launch as one card, JP on the left → Global on the right (launched /
   confirmed / predicted with range, how long ago or until, in the Settings timezone; the gap in the middle), Global's
-  lag behind JP, a Links section (external pages from `links`, now GameTora), "Open its tier list" (when either
+  lag behind JP ("Launched / Expected after …" under the arrow between the two on desktop, a row under the card on phones), a Links section (external pages from `links`, now GameTora), "Open its tier list" (when either
   server's tier list ranks it) and previous / next scenario (on top on phones, at the bottom on desktop; CSS order
-  only). Opened from a segment of the banner calendar's scenario strip (that one is per server) or an entry on the
+  only). On desktop the key art is a sticky column on the left, everything else beside it (`.scenario-body`). Opened from a segment of the banner calendar's scenario strip (that one is per server) or an entry on the
   Scenarios tab (which stays highlighted); the page isn't a tab.
 - **Settings** (`#/settings`, a tab) — banner times in UTC (default, as the game announces them) or the
   viewer's timezone; scenario names Global (Unity, TB, GC; JP's where Global has none yet, the default) or JP
@@ -129,6 +136,7 @@ src/
                      server switch), tab bar, shared server + scenario state
   settingsStore.js   user settings as a plain store (getSetting / setSetting / subscribe), kept in localStorage
                      (try/catch; defaults without it): timeZone 'utc' | 'local', scenarioNames 'global' | 'jp'
+  tierListFilters.js the Cards tab's stat / LB filter / search: getFilters(), saveFilters(), DEFAULTS, isDefault()
   settings.jsx       useSettings() (useSyncExternalStore over the store); App calls it so plain readers like
                      scenarioName() refresh on change
   pages/SettingsPage.jsx, settings.css  the Settings tab
@@ -148,6 +156,7 @@ src/
                      card page (the status `.badge` styles are in App.css)
   StatusBadge.jsx    a banner's status pill (Live, Upcoming, Predicted…): the Timeline's sheet and the card page
   timeline.js        pure calendar layout (row packing, months, days; `at(ms)` → position)
+  BackToTop.jsx      floating "back to top" button (the tier list), watches the .app-main scroll container
   Dropdown.jsx, .css the app's dropdown (custom listbox; every dropdown uses it)
   ScenarioPicker.jsx scenario dropdown on top of it (italic + note when unreleased);
                      scenarioRelease.js: SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
@@ -404,7 +413,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 - **Dropdowns are `src/Dropdown.jsx`**, never a native `<select>` (phones' native pickers ignore `<option>` styling,
   and it looks the same everywhere): options `{ value, label, group?, note?, badge?, italic?, disabled? }` (disabled: greyed, can't be
   chosen, skipped by the keyboard), groups under headings, hover +
-  keyboard-active highlight. WAI-ARIA select-only combobox pattern (aria-activedescendant; ↑/↓, Home/End,
+  keyboard-active highlight; opening scrolls the list (not the page) to the selected option, centred. WAI-ARIA select-only combobox pattern (aria-activedescendant; ↑/↓, Home/End,
   Enter/Space, Esc, type-ahead). Scenario pickers are `src/ScenarioPicker.jsx` on top of it: the real scenarios,
   then the `COMBINED` ones in an "Averaged" group; display names via `scenarioName()` (short names per the setting; never show a raw key). Scenarios not launched on the
   selected server (`isReleased()`, `src/scenarioRelease.js`, from `data/scenarios.json`) are in italics with a

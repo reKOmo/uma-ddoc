@@ -233,6 +233,71 @@ h1 {
   margin-bottom: 16px;
 }
 
+/* Search box: a magnifier inside on the left, a clear button on the right once there's text. */
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.search input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 36px;
+  font: inherit;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  appearance: none;
+}
+
+.search input:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+
+.search input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.search input::placeholder {
+  color: var(--muted);
+}
+
+/* The clear button is ours, so hide the browser's own. */
+.search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search-clear {
+  position: absolute;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.search-clear:hover {
+  color: var(--text);
+}
+
 .controls label {
   display: flex;
   flex-direction: column;
@@ -257,12 +322,13 @@ h1 {
   color: var(--ink-light);
 }
 
-/* Collapsible: a row of limit-break toggles per rarity (a .segmented fieldset). */
+/* Collapsible: a row of limit-break toggles per rarity (a .segmented fieldset), then "Reset filters". */
 .lb-filter {
   margin-bottom: 16px;
 }
 
-.lb-filter summary {
+.lb-filter summary,
+.reset-filters {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -282,7 +348,20 @@ h1 {
   display: none;
 }
 
-.lb-filter summary:hover {
+.reset-filters {
+  display: flex;
+  margin: 8px auto 0;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.reset-filters:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.lb-filter summary:hover,
+.reset-filters:not(:disabled):hover {
   color: var(--text);
   border-color: var(--muted);
 }
@@ -457,14 +536,44 @@ h1 {
     gap: 16px;
   }
 
-  .controls .dropdown-button {
-    min-width: 160px;
+  /* Filters and pickers in a column on the left that stays put while the tiers scroll
+     (.app-main is the scroll container). */
+  /* The tiers sit a bit right of centre (the left column 25% wider than the right), the sidebar in the left one;
+     when there's no room for that, the left column keeps the sidebar's width and the right one gives way. */
+  .tier-list-page {
+    display: grid;
+    grid-template-columns: minmax(260px, 1.25fr) minmax(0, 960px) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+    max-width: none;
   }
 
-  .lb-rows {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 16px;
+  /* No overflow here: it would clip the dropdowns' lists. */
+  .tier-sidebar {
+    position: sticky;
+    top: 24px;
+    justify-self: end;
+    width: 260px;
+  }
+
+  .tier-sidebar .lb-filter .segmented button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Scenario and stat on one line; scenario names are the longer ones. */
+  .tier-sidebar .controls {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 8px;
+  }
+
+  .tier-sidebar .lb-filter summary {
+    display: flex;
+  }
+
+  .tier-sidebar .lb-filter .chevron {
+    margin-left: auto;
   }
 
   .tier-label {
@@ -476,6 +585,49 @@ h1 {
     grid-template-columns: repeat(auto-fill, 84px);
     gap: 8px;
     padding: 8px;
+  }
+}
+
+/* Floating "back to top" (src/BackToTop.jsx): bottom right, above the tab bar on phones; fades in once scrolled. */
+.back-to-top {
+  position: fixed;
+  right: 16px;
+  bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom) + 16px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--accent-text);
+  background: var(--accent);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+
+.back-to-top.shown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.back-to-top:hover {
+  filter: brightness(1.08);
+}
+
+@media (min-width: 768px) {
+  .back-to-top {
+    right: 24px;
+    bottom: 24px;
   }
 }
 

@@ -13,8 +13,9 @@ const CREDITS = [
   ['pullGuide', PULL_GUIDE_URL],
 ];
 
-// One setting: a heading, a hint, and a segmented toggle over its options (labels by option).
-function Setting({ name, title, hint, labels }) {
+// One setting: a heading, a hint, and a segmented toggle over its options. labels and details
+// are by option: each button shows its label, with the detail (an example, the timezone) in small print under it.
+function Setting({ name, title, hint, labels, details }) {
   const { settings, setSetting } = useSettings();
   return (
     <section className="setting">
@@ -28,7 +29,8 @@ function Setting({ name, title, hint, labels }) {
             aria-pressed={settings[name] === option}
             onClick={() => setSetting(name, option)}
           >
-            {labels[option]}
+            <span className="option-label">{labels[option]}</span>
+            {details?.[option] && <small className="option-detail">{details[option]}</small>}
           </button>
         ))}
       </fieldset>
@@ -40,24 +42,29 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   return (
     <div className="page settings-page">
-      <Setting
-        name="timeZone"
-        title={t('settings.timeZone')}
-        hint={t('settings.timeZoneHint')}
-        labels={{ utc: t('settings.utc'), local: t('settings.local', { zone: localTimeZone() }) }}
-      />
-      <Setting
-        name="scenarioNames"
-        title={t('settings.scenarioNames')}
-        hint={t('settings.scenarioNamesHint')}
-        labels={{ global: t('settings.scenarioNamesGlobal'), jp: t('settings.scenarioNamesJp') }}
-      />
+      {/* Every setting in one panel, divided by rules. */}
+      <div className="settings-group">
+        <Setting
+          name="timeZone"
+          title={t('settings.timeZone')}
+          hint={t('settings.timeZoneHint')}
+          labels={{ utc: t('settings.utc'), local: t('settings.local') }}
+          details={{ utc: t('settings.utcDetail'), local: t('settings.localDetail', { zone: localTimeZone() }) }}
+        />
+        <Setting
+          name="scenarioNames"
+          title={t('settings.scenarioNames')}
+          hint={t('settings.scenarioNamesHint')}
+          labels={{ global: t('settings.scenarioNamesGlobal'), jp: t('settings.scenarioNamesJp') }}
+          details={{ global: t('settings.scenarioNamesGlobalDetail'), jp: t('settings.scenarioNamesJpDetail') }}
+        />
+      </div>
 
-      <section className="setting about">
+      <section className="about">
         <h2>{t('settings.about')}</h2>
         <p className="about-app">{t('settings.version', { version: pkg.version })}</p>
-        <p className="setting-hint">{t('settings.disclaimer')}</p>
-        <p className="setting-hint">
+        <p className="about-text">{t('settings.disclaimer')}</p>
+        <p className="about-text">
           <Trans
             i18nKey="settings.pullGuideDisclaimer"
             // biome-ignore lint/a11y/useAnchorContent: <Trans> fills the link with the catalog's <a> text.

@@ -1,40 +1,97 @@
-.settings-page {
+/* .page (App.css, loaded later) sets its own max-width; this one has to win. */
+.page.settings-page {
   max-width: 640px;
 }
 
-.setting h2 {
+/* The settings share one panel; About has its own. */
+.settings-group,
+.about {
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.setting + .setting {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.setting h2,
+.about h2 {
   margin: 0 0 4px;
   font-size: 1.05rem;
 }
 
 .setting-hint {
   margin: 0 0 12px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
   color: var(--muted);
 }
 
-/* Each choice takes an equal share; long labels (a timezone name) wrap instead of overflowing. */
+/* Styled like the server switch (the shared .segmented colours): compact, as wide as its options. The detail
+   (an example, the timezone) follows the name in small muted print; long ones wrap instead of overflowing. */
+.setting .segmented {
+  width: fit-content;
+  max-width: 100%;
+}
+
 .setting .segmented button {
-  flex: 1 1 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: center;
+  justify-content: center;
+  column-gap: 6px;
   min-width: 0;
-  padding: 8px 10px;
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
   overflow-wrap: anywhere;
 }
 
-.setting + .setting {
-  margin-top: 28px;
+.option-label {
+  font-weight: 600;
+}
+
+.option-detail {
+  font-size: 0.75rem;
+  opacity: 0.75;
 }
 
 /* ── About: version, disclaimer, credits ── */
 
+.about {
+  margin-top: 32px;
+}
+
 .about-app {
-  margin: 0 0 4px;
+  margin: 0 0 12px;
+  font-size: 0.9rem;
   font-weight: 600;
+  color: var(--muted);
+}
+
+.about-text {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.about-text a {
+  color: var(--accent);
 }
 
 .about h3 {
-  margin: 16px 0 8px;
-  font-size: 0.95rem;
+  margin: 20px 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .credits {
@@ -50,30 +107,39 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   min-height: 48px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   color: var(--text);
   text-decoration: none;
-  background: var(--panel);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
+  transition: border-color 0.1s;
 }
 
 .credits a:hover {
   border-color: var(--accent);
 }
 
+.credits svg {
+  flex: none;
+  color: var(--muted);
+}
+
+.credits a:hover svg {
+  color: var(--accent);
+}
+
 .credits strong {
   display: block;
+  font-size: 0.95rem;
 }
 
 .credits small {
   display: block;
-  color: var(--muted);
-}
-
-.credits svg {
-  flex: none;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  line-height: 1.35;
   color: var(--muted);
 }

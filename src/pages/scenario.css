@@ -1,12 +1,12 @@
 /* A column, so the previous / next links can sit on top on phones (order) and at the bottom on desktop. */
-.scenario-page {
+.page.scenario-page {
   --scenario-color: var(--accent);
   display: flex;
   flex-direction: column;
-  max-width: 760px;
+  max-width: 1000px;
 }
 
-/* ── Key art and facts: stacked on phones, side by side on desktop ── */
+/* ── Key art, then the facts and sections: stacked on phones, side by side on desktop ── */
 
 .scenario-hero {
   display: flex;
@@ -24,6 +24,11 @@
   background: radial-gradient(circle, color-mix(in srgb, var(--scenario-color) 35%, var(--panel)), var(--panel) 70%);
   border: 2px solid var(--scenario-color);
   border-radius: 16px;
+}
+
+.scenario-body {
+  width: 100%;
+  min-width: 0;
 }
 
 .scenario-facts {
@@ -103,27 +108,29 @@
   color: var(--muted);
 }
 
+/* Phones: the arrow alone between the sides, "Launched after …" as a row under both (the gap's box is dropped
+   so its two parts can sit in the card's grid). Desktop puts the text back under the arrow. */
+.scenario-launch-side.jp {
+  grid-area: 1 / 1;
+}
+
+.scenario-launch-side.gl {
+  grid-area: 1 / 3;
+}
+
 .scenario-launch-gap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 0 4px;
+  display: contents;
   color: var(--accent);
-  text-align: center;
+}
+
+.scenario-launch-gap svg {
+  grid-area: 1 / 2;
+  align-self: center;
+  margin: 0 4px;
 }
 
 .scenario-launch-gap small {
-  max-width: 6em;
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-
-/* The lag as a sentence, under both sides. */
-.scenario-launch .scenario-lag {
-  grid-column: 1 / -1;
-  margin: 0;
+  grid-area: 2 / 1 / 3 / -1;
   padding: 8px 12px;
   font-size: 0.85rem;
   color: var(--muted);
@@ -235,6 +242,28 @@
 }
 
 @media (min-width: 768px) {
+  .scenario-launch-gap {
+    display: flex;
+    grid-area: 1 / 2;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 4px;
+    text-align: center;
+  }
+
+  .scenario-launch-gap svg {
+    margin: 0;
+  }
+
+  .scenario-launch-gap small {
+    max-width: 8em;
+    padding: 0;
+    font-size: 0.72rem;
+    border-top: 0;
+  }
+
   .scenario-nav {
     order: 0;
     margin: 24px 0 0;
@@ -243,7 +272,23 @@
   .scenario-hero {
     flex-direction: row;
     align-items: flex-start;
-    gap: 24px;
+    gap: 32px;
+  }
+
+  /* The art stays in view while the right column scrolls past it. */
+  .scenario-art {
+    position: sticky;
+    top: 24px;
+    flex: none;
+    width: clamp(200px, 28vw, 300px);
+  }
+
+  .scenario-body {
+    flex: 1;
+  }
+
+  .scenario-body > .card-section:first-of-type {
+    margin-top: 28px;
   }
 
   .scenario-facts {

@@ -28,7 +28,7 @@ describe('ScenarioPage', () => {
     expect(html).toMatch(
       /scenario-launch-side jp"><span[^>]*>Japan<.*scenario-launch-gap.*scenario-launch-side gl"><span[^>]*>Global</
     );
-    expect(html).toContain('Global got it');
+    expect(html).toMatch(/scenario-launch-gap">.*Launched after /);
     // GameTora under Links, after the launches.
     expect(html).toMatch(
       />Links<\/h2><ul class="scenario-links">.*https:\/\/gametora\.com\/umamusume\/our-grand-concert/
@@ -42,7 +42,7 @@ describe('ScenarioPage', () => {
     if (gm.en_start_date?.tag === 'predicted') {
       expect(html).toContain('scenario-status predicted');
       expect(html).toContain('Could be');
-      expect(html).toContain('Expected on Global');
+      expect(html).toContain('Expected after');
     }
     expect(html).toContain('href="#/scenario/GL"');
   });

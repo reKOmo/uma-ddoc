@@ -1,5 +1,5 @@
 // One Career scenario (#/scenario/<key>): its key art, names, launch on each server (status, how
-// long ago / until, predicted range), Global's lag behind JP, links to GameTora and its tier list,
+// long ago / until, predicted range), Global's lag behind JP (under the arrow between them), links to GameTora and its tier list,
 // and the scenarios before / after it. Opened from the scenario strip on the banner calendar.
 
 import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Trophy } from 'lucide-react';
@@ -76,102 +76,104 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }) {
 
   return (
     <div className="page scenario-page" style={scenario.color ? { '--scenario-color': scenario.color } : undefined}>
+      {/* Key art, then everything else: stacked on phones, side by side on desktop. */}
       <div className="scenario-hero">
         {scenario.links.cover && <img className="scenario-art" src={scenario.links.cover} alt={name} />}
-        <div className="scenario-facts">
-          <h1>{name}</h1>
-          {scenario.full_en && scenario.full_jp && (
-            <p className="scenario-jp" lang="ja">
-              {scenario.full_jp}
+        <div className="scenario-body">
+          <div className="scenario-facts">
+            <h1>{name}</h1>
+            {scenario.full_en && scenario.full_jp && (
+              <p className="scenario-jp" lang="ja">
+                {scenario.full_jp}
+              </p>
+            )}
+            <p className="card-tags">
+              {/* Both short names, labelled by server: JP's, and Global's when it has a different one. */}
+              {shortNames.map(({ server: on, name: short }) => (
+                <span key={on} className={`tag scenario-key ink-${ink(scenario.color) ?? 'none'}`}>
+                  {shortNames.length > 1 && <span className="scenario-key-server">{serverName(on)}</span>}
+                  {short}
+                </span>
+              ))}
+              {SERVER_ORDER.filter((s) => isCurrent(scenario.key, s, now)).map((s) => (
+                <span key={s} className="tag current">
+                  {t('scenarioPage.current', { server: serverName(s) })}
+                </span>
+              ))}
             </p>
-          )}
-          <p className="card-tags">
-            {/* Both short names, labelled by server: JP's, and Global's when it has a different one. */}
-            {shortNames.map(({ server: on, name: short }) => (
-              <span key={on} className={`tag scenario-key ink-${ink(scenario.color) ?? 'none'}`}>
-                {shortNames.length > 1 && <span className="scenario-key-server">{serverName(on)}</span>}
-                {short}
-              </span>
-            ))}
-            {SERVER_ORDER.filter((s) => isCurrent(scenario.key, s, now)).map((s) => (
-              <span key={s} className="tag current">
-                {t('scenarioPage.current', { server: serverName(s) })}
-              </span>
-            ))}
-          </p>
-          {rankable && (
-            <div className="scenario-actions">
-              <button type="button" className="gametora-link" onClick={openTierList}>
-                <Trophy size={16} aria-hidden="true" />
-                {t('scenarioPage.openTierList')}
-              </button>
-            </div>
+            {rankable && (
+              <div className="scenario-actions">
+                <button type="button" className="gametora-link" onClick={openTierList}>
+                  <Trophy size={16} aria-hidden="true" />
+                  {t('scenarioPage.openTierList')}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <h2 className="card-section">{t('scenarioPage.launch')}</h2>
+          {/* One card: JP's launch on the left, Global's on the right, the gap between them in the middle ("Launched after …"). */}
+          <div className="scenario-launch">
+            {SERVER_ORDER.map((key, i) => {
+              const start = scenario[DATE_FIELD[key]];
+              const side = (
+                <div key={key} className={`scenario-launch-side ${key}`}>
+                  <span className="scenario-launch-server">{serverName(key)}</span>
+                  {start ? (
+                    <>
+                      <span className={`scenario-status ${start.tag}`}>{t(`scenarioPage.status.${start.tag}`)}</span>
+                      <strong>{longTime(start.date)}</strong>
+                      <span className="scenario-relative">{relative(start.date)}</span>
+                      {start.tag === 'predicted' && start.lo && (
+                        <span className="scenario-range">
+                          {t('scenarioPage.range', {
+                            dates: t('common.dateRange', { start: shortDate(start.lo), end: shortDate(start.hi) }),
+                          })}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="scenario-relative">{t('scenarioPage.noDate', { server: serverName(key) })}</span>
+                  )}
+                </div>
+              );
+              if (i === 0) return side;
+              return [
+                <div key="gap" className="scenario-launch-gap">
+                  <ArrowRight size={20} aria-hidden="true" />
+                  {jp && en && (
+                    <small>
+                      {t(en.tag === 'out' ? 'scenarioPage.lag' : 'scenarioPage.lagExpected', {
+                        duration: formatDuration(day(Date.parse(jp.date)), day(Date.parse(en.date))),
+                      })}
+                    </small>
+                  )}
+                </div>,
+                side,
+              ];
+            })}
+          </div>
+
+          {links.length > 0 && (
+            <>
+              <h2 className="card-section">{t('scenarioPage.links')}</h2>
+              <ul className="scenario-links">
+                {links.map(([key, url]) => (
+                  <li key={key}>
+                    <a href={url} target="_blank" rel="noreferrer">
+                      <span>
+                        <strong>{t(`scenarioPage.link.${key}`)}</strong>
+                        <small>{new URL(url).hostname}</small>
+                      </span>
+                      <ExternalLink size={16} aria-hidden="true" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
       </div>
-
-      <h2 className="card-section">{t('scenarioPage.launch')}</h2>
-      {/* One card: JP's launch on the left, Global's on the right, the gap between them in the middle. */}
-      <div className="scenario-launch">
-        {SERVER_ORDER.map((key, i) => {
-          const start = scenario[DATE_FIELD[key]];
-          const side = (
-            <div key={key} className={`scenario-launch-side ${key}`}>
-              <span className="scenario-launch-server">{serverName(key)}</span>
-              {start ? (
-                <>
-                  <span className={`scenario-status ${start.tag}`}>{t(`scenarioPage.status.${start.tag}`)}</span>
-                  <strong>{longTime(start.date)}</strong>
-                  <span className="scenario-relative">{relative(start.date)}</span>
-                  {start.tag === 'predicted' && start.lo && (
-                    <span className="scenario-range">
-                      {t('scenarioPage.range', {
-                        dates: t('common.dateRange', { start: shortDate(start.lo), end: shortDate(start.hi) }),
-                      })}
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span className="scenario-relative">{t('scenarioPage.noDate', { server: serverName(key) })}</span>
-              )}
-            </div>
-          );
-          if (i === 0) return side;
-          return [
-            <div key="gap" className="scenario-launch-gap" aria-hidden="true">
-              <ArrowRight size={20} />
-              {jp && en && <small>{formatDuration(day(Date.parse(jp.date)), day(Date.parse(en.date)))}</small>}
-            </div>,
-            side,
-          ];
-        })}
-        {jp && en && (
-          <p className="scenario-lag">
-            {t(en.tag === 'out' ? 'scenarioPage.lag' : 'scenarioPage.lagExpected', {
-              duration: formatDuration(day(Date.parse(jp.date)), day(Date.parse(en.date))),
-            })}
-          </p>
-        )}
-      </div>
-
-      {links.length > 0 && (
-        <>
-          <h2 className="card-section">{t('scenarioPage.links')}</h2>
-          <ul className="scenario-links">
-            {links.map(([key, url]) => (
-              <li key={key}>
-                <a href={url} target="_blank" rel="noreferrer">
-                  <span>
-                    <strong>{t(`scenarioPage.link.${key}`)}</strong>
-                    <small>{new URL(url).hostname}</small>
-                  </span>
-                  <ExternalLink size={16} aria-hidden="true" />
-                </a>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
 
       <nav className="scenario-nav" aria-label={t('scenarioPage.others')}>
         {previous ? (

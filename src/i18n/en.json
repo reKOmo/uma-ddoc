@@ -1,6 +1,6 @@
 {
   "nav": {
-    "tierList": "Tier list",
+    "tierList": "Cards",
     "banners": "Timeline",
     "scenarios": "Scenarios",
     "settings": "Settings"
@@ -20,7 +20,8 @@
     "rank": "#{{position}}",
     "rankOf": "#{{position}} of {{total}}",
     "dateRange": "{{start}} - {{end}}",
-    "current": "Current"
+    "current": "Current",
+    "backToTop": "Back to top"
   },
   "stat": {
     "speed": "Speed",
@@ -53,8 +54,8 @@
     "in": "in {{duration}}",
     "range": "Could be {{dates}}.",
     "noDate": "No date for {{server}} yet.",
-    "lag": "Global got it {{duration}} after JP.",
-    "lagExpected": "Expected on Global {{duration}} after JP.",
+    "lag": "Launched after {{duration}}",
+    "lagExpected": "Expected after {{duration}}",
     "links": "Links",
     "link": {
       "gametora": "GameTora"
@@ -80,7 +81,12 @@
   "tierList": {
     "title": "Support Card Tier List",
     "filter": "Filter",
-    "noneShown": "No cards match the filter. Pick a limit break above."
+    "noneShown": "No cards match the filter. Pick a limit break above.",
+    "search": "Search cards",
+    "searchPlaceholder": "Search by name or character",
+    "clearSearch": "Clear search",
+    "reset": "Reset filters",
+    "noMatches": "No cards match “{{query}}” with this filter."
   },
   "banners": {
     "title": "Timeline",
@@ -194,11 +200,15 @@
     "timeZone": "Banner times",
     "timeZoneHint": "The game announces banners in UTC. Show their days and times in UTC, or in your own timezone.",
     "utc": "UTC",
-    "local": "Local ({{zone}})",
+    "utcDetail": "Game time",
+    "local": "Local",
+    "localDetail": "{{zone}}",
     "scenarioNames": "Scenario names",
     "scenarioNamesHint": "Short names for Career scenarios. Global's are used where Global has one; JP's otherwise.",
-    "scenarioNamesGlobal": "Global (Unity, TB, GC)",
-    "scenarioNamesJp": "JP (Aoharu, MANT, GL)",
+    "scenarioNamesGlobal": "Global",
+    "scenarioNamesGlobalDetail": "Unity, TB, GC",
+    "scenarioNamesJp": "JP",
+    "scenarioNamesJpDetail": "Aoharu, MANT, GL",
     "about": "About",
     "version": "Umaddoc {{version}}",
     "disclaimer": "Umaddoc is not affiliated with the developers of Umamusume: Pretty Derby. All the materials from the Umamusume: Pretty Derby game are copyrights of Cygames, Inc.",
@@ -215,7 +225,7 @@
       },
       "tierList": {
         "name": "Uma Tiers by Euophrys",
-        "description": "The tier list calculation Umaddoc's is based on, and its card data"
+        "description": "The tier list calculation Umaddoc is based on, and its card data"
       }
     }
   }

@@ -38,15 +38,30 @@ export default function Dropdown({ label, value, options, onChange }) {
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [open]);
 
-  // The open list has focus; keep the active option in view.
+  // On opening, the list scrolls to the selected option, centred; after that it keeps the active one in view.
+  // Only the list scrolls (scrollIntoView would move the page too).
+  const justOpened = useRef(false);
   useEffect(() => {
     if (!open) return;
-    list.current?.focus({ preventScroll: true });
-    document.getElementById(optionId(active))?.scrollIntoView({ block: 'nearest' });
+    const box = list.current;
+    const item = document.getElementById(optionId(active));
+    box?.focus({ preventScroll: true });
+    if (!box || !item) return;
+    const top = item.offsetTop;
+    const bottom = top + item.offsetHeight;
+    if (justOpened.current) {
+      justOpened.current = false;
+      box.scrollTop = top - (box.clientHeight - item.offsetHeight) / 2;
+    } else if (top < box.scrollTop) {
+      box.scrollTop = top;
+    } else if (bottom > box.scrollTop + box.clientHeight) {
+      box.scrollTop = bottom - box.clientHeight;
+    }
   });
 
   function show() {
     setActive(Math.max(0, ordered.indexOf(selected)));
+    justOpened.current = true;
     setOpen(true);
   }
 
