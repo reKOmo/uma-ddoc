@@ -34,7 +34,7 @@ import { DATA_DIR, GENERATED_DIR } from './lib/paths.js';
 import { BANNERS_FILE, pickMain, writeGlobal } from './lib/global.js';
 
 const SITE = 'https://gametora.com';
-const HEADERS = { 'User-Agent': 'uma-puller banner scraper (static tier list site)' };
+const HEADERS = { 'User-Agent': 'uma-ddoc scraper (Umaddoc, static tier list site)' };
 
 // GameTora's server keys and the language fields used for each.
 const SERVERS = {

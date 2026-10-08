@@ -6,7 +6,7 @@ import { createContext, useContext, useMemo, useState } from 'react';
 
 const DEFAULTS = { timeZone: 'utc' };
 const OPTIONS = { timeZone: ['utc', 'local'] };
-const KEY = 'uma-puller.settings';
+const KEY = 'uma-ddoc.settings';
 
 function load() {
   try {

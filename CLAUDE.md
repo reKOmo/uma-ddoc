@@ -1,4 +1,4 @@
-# uma-puller
+# Umaddoc (uma-ddoc)
 
 A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
 
