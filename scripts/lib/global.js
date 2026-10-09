@@ -145,15 +145,12 @@ export function applyNews({ posts, global, cards, jp, names }) {
   };
 }
 
-// char_id → English name, from Global's banners and our card metadata (by the JP card banners'
-// card ids, which carry char_id).
-export function englishNames(global, jp, metadata) {
+// char_id → English name, from our cards (generated/cards.json; group cards are named after the group)
+// and Global's banners.
+export function englishNames(global, cards) {
   const names = new Map();
-  for (const b of jp.cards) {
-    for (const item of b.featured) {
-      const name = metadata[item.id]?.name_en;
-      if (name && item.char_id && !metadata[item.id]?.group) names.set(item.char_id, name);
-    }
+  for (const card of Object.values(cards)) {
+    if (card.charId && card.name.en && card.type !== 'group') names.set(card.charId, card.name.en);
   }
   for (const b of [...global.characters, ...global.cards])
     for (const item of b.featured) if (item.char_id && item.name) names.set(item.char_id, item.name);

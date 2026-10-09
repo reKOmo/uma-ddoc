@@ -3,13 +3,13 @@
 // windows, blocked site data); then they're only kept until the page is closed. The scenario is App's (shared
 // with the other pages).
 //   stat    a key of STATS
-//   shown   { [rarity]: [limit breaks] }, rarity 3 = SSR, 2 = SR, 1 = R
+//   shown   { [rarity]: [limit breaks] }, rarity SSR / SR / R (as in cards.json)
 //   query   the search box's text
 
 import { STATS } from '../tierlist/index.js';
 
 // MLB for all, plus LB0 and LB3 for SSR and SR.
-export const DEFAULTS = { stat: 'speed', shown: { 3: [0, 3, 4], 2: [0, 3, 4], 1: [4] }, query: '' };
+export const DEFAULTS = { stat: 'speed', shown: { SSR: [0, 3, 4], SR: [0, 3, 4], R: [4] }, query: '' };
 const KEY = 'uma-ddoc.tierListFilters';
 
 const validShown = (shown) =>

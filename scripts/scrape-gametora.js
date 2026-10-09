@@ -1,7 +1,8 @@
 // Scrapes JP's gacha banner history, the support card list and the Career scenarios from GameTora
 // (https://gametora.com/umamusume/gacha/history) into:
 //   generated/jp_banners.json
-//   generated/gametora_cards.json
+//   generated/raw/gametora_cards.json    the support card list (then rebuilds the card data, see
+//                                        scripts/build-cards.js)
 //   data/scenarios.json              JP's side only: launch times, links, new scenarios
 //                                    (see scripts/lib/scenarios.js)
 // Global isn't scraped any more: it has its own record in data/ (scripts/lib/global.js), kept up
@@ -18,12 +19,10 @@
 // rarity (then highest rate). Character items are trainee outfits (6-digit
 // ids); card items are support cards, whose ids match our card data.
 //
-// gametora_cards.json maps every support card id to
-//   { url, title_en, title_jp, release_gl, release_jp }
-// for the card page (GameTora's URL slugs can't be derived from the name alone).
-// Release dates are "YYYY-MM-DD", or null if the card isn't out on that server
-// (a few Global promo cards have no date either). Its Global fields are GameTora's: the site
-// reads Global titles and dates from data/global_cards.json instead (src/cardInfo.js, ml/data.py).
+// raw/gametora_cards.json is GameTora's support card list as it is, cut to the fields we read: ids,
+// names, titles, type, rarity, JP release date ("YYYY-MM-DD"), how it's obtained, the page's URL slug
+// (not derivable from the name). Not its Global fields: Global's titles and dates are our own
+// (data/global_cards.json).
 //
 // The history page loads its data from GameTora's versioned JSON files, so
 // this reads those directly instead of parsing HTML.
@@ -35,6 +34,23 @@ import { pathToFileURL } from 'node:url';
 import { DATA_DIR, GENERATED_DIR } from './lib/paths.js';
 import { BANNERS_FILE, pickMain, writeGlobal } from './lib/global.js';
 import { fillColors, mergeGametora, readScenarios, writeScenarios } from './lib/scenarios.js';
+import { writeSources } from './lib/sources.js';
+import { GAMETORA_CARDS_FILE, buildCardFiles } from './build-cards.js';
+
+// The support card fields raw/gametora_cards.json keeps.
+const CARD_FIELDS = [
+  'support_id',
+  'char_id',
+  'char_name',
+  'name_jp',
+  'title_en',
+  'title_ja',
+  'type',
+  'rarity',
+  'release',
+  'obtained',
+  'url_name',
+];
 
 const SITE = 'https://gametora.com';
 const HEADERS = { 'User-Agent': 'uma-ddoc scraper (Umaddoc, static tier list site)' };
@@ -92,21 +108,16 @@ export async function scrapeBanners({ seedGlobal = false, force = false } = {}) 
   const characters = new Map(data['character-cards'].map((c) => [c.card_id, c]));
   const cards = new Map(data['support-cards'].map((c) => [c.support_id, c]));
 
-  mkdirSync(GENERATED_DIR, { recursive: true });
-  const cardInfo = Object.fromEntries(
-    data['support-cards'].map((c) => [
-      c.support_id,
-      {
-        url: `${SITE}/umamusume/supports/${c.url_name}`,
-        title_en: c.title_en ?? null,
-        title_jp: c.title_ja ?? null,
-        release_gl: c.release_en ?? null,
-        release_jp: c.release ?? null,
-      },
-    ])
+  mkdirSync(`${GENERATED_DIR}raw`, { recursive: true });
+  const supportCards = data['support-cards'].map((c) =>
+    Object.fromEntries(CARD_FIELDS.map((field) => [field, c[field] ?? null]))
   );
-  writeFileSync(`${GENERATED_DIR}gametora_cards.json`, `${JSON.stringify(cardInfo)}\n`);
-  console.log(`gametora_cards: ${Object.keys(cardInfo).length} support cards`);
+  writeFileSync(GAMETORA_CARDS_FILE, `[\n${supportCards.map((c) => JSON.stringify(c)).join(',\n')}\n]\n`);
+  writeSources({
+    'raw/gametora_cards.json': { url: `${SITE}/umamusume/supports`, fetched_at: new Date().toISOString() },
+  });
+  console.log(`gametora_cards: ${supportCards.length} support cards`);
+  await buildCardFiles();
 
   mkdirSync(DATA_DIR, { recursive: true });
   const scenarios = mergeGametora(readScenarios().scenarios, data.scenarios, { seedGlobal });

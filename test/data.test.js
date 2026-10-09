@@ -3,23 +3,29 @@
 
 import { describe, it, expect } from 'vitest';
 import { isDeepStrictEqual } from 'node:util';
-import { loadCards, metadata } from '../tierlist/cards.js';
+import { cards, loadCards } from '../tierlist/cards.js';
 import { COMBINED, STATS, presetDecks, rankByUsefulness, scenarioOptions, scenariosOf } from '../tierlist/index.js';
-import { NAME_FIELD } from '../tierlist/join-cards.js';
+import { withoutEvents } from '../tierlist/join-cards.js';
 import { getScenarios, getServerConfig } from '../tierlist/scenarios.js';
-import gl from '../generated/raw/gl.js';
-import jp from '../generated/raw/jp.js';
+import gl from '../generated/raw/upstream/gl.js';
+import jp from '../generated/raw/upstream/jp.js';
+import events from '../generated/raw/upstream/card-events.js';
 
 const SOURCE = { gl, jp };
 
 for (const server of ['gl', 'jp']) {
   describe(`${server} data`, () => {
     it(`loadCards rebuilds upstream's ${server} card list exactly`, async () => {
-      expect(isDeepStrictEqual(await loadCards(server), SOURCE[server])).toBe(true);
+      expect(isDeepStrictEqual(withoutEvents(await loadCards(server)), SOURCE[server])).toBe(true);
     });
 
-    it("every card has metadata with a name in this server's language", async () => {
-      const missing = (await loadCards(server)).filter((c) => !metadata[c.id]?.[NAME_FIELD[server]]);
+    it("carries upstream's card events", async () => {
+      const wrong = (await loadCards(server)).filter((c) => !isDeepStrictEqual(c.events, events[c.id] ?? null));
+      expect(wrong.map((c) => c.id)).toEqual([]);
+    });
+
+    it('every card is in cards.json, with both names', async () => {
+      const missing = (await loadCards(server)).filter((c) => !cards[c.id]?.name.en || !cards[c.id]?.name.jp);
       expect(missing.map((c) => c.id)).toEqual([]);
     });
 

@@ -13,11 +13,11 @@
     "test": "vitest run --project unit",
     "test:upstream": "vitest run --project upstream",
     "update-cards": "node scripts/update-cards.js",
+    "build-cards": "node scripts/build-cards.js",
     "clone-upstream": "node scripts/clone-upstream.js",
     "rank": "node tierlist/cli.js",
     "scrape-gametora": "node scripts/scrape-gametora.js",
     "fetch-pull-guide": "node scripts/fetch-pull-guide.js",
-    "map-banner-cards": "node scripts/map-banner-cards.js",
     "fetch-news": "node scripts/fetch-news.js",
     "update-global": "node scripts/update-global.js",
     "setup-ml": "uv venv --allow-existing --python 3.13 ml/.venv && uv pip install --python ml/.venv -r ml/requirements.txt",
@@ -36,6 +36,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@vitejs/plugin-react": "^6.1.1",
+    "ajv": "^8.20.0",
     "husky": "9.1.7",
     "vite": "^8.3.2",
     "vitest": "^4.1.11"

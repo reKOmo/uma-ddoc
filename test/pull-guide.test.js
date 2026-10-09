@@ -1,9 +1,15 @@
 // Pull advice from Luh's Umamusume Support Card Encyclopedia: parsing a tab's HTML view, its dates,
-// "Pull?" and "Notes" cells, and matching tabs to our scenarios (scripts/lib/pull-guide.js).
+// "Pull?" and "Notes" cells, matching entries to banners (scripts/lib/pull-guide.js), and picking the
+// advice shown (src/pullGuide.js).
 
 import { describe, it, expect } from 'vitest';
+import { existsSync, readFileSync } from 'node:fs';
+import Ajv2020 from 'ajv/dist/2020.js';
+import schema from '../schemas/pull_guide.schema.json' with { type: 'json' };
 import {
-  byCard,
+  byBanner,
+  findBanner,
+  notesParagraph,
   parseDate,
   parseNotes,
   parsePull,
@@ -11,7 +17,7 @@ import {
   parseTab,
   parseUpdated,
 } from '../scripts/lib/pull-guide.js';
-import { findBanner, notesParagraph, sheetLink, upcomingEntry } from '../src/pullGuide.js';
+import { currentAdvice, latestAdvice, sheetLink, upcomingBanner } from '../src/pullGuide.js';
 
 const link = (url) => `<a href="https://www.google.com/url?q=${url}&amp;sa=D&amp;usg=x">`;
 let rowIndex = 0;
@@ -48,36 +54,28 @@ const TAB = `<table>${[
 ].join('')}</table>`;
 
 describe('a tab', () => {
-  it('reads each card row by its GameTora link, and the scenario the tab links', () => {
+  it('reads each card row by its GameTora link', () => {
     expect(parseTab(TAB)).toEqual({
-      slug: 'make-a-new-track',
       entries: [
         {
           id: '30086',
-          row: 3,
           name: 'Narita Top Road',
-          label: null,
-          date: '2026-03-12',
-          free_pulls: 60,
-          pull: 'If Whale',
-          verdict: 'whale',
-          pill: 'If Whale',
-          advice: null,
-          notes: ['Viable during MANT because of her unique'],
+          row: 3,
+          banner: { label: null, date: '2026-03-12' },
+          freePulls: 60,
+          shouldPull: 'whale',
+          comment: null,
+          advice: 'Viable during MANT because of her unique.',
         },
         {
           id: '30087',
-          row: 4,
           name: 'Mejiro Bright',
-          label: 'Event',
-          month: '2028-06',
-          part: 'late',
-          free_pulls: null,
-          pull: 'Free',
-          verdict: 'free',
-          pill: null,
-          advice: null,
-          notes: ['Average free card'],
+          row: 4,
+          banner: { label: 'Event', month: '2028-06', part: 'late' },
+          freePulls: null,
+          shouldPull: 'free',
+          comment: null,
+          advice: 'Average free card.',
         },
       ],
     });
@@ -87,11 +85,31 @@ describe('a tab', () => {
     expect(parseTab(`<table>${row(['', 'Just text'])}</table>`).entries).toEqual([]);
   });
 
-  it('maps tabs to our scenario keys, through slug aliases', () => {
-    const scenarios = [{ key: 'MANT', links: { gametora: 'https://gametora.com/umamusume/trackblazer' } }];
-    const cards = byCard([{ name: 'Trackblazer', gid: '557481421', ...parseTab(TAB) }], scenarios);
-    expect(cards['30086'][0]).toMatchObject({ scenario: 'MANT', tab: 'Trackblazer', gid: '557481421', row: 3 });
-    expect(byCard([{ name: 'X', slug: 'unknown', entries: [{ id: '1' }] }], scenarios)['1'][0].scenario).toBeNull();
+  it('maps entries to banners, and cards on none to noBanner', () => {
+    const banners = [{ id: 30120, start: '2026-03-11T22:00:00Z', featured: [{ id: 30086, new: true }] }];
+    expect(byBanner([{ name: 'Trackblazer', gid: '557481421', ...parseTab(TAB) }], banners)).toEqual({
+      banners: {
+        30120: {
+          30086: {
+            googleSheetsSrc: { gid: '557481421', row: 3 },
+            freePulls: 60,
+            shouldPull: 'whale',
+            comment: null,
+            advice: 'Viable during MANT because of her unique.',
+          },
+        },
+      },
+      noBanner: {
+        30087: {
+          googleSheetsSrc: { gid: '557481421', row: 4 },
+          freePulls: null,
+          shouldPull: 'free',
+          comment: null,
+          advice: 'Average free card.',
+          release: { label: 'Event', month: '2028-06', part: 'late' },
+        },
+      },
+    });
   });
 });
 
@@ -108,34 +126,43 @@ describe('cells', () => {
     expect(parseDate("July 23rd, '26")).toEqual({ date: '2026-07-23' });
     expect(parseDate("8 Oct '25")).toEqual({ date: '2025-10-08' });
     expect(parseDate("Early Mar '28")).toEqual({ month: '2028-03', part: 'early' });
-    expect(parseDate('TBA')).toEqual({ date_text: 'TBA' });
+    expect(parseDate('TBA')).toEqual({ dateText: 'TBA' });
   });
 
   it('splits free pulls from the advice and buckets it', () => {
-    const plain = { pill: null, advice: null, note: null };
-    expect(parsePull('No')).toEqual({ free_pulls: null, pull: 'No', verdict: 'no', ...plain });
-    expect(parsePull('12 free pulls\n\n#No')).toEqual({ free_pulls: 12, pull: 'No', verdict: 'no', ...plain });
-    expect(parsePull('100 Free Pulls\n\nYes')).toMatchObject({ free_pulls: 100, verdict: 'yes' });
-    expect(parsePull('If dedicated\nto Ends').pull).toBe('If dedicated to Ends');
-    expect(parsePull('If whale+ or\nwith Duramente').pull).toBe('If Whale+ or With Duramente');
-    expect(parsePull('If Dolpin').pull).toBe('If Dolphin');
-    expect(parsePull('If dedicated\nto lates').pull).toBe('If dedicated to Lates');
-    expect(parsePull('').verdict).toBeNull();
+    const plain = { comment: null, note: null };
+    expect(parsePull('No')).toEqual({ freePulls: null, shouldPull: 'no', ...plain });
+    expect(parsePull('12 free pulls\n\n#No')).toEqual({ freePulls: 12, shouldPull: 'no', ...plain });
+    expect(parsePull('100 Free Pulls\n\nYes')).toMatchObject({ freePulls: 100, shouldPull: 'yes' });
+    expect(parsePull('If dedicated\nto Ends').note).toBe('If dedicated to Ends');
+    expect(parsePull('If whale+ or\nwith Duramente').comment).toBe('If Whale+ or With Duramente');
+    expect(parsePull('If Dolpin').shouldPull).toBe('dolphin');
+    expect(parsePull('If dedicated\nto lates').note).toBe('If dedicated to Lates');
+    expect(parsePull('')).toEqual({ freePulls: null, shouldPull: null, ...plain });
+  });
+
+  it('reads a limit break target ("1LB+") as a yes, its text placed as without a pill', () => {
+    expect(parsePull('1LB+ or R\nMLB')).toMatchObject({ shouldPull: 'yes', comment: null, note: '1LB+ or R MLB' });
+    expect(parsePull('2LB+ or a long explanation here')).toMatchObject({
+      shouldPull: 'yes',
+      comment: '2LB+ or a long explanation here',
+      note: null,
+    });
+    expect(parsePull('If you have her at 2LB+').shouldPull).toBeNull();
   });
 
   it('pills Whale and Dolphin with their pluses, and splits off the rest of the advice', () => {
-    expect(parsePull('If Whale++')).toMatchObject({ verdict: 'whale', pill: 'If Whale++', advice: null, note: null });
-    expect(parsePull('If Dolphin+')).toMatchObject({ verdict: 'dolphin', pill: 'If Dolphin+' });
+    expect(parsePull('If Whale++')).toMatchObject({ shouldPull: 'whale++', comment: null, note: null });
+    expect(parsePull('If Dolphin+')).toMatchObject({ shouldPull: 'dolphin+' });
     expect(parsePull('If Whale or\nWith Palmer')).toMatchObject({
-      verdict: 'whale',
-      pill: 'If Whale',
-      advice: 'If Whale or With Palmer',
+      shouldPull: 'whale',
+      comment: 'If Whale or With Palmer',
     });
-    // No verdict: short advice joins the notes, longer is the recommendation.
-    expect(parsePull('With Kitasan')).toMatchObject({ verdict: null, advice: null, note: 'With Kitasan' });
+    // No pill: short advice leads the notes, longer is the comment.
+    expect(parsePull('With Kitasan')).toMatchObject({ shouldPull: null, comment: null, note: 'With Kitasan' });
     expect(parsePull("If dedicated to Lates and\ndidn't pull Admire Groove")).toMatchObject({
-      verdict: null,
-      advice: "If dedicated to Lates and didn't pull Admire Groove",
+      shouldPull: null,
+      comment: "If dedicated to Lates and didn't pull Admire Groove",
       note: null,
     });
   });
@@ -171,25 +198,37 @@ describe('cells', () => {
 });
 
 describe('the advice shown', () => {
-  const entries = [
-    { date: '2025-06-26', pull: 'No' },
-    { date: '2026-09-30', pull: 'With Nice Nature' },
-    { month: '2026-11', part: 'late', pull: 'No' },
+  const banner = (id, start, end, isNew) => ({ id, start, end, featured: [{ id: 30078, new: isNew }] });
+  const banners = [
+    banner(3, '2026-11-24T22:00:00Z', '2026-12-03T21:59:59Z', false),
+    banner(1, '2026-01-28T22:00:00Z', '2026-02-06T21:59:59Z', true),
   ];
+  const guide = {
+    banners: { 1: { 30078: { shouldPull: 'yes' } }, 3: { 30078: { shouldPull: 'no' } } },
+    noBanner: { 30087: { shouldPull: 'free', release: { month: '2026-11', part: 'late' } } },
+  };
 
-  it('is for the banner running now or the next one', () => {
-    expect(upcomingEntry(entries, '2026-10-08').pull).toBe('With Nice Nature');
-    expect(upcomingEntry(entries, '2026-10-20')).toBe(entries[2]);
-    expect(upcomingEntry(entries, '2026-11-30')).toBe(entries[2]);
+  it("is for the card's banner running now or the next one", () => {
+    expect(upcomingBanner(banners, 30078, Date.parse('2026-02-01T00:00:00Z')).id).toBe(1);
+    expect(upcomingBanner(banners, 30078, Date.parse('2026-10-08T00:00:00Z')).id).toBe(3);
+    expect(upcomingBanner(banners, 30078, Date.parse('2026-12-05T00:00:00Z'))).toBeNull();
+    expect(currentAdvice(guide, 30078, banners[0], '2026-10-08')).toEqual({ shouldPull: 'no' });
+    expect(currentAdvice(guide, 30078, { id: 9 }, '2026-10-08')).toBeNull();
   });
 
-  it('is none once every banner is over', () => {
-    expect(upcomingEntry(entries, '2026-12-01')).toBeNull();
+  it('is for a card on no banner while its release is ahead', () => {
+    expect(currentAdvice(guide, 30087, null, '2026-11-30').shouldPull).toBe('free');
+    expect(currentAdvice(guide, 30087, null, '2026-12-01')).toBeNull();
+  });
+
+  it("falls back to the card's latest advice for the link, none for cards the guide lacks", () => {
+    expect(latestAdvice(guide, 30078)).toEqual({ shouldPull: 'no' });
+    expect(latestAdvice(guide, 1)).toBeNull();
   });
 
   it("links to the entry's row in the sheet", () => {
-    expect(sheetLink('https://s', { gid: '5', row: 12 })).toBe('https://s/edit#gid=5&range=B12');
-    expect(sheetLink('https://s', null)).toBe('https://s');
+    expect(sheetLink({ googleSheetsSrc: { gid: '5', row: 12 } }, 'https://s')).toBe('https://s/edit#gid=5&range=B12');
+    expect(sheetLink(null, 'https://s')).toBe('https://s');
   });
 });
 
@@ -206,14 +245,14 @@ describe('the banner an entry is about', () => {
     banner(4, '2026-12-01', [30099]),
   ];
   const entries = [
-    { date: '2026-01-29' },
-    { date: '2026-05-10', label: 'Rerun' },
-    { month: '2026-11', part: 'late', label: 'Rerun' },
+    { banner: { date: '2026-01-29' } },
+    { banner: { date: '2026-05-10', label: 'Rerun' } },
+    { banner: { month: '2026-11', part: 'late', label: 'Rerun' } },
   ];
 
   it('is the earliest banner featuring the card for its first release', () => {
     expect(findBanner(banners, 30078, entries, entries[0]).id).toBe(1);
-    const event = [{ month: '2027-06', part: 'early', label: 'Event' }];
+    const event = [{ banner: { month: '2027-06', part: 'early', label: 'Event' } }];
     expect(findBanner(banners, 30111, event, event[0])).toBeNull();
   });
 
@@ -223,7 +262,7 @@ describe('the banner an entry is about', () => {
   });
 
   it('is none for a rerun far from any banner', () => {
-    const late = { date: '2027-06-01', label: 'Rerun' };
+    const late = { banner: { date: '2027-06-01', label: 'Rerun' } };
     expect(findBanner(banners, 30078, [...entries, late], late)).toBeNull();
   });
 });
@@ -233,5 +272,23 @@ describe('the notes shown', () => {
     expect(
       notesParagraph(['Last banner before the 2nd Anniversary, best to save up!', '(Her third time)', 'MLB it'])
     ).toBe('Last banner before the 2nd Anniversary, best to save up! (Her third time) MLB it.');
+    expect(notesParagraph([])).toBeNull();
+  });
+});
+
+describe('the schema', () => {
+  const validate = new Ajv2020({ allowUnionTypes: true }).compile(schema);
+  const check = (guide) => expect(validate(guide), JSON.stringify(validate.errors)).toBe(true);
+
+  it('fits what the script writes', () => {
+    const banners = [{ id: 30120, start: '2026-03-11T22:00:00Z', featured: [{ id: 30086, new: true }] }];
+    const guide = byBanner([{ gid: '557481421', ...parseTab(TAB) }], banners);
+    check({ $schema: '../schemas/pull_guide.schema.json', ...guide });
+    expect(validate({ ...guide, extra: 1 })).toBe(false);
+    expect(validate({ banners: {}, noBanner: { 1: { ...guide.banners[30120][30086] } } })).toBe(false);
+  });
+
+  it.skipIf(!existsSync('generated/pull_guide.json'))('fits generated/pull_guide.json', () => {
+    check(JSON.parse(readFileSync('generated/pull_guide.json', 'utf8')));
   });
 });

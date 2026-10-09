@@ -3,8 +3,6 @@
 // (src/components/tierlist-calc.js, MIT — see LICENSE); maintained here now.
 // test/upstream/ checks it still ranks exactly like upstream's.
 
-import events from '../generated/card-events.json' with { type: 'json' };
-
 // ─── Conventions used throughout this file ───────────────────────────────────
 //
 // A card's `type` indexes into the same array as the stats it can give:
@@ -15,7 +13,7 @@ import events from '../generated/card-events.json' with { type: 'json' };
 //
 // Stat / gain arrays follow the same layout:
 //   [0..4] the five training stats · [5] skill points · [6] energy
-// Card-event arrays add one more slot: [7] bond.
+// Card-event arrays (`card.events`, see join-cards.js) add one more slot: [7] bond.
 //
 // Card field shorthands (defined in the card data files):
 //   sb  starting bond        tb  training bonus       mb  motivation bonus
@@ -85,8 +83,8 @@ export function processCards(cards, weights, selectedCards) {
     cardsPerType[selectedCard.cardType].push(selectedCard);
 
     baseBondNeeded += (selectedCard.cardType === GROUP_TYPE ? GROUP_BOND : NORMAL_BOND) - selectedCard.sb;
-    if (events[selectedCard.id]) {
-      baseBondNeeded -= events[selectedCard.id][BOND];
+    if (selectedCard.events) {
+      baseBondNeeded -= selectedCard.events[BOND];
     }
   }
 
@@ -129,13 +127,13 @@ export function processCards(cards, weights, selectedCards) {
 
     // Event rewards (or, for cards without an event entry, the flat rarity
     // bonuses). Both also reduce the bond still needed and add to the score.
-    if (events[card.id]) {
+    if (card.events) {
       for (let stat = 0; stat < STAT_COUNT; stat++) {
-        statGains[stat] += events[card.id][stat] * card.effect_size_up;
+        statGains[stat] += card.events[stat] * card.effect_size_up;
       }
-      energyGain += events[card.id][ENERGY] * card.energy_up;
-      bondNeeded -= events[card.id][BOND];
-      score += events[card.id][BOND];
+      energyGain += card.events[ENERGY] * card.energy_up;
+      bondNeeded -= card.events[BOND];
+      score += card.events[BOND];
     } else {
       if (card.rarity === 2) {
         for (let stat = 0; stat < TRAINING_COUNT; stat++) statGains[stat] += 7;

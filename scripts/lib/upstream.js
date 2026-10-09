@@ -3,21 +3,23 @@
 //
 // The tier list calculation started as a copy of upstream's and is ours now
 // (tierlist/). Upstream is still used for:
-//   data   card lists + card events, fetched from upstream main into generated/
-//          at build time, never committed (scripts/update-cards.js).
+//   data   card lists + card events, fetched from upstream main into generated/raw/upstream/
+//          at build time, never committed (scripts/update-cards.js, scripts/build-cards.js).
 //   tests  test/upstream/ compares our calculation with upstream's, run from a
 //          clone in upstream/ (scripts/clone-upstream.js).
 
 export const REPO = 'Euophrys/umamusume-tierlist';
-import { ROOT } from './paths.js';
+import { GENERATED_DIR, ROOT } from './paths.js';
 
 export const UPSTREAM_DIR = `${ROOT}upstream/`;
+// Where the data files go, as downloaded.
+export const UPSTREAM_RAW = `${GENERATED_DIR}raw/upstream/`;
 
-// `local` is relative to generated/.
+// `local` is relative to UPSTREAM_RAW.
 export const DATA_FILES = [
-  { upstream: 'src/cards/gl.js', local: 'raw/gl.js' },
-  { upstream: 'src/cards/jp.js', local: 'raw/jp.js' },
-  { upstream: 'src/card-events.js', local: 'raw/card-events.js' },
+  { upstream: 'src/cards/gl.js', local: 'gl.js' },
+  { upstream: 'src/cards/jp.js', local: 'jp.js' },
+  { upstream: 'src/card-events.js', local: 'card-events.js' },
 ];
 
 export async function latestRef() {

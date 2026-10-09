@@ -74,9 +74,9 @@
     "max": "MLB"
   },
   "rarity": {
-    "1": "R",
-    "2": "SR",
-    "3": "SSR"
+    "R": "R",
+    "SR": "SR",
+    "SSR": "SSR"
   },
   "tierList": {
     "title": "Support Card Tier List",
@@ -141,6 +141,7 @@
     "viewOnGameTora": "View on GameTora",
     "tierByScenario": "Tier by scenario",
     "notReleased": "Not released on {{server}} yet.",
+    "notRanked": "Out on {{server}}, but the tier list doesn't have its stats yet.",
     "notReleasedPredicted": "Not released on {{server}} yet; predicted around {{date}}.",
     "notReleasedConfirmed": "Not released on {{server}} yet; confirmed for {{date}}.",
     "mlbRank": "MLB rank",
@@ -177,7 +178,9 @@
     "verdict": {
       "yes": "Yes",
       "no": "No",
-      "free": "Free"
+      "free": "Free",
+      "whale": "If Whale",
+      "dolphin": "If Dolphin"
     },
     "freePulls_one": "{{count}} free pull on the banner",
     "freePulls_other": "{{count}} free pulls on the banner",
@@ -186,6 +189,7 @@
     "late": "late {{month}} (estimate)",
     "month": "{{month}} (estimate)",
     "noUpcoming": "No upcoming banners :c",
+    "rerun": "Rerun",
     "seeBanner": "See banner",
     "seeMore": "See more on Luh's encyclopedia"
   },

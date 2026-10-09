@@ -3,7 +3,7 @@ node_modules/
 dist/
 
 # Build-time data, never committed: card data (`pnpm update-cards`), JP banners + card links
-# (`pnpm scrape-gametora`, `pnpm map-banner-cards`) and predictions (`pnpm predict-gl`).
+# (`pnpm scrape-gametora`) and predictions (`pnpm predict-gl`).
 # Committed data lives in data/ instead (Global's banners + card releases, known dates, the
 # official news): nothing can regenerate it.
 generated/

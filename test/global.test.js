@@ -1,8 +1,7 @@
-// Global's own banner record (scripts/lib/global.js) and the card page's merged card info.
+// Global's own banner record (scripts/lib/global.js).
 
 import { describe, it, expect } from 'vitest';
 import { applyNews, englishNames } from '../scripts/lib/global.js';
-import { mergeCardInfo } from '../src/cardInfo.js';
 
 const item = (id, char_id, name, title, rarity, extra = {}) => ({
   id,
@@ -57,7 +56,7 @@ const SEEDED = {
   ],
 };
 const CARDS = { 30072: { title_en: '[Party Formation]', release_gl: '2026-01-05' } };
-const METADATA = { 30126: { name_en: 'Yamanin Zephyr' } };
+const CARD_DATA = { 30126: { charId: 1068, type: 'friend', name: { en: 'Yamanin Zephyr', jp: 'ヤマニンゼファー' } } };
 
 const post = (id, posted, start, extra = {}) => ({
   id,
@@ -76,7 +75,7 @@ const post = (id, posted, start, extra = {}) => ({
 });
 
 const apply = (posts, global = SEEDED, cards = CARDS) =>
-  applyNews({ posts, global, cards, jp: JP, names: englishNames(global, JP, METADATA) });
+  applyNews({ posts, global, cards, jp: JP, names: englishNames(global, CARD_DATA) });
 
 describe('applyNews', () => {
   const result = apply([post(1089, '2026-10-07T22:00:00Z', '2026-10-07T22:00:00.000Z')]);
@@ -135,23 +134,5 @@ describe('applyNews', () => {
     expect(apply([unknown]).skipped).toEqual([
       { id: 99999, post: 'https://umamusume.com/news/1091/', reason: 'no JP banner has this id' },
     ]);
-  });
-});
-
-describe('mergeCardInfo', () => {
-  it("takes Global's title and date from our record, the rest from GameTora", () => {
-    const gametora = {
-      1: { url: 'u1', title_en: '[GT title]', title_jp: '[JP]', release_gl: '2020-01-01', release_jp: '2019-01-01' },
-      2: { url: 'u2', title_en: '[Fan title]', title_jp: '[JP2]', release_gl: '2020-02-02', release_jp: '2019-02-02' },
-    };
-    const ours = {
-      1: { title_en: '[Our title]', release_gl: '2026-10-07' },
-      3: { title_en: '[New]', release_gl: '2026-10-08' },
-    };
-    expect(mergeCardInfo(gametora, ours)).toEqual({
-      1: { url: 'u1', title_en: '[Our title]', title_jp: '[JP]', release_gl: '2026-10-07', release_jp: '2019-01-01' },
-      2: { url: 'u2', title_en: '[Fan title]', title_jp: '[JP2]', release_gl: null, release_jp: '2019-02-02' },
-      3: { url: null, title_en: '[New]', title_jp: null, release_gl: '2026-10-08', release_jp: null },
-    });
   });
 });

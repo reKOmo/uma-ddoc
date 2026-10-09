@@ -1,8 +1,8 @@
 # Global release-date predictions
 
-Predicts when JP support cards come out on Global, from JP release dates (GameTora,
-`generated/gametora_cards.json`, `pnpm scrape-gametora`) and Global's (our own `data/global_cards.json`,
-kept up from the official news by `pnpm update-global`). Global releases JP's cards
+Predicts when JP support cards come out on Global, from their release dates in `generated/cards.json`
+(`pnpm build-cards`): JP's from GameTora (`pnpm scrape-gametora`), Global's from our own
+`data/global_cards.json` (kept up from the official news by `pnpm update-global`). Global releases JP's cards
 in JP's order, faster than JP did, so the models extrapolate Global's pace from its last release.
 
 ```sh

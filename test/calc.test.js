@@ -3,12 +3,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { processCards } from '../tierlist/tierlist-calc.js';
-import allCards from '../generated/raw/gl.js';
+import { loadCards } from '../tierlist/cards.js';
 import { SCENARIOS_BY_SERVER } from '../tierlist/scenarios.js';
 
 const scenario = SCENARIOS_BY_SERVER.gl.MANT;
 const weights = { ...scenario.speed, ...scenario.general };
 
+const allCards = await loadCards('gl');
 const selectedCardIds = [30078, 20027, 20041, 20012, 20015];
 const selectedCards = selectedCardIds.map((id) => allCards.find((c) => c.id === id && c.limit_break === 4));
 

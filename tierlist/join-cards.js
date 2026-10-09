@@ -1,26 +1,36 @@
-// Rebuilds upstream-format card objects (one per id × limit break, in
-// upstream's id/LB order) from metadata plus one server's stats. Each server's
-// char_name is in its own language, which scenarioLink relies on.
+// Rebuilds upstream-format card objects (one per id × limit break, in upstream's id/LB order) from
+// generated/cards.json (type, rarity) plus one server's generated/card_stats/<server>_card_stats.json
+// (the character's name in that server's language, which scenarioLink relies on, event rewards and
+// the stats per limit break).
 
-// Which metadata name each server's char_name comes from.
-export const NAME_FIELD = { gl: 'name_en', jp: 'name_jp' };
+// cards.json's readable types and rarities → upstream's codes. Group cards are friend-type (6) with
+// `group: true`.
+export const TYPE_CODES = { speed: 0, stamina: 1, power: 2, guts: 3, wisdom: 4, friend: 6, group: 6 };
+export const RARITY_CODES = { R: 1, SR: 2, SSR: 3 };
+export const typeOf = (code, group) => (group ? 'group' : Object.keys(TYPE_CODES).find((t) => TYPE_CODES[t] === code));
+export const rarityOf = (code) => Object.keys(RARITY_CODES).find((r) => RARITY_CODES[r] === code);
 
-export function joinCards(server, metadata, stats) {
-  const cards = [];
+// Upstream's card objects, plus `events` (the card's event rewards or null), which the calculation
+// reads; without it they're exactly upstream's list (see withoutEvents).
+export function joinCards(cards, stats) {
+  const joined = [];
   // Integer keys iterate in ascending order, so cards come out sorted by id.
-  for (const [id, levels] of Object.entries(stats)) {
-    const meta = metadata[id];
-    levels.forEach((levelStats, limit_break) => {
-      cards.push({
-        id: meta.id,
-        type: meta.type,
-        group: meta.group,
-        rarity: meta.rarity,
+  for (const [id, { charName, events, lb }] of Object.entries(stats)) {
+    const card = cards[id];
+    lb.forEach((levelStats, limit_break) => {
+      joined.push({
+        id: card.id,
+        type: TYPE_CODES[card.type],
+        group: card.type === 'group',
+        rarity: RARITY_CODES[card.rarity],
         limit_break,
         ...levelStats,
-        char_name: meta[NAME_FIELD[server]],
+        char_name: charName,
+        events,
       });
     });
   }
-  return cards;
+  return joined;
 }
+
+export const withoutEvents = (joined) => joined.map(({ events, ...card }) => card);

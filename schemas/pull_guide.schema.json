@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pull_guide.schema.json",
+  "title": "Pull guide",
+  "description": "Pull advice from Luh's Umamusume Support Card Encyclopedia, per Global banner and card (generated/pull_guide.json, written by `pnpm fetch-pull-guide`; its source is in generated/sources.json).",
+  "type": "object",
+  "required": ["banners", "noBanner"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "banners": {
+      "description": "Advice per Global banner (real in data/global_banners.json, or predicted), then per card featured on it. Whether it's the card's rerun is on the banner (`featured[].new`).",
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": {
+        "description": "Banner id → its cards' advice.",
+        "type": "object",
+        "propertyNames": { "$ref": "#/$defs/id" },
+        "additionalProperties": { "type": "object", "$ref": "#/$defs/advice", "unevaluatedProperties": false }
+      }
+    },
+    "noBanner": {
+      "description": "Advice for cards on no gacha banner (event, story and shop cards), per card.",
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": {
+        "type": "object",
+        "$ref": "#/$defs/advice",
+        "required": ["release"],
+        "properties": { "release": { "$ref": "#/$defs/release" } },
+        "unevaluatedProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^\\d+$" },
+    "advice": {
+      "type": "object",
+      "required": ["googleSheetsSrc", "freePulls", "shouldPull", "comment", "advice"],
+      "properties": {
+        "googleSheetsSrc": {
+          "description": "Where the entry is in the sheet, for links to its row.",
+          "type": "object",
+          "required": ["gid", "row"],
+          "additionalProperties": false,
+          "properties": {
+            "gid": { "description": "The sheet tab's id.", "type": ["string", "null"], "pattern": "^\\d+$" },
+            "row": { "description": "The row number (1-based).", "type": ["integer", "null"], "minimum": 1 }
+          }
+        },
+        "freePulls": {
+          "description": "Free pulls the banner gives.",
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "shouldPull": {
+          "description": "The \"Should pull?\" pill: yes, no, free, whale or dolphin, with the advice's pluses (\"whale++\"); null when the advice starts with none.",
+          "type": ["string", "null"],
+          "pattern": "^(yes|no|free|(whale|dolphin)\\+*)$"
+        },
+        "comment": {
+          "description": "The line under the pill: the whole advice when it says more than the pill, or long advice without one.",
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "advice": {
+          "description": "The notes as one paragraph, led by short advice without a pill (\"With Kitasan\").",
+          "type": ["string", "null"],
+          "minLength": 1
+        }
+      }
+    },
+    "release": {
+      "description": "A card on no banner: what it is and when, as the sheet gives it. Future dates are the author's estimates (a month and part of it).",
+      "type": "object",
+      "required": ["label"],
+      "additionalProperties": false,
+      "properties": {
+        "label": { "description": "\"Event\", \"Story\", \"Friend Points Shop\"…", "type": ["string", "null"] },
+        "date": { "description": "Exact date.", "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "month": { "description": "Estimated month.", "type": "string", "pattern": "^\\d{4}-\\d{2}$" },
+        "part": { "description": "Part of the estimated month.", "enum": ["early", "mid", "late", null] },
+        "dateText": { "description": "The sheet's date when it can't be read.", "type": ["string", "null"] }
+      },
+      "oneOf": [{ "required": ["date"] }, { "required": ["month", "part"] }, { "required": ["dateText"] }]
+    }
+  }
+}

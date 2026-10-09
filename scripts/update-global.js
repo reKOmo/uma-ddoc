@@ -5,7 +5,8 @@
 // entries are rebuilt from all posts each time, the seeded ones are left alone.
 //
 // Needs JP's banners (generated/jp_banners.json, `pnpm scrape-gametora`) for the banners' items,
-// and our card metadata for English names. Appends what changed to data/news/summary.md.
+// and our card data (generated/cards.json) for English names. Appends what changed to data/news/summary.md,
+// then rebuilds the card data with the new Global releases (scripts/build-cards.js).
 //
 // Usage: pnpm update-global
 
@@ -15,6 +16,7 @@ import { GENERATED_DIR, NEWS_DIR } from './lib/paths.js';
 import { BANNERS_FILE, CARDS_FILE, applyNews, englishNames, readJson, writeGlobal } from './lib/global.js';
 import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.js';
 import { ensureCards } from './update-cards.js';
+import { buildCardFiles } from './build-cards.js';
 
 const NEWS_FILE = `${NEWS_DIR}announcements.json`;
 const SUMMARY_FILE = `${NEWS_DIR}summary.md`;
@@ -29,11 +31,12 @@ export async function updateGlobal() {
   const global = readJson(BANNERS_FILE);
   const cards = readJson(CARDS_FILE);
   const jp = readJson(`${GENERATED_DIR}jp_banners.json`);
-  const metadata = readJson(`${GENERATED_DIR}metadata.json`);
+  const cardData = readJson(`${GENERATED_DIR}cards.json`);
   const posts = existsSync(NEWS_FILE) ? readJson(NEWS_FILE) : [];
 
-  const result = applyNews({ posts, global, cards, jp, names: englishNames(global, jp, metadata) });
+  const result = applyNews({ posts, global, cards, jp, names: englishNames(global, cardData) });
   writeGlobal(result);
+  await buildCardFiles();
 
   // Scenarios: JP's side comes from scrape-gametora; nothing to apply the news to before it ran.
   const stored = readScenarios();

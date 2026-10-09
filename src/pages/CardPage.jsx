@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronUp, ExternalLink } from 'lucide-react';
-import { COMBINED, STATS, rankByUsefulness, scenarioOptions, scenariosOf } from '../../tierlist/index.js';
-import { loadCards, metadata } from '../../tierlist/cards.js';
-import { NAME_FIELD } from '../../tierlist/join-cards.js';
-import { getScenario, getServerConfig } from '../../tierlist/scenarios.js';
+import { COMBINED, rankByUsefulness, scenarioOptions, scenariosOf } from '../../tierlist/index.js';
+import { cards, loadCards } from '../../tierlist/cards.js';
+import { getServerConfig } from '../../tierlist/scenarios.js';
 import { TIER_NAMES, cardRanks } from '../tiers.js';
 import { rankHistory } from '../rankHistory.js';
 import { loadPredictions } from '../predictions.js';
-import { loadCardInfo } from '../cardInfo.js';
-import { findBanner, loadPullGuide, notesParagraph, sheetLink, upcomingEntry } from '../pullGuide.js';
+import { currentAdvice, latestAdvice, loadPullGuide, sheetLink, upcomingBanner } from '../pullGuide.js';
 import { loadBanners } from '../bannerData.js';
 import StatusBadge from '../StatusBadge.jsx';
 import ScenarioPicker from '../ScenarioPicker.jsx';
@@ -19,26 +17,10 @@ import { timeZoneOptions, useSettings } from '../settings.jsx';
 import './card.css';
 
 const LIMIT_BREAKS = [0, 1, 2, 3, 4];
-const TITLE_FIELD = { gl: 'title_en', jp: 'title_jp' };
-const RELEASE_FIELD = { gl: 'release_gl', jp: 'release_jp' };
-const iconUrl = (id) => `https://gametora.com/images/umamusume/supports/support_card_s_${id}.png`;
-const artUrl = (id) => `https://gametora.com/images/umamusume/supports/tex_support_card_${id}.png`;
-
-// A name for cards our metadata only has in Japanese, from GameTora's URL ("…/30126-yamanin-zephyr").
-const slugName = (url) =>
-  url
-    .split('/')
-    .pop()
-    .split('-')
-    .slice(1)
-    .map((word) => word[0].toUpperCase() + word.slice(1))
-    .join(' ');
-
-function displayName(id, server, cardInfo) {
-  const meta = metadata[id];
-  const url = cardInfo?.[id]?.url;
-  return meta?.[NAME_FIELD[server]] ?? (server === 'gl' && url ? slugName(url) : (meta?.name_en ?? meta?.name_jp));
-}
+// The language of a server's names and titles in cards.json.
+const LANGUAGE = { gl: 'en', jp: 'jp' };
+const nameOf = (id, server) => cards[id]?.name[LANGUAGE[server]] ?? cards[id]?.name.jp;
+const titleOf = (id, server) => cards[id]?.title[LANGUAGE[server]] ?? cards[id]?.title.jp ?? null;
 
 // The server's predicted release dates (only Global has them), or null without any.
 function usePredictions(server) {
@@ -76,11 +58,8 @@ function useUpcomingRanking(server, scenario, stat, enabled) {
   return ranking;
 }
 
-// The tier list tab a card type ranks under (the type ids are the same in every scenario).
-function statOf(server, type) {
-  const scenario = getScenario(server, getServerConfig(server).defaultScenario);
-  return STATS.find((stat) => scenario[stat].type === type);
-}
+// The tier list tab a card type ranks under (cards.json's types are its stat keys, plus group).
+const statOf = (type) => (type === 'group' ? 'friend' : type);
 
 // Rankings for every scenario, then the averaged ones (cheap once the real ones
 // are cached), filled in one at a time so rows appear as they finish.
@@ -109,14 +88,9 @@ function useScenarioRankings(server, stat, enabled) {
 
 export default function CardPage({ cardId, server, scenario }) {
   const { t } = useTranslation();
-  const meta = metadata[cardId];
-  const [cardInfo, setCardInfo] = useState(null);
+  const card = cards[cardId];
   // null while loading, then whether the selected server has this card.
   const [released, setReleased] = useState(null);
-
-  useEffect(() => {
-    loadCardInfo().then(setCardInfo);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -129,12 +103,12 @@ export default function CardPage({ cardId, server, scenario }) {
     };
   }, [server, cardId]);
 
-  const stat = meta && statOf(server, meta.type);
+  const stat = card && statOf(card.type);
   const rankings = useScenarioRankings(server, stat, !!stat && released === true);
   const predictions = usePredictions(server);
   const predicted = predictions?.cards[cardId];
 
-  if (!meta) {
+  if (!card) {
     return (
       <div className="page card-page">
         <p className="status">{t('card.notFound', { id: cardId })}</p>
@@ -142,7 +116,7 @@ export default function CardPage({ cardId, server, scenario }) {
     );
   }
 
-  const name = displayName(cardId, server, cardInfo);
+  const name = nameOf(cardId, server);
   const scenarios = getServerConfig(server).availableScenarios;
   const combined = Object.keys(COMBINED);
   const rankOverTime = (
@@ -153,28 +127,26 @@ export default function CardPage({ cardId, server, scenario }) {
       combined={combined}
       defaultScenario={scenario}
       rankings={rankings}
-      cardInfo={cardInfo}
       predictions={predictions}
       stat={stat}
     />
   );
-  const info = cardInfo?.[cardId];
-  const title = info && (info[TITLE_FIELD[server]] ?? info.title_en ?? info.title_jp);
+  const title = titleOf(cardId, server) ?? card.title.en;
 
   return (
     <div className="page card-page">
       <div className="card-hero">
-        <img className="card-art" src={artUrl(cardId)} alt={name} />
+        <img className="card-art" src={card.images.art} alt={name} />
         <div className="card-facts">
           <h1>{name}</h1>
           {title && <p className="card-title">{title}</p>}
           <p className="card-tags">
-            <span className="tag">{t(`rarity.${meta.rarity}`)}</span>
+            <span className="tag">{t(`rarity.${card.rarity}`)}</span>
             {stat && <span className="tag">{statName(stat)}</span>}
-            {meta.group && <span className="tag">{t('card.group')}</span>}
+            {card.type === 'group' && <span className="tag">{t('card.group')}</span>}
           </p>
-          {info?.url && (
-            <a className="gametora-link" href={info.url} target="_blank" rel="noreferrer">
+          {card.links.gametora && (
+            <a className="gametora-link" href={card.links.gametora} target="_blank" rel="noreferrer">
               {t('card.viewOnGameTora')}
               <ExternalLink size={16} aria-hidden="true" />
             </a>
@@ -197,6 +169,8 @@ export default function CardPage({ cardId, server, scenario }) {
           </p>
           {rankOverTime}
         </>
+      ) : !released && card.release[server] ? (
+        <p className="status">{t('card.notRanked', { server: serverName(server) })}</p>
       ) : !released ? (
         <p className="status">{t('card.notReleased', { server: serverName(server) })}</p>
       ) : (
@@ -254,9 +228,10 @@ export default function CardPage({ cardId, server, scenario }) {
   );
 }
 
-// The pull guide's advice for the card's next Global banner (or the one running now), with links to
-// that banner on the Timeline and to the card's row in the guide; "no upcoming banners" when the guide
-// lists none still to come. Nothing while it loads, without the guide, or for cards it doesn't cover.
+// The pull guide's advice for the card's next Global banner (or the one running now; real or predicted),
+// with links to that banner on the Timeline and to the card's row in the guide; for event / story / shop
+// cards, their release as the guide gives it; "no upcoming banners" when none is to come. Nothing while
+// it loads, without the guide, or for cards it doesn't cover.
 function PullAdvice({ cardId }) {
   const { t } = useTranslation();
   const { timeZone } = useSettings().settings;
@@ -270,10 +245,16 @@ function PullAdvice({ cardId }) {
       cancelled = true;
     };
   }, []);
-  const entries = guide?.cards[cardId];
-  if (!entries) return null;
-  const entry = upcomingEntry(entries, new Date().toISOString().slice(0, 10));
-  const banner = entry && banners && findBanner(banners, cardId, entries, entry);
+  const latest = guide && latestAdvice(guide, cardId);
+  if (!latest || !banners) return null;
+  const now = Date.now();
+  const banner = upcomingBanner(banners, cardId, now);
+  const entry = currentAdvice(guide, cardId, banner, new Date(now).toISOString().slice(0, 10));
+  // A card on no banner: what it is ("Event", "Story"…) and when, from the guide.
+  const release = !banner && entry?.release;
+  const label = banner
+    ? !banner.featured.find((item) => item.id === cardId).new && t('pullGuide.rerun')
+    : release?.label;
 
   return (
     <section className="pull-guide">
@@ -284,14 +265,14 @@ function PullAdvice({ cardId }) {
           style={banner ? { backgroundImage: `url(${banner.image})` } : undefined}
         >
           <h2 className="pull-heading">{t('pullGuide.upcomingBanner')}</h2>
-          {entry ? (
+          {banner || release ? (
             <>
               <p className="pull-when">
-                {banner ? <BannerDates banner={banner} timeZone={timeZone} /> : bannerDate(entry, t)}
+                {banner ? <BannerDates banner={banner} timeZone={timeZone} /> : releaseDate(release, t)}
               </p>
-              {(entry.label || banner) && (
+              {(label || banner) && (
                 <div className="pull-head">
-                  {entry.label && <span className="pull-label">{entry.label}</span>}
+                  {label && <span className="pull-label">{label}</span>}
                   {banner && (
                     <a className="gametora-link pull-banner-link" href={`#/timeline/gl/${banner.id}`}>
                       {t('pullGuide.seeBanner')}
@@ -306,28 +287,19 @@ function PullAdvice({ cardId }) {
           )}
         </div>
 
-        {entry && (entry.verdict || entry.advice || entry.notes.length > 0) && (
+        {entry && (entry.shouldPull || entry.comment || entry.advice) && (
           <div className="pull-should">
             <h2 className="pull-heading">
               {t('pullGuide.shouldPull')}
-              {entry.verdict && (
-                <span className={`verdict-chip verdict-${entry.verdict}`}>
-                  {entry.pill ?? t(`pullGuide.verdict.${entry.verdict}`)}
-                </span>
-              )}
+              {entry.shouldPull && <ShouldPullChip pill={entry.shouldPull} />}
             </h2>
-            {entry.advice && <p className="pull-advice">{entry.advice}</p>}
-            {entry.free_pulls && <p className="pull-free">{t('pullGuide.freePulls', { count: entry.free_pulls })}</p>}
-            {entry.notes.length > 0 && <p className="pull-note">{notesParagraph(entry.notes)}</p>}
+            {entry.comment && <p className="pull-advice">{entry.comment}</p>}
+            {entry.freePulls && <p className="pull-free">{t('pullGuide.freePulls', { count: entry.freePulls })}</p>}
+            {entry.advice && <p className="pull-note">{entry.advice}</p>}
           </div>
         )}
         <div className="pull-actions">
-          <a
-            className="gametora-link"
-            href={sheetLink(guide.source.url, entry ?? entries.at(-1))}
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a className="gametora-link" href={sheetLink(entry ?? latest)} target="_blank" rel="noreferrer">
             {t('pullGuide.seeMore')}
             <ExternalLink size={16} aria-hidden="true" />
           </a>
@@ -335,6 +307,13 @@ function PullAdvice({ cardId }) {
       </div>
     </section>
   );
+}
+
+// The "Should pull?" pill: "whale++" → "If Whale++".
+function ShouldPullChip({ pill }) {
+  const { t } = useTranslation();
+  const [, kind, plus] = pill.match(/^(\w+)(\+*)$/);
+  return <span className={`verdict-chip verdict-${kind}`}>{t(`pullGuide.verdict.${kind}`) + plus}</span>;
 }
 
 // The banner's status badge and dates, in the Settings timezone, as in the Timeline's banner sheet.
@@ -352,12 +331,12 @@ function BannerDates({ banner, timeZone }) {
   );
 }
 
-// A banner's date as the guide gives it: a day, or early / late in a month for estimates.
-function bannerDate(entry, t) {
-  if (entry.date) return formatDay(entry.date);
-  if (!entry.month) return entry.date_text ?? '';
-  const month = formatDay(`${entry.month}-01`, { year: 'numeric', month: 'short' });
-  return t(`pullGuide.${entry.part ?? 'month'}`, { month });
+// A release's date as the guide gives it: a day, or early / late in a month for estimates.
+function releaseDate(release, t) {
+  if (release.date) return formatDay(release.date);
+  if (!release.month) return release.dateText ?? '';
+  const month = formatDay(`${release.month}-01`, { year: 'numeric', month: 'short' });
+  return t(`pullGuide.${release.part ?? 'month'}`, { month });
 }
 
 function ScenarioRow({ scenario, ranking, cardId, current }) {
@@ -393,7 +372,7 @@ const UPCOMING_SHOWN = 2;
 
 // How the card's position in its tier list changed as newer cards came out and, where the
 // server has predicted release dates (Global), how it will change as JP's cards arrive.
-function RankOverTime({ cardId, server, scenarios, combined, defaultScenario, rankings, cardInfo, predictions, stat }) {
+function RankOverTime({ cardId, server, scenarios, combined, defaultScenario, rankings, predictions, stat }) {
   const { t } = useTranslation();
   const [scenario, setScenario] = useState(defaultScenario);
   const [lb, setLb] = useState(4);
@@ -406,13 +385,10 @@ function RankOverTime({ cardId, server, scenarios, combined, defaultScenario, ra
   // undefined predictions = still loading them.
   const ranking = predictions === undefined ? null : predictions ? upcoming : rankings[shown];
 
-  const released = (id) => cardInfo?.[id]?.[RELEASE_FIELD[server]] ?? null;
+  const released = (id) => cards[id]?.release[server] ?? null;
   const releaseOf = (id) => released(id) ?? predictions?.cards[id]?.predicted_gl ?? null;
   const isPredicted = (id) => !released(id) && !!predictions?.cards[id];
-  const history = ranking && cardInfo && rankHistory(ranking, cardId, lb, releaseOf, isPredicted);
-  const nameOf = (id) => displayName(id, server, cardInfo);
-  const info = (id) => cardInfo?.[id];
-  const titleOf = (id) => info(id)?.[TITLE_FIELD[server]] ?? info(id)?.title_jp ?? '';
+  const history = ranking && rankHistory(ranking, cardId, lb, releaseOf, isPredicted);
   const passes = history ? history.filter((p) => p.overtakenBy.length > 0) : [];
   // Past passes, then only the next UPCOMING_SHOWN predicted ones until "See more"; one more is drawn fading out.
   const firstUpcoming = passes.findIndex((p) => p.predicted);
@@ -447,7 +423,7 @@ function RankOverTime({ cardId, server, scenarios, combined, defaultScenario, ra
         </fieldset>
       </div>
 
-      {!ranking || !cardInfo ? (
+      {!ranking ? (
         <p className="status">{t('common.ranking')}</p>
       ) : !history ? (
         <p className="status">{t('card.noReleaseDate', { server: serverName(server) })}</p>
@@ -496,7 +472,7 @@ function RankOverTime({ cardId, server, scenarios, combined, defaultScenario, ra
               </>
             )}
           </p>
-          <RankChart history={history} nameOf={nameOf} />
+          <RankChart history={history} nameOf={(id) => nameOf(id, server)} />
           <p className="rank-note">
             {t('card.historyNote', {
               lb: lbName(lb),
@@ -550,10 +526,10 @@ function RankOverTime({ cardId, server, scenarios, combined, defaultScenario, ra
                             {point.overtakenBy.map((c) => (
                               <li key={c.id}>
                                 <a className="passed-card" href={`#/card/${c.id}`}>
-                                  <img src={iconUrl(c.id)} alt="" loading="lazy" />
+                                  <img src={cards[c.id]?.images.icon} alt="" loading="lazy" />
                                   <span>
-                                    <strong>{nameOf(c.id)}</strong>
-                                    {titleOf(c.id) && <small>{titleOf(c.id)}</small>}
+                                    <strong>{nameOf(c.id, server)}</strong>
+                                    {titleOf(c.id, server) && <small>{titleOf(c.id, server)}</small>}
                                   </span>
                                 </a>
                                 <a className="see-more" href={`#/card/${c.id}`}>

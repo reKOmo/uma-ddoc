@@ -9,8 +9,8 @@ Each banner is the JP one (its JP graphic, featured items) with Global start / e
 Banners Global already has (data/global_banners.json, ours: seeded from GameTora, kept up from the
 official news) are left out, whatever their dates. Banners with confirmed dates (data/known_dates.json
 `banners`) take them: start, end, confirmed: true, confirmed_source, margin_days 0.
-Names and titles are swapped for English ones where we have them (Global banners, our card
-metadata, Global's card titles, GameTora's card URLs and titles); the rest stay Japanese.
+Names and titles are swapped for English ones where we have them (Global banners, our cards in
+generated/cards.json); the rest stay Japanese.
 """
 
 import json
@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 
 from adjust import confirmed_banners, snap_weekday
-from data import DATA, GENERATED, load_card_info, slug_name
+from data import DATA, GENERATED
 
 BANNERS_OUTPUT = GENERATED / 'predicted_global_banners.json'
 GLOBAL_START_HOUR = 22  # UTC; 07:00 JST the next day
@@ -36,28 +36,16 @@ def iso_at(day, hour, minus_ms=0):
 
 
 def english_names():
-    """char_id → English name (from Global's banners and our card metadata), card id → English title."""
+    """JP's banners, char_id → English name (our cards' then Global's banners'), card id → English
+    name and title (for support cards; a group card's name is the group's)."""
     read = lambda name: json.loads((GENERATED / name).read_text())  # noqa: E731
-    glob, jp, metadata, gametora = (
-        json.loads((DATA / 'global_banners.json').read_text()),
-        read('jp_banners.json'),
-        read('metadata.json'),
-        load_card_info(),
-    )
-    chars = {}
-    for banner in jp['cards']:
-        for item in banner['featured']:
-            card = str(item['id'])
-            url = gametora.get(card, {}).get('url')
-            name = metadata.get(card, {}).get('name_en') or (url and slug_name(url))
-            if name and not metadata.get(card, {}).get('name_en') and item['char_id'] in chars:
-                continue  # keep a real name over one guessed from a URL
-            if name:
-                chars[item['char_id']] = name
+    glob, jp, cards = json.loads((DATA / 'global_banners.json').read_text()), read('jp_banners.json'), read('cards.json')
+    # Group cards are named after the group, not their character.
+    chars = {c['charId']: c['name']['en'] for c in cards.values() if c['charId'] and c['name']['en'] and c['type'] != 'group'}
     for banner in glob['characters'] + glob['cards']:
         for item in banner['featured']:
             chars[item['char_id']] = item['name']
-    titles = {int(card_id): card['title_en'] for card_id, card in gametora.items() if card.get('title_en')}
+    titles = {c['id']: (c['name']['en'], c['title']['en']) for c in cards.values()}
     return jp, chars, titles
 
 
@@ -66,7 +54,9 @@ def translate(item, chars, titles, is_card):
         return item
     out = {**item, 'name': chars.get(item.get('char_id'), item.get('name'))}
     if is_card and item['id'] in titles:
-        out['title'] = titles[item['id']]
+        name, title = titles[item['id']]
+        out['name'] = name or out['name']
+        out['title'] = title or out['title']
     return out
 
 

@@ -59,12 +59,12 @@ describe('catalogs', () => {
       ...['out', 'confirmed', 'predicted'].map((s) => `scenarioPage.status.${s}`),
       'scenarioPage.link.gametora',
       ...['early', 'mid', 'late', 'month'].map((k) => `pullGuide.${k}`),
-      ...['yes', 'no', 'free'].map((v) => `pullGuide.verdict.${v}`),
+      ...['yes', 'no', 'free', 'whale', 'dolphin'].map((v) => `pullGuide.verdict.${v}`),
       ...['gametora', 'tierList', 'pullGuide'].flatMap((k) => [
         `settings.credit.${k}.name`,
         `settings.credit.${k}.description`,
       ]),
-      ...[1, 2, 3].map((r) => `rarity.${r}`),
+      ...['R', 'SR', 'SSR'].map((r) => `rarity.${r}`),
     ];
     expect(dynamic.filter((key) => !keys.has(key))).toEqual([]);
   });

@@ -11,9 +11,6 @@ export const SHEET_ID = '1zZOBxjcgJEKna7ftYKq0AlZS25Q3hE_occ7kXB-Q6MQ';
 export const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}`;
 export const tabUrl = (gid) => `${SHEET_URL}/htmlview/sheet?headers=false&gid=${gid}`;
 
-// The sheet's scenario links (GameTora slugs) that differ from ours in data/scenarios.json.
-const SLUG_ALIASES = { 'make-a-new-track': 'trackblazer', 'grand-live': 'our-grand-concert' };
-
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
 const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
@@ -63,14 +60,14 @@ export function parseUpdated(html) {
 
 // A banner date as the sheet writes it: "Mar 12th '26", "July 23rd, '26", "18 Sep '25" (exact) or
 // "Late Jun '28" (an estimate for banners Global hasn't scheduled) → { date } or { month, part },
-// else { date_text }.
+// else { dateText }.
 export function parseDate(text) {
   const monthFirst = text.match(/^(early|mid|late)?\s*([a-z]+)\.?\s*(?:(\d{1,2})(?:st|nd|rd|th)?)?\s*,?\s*'(\d{2})$/i);
   const dayFirst = text.match(/^(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)\.?\s*,?\s*'(\d{2})$/i);
-  if (!monthFirst && !dayFirst) return { date_text: text || null };
+  if (!monthFirst && !dayFirst) return { dateText: text || null };
   const [, part, name, day, year] = monthFirst ?? [text, null, dayFirst[2], dayFirst[1], dayFirst[3]];
   const month = MONTHS.indexOf(name.slice(0, 3).toLowerCase()) + 1;
-  if (!month) return { date_text: text };
+  if (!month) return { dateText: text };
   const ym = `20${year}-${String(month).padStart(2, '0')}`;
   if (day) return { date: `${ym}-${day.padStart(2, '0')}` };
   return { month: ym, part: part?.toLowerCase() ?? null };
@@ -83,11 +80,13 @@ const SHORT_ADVICE = 24;
 // The "Pull?" cell: an optional "60 free pulls" line (how many the banner gives), then the advice,
 // wrapped to the column ("If dedicated\nto Ends"), evened out: "If whale" / "with Duramente" /
 // "If Dolpin" / "to lates" read like the rest. Split for showing:
-//   verdict  yes | no | free | whale | dolphin when the advice starts with one, else null
-//   pill     the verdict's words as written ("If Whale++"), for whale / dolphin
-//   advice   the whole advice when it says more than the verdict ("If Whale or With Palmer"), or when
-//            there's no verdict and it's longer than SHORT_ADVICE; else null
-//   note     short advice without a verdict, to lead the notes; else null
+//   freePulls   the free pulls the banner gives, or null
+//   shouldPull  the pill: yes | no | free | whale | dolphin, with the advice's pluses ("whale++"), when
+//               the advice starts with one, else null; "1LB+" (pull to at least that limit break) is a
+//               yes, its text placed as if there were no pill
+//   comment     the whole advice when it says more than the pill ("If Whale or With Palmer"), or when
+//               there's no pill and it's longer than SHORT_ADVICE; else null
+//   note        short advice without a pill, to lead the notes; else null
 export function parsePull(text) {
   const lines = text.split('\n').filter(Boolean);
   const free = lines[0]?.match(/^(\d+)\s+free pulls?$/i);
@@ -101,19 +100,23 @@ export function parsePull(text) {
     .replace(/\bdolph?in\b/gi, 'Dolphin')
     .replace(/(^|\b(?:or|and) )(if|with)\b/g, (_, before, word) => before + word[0].toUpperCase() + word.slice(1))
     .replace(/\bto (fronts|paces|lates|ends)\b/gi, (_, style) => `to ${style[0].toUpperCase()}${style.slice(1)}`);
-  const match = pull.match(/^(?:(yes|no|free)\b|if (whale|dolphin)\b\+*)/i);
-  const verdict = match ? (match[1] ?? match[2]).toLowerCase() : null;
-  const rest = match ? pull.slice(match[0].length).trim() : pull;
-  const short = !verdict && pull.length <= SHORT_ADVICE;
+  const match = pull.match(/^(?:(yes|no|free)\b|if (whale|dolphin)\b(\+*)|\d\s*LB\b\+?)/i);
+  const lb = match && !match[1] && !match[2];
+  const pill = match ? (match[1] ?? match[2] ?? 'yes').toLowerCase() + (match[3] ?? '') : null;
+  const rest = match && !lb ? pull.slice(match[0].length).trim() : null;
+  const short = (!pill || lb) && pull.length <= SHORT_ADVICE;
   return {
-    free_pulls: free ? Number(free[1]) : null,
-    pull: pull || null,
-    verdict,
-    pill: verdict === 'whale' || verdict === 'dolphin' ? match[0] : null,
-    advice: (verdict ? rest : !short) ? pull : null,
+    freePulls: free ? Number(free[1]) : null,
+    shouldPull: pill,
+    comment: (pill && !lb ? rest : !short) ? pull : null,
     note: short && pull ? pull : null,
   };
 }
+
+// The notes as one paragraph: the author rarely ends a sentence with a full stop, so one is added
+// where a sentence has no closing punctuation of its own. Null when there are none.
+export const notesParagraph = (notes) =>
+  notes.map((note) => (/[.!?…:)]$/.test(note) ? note : `${note}.`)).join(' ') || null;
 
 // Words a wrapped line can end on mid-sentence ("…good skills like" ⏎ "Uma Stan…").
 const CONTINUES =
@@ -162,16 +165,15 @@ export function parseNotes(text, names = []) {
     .map((note) => note.replace(/\s+([!?])/g, '$1').replace(/\s+/g, ' '));
 }
 
-// One scenario tab → { slug, entries: [{ id, row, name, label, …date, free_pulls, pull, verdict, pill, advice,
-// notes }] } (short advice without a verdict leads the notes; see parsePull).
-// `slug` is the GameTora scenario its top row links to (null if none). Tabs without a "Support Card"
-// header (READ ME, Links…) give no entries. `names`: card names across the sheet, for joining notes
+// One scenario tab → { entries: [{ id, name, row, banner: { label, …date }, freePulls, shouldPull,
+// comment, advice }] }: `advice` is the notes as one paragraph, led by short advice without a pill (see
+// parsePull).
+// Tabs without a "Support Card" header (READ ME, Links…) give no entries. `names`: card names across the sheet, for joining notes
 // (parse every tab once without them to collect them).
 export function parseTab(html, names = []) {
   const rows = tableRows(html);
-  const slug = [...html.matchAll(/gametora\.com\/umamusume\/([a-z0-9-]+)(?=[&"])/g)][0]?.[1] ?? null;
   const head = rows.findIndex((cells) => cells.some((c) => c.text === 'Support Card'));
-  if (head < 0) return { slug, entries: [] };
+  if (head < 0) return { entries: [] };
   const headers = rows[head].map((c) => c.text);
   const col = (name) => headers.indexOf(name);
   const card = col('Support Card');
@@ -189,38 +191,73 @@ export function parseTab(html, names = []) {
     // "Mejiro Bright\n(Event)": the card's name, and what kind of banner if not a regular one.
     const [name] = cells[card].text.split('\n');
     const label = cells[card].text.match(/\(([^)]+)\)\s*$/)?.[1] ?? null;
-    const { note, ...advice } = parsePull(cells[pull]?.text ?? '');
+    const { note, ...pullAdvice } = parsePull(cells[pull]?.text ?? '');
     const comments = parseNotes(cells[notes]?.text ?? '', names);
     entries.push({
       id,
-      row: cells.row,
       name,
-      label,
-      ...parseDate(cells[date]?.text ?? ''),
-      ...advice,
-      notes: note ? [note, ...comments] : comments,
+      row: cells.row,
+      banner: { label, ...parseDate(cells[date]?.text ?? '') },
+      ...pullAdvice,
+      advice: notesParagraph(note ? [note, ...comments] : comments),
     });
   }
-  return { slug, entries };
+  return { entries };
 }
 
-// Our scenario key for a GameTora slug the sheet links to, or null.
-export function scenarioKey(slug, scenarios) {
-  if (!slug) return null;
-  const target = `https://gametora.com/umamusume/${SLUG_ALIASES[slug] ?? slug}`;
-  return scenarios.find((s) => s.links?.gametora === target)?.key ?? null;
+// Where in its month an estimate ("early Jun") points, as a day.
+const PART_DAY = { early: 5, mid: 15, late: 25 };
+
+// The Global card banner (real or predicted) one of a card's entries (`entries`: all of them, in sheet
+// order) is about. Its first release is the earliest banner featuring the card (the guide's estimates
+// and our predictions can be months apart that far ahead); a rerun, the one starting closest to the
+// guide's date — within 3 weeks of an exact date, 6 weeks of an estimate. Null if none (event, story
+// and shop cards aren't on gacha banners).
+export function findBanner(banners, cardId, entries, entry) {
+  const featuring = banners
+    .filter((banner) => banner.featured.some((item) => item.id === cardId))
+    .sort((a, b) => Date.parse(a.start) - Date.parse(b.start));
+  if (entry === entries[0]) return featuring[0] ?? null;
+  const { date, month, part } = entry.banner;
+  const target = date
+    ? Date.parse(`${date}T00:00:00Z`)
+    : month
+      ? Date.parse(`${month}-${String(PART_DAY[part] ?? 15).padStart(2, '0')}T00:00:00Z`)
+      : null;
+  if (target === null) return null;
+  const within = (date ? 21 : 42) * 86400000;
+  let best = null;
+  for (const banner of featuring) {
+    const distance = Math.abs(Date.parse(banner.start) - target);
+    if (distance <= within && (!best || distance < best.distance)) best = { banner, distance };
+  }
+  return best?.banner ?? null;
 }
 
-// Parsed tabs → { [card id]: [entry…] } in sheet order (oldest banner first), each entry tagged with its
-// tab's scenario key (null if unknown), the tab's name and gid (for links to the row).
-export function byCard(tabs, scenarios) {
+// Parsed tabs + Global's banners (real and predicted) → the advice per banner and card:
+//   { banners: { [banner id]: { [card id]: advice } }, noBanner: { [card id]: advice } }
+// where advice is { googleSheetsSrc: { gid, row }, freePulls, shouldPull, comment, advice } (where it is
+// in the sheet, for links to the row). Whether a banner is a card's rerun is on the banner (`featured`'s
+// `new`). Entries on no banner (event, story and shop cards; or a banner we don't know) go in `noBanner`,
+// with `release`: the sheet's label ("Event", "Story"…) and date; a card's latest wins.
+export function byBanner(tabs, banners) {
   const cards = {};
-  for (const { name, gid, slug, entries } of tabs) {
-    const scenario = scenarioKey(slug, scenarios);
-    for (const { id, ...entry } of entries) {
+  for (const { gid, entries } of tabs) {
+    for (const { id, name, row, ...entry } of entries) {
       cards[id] ??= [];
-      cards[id].push({ scenario, tab: name, gid: gid ?? null, ...entry });
+      cards[id].push({ googleSheetsSrc: { gid: gid ?? null, row }, ...entry });
     }
   }
-  return cards;
+  const result = { banners: {}, noBanner: {} };
+  for (const [id, entries] of Object.entries(cards)) {
+    for (const entry of entries) {
+      const { banner: release, ...advice } = entry;
+      const banner = findBanner(banners, Number(id), entries, entry);
+      if (banner) {
+        result.banners[banner.id] ??= {};
+        result.banners[banner.id][id] = advice;
+      } else result.noBanner[id] = { ...advice, release };
+    }
+  }
+  return result;
 }

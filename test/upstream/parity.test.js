@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { UPSTREAM_DIR } from '../../scripts/lib/upstream.js';
-import source from '../../generated/SOURCE.json';
+import sources from '../../generated/sources.json';
 import { STATS, presetDecks, rankCards } from '../../tierlist/index.js';
 import { getServerConfig } from '../../tierlist/scenarios.js';
 
@@ -42,7 +42,9 @@ function upstreamRanking(server, scenario, stat, deckIds) {
 
 it('the clone and generated/ card data are the same upstream commit', () => {
   const head = execFileSync('git', ['-C', UPSTREAM_DIR, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-  expect(head, 'run `pnpm clone-upstream && pnpm update-cards` to line them up').toBe(source.ref);
+  expect(head, 'run `pnpm clone-upstream && pnpm update-cards` to line them up').toBe(
+    sources['raw/upstream/gl.js'].ref
+  );
 });
 
 for (const server of ['gl', 'jp']) {

@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { COMBINED, STATS, rankByUsefulness } from '../../tierlist/index.js';
-import { metadata } from '../../tierlist/cards.js';
+import { cards } from '../../tierlist/cards.js';
 import { getServerConfig } from '../../tierlist/scenarios.js';
-import source from '../../generated/SOURCE.json';
 import { TIER_NAMES, toTiers } from '../tiers.js';
-import { loadCardInfo } from '../cardInfo.js';
 import { DEFAULTS, getFilters, isDefault, saveFilters } from '../tierListFilters.js';
 import { useTranslation } from 'react-i18next';
 import { lbName, statName } from '../i18n/index.js';
@@ -13,11 +11,7 @@ import Dropdown from '../Dropdown.jsx';
 import ScenarioPicker from '../ScenarioPicker.jsx';
 import BackToTop from '../BackToTop.jsx';
 
-// Images from the same upstream commit as the card data.
-const imageUrl = (id) =>
-  `https://raw.githubusercontent.com/${source.repo}/${source.ref}/public/cardImages/support_card_s_${id}.png`;
-
-const RARITIES = [3, 2, 1]; // SSR, SR, R
+const RARITIES = ['SSR', 'SR', 'R'];
 const LIMIT_BREAKS = [0, 1, 2, 3, 4];
 
 // Lower case without accents or punctuation, so "tracen" finds "[Tracen Academy]".
@@ -31,10 +25,9 @@ const normalize = (text) =>
     .trim();
 
 // Everything a search can match: the character's name and the card's title, in English and Japanese.
-const searchText = (card, info) => {
-  const meta = metadata[card.id] ?? {};
-  const titles = info?.[card.id] ?? {};
-  return normalize([card.char_name, meta.name_en, meta.name_jp, titles.title_en, titles.title_jp].join(' '));
+const searchText = (card) => {
+  const { name, title } = cards[card.id];
+  return normalize([card.char_name, name.en, name.jp, title.en, title.jp].join(' '));
 };
 
 // server and scenario are shared with the other pages via App; the other filters are remembered in
@@ -45,13 +38,6 @@ export default function TierListPage({ server, scenario, onScenarioChange }) {
   const [ranking, setRanking] = useState(null);
   const [shown, setShown] = useState(() => getFilters().shown);
   const [query, setQuery] = useState(() => getFilters().query);
-  // Card titles; until they load, a search matches character names only.
-  const [cardInfo, setCardInfo] = useState(null);
-
-  useEffect(() => {
-    loadCardInfo().then(setCardInfo);
-  }, []);
-
   useEffect(() => {
     saveFilters({ stat, shown, query });
   }, [stat, shown, query]);
@@ -74,10 +60,10 @@ export default function TierListPage({ server, scenario, onScenarioChange }) {
   const words = normalize(query).split(' ').filter(Boolean);
   const matches = (card) => {
     if (words.length === 0) return true;
-    const text = searchText(card, cardInfo);
+    const text = searchText(card);
     return words.every((word) => text.includes(word));
   };
-  const isShown = (card) => shown[metadata[card.id]?.rarity]?.includes(card.lb) && matches(card);
+  const isShown = (card) => shown[cards[card.id].rarity]?.includes(card.lb) && matches(card);
   // Tiers come from the whole ranking, so a card's tier doesn't change with the filter.
   const tiers = ranking && toTiers(ranking).map((tier) => tier.filter(isShown));
 
@@ -191,7 +177,7 @@ export default function TierListPage({ server, scenario, onScenarioChange }) {
                         title={card.char_name}
                       >
                         <figure>
-                          <img src={imageUrl(card.id)} alt={card.char_name} loading="lazy" />
+                          <img src={cards[card.id].images.icon} alt={card.char_name} loading="lazy" />
                           <span className="lb">{lbName(card.lb)}</span>
                           <figcaption>
                             <span className="name">{card.char_name}</span>

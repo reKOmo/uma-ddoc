@@ -38,20 +38,19 @@ jobs:
         run: pnpm update-cards
       - name: Scrape JP banners and card links from GameTora
         run: pnpm scrape-gametora
-      - name: Fetch pull advice from Luh's Support Card Encyclopedia
-        run: pnpm fetch-pull-guide
       # Normally already done and committed by news.yml; rerun so a news commit made any other way
       # still shows up (not committed from here).
       - name: Apply the official news to Global's banners
         run: pnpm update-global
-      - name: Map banner cards to card data
-        run: pnpm map-banner-cards
       - uses: astral-sh/setup-uv@v10.2.0 # no floating v10 tag (setup-uv stopped publishing major tags after v7)
         with:
           enable-cache: true
           cache-dependency-glob: ml/requirements.txt
       - name: Predict Global release dates of JP cards
         run: pnpm setup-ml && pnpm predict-gl
+      # After the predictions: the advice is matched to Global's banners, predicted ones included.
+      - name: Fetch pull advice from Luh's Support Card Encyclopedia
+        run: pnpm fetch-pull-guide
       - name: Test
         run: pnpm test
       - name: Build

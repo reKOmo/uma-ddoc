@@ -7,7 +7,7 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   (MIT, see `tierlist/LICENSE`) and is maintained here now; tests compare it with upstream.
   A collapsible rarity × LB filter picks which copies are shown (default: MLB of everything, plus
   LB0 and LB3 of SSR and SR); tiers are banded on the full ranking, so filtering doesn't move cards between tiers.
-  A search box filters by character name and card title (English + Japanese; titles from `loadCardInfo()`, every
+  A search box filters by character name and card title (English + Japanese, from `generated/cards.json`; every
   word must match, accents/punctuation ignored); like the LB filter, it doesn't move cards between tiers.
   Stat, LB filter and search are remembered (`src/tierListFilters.js`: kept across pages and in localStorage); the
   scenario is App's (kept across pages, not reloads). "Reset filters" (inside the Filter dropdown; disabled at the defaults) restores all four,
@@ -48,17 +48,17 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   "Current + future" rankings), then a "rank over time" chart (pick scenario + LB)
   and the newer cards that passed it — continued dashed into the future on Global with
   predicted release dates of JP's cards (when it'll drop a tier). Above the tiers, pull advice from Luh's Umamusume
-  Support Card Encyclopedia (a public Google Sheet), only for the card's next Global banner (or the one running;
-  `upcomingEntry()` in `src/pullGuide.js`), in one box:
+  Support Card Encyclopedia (a public Google Sheet), only for the card's next Global banner, real or predicted (or the one
+  running; `upcomingBanner()` + `currentAdvice()` in `src/pullGuide.js`), in one box:
   - "Upcoming banner", on the banner's art like the Timeline's bars (same crop of GameTora's margin, dark
     gradient, shadowed text, "See banner" a solid accent (pink) button): its status badge + dates as in the Timeline's sheet (Settings timezone; the guide's
-    own date when there's no banner), then the label pill (Rerun, Event…) and "See banner" on one line.
+    own date for event/story/shop cards, on no banner), then the label pill (Rerun when the banner's `featured`
+    entry isn't `new`; the guide's Event, Story… for cards on no banner) and "See banner" on one line.
     "See banner" is `#/timeline/gl/<banner id>` (the Timeline switches to Global, centres on that banner and opens
-    its sheet); `findBanner()`: first release = the earliest Global banner, real or predicted, featuring the card,
-    a rerun = the closest by date, none for event/story cards. "No upcoming banners :c" when none is to come.
+    its sheet). "No upcoming banners :c" when none is to come.
   - under a rule (beside it on desktop, the box split in two), "Should pull? <pill>": Yes / No / Free / If Whale(+…) / If Dolphin(+…) when the advice starts with one; the
     whole advice as the recommendation line when it says more than the pill, or has no pill and is longer than
-    24 characters (shorter, e.g. "With Kitasan", it leads the notes instead; `parsePull`), free pulls, then the notes as one paragraph (`notesParagraph()`: a full stop added where a sentence has none).
+    24 characters (shorter, e.g. "With Kitasan", it leads the notes instead; `parsePull`), free pulls, then the notes as one paragraph (`notesParagraph()` at build time: a full stop added where a sentence has none).
   - The box's footer (under both halves): a centred "See more on Luh's encyclopedia" (the card's row in the sheet). The guide's disclaimer (with a link
     to the sheet) is in About, not on the card page.
   Opened from tier-list cards and the banner sheet's "See more"; it isn't a tab, but keeps the Cards tab highlighted.
@@ -77,12 +77,14 @@ pnpm test              # Vitest unit suite (~15s; fetches card data if missing)
 pnpm test:upstream     # compare our calculation with upstream's (~25s; needs the clone)
 pnpm rank gl GL speed  # print a ranking in the terminal (scenario may be overall / upcoming)
 
-pnpm update-cards      # card data from upstream main → generated/
-pnpm scrape-gametora    # JP banner history + card links/titles/JP dates + JP scenarios from GameTora → generated/
+pnpm update-cards      # upstream main's card lists + events → generated/raw/upstream/, then build-cards
+pnpm build-cards       # raw inputs + data/global_cards.json → generated/cards.json + card_stats/ (the three
+                       # scripts that change an input run it themselves)
+pnpm scrape-gametora    # JP banner history + support card list + JP scenarios from GameTora → generated/, then build-cards
                        # (--seed-global [--force]: rewrite data/ from GameTora's Global data; one-off)
-pnpm update-global     # official news → Global's banners, card releases + scenario launches in data/ (needs scrape-gametora)
-pnpm map-banner-cards  # link banner cards to our card data → generated/card_banners.json
-pnpm fetch-pull-guide  # pull advice + notes per card from Luh's Support Card Encyclopedia → generated/pull_guide.json
+pnpm update-global     # official news → Global's banners, card releases + scenario launches in data/ (needs scrape-gametora),
+                       # then build-cards
+pnpm fetch-pull-guide  # pull advice + notes per card from Luh's Support Card Encyclopedia → generated/pull_guide.json (after predict-gl)
 pnpm clone-upstream    # clone/update upstream main into upstream/ (for test:upstream)
 pnpm fetch-news        # new posts from umamusume.com/news → data/news/ (+ summary.md); --backfill for the archive,
                        # --reparse to re-parse stored posts after changing scripts/lib/news.js (no requests)
@@ -97,10 +99,9 @@ restart from Global's latest release. The Timeline page reads `generated/predict
 through an `import.meta.glob`, so it's optional: without `pnpm predict-gl` there are just no predicted bars. Announced Global dates go in
 `data/known_dates.json` (committed; predictions pass through them).
 
-On a fresh checkout only the card data is fetched automatically. The Banners and
-Card pages import `generated/jp_banners.json` and `generated/gametora_cards.json`, so
-run `pnpm scrape-gametora && pnpm map-banner-cards` once before `pnpm dev`/`build` (Global's
-banners are committed in `data/`).
+On a fresh checkout only upstream's card data is fetched automatically (`cards.json` then has no GameTora
+fields: no titles, links, JP dates or JP-only cards). The Timeline imports `generated/jp_banners.json`, so run
+`pnpm scrape-gametora` once before `pnpm dev`/`build` (Global's banners are committed in `data/`).
 
 ## Layout
 
@@ -110,24 +111,28 @@ tierlist/          ranking code (runs in Node and the browser)
   scenarios.js       weights, training gains, per-server scenarios + deck presets (likewise)
   index.js           rankCards() (one deck), rankByUsefulness() (avg over preset decks, cached),
                      STATS (stat keys), presetDecks(), COMBINED (averaged rankings), scenarioOptions()
-  cards.js           loadCards(server): joins generated metadata + per-server stats
-  join-cards.js      joinCards(), NAME_FIELD (server → metadata name field)
+  cards.js           `cards` (generated/cards.json), loadCards(server): joins it with the server's stats;
+                     loadCardsWithUpcoming()
+  join-cards.js      joinCards() (+ `events` per card), withoutEvents(), TYPE_CODES / RARITY_CODES (cards.json's
+                     strings ↔ upstream's codes)
   cli.js             `pnpm rank`
 scripts/
   lib/paths.js       ROOT, GENERATED_DIR, DATA_DIR, NEWS_DIR (every script's paths)
+  lib/sources.js     generated/sources.json (file → where its data came from): readSources(), writeSources()
   lib/upstream.js    everything that knows about the upstream repo (REPO, DATA_FILES,
-                     UPSTREAM_DIR, download)
+                     UPSTREAM_DIR, UPSTREAM_RAW, download)
   clone-upstream.js  shallow clone (or fetch + reset) of upstream main into upstream/
-  update-cards.js    download + split card data; exports ensureCards()
-  scrape-gametora.js  GameTora: JP banner history + per-card URL/titles/release dates (+ the one-off Global seed)
+  update-cards.js    download upstream's card data into generated/raw/upstream/; exports ensureCards()
+  build-cards.js     raw inputs → generated/cards.json + card_stats/<gl|jp>_card_stats.json (buildCardFiles())
+  lib/cards.js       pure: buildCards() (the merge, + the round-trip check against upstream's lists)
+  scrape-gametora.js  GameTora: JP banner history + support card list (generated/raw/) (+ the one-off Global seed)
   update-global.js   data/news/ → Global's banners + card releases in data/, appends to data/news/summary.md
   lib/global.js      pure: applyNews() (news posts + JP banners → Global banners/releases), data/ reader/writer
   lib/colors.js      PNG decoder (zlib only) + main colour of an image, for scenario covers
   lib/scenarios.js   Career scenarios (data/scenarios.json): SCENARIO_NAMES (slug → key + JP/Global short names, by hand),
                      mergeGametora() (JP side), applyScenarioNews() (Global side, from the news)
-  map-banner-cards.js
   fetch-pull-guide.js  Luh's Support Card Encyclopedia (Google Sheet) → generated/pull_guide.json
-  lib/pull-guide.js  pure: the sheet's HTML view → entries per card (dates, Pull?, notes), tab → scenario key
+  lib/pull-guide.js  pure: the sheet's HTML view → entries (dates, Pull?, notes) → advice per banner (findBanner())
   fetch-news.js      official news API → data/news/announcements.json + data/news/summary.md (incremental)
   lib/news.js        pure parsing of news posts: kind, periods, announced banner ids, featured trainees/cards
 src/
@@ -143,15 +148,14 @@ src/
   pages/TierListPage.jsx
   pages/BannersPage.jsx, banners.css   the Timeline tab: calendar + detail sheet (code still says "banners")
   pages/CardPage.jsx, card.css         one card: art, GameTora link, tier per scenario × LB
-  cardInfo.js        card page info: GameTora's link/JP fields + Global's title/date from data/
   pages/ScenariosPage.jsx, scenarios.css  the Scenarios tab (list)
   pages/ScenarioPage.jsx, scenario.css  one scenario (reuses card.css's tag / link / section classes)
   pages/RankChart.jsx                  SVG step chart of rank over time: fixed rank axis, sideways-scrolling
                                        plot (20px/month, quarters + years labelled), crosshair tooltip
   rankHistory.js     pure: a card's position at each release date (marks predicted ones)
   predictions.js     optional loader for generated/predicted_gl_releases.json
-  pullGuide.js       optional loader for generated/pull_guide.json (card page's "Pull advice"), upcomingEntry(), sheetLink(),
-                     findBanner()
+  pullGuide.js       optional loader for generated/pull_guide.json (card page's "Pull advice"), upcomingBanner(),
+                     currentAdvice(), latestAdvice(), sheetLink()
   bannerData.js      banner file loaders (real + optional predicted) and bannerStatus(), shared by the Timeline and the
                      card page (the status `.badge` styles are in App.css)
   StatusBadge.jsx    a banner's status pill (Live, Upcoming, Predicted…): the Timeline's sheet and the card page
@@ -167,6 +171,8 @@ src/
   i18n/index.js      i18next setup; statName/serverName/scenarioName/lbName, formatDate
   i18n/en.json       every UI string (English)
   useDragScroll.js   mouse drag-to-pan
+schemas/             JSON Schemas of generated files (pull_guide.schema.json, which the file points at via `$schema`;
+                     cards.schema.json: cards.json is keyed by card id alone, so no `$schema`); tests check both
 test/                Vitest `unit` project (pnpm test)
 test/upstream/       Vitest `upstream` project (pnpm test:upstream), needs upstream/
 ml/                  Python (own venv, ml/.venv): predicts Global release dates of JP cards from
@@ -192,10 +198,13 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 
 | Input | Where it goes | Committed? | Updated by |
 |---|---|---|---|
-| Card lists + card events | `generated/raw/*.js` (as downloaded) → `metadata.json`, `global_stats.json`, `jp_stats.json`, `card-events.json` | no | `pnpm update-cards` (every deploy) |
-| JP banner history | `generated/jp_banners.json`, `card_banners.json` | no | `pnpm scrape-gametora`, `pnpm map-banner-cards` (every deploy) |
+| Card lists + card events (upstream) | `generated/raw/upstream/*.js` (as downloaded) | no | `pnpm update-cards` (every deploy) |
+| GameTora's support card list | `generated/raw/gametora_cards.json` (cut to the fields we read) | no | `pnpm scrape-gametora` (every deploy) |
+| Every card's shown data | `generated/cards.json` (`schemas/cards.schema.json`) | no | `pnpm build-cards`, from the raw inputs + `data/global_cards.json` |
+| Tier list calculation inputs | `generated/card_stats/gl_card_stats.json`, `jp_card_stats.json` | no | `pnpm build-cards` |
+| Where generated files came from | `generated/sources.json`: `{ [file name]: source }` (upstream's repo + commit for `raw/upstream/*`, GameTora for `raw/gametora_cards.json`, the sheet's URL + update date for `pull_guide.json`, each with `fetched_at`); each script sets its own files' entries (`scripts/lib/sources.js`) | no | `update-cards`, `scrape-gametora`, `fetch-pull-guide` |
+| JP banner history | `generated/jp_banners.json` | no | `pnpm scrape-gametora` (every deploy) |
 | Global banner history + card releases | `data/global_banners.json`, `data/global_cards.json` | yes | seeded from GameTora once; `pnpm update-global` from `data/news/` (`news.yml`; deploys rerun it) |
-| GameTora card URLs, titles, JP release dates | `generated/gametora_cards.json` | no | `pnpm scrape-gametora` (every deploy) |
 | Career scenarios + launch times on both servers | `data/scenarios.json` | yes | JP side: `pnpm scrape-gametora` (every deploy); Global side: `pnpm update-global` from the news (seeded once from GameTora) |
 | Predicted Global release dates of JP-only cards and future Global banners | `generated/predicted_gl_releases.json`, `predicted_global_banners.json` | no | `pnpm predict-gl` (every deploy) |
 | Pull advice + notes per card (Global banners) | `generated/pull_guide.json` | no | `pnpm fetch-pull-guide` (every deploy; optional for the site) |
@@ -212,36 +221,45 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   calc, scenarios and card lists straight from the clone (Vite resolves their
   extensionless imports) and requires our rankings to match exactly. When it fails,
   port the change by hand (or update the test if we diverge on purpose). It also checks
-  the clone and `generated/` are the same upstream commit (`SOURCE.json` `ref`) — if
+  the clone and `generated/` are the same upstream commit (`sources.json` `ref`) — if
   not, run `pnpm clone-upstream && pnpm update-cards`.
 - `vite.config.js` keeps Vite's dependency scan and watcher out of `upstream/` (it's a
   whole other app with its own `index.html`).
 - **Card ids are the same on Global and JP and in GameTora's data.** Global has a subset
-  of JP's cards. Card data is split into server-independent `metadata.json` and per-server
-  stats; `joinCards()` rebuilds upstream's exact arrays (verified by a round-trip check in
-  `update-cards` and by `test/data.test.js`). Each server's `char_name` is in its own
-  language, which `scenarioLink` in the scenarios relies on.
+  of JP's cards. The card data (`scripts/lib/cards.js`) is:
+  - `generated/cards.json`: every card upstream or GameTora has (GameTora tracks newer JP cards), what the site
+    shows: `{ id, charId, type, rarity, name: { en, jp }, title: { en, jp }, release: { gl, jp }, source, links:
+    { gametora }, images: { icon, art } }`. Readable strings (type `speed`…`wisdom`, `friend`, `group`; rarity
+    `R`/`SR`/`SSR`), mapped to upstream's codes in `tierlist/join-cards.js`. Type/rarity: upstream's where it has
+    the card. `name.en`: Global's (upstream's gl list) where it has the character (by `charId`), else GameTora's;
+    group cards keep GameTora's group name ("Team Sirius"); `name.jp`: GameTora's. `title.en`/`release.gl`: ours
+    (`data/global_cards.json`), else GameTora's title; `title.jp`/`release.jp`: GameTora's. `source`: how it's
+    obtained, GameTora's `obtained` (`gacha`, `story_event`, `promo`, `limited_quest`, `main_story`, `shop`).
+    `images.icon`: upstream's at its commit (GameTora's for cards upstream lacks); `images.art`: GameTora's.
+  - `generated/card_stats/<gl|jp>_card_stats.json`: the calculation's inputs per server, `{ [id]: { charName,
+    events, lb: [LB0…LB4 stats] } }`. `charName` is upstream's per-server name (each in its own language, which
+    `scenarioLink` relies on; a group card's is a member's, as upstream has it); `events` the card's event rewards
+    (the same on both servers) or null.
+  `joinCards()` rebuilds upstream's exact arrays plus `events` per card (verified by `buildCards()` and
+  `test/data.test.js`).
 - Generated card data is **JSON** (one card per line), imported with
   `with { type: 'json' }` so the same imports work in Node (CLI, scripts) and Vite.
   Vite's dev server keeps that attribute on dynamic `import()`s while serving JSON as
   JS, which the browser rejects; a dev-only plugin in `vite.config.js` strips it.
-  Only `generated/raw/` keeps upstream's JS modules, as downloaded (the tests and the
-  round-trip check read them).
-- `ensureCards()` fetches card data if any output is missing; it runs from a Vite
-  plugin (dev/build) and from `test/global-setup.js`.
-- **GameTora is JP's source only** (plus the card page link and English titles of JP-only cards).
-  Global's banners and card titles/release dates come from `data/`; GameTora's Global fields
-  (`release_gl`, Global `title_en`) in `gametora_cards.json` are ignored (`src/cardInfo.js`,
-  `ml/data.py` `load_card_info()` merge the two the same way). Don't make Global read GameTora again.
+  Only `generated/raw/upstream/` keeps upstream's JS modules, as downloaded (the build and tests read them).
+- `ensureCards()` fetches upstream's card data if it's missing and builds the card data if that's missing; it runs
+  from a Vite plugin (dev/build) and from `test/global-setup.js`.
+- **GameTora is JP's source only** (plus links, names/titles of JP-only cards, `source`). Global's banners and card
+  titles/release dates come from `data/`; `raw/gametora_cards.json` doesn't even keep GameTora's Global fields.
+  `cards.json` is the one place the two are merged (the site, `update-global` and `ml/` all read it). Don't make
+  Global read GameTora again.
 - **GameTora scraping**: the history page is client-rendered, so the scraper reads GameTora's
   versioned JSON (`/data/manifests/umamusume.json` → `/data/umamusume/<name>.<hash>.json`).
   It's an internal format and may change; the scraper fails loudly if it does.
   "Special" (paid/step-up) banners are skipped. A banner's `main` item is our own
   heuristic (highest rarity, then highest rate).
-- **`gametora_cards.json`** comes from GameTora's `support-cards` file: the card page
-  link (GameTora's `url_name` slug, not derivable from the name), titles, and release
-  dates (`release_gl` from `release_en`, `release_jp` from `release`). It covers more
-  cards than our data (GameTora tracks newer JP cards than upstream has).
+- **`raw/gametora_cards.json`** is GameTora's `support-cards` file cut to what `buildCards()` reads (ids, names,
+  titles, type, rarity, JP `release`, `obtained`, `url_name`: the page's slug, not derivable from the name).
 - **Official news** (`umamusume.com/api/ajax/pr_info_index` / `pr_info_detail`, POST JSON, no cookies needed):
   keep it gentle. `fetch-news` pages 10 posts at a time like the site, stops at the first page with a known post,
   fetches details only for new/edited posts, one request at a time with 3–8 s random pauses — a normal day is
@@ -285,13 +303,21 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   view (`htmlview/sheet?gid=…`): the CSV export has no hyperlinks, and a row's card id is only in its GameTora link
   (`…/supports/<id>-…`, ids are ours); the xlsx export has them but is ~110 MB of art. Cell comments are in neither,
   so they're left out. Columns are found by header text ("Support Card", "Date", "Pull?", "Notes"; one tab has no
-  "Notes" header, so it falls back to the column after "Pull?"). A tab's scenario is the GameTora page its top row
-  links, matched to `links.gametora` in `data/scenarios.json` (`SLUG_ALIASES` for the sheet's old slugs). Dates:
+  "Notes" header, so it falls back to the column after "Pull?"). Dates:
   exact (`date`), or `month` + early/late for the author's estimates. Notes are wrapped to the column by hand;
   `parseNotes` joins lines back into sentences (a guess: a capital, "(" or digit starts a new one unless the line
   before runs on — a comma/colon/number, a joining word in `CONTINUES`, or a card name split across the break, from
   every tab's card names, so the script parses the tabs twice), splits sentences run together on one line (`STARTS`)
-  and drops spaces before "!"/"?". `parsePull` evens out the advice's wording (If Whale, With X, Dolphin, to Lates). Entries keep the tab `gid` and sheet `row` so the card page links to the row. The sheet's
+  and drops spaces before "!"/"?". `parsePull` evens out the advice's wording (If Whale, With X, Dolphin, to Lates); advice starting with a limit break ("1LB+ or R MLB") gets the Yes pill, its text placed as before (leading the notes, or the recommendation line when long).
+  Each row is matched to one of Global's banners (`findBanner()`, at build time: first release = the earliest
+  banner featuring the card, real or predicted; a rerun = the closest by date, within 3 weeks of an exact date, 6 of
+  an estimate), so `fetch-pull-guide` runs after `predict-gl`. Verified: every gacha row maps, and the sheet's
+  "Rerun" labels match the banners' `new` flags exactly. `pull_guide.json` (shape: `schemas/pull_guide.schema.json`; keep it in step): `{ banners:
+  { [banner id]: { [card id]: advice } }, noBanner: { [card id]: advice + release } }`, advice = `{ googleSheetsSrc:
+  { gid, row } (the card page links to the row), freePulls, shouldPull (the pill: yes/no/free/whale/dolphin + the
+  advice's "+"s, or null), comment (the line under it), advice (the notes as one paragraph) }`; `noBanner` holds
+  event/story/shop cards (free, on no gacha banner) with `release: { label, date | month + part | dateText }` from
+  the sheet (the script warns about any other card that maps to no banner). The sheet's
   content is the author's English text, shown as is; credited (with a disclaimer) in About. ~15 requests with 1–2 s pauses; the script fails loudly if no cards are found.
 - Banner/card images are hotlinked from GameTora and upstream GitHub; full card art is
   GameTora's `tex_support_card_<id>.png` (3:4 portrait). News-made banners use the official art from the post
@@ -335,12 +361,16 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 
 ## Tests
 
-- `pull-guide.test.js`: a tab's HTML view → entries (card id from the link, label, dates, Pull?, notes), tab →
-  scenario key, the tab list and update date; `upcomingEntry` (running / next banner, estimates), `sheetLink`, `findBanner`.
+- `pull-guide.test.js`: the script's output and `generated/pull_guide.json` (when present) fit
+  `schemas/pull_guide.schema.json` (ajv); a tab's HTML view → entries (card id from the link, label, dates, Pull?, notes), mapped to banners
+  (`byBanner`, `findBanner`), the tab list and update date; `upcomingBanner` / `currentAdvice` (running / next banner,
+  cards on no banner), `latestAdvice`, `sheetLink`.
 - `news.test.js`: news parsing (periods, kinds, banner ids + art, featured), the summary.
 - `global.test.js`: `applyNews` (news + JP banner → Global banner/releases, idempotent, seeded entries kept,
-  unknown ids skipped) and `mergeCardInfo`.
-- `data.test.js`: generated data rebuilds upstream's lists exactly; names present; preset
+  unknown ids skipped) and `englishNames`.
+- `cards.test.js`: `buildCards()` (merge rules: Global's titles/dates, names by character, group names, GameTora-only
+  cards, no GameTora), the stats files, and `cards.json` against its schema.
+- `data.test.js`: generated data rebuilds upstream's lists exactly, carries upstream's events; names present; preset
   deck cards exist; every scenario (incl. averaged) × stat ranking is non-empty, finite,
   sorted; averaged rankings only use defined scenarios, include the current one, and
   score 0–1000.
@@ -421,7 +451,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   (none on JP while its newest scenario isn't one the tier list ranks). Every scenario in `data/scenarios.json` is
   listed, newest first; those the tier list doesn't rank yet are disabled with "Not in the tier list yet".
 - `deploy.yml` — on push to main, daily, and manually: install → `pnpm lint` → `update-cards` →
-  `scrape-gametora` → `fetch-pull-guide` → `update-global` (not committed) → `map-banner-cards` → `setup-ml` + `predict-gl` → `pnpm test` → build → GitHub Pages. If any
+  `scrape-gametora` → `update-global` (not committed) → `setup-ml` + `predict-gl` → `fetch-pull-guide` → `pnpm test` → build → GitHub Pages. If any
   step fails the job fails and the last good deploy stays live.
 - `upstream-check.yml` — on push to main, daily, and manually: install →
   `clone-upstream` → `update-cards` → `pnpm test:upstream`. A failure (GitHub emails)

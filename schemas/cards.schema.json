@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cards.schema.json",
+  "title": "Cards",
+  "description": "Every support card upstream or GameTora has, with what the site shows (generated/cards.json, built by `pnpm build-cards`, see scripts/lib/cards.js). The tier list calculation's inputs are in generated/card_stats/.",
+  "type": "object",
+  "propertyNames": { "pattern": "^\\d+$" },
+  "additionalProperties": {
+    "type": "object",
+    "required": ["id", "charId", "type", "rarity", "name", "title", "release", "source", "links", "images"],
+    "additionalProperties": false,
+    "properties": {
+      "id": { "description": "The card id (the same on both servers and on GameTora).", "type": "integer" },
+      "charId": {
+        "description": "GameTora's character id (for group cards, one member's); null without GameTora's data.",
+        "type": ["integer", "null"]
+      },
+      "type": {
+        "description": "The tier list's stat key, or group (ranked with friend cards). Codes: tierlist/join-cards.js TYPE_CODES.",
+        "enum": ["speed", "stamina", "power", "guts", "wisdom", "friend", "group"]
+      },
+      "rarity": { "enum": ["R", "SR", "SSR"] },
+      "name": {
+        "description": "The character's name (a group card's: the group's). en: Global's where it has the character, else GameTora's.",
+        "$ref": "#/$defs/texts"
+      },
+      "title": {
+        "description": "The card's title, e.g. \"[Tracen Academy]\". en: Global's (data/global_cards.json), else GameTora's.",
+        "$ref": "#/$defs/texts"
+      },
+      "release": {
+        "description": "Release dates per server (gl: data/global_cards.json, jp: GameTora), null when not out (or unknown).",
+        "type": "object",
+        "required": ["gl", "jp"],
+        "additionalProperties": false,
+        "properties": { "gl": { "$ref": "#/$defs/date" }, "jp": { "$ref": "#/$defs/date" } }
+      },
+      "source": {
+        "description": "How the card is obtained (GameTora's `obtained`); empty when unknown.",
+        "type": "array",
+        "items": { "enum": ["gacha", "story_event", "promo", "limited_quest", "main_story", "shop"] }
+      },
+      "links": {
+        "type": "object",
+        "required": ["gametora"],
+        "additionalProperties": false,
+        "properties": { "gametora": { "type": ["string", "null"], "pattern": "^https://gametora\\.com/" } }
+      },
+      "images": {
+        "type": "object",
+        "required": ["icon", "art"],
+        "additionalProperties": false,
+        "properties": {
+          "icon": {
+            "description": "Square icon (upstream's where it has the card, else GameTora's).",
+            "type": "string"
+          },
+          "art": { "description": "Full card art (GameTora's, 3:4).", "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "texts": {
+      "type": "object",
+      "required": ["en", "jp"],
+      "additionalProperties": false,
+      "properties": { "en": { "type": ["string", "null"] }, "jp": { "type": ["string", "null"] } }
+    },
+    "date": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
+  }
+}
