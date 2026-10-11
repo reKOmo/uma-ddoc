@@ -12,6 +12,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { DATA_DIR } from './paths.js';
+import { norm } from './news-text.js';
 
 export const BANNERS_FILE = `${DATA_DIR}global_banners.json`;
 export const CARDS_FILE = `${DATA_DIR}global_cards.json`;
@@ -29,34 +30,28 @@ export function pickMain(featured) {
   );
 }
 
-const norm = (s) =>
-  (s ?? '')
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
-
 // Posts end banners at "9:59 p.m."; scraped banners end on the last second of that minute.
 const endOfMinute = (iso) => iso?.replace(/:00(\.000)?Z$/, ':59.000Z');
 const isoMs = (iso) => new Date(iso).toISOString();
 
 // Pairs a JP banner's items with the post's English list ({ name, title, rarity|stars }): by
 // character name first (`names`: char_id → English name), then, if one item and one entry are
-// left, with each other. Returns [{ item, entry }] (entry null when unmatched).
-function pairEnglish(items, entries, names, pairLeftovers) {
+// left, with each other (the post lists each banner's items under its own art). Returns [{ item, entry }] (entry null when unmatched).
+function pairEnglish(items, entries, names) {
   const left = [...entries];
   const pairs = items.map((item) => {
     const i = left.findIndex((e) => names.get(item.char_id) && norm(e.name) === norm(names.get(item.char_id)));
     return { item, entry: i >= 0 ? left.splice(i, 1)[0] : null };
   });
   const unpaired = pairs.filter((p) => !p.entry);
-  if (pairLeftovers && unpaired.length === 1 && left.length === 1) unpaired[0].entry = left[0];
+  if (unpaired.length === 1 && left.length === 1) unpaired[0].entry = left[0];
   return pairs;
 }
 
 // Rebuilds the news-made banners and card releases from every post (oldest first; a later post
-// about the same banner wins), on top of the seeded ones. Pure.
-//   posts     data/news/announcements.json's records
+// about the same banner wins), on top of the seeded ones. Pure. Paid scouts (one-off guaranteed ones) are left out,
+// like JP's "special" banners.
+//   posts     scout posts, as scripts/lib/banner-posts.js reads them (bannerPost())
 //   global    data/global_banners.json      cards  data/global_cards.json
 //   jp        GameTora's JP banners (generated/jp_banners.json)
 //   names     Map char_id → English name
@@ -71,7 +66,8 @@ export function applyNews({ posts, global, cards, jp, names }) {
   // id → { post, announced } from the newest post naming it.
   const announced = new Map();
   for (const post of [...posts].sort((a, b) => (a.posted ?? '').localeCompare(b.posted ?? ''))) {
-    for (const b of post.banners ?? []) if (b.start) announced.set(b.id, { post, announced: b });
+    if (post.paid) continue;
+    for (const b of post.banners) if (b.start) announced.set(b.gachaId, { post, announced: b });
   }
 
   const made = [];
@@ -84,12 +80,13 @@ export function applyNews({ posts, global, cards, jp, names }) {
       continue;
     }
     const { kind, banner: jpBanner } = source;
-    const sameKind = post.banners.filter((b) => jpBanners.get(b.id)?.kind === kind).length;
-    const entries =
-      kind === 'cards'
-        ? post.cards.map((c) => ({ ...c, rarity: RARITY[c.rarity] }))
-        : post.trainees.map((t) => ({ ...t, rarity: t.stars }));
-    const pairs = pairEnglish(jpBanner.featured, entries, names, sameKind === 1);
+    const type = kind === 'cards' ? 'support' : 'character';
+    if (a.type && a.type !== type) {
+      skipped.push({ id, post: post.url, reason: `the post lists it as a ${a.type} banner, JP as a ${type} one` });
+      continue;
+    }
+    const entries = a.featured.map((f) => ({ ...f, rarity: kind === 'cards' ? RARITY[f.rarity] : f.stars }));
+    const pairs = pairEnglish(jpBanner.featured, entries, names);
     const featured = pairs.map(({ item, entry }) => ({
       ...item,
       name: entry?.name ?? names.get(item.char_id) ?? item.name,

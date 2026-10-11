@@ -1,16 +1,19 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight, Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown, ChevronRight, ExternalLink, Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
 import { rankByUsefulness } from '../../tierlist/index.js';
+import { cards } from '../../tierlist/cards.js';
 import { SERVERS } from '../servers.js';
 import { STAT_OF_TYPE, TIER_NAMES, cardRanks } from '../tiers.js';
 import { DAY, buildTimeline } from '../timeline.js';
 import { globalProgress } from '../globalProgress.js';
 import { scenarioSegments } from '../scenarioStrip.js';
 import scenarioData from '../../data/scenarios.json' with { type: 'json' };
+import { eventGroups, itemList, partCount, subEvents } from '../eventStrip.js';
+import { getCollapsed, saveCollapsed } from '../timelineGroups.js';
 import { useDragScroll } from '../useDragScroll.js';
 import { Trans, useTranslation } from 'react-i18next';
 import { timeZoneOptions, useSettings } from '../settings.jsx';
-import i18n, { formatDate, formatDateTime, scenarioName, statName } from '../i18n/index.js';
+import i18n, { formatDate, formatDateTime, formatNumber, scenarioName, statName } from '../i18n/index.js';
 import './banners.css';
 
 import { PREDICTED, bannerStatus as status, loadBanners, loadRealBanners } from '../bannerData.js';
@@ -142,6 +145,28 @@ export default function BannersPage({ server, scenario, bannerId }) {
 
   // The Career scenario strip at the top: which scenario runs when on this server.
   const scenarios = useMemo(() => scenarioSegments(scenarioData.scenarios, server), [server]);
+
+  // Global's in-game events, in labelled groups under the banners (no data for JP); events with parts (a
+  // celebration's sub-events, mission sets) are folded until opened.
+  const [globalEvents, setGlobalEvents] = useState(null);
+  useEffect(() => {
+    if (server !== 'gl' || globalEvents) return;
+    import('../../data/global_events.json').then((m) => setGlobalEvents(m.default));
+  }, [server, globalEvents]);
+  const events = useMemo(
+    () => (server === 'gl' && globalEvents ? eventGroups(globalEvents) : []),
+    [server, globalEvents]
+  );
+  const [unfolded, setUnfolded] = useState(() => new Set());
+  // Groups (banner sections, event groups) folded away by their label, remembered in this browser.
+  const [collapsed, setCollapsed] = useState(getCollapsed);
+  const toggleGroup = (key) =>
+    setCollapsed((old) => {
+      const next = toggled(old, key);
+      saveCollapsed(next);
+      return next;
+    });
+  const toggleParts = (id) => setUnfolded((old) => toggled(old, id));
 
   // Where Global is in JP's history, as timeline days: the window it's going through and the estimate.
   const globalMark = useMemo(() => {
@@ -298,39 +323,72 @@ export default function BannersPage({ server, scenario, bannerId }) {
 
             {timeline.sections.map((section) => (
               <section key={section.key} className="lane-group">
-                <div className="lane-label">{section.label}</div>
-                {section.rows.map((row, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: lanes have no identity of their own; their order is stable.
-                  <div key={i} className="lane">
-                    {row.map(({ banner, from, length }) => (
-                      <button
-                        type="button"
-                        key={banner.id}
-                        className={`bar ${section.key} ${status(banner)} type-${banner.main?.type ?? 'none'}${banner.announced ? ' official-art' : ''}`}
-                        style={{
-                          left: from * px,
-                          width: Math.max(length * px, 6),
-                          backgroundImage: `url(${banner.image})`,
-                        }}
-                        title={t(barTitleKey(banner), {
-                          label: barLabel(banner),
-                          dates: dateRange(banner, format.long),
-                        })}
-                        onClick={() => setSelected({ banner, kind: section.key })}
-                      >
-                        <strong>{barLabel(banner)}</strong>
-                        <small>{dateRange(banner, format.short)}</small>
-                      </button>
-                    ))}
-                  </div>
-                ))}
+                <GroupLabel
+                  label={section.label}
+                  collapsed={collapsed.has(section.key)}
+                  onToggle={() => toggleGroup(section.key)}
+                />
+                {!collapsed.has(section.key) &&
+                  section.rows.map((row, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: lanes have no identity of their own; their order is stable.
+                    <div key={i} className="lane">
+                      {row.map(({ banner, from, length }) => (
+                        <button
+                          type="button"
+                          key={banner.id}
+                          className={`bar ${section.key} ${status(banner)} type-${banner.main?.type ?? 'none'}${banner.announced ? ' official-art' : ''}`}
+                          style={{
+                            left: from * px,
+                            width: Math.max(length * px, 6),
+                            backgroundImage: `url(${banner.image})`,
+                          }}
+                          title={t(barTitleKey(banner), {
+                            label: barLabel(banner),
+                            dates: dateRange(banner, format.long),
+                          })}
+                          onClick={() => setSelected({ banner, kind: section.key })}
+                        >
+                          <strong>{barLabel(banner)}</strong>
+                          <small>{dateRange(banner, format.short)}</small>
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+              </section>
+            ))}
+            {events.map((group) => (
+              <section key={group.key} className="lane-group events">
+                <GroupLabel
+                  label={t(`events.group.${group.key}`)}
+                  collapsed={collapsed.has(`events-${group.key}`)}
+                  onToggle={() => toggleGroup(`events-${group.key}`)}
+                />
+                {!collapsed.has(`events-${group.key}`) && (
+                  <EventRows
+                    rows={group.rows}
+                    at={(ms) => timeline.at(ms) * px}
+                    format={format}
+                    unfolded={unfolded}
+                    onToggle={toggleParts}
+                    onSelect={(event) => setSelected({ event })}
+                  />
+                )}
               </section>
             ))}
           </div>
         </div>
       )}
 
-      {selected && (
+      {selected?.event && (
+        <EventSheet
+          event={selected.event}
+          events={globalEvents}
+          format={format}
+          onSelect={(event) => setSelected({ event })}
+          onClose={() => setSelected(null)}
+        />
+      )}
+      {selected?.banner && (
         <BannerSheet
           {...selected}
           server={server}
@@ -470,6 +528,242 @@ function BannerSheet({ banner, kind, server, scenario, format, onClose }) {
               scenario: scenarioName(scenario),
             })}
           </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// A group's label, which folds the group away (its rows hidden) or opens it again.
+function GroupLabel({ label, collapsed, onToggle }) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      className={`lane-label${collapsed ? ' collapsed' : ''}`}
+      aria-expanded={!collapsed}
+      title={t(collapsed ? 'banners.showGroup' : 'banners.hideGroup', { name: label })}
+      onClick={onToggle}
+    >
+      {collapsed ? <ChevronRight size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
+      {label}
+    </button>
+  );
+}
+
+// Rows of event bars; an event with parts has a fold button (+N), and its parts' rows open under its row, over a
+// tinted band spanning it. Bars too short for a label are chips.
+const CHIP_WIDTH = 64;
+// A copy of a set with `key` added, or removed if it was in it.
+function toggled(set, key) {
+  const next = new Set(set);
+  if (!next.delete(key)) next.add(key);
+  return next;
+}
+// An event's name, or its kind's when it has none (Legend Races, Transfer Requests).
+const eventName = (t, event) => event.name ?? t(`events.kind.${event.kind}`);
+function EventRows({ rows, at, format, unfolded, onToggle, onSelect, depth = 0 }) {
+  const { t } = useTranslation();
+  const name = (event) => eventName(t, event);
+  return rows.map((row, i) => {
+    const open = row.filter((item) => item.parts.length && unfolded.has(item.event.id));
+    return (
+      // biome-ignore lint/suspicious/noArrayIndexKey: lanes have no identity of their own; their order is stable.
+      <Fragment key={i}>
+        <div className={`lane${depth ? ' part-lane' : ''}`}>
+          {row.map((item) => {
+            const { event, start, end } = item;
+            const left = at(start);
+            const width = Math.max(at(end) - left, 6);
+            const chip = width < CHIP_WIDTH;
+            const parts = partCount(item);
+            const isOpen = unfolded.has(event.id);
+            const dates = event.end ? dateRange(event, format.short) : format.short(event.start);
+            return (
+              <Fragment key={event.id}>
+                <button
+                  type="button"
+                  className={`bar event-bar kind-${event.kind} ${status({ start: event.start, end: new Date(end).toISOString() })}${chip ? ' chip' : ''}${parts ? ' has-parts' : ''}`}
+                  style={{ left, width, ...(event.image && !chip && { backgroundImage: `url(${event.image})` }) }}
+                  title={t('events.barTitle', {
+                    name: name(event),
+                    kind: t(`events.kind.${event.kind}`),
+                    dates: event.end ? dateRange(event, format.long) : format.long(event.start),
+                  })}
+                  onClick={() => onSelect(event)}
+                >
+                  {!chip && (
+                    <>
+                      <strong>{name(event)}</strong>
+                      <small>{dates}</small>
+                    </>
+                  )}
+                </button>
+                {parts > 0 && (
+                  <button
+                    type="button"
+                    className={`bar-fold${isOpen ? ' open' : ''}`}
+                    style={{ left: chip ? left + width + 2 : left + width - 40 }}
+                    aria-expanded={isOpen}
+                    aria-label={t(isOpen ? 'events.hideParts' : 'events.showParts', {
+                      count: parts,
+                      name: name(event),
+                    })}
+                    onClick={() => onToggle(event.id)}
+                  >
+                    {isOpen ? <ChevronDown size={14} aria-hidden="true" /> : `+${parts}`}
+                  </button>
+                )}
+              </Fragment>
+            );
+          })}
+        </div>
+        {open.map((item) => (
+          <div key={item.event.id} className={`event-part-rows kind-${item.event.kind}`}>
+            <div
+              className="event-part-band"
+              style={{ left: at(item.start), width: Math.max(at(item.end) - at(item.start), 6) }}
+            />
+            <EventRows
+              rows={item.parts}
+              at={at}
+              format={format}
+              unfolded={unfolded}
+              onToggle={onToggle}
+              onSelect={onSelect}
+              depth={depth + 1}
+            />
+          </div>
+        ))}
+      </Fragment>
+    );
+  });
+}
+
+// An in-game event in the banner sheet's style: the support cards it gives first, then its other rewards and titles;
+// its parts (sub-events, mission sets), or the event it's part of.
+function EventSheet({ event, events, format, onSelect, onClose }) {
+  const { t } = useTranslation();
+  const items = itemList(event.items);
+  const parent = event.parent && events.find((e) => e.id === event.parent);
+  const parts = subEvents(event, events);
+  const count = (value) =>
+    typeof value === 'number'
+      ? formatNumber(value)
+      : t('events.range', { min: formatNumber(value.min), max: formatNumber(value.max) });
+  const days = event.end && Math.round((Date.parse(event.end) - Date.parse(event.start)) / DAY);
+  const nothing = !event.cards.length && !items.length && !event.titles.length;
+  const name = (e) => eventName(t, e);
+  return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tapping outside the sheet closes it; Escape (handled in BannersPage) and the close button cover keyboards.
+    <div className="sheet-backdrop" onClick={onClose}>
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: only stops taps inside the sheet from reaching the backdrop. */}
+      <div
+        className="sheet event-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('events.details')}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button type="button" className="sheet-close" onClick={onClose} aria-label={t('common.close')}>
+          <ChevronDown size={24} aria-hidden="true" />
+        </button>
+        <span className={`event-kind kind-${event.kind}`}>{t(`events.kind.${event.kind}`)}</span>
+        <h2 className="event-name">{name(event)}</h2>
+        <p className="sheet-dates">
+          {event.end
+            ? `${dateRange(event, format.time)} · ${t('banners.days', { count: days })}`
+            : format.time(event.start)}
+        </p>
+        {parent && (
+          <button type="button" className="event-parent" onClick={() => onSelect(parent)}>
+            {t('events.partOf', { name: name(parent) })}
+            <ChevronRight size={15} aria-hidden="true" />
+          </button>
+        )}
+        {event.cards.length > 0 && (
+          <>
+            <h3 className="featured-heading">{t('events.cards')}</h3>
+            <ul className="featured">
+              {event.cards.map((card) => (
+                <li key={`${card.title}|${card.name}`}>
+                  <div className="item-icon">
+                    {cards[card.id]?.images.icon && <img src={cards[card.id].images.icon} alt="" loading="lazy" />}
+                  </div>
+                  <div className="item-info">
+                    <span className="item-name">
+                      <strong>{card.name}</strong>
+                      <span className="item-title" title={card.title}>
+                        [{card.title}]
+                      </span>
+                    </span>
+                    <span className="item-meta">
+                      {card.rarity && t(`rarity.${card.rarity}`)}
+                      {card.copies && <span>{t('events.copies', { count: card.copies })}</span>}
+                      {card.id && (
+                        <a className="see-more" href={`#/card/${card.id}`}>
+                          {t('banners.seeMore')}
+                          <ChevronRight size={15} aria-hidden="true" />
+                        </a>
+                      )}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {items.length > 0 && (
+          <>
+            <h3 className="featured-heading">{t('events.items')}</h3>
+            <ul className="event-rewards">
+              {items.map((item) => (
+                <li key={item.name}>
+                  {item.count == null
+                    ? item.name
+                    : t('events.itemCount', { name: item.name, count: count(item.count) })}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {event.phases?.length > 0 && (
+          <>
+            <h3 className="featured-heading">{t('events.schedule')}</h3>
+            <ul className="event-parts">
+              {event.phases.map((phase) => (
+                <li key={phase.key}>
+                  <span>{t(`events.phase.${phase.key}`)}</span>
+                  <small>{dateRange(phase, format.time)}</small>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {event.titles.length > 0 && <p className="event-titles">{t('events.titles', { titles: event.titles })}</p>}
+        {nothing && <p className="event-none">{t('events.noRewards')}</p>}
+        {parts.length > 0 && (
+          <>
+            <h3 className="featured-heading">{t('events.includes')}</h3>
+            <ul className="event-parts">
+              {parts.map((part) => (
+                <li key={part.id}>
+                  <button type="button" className="event-part" onClick={() => onSelect(part)}>
+                    <span className={`event-dot kind-${part.kind}`} aria-hidden="true" />
+                    {name(part)}
+                    {part.cards.length > 0 && <small className="event-has-card">{t('events.cards')}</small>}
+                  </button>
+                  <small>{part.end ? dateRange(part, format.short) : format.short(part.start)}</small>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {event.news_url && (
+          <a className="event-news" href={event.news_url} target="_blank" rel="noreferrer">
+            {t('events.news')}
+            <ExternalLink size={15} aria-hidden="true" />
+          </a>
         )}
       </div>
     </div>

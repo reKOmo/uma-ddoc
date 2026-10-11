@@ -58,6 +58,8 @@ export const lbName = (lb) => (lb === 4 ? i18n.t('lb.max') : i18n.t('lb.level', 
 // Dates in the UI's locale. Takes anything Date accepts.
 export const formatDate = (date, options) => new Date(date).toLocaleDateString(locale(), options);
 export const formatDateTime = (date, options) => new Date(date).toLocaleString(locale(), options);
+// Numbers in the UI's locale ("50,000").
+export const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value);
 
 // How long from one "YYYY-MM-DD" date to a later one, in the UI's locale: "1 year, 2 months",
 // "5 months", or days when it's under a month.

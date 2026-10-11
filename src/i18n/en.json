@@ -133,7 +133,62 @@
     "noItems": "No rate-up items listed.",
     "notRanked": "Not ranked yet",
     "rankNote": "Ranks are for MLB copies in the {{scenario}} tier list.",
-    "predictedRankNote": "Ranks are for MLB copies in Japan's {{scenario}} tier list, which has every card on this banner (Global's may not yet)."
+    "predictedRankNote": "Ranks are for MLB copies in Japan's {{scenario}} tier list, which has every card on this banner (Global's may not yet).",
+    "showGroup": "Show {{name}}",
+    "hideGroup": "Hide {{name}}"
+  },
+  "events": {
+    "barTitle": "{{name}} ({{kind}}) · {{dates}}",
+    "details": "Event details",
+    "kind": {
+      "story": "Story event",
+      "champions_meeting": "Champions Meeting",
+      "legend_race": "Legend Race",
+      "transfer_requests": "Transfer Requests",
+      "uma_outing": "Uma Outing",
+      "special": "Special event",
+      "celebration": "Celebration",
+      "campaign": "Campaign",
+      "gift": "Gift",
+      "login_bonus": "Login bonus",
+      "missions": "Missions",
+      "shop": "Shop",
+      "sale": "Sale"
+    },
+    "cards": "Support cards",
+    "range": "{{min}}–{{max}}",
+    "titles": "Titles: {{titles, list}}",
+    "noRewards": "No rewards listed.",
+    "news": "Read the announcement",
+    "copies_one": "{{count}} copy",
+    "copies_other": "{{count}} copies",
+    "items": "Other rewards",
+    "itemCount": "{{name}} × {{count}}",
+    "partOf": "Part of {{name}}",
+    "includes": "Includes",
+    "group": {
+      "story": "Story & special events",
+      "champions_meeting": "Champions Meetings",
+      "legend_race": "Legend Races",
+      "celebration": "Celebrations",
+      "gifts": "Gifts & login bonuses",
+      "missions": "Missions",
+      "bonuses": "Bonuses",
+      "shops": "Shops & sales",
+      "transfers": "Transfers & outings"
+    },
+    "showParts_one": "Show {{count}} part of {{name}}",
+    "showParts_other": "Show {{count}} parts of {{name}}",
+    "hideParts": "Hide the parts of {{name}}",
+    "schedule": "Schedule",
+    "phase": {
+      "league_selection": "League selection",
+      "round_1": "Round 1",
+      "round_2": "Round 2",
+      "final_registration": "Final round: registration",
+      "final_matching": "Final round: matching",
+      "final_race": "Final round: race"
+    }
   },
   "card": {
     "notFound": "There's no support card with id {{id}}.",

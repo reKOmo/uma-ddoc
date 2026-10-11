@@ -9,6 +9,8 @@ import en from '../src/i18n/en.json' with { type: 'json' };
 import i18n, { lbName } from '../src/i18n/index.js';
 import { COMBINED, STATS } from '../tierlist/index.js';
 import { SERVERS } from '../src/servers.js';
+import { CM_PHASES, EVENT_KINDS } from '../scripts/lib/events.js';
+import { EVENT_GROUPS } from '../src/eventStrip.js';
 
 const I18N_DIR = new URL('../src/i18n/', import.meta.url);
 const SRC_DIR = new URL('../src/', import.meta.url);
@@ -65,6 +67,9 @@ describe('catalogs', () => {
         `settings.credit.${k}.description`,
       ]),
       ...['R', 'SR', 'SSR'].map((r) => `rarity.${r}`),
+      ...EVENT_KINDS.map((k) => `events.kind.${k}`),
+      ...EVENT_GROUPS.map(([k]) => `events.group.${k}`),
+      ...CM_PHASES.map(([k]) => `events.phase.${k}`),
     ];
     expect(dynamic.filter((key) => !keys.has(key))).toEqual([]);
   });

@@ -58,18 +58,32 @@ const SEEDED = {
 const CARDS = { 30072: { title_en: '[Party Formation]', release_gl: '2026-01-05' } };
 const CARD_DATA = { 30126: { charId: 1068, type: 'friend', name: { en: 'Yamanin Zephyr', jp: 'ヤマニンゼファー' } } };
 
+// A scout post, as scripts/lib/banner-posts.js reads it.
 const post = (id, posted, start, extra = {}) => ({
   id,
   url: `https://umamusume.com/news/${id}/`,
   posted,
+  paid: false,
   banners: [
-    { id: 30134, start, end: '2026-10-15T21:59:00.000Z', image: 'official-30134.png' },
-    { id: 30135, start, end: '2026-10-15T21:59:00.000Z', image: 'official-30135.png' },
-  ],
-  trainees: [{ stars: 3, title: 'Heroic Author', name: 'Zenno Rob Roy' }],
-  cards: [
-    { rarity: 'SSR', title: 'Party Formation', name: 'Mayano Top Gun' },
-    { rarity: 'SSR', title: 'Calm Breeze', name: 'Yamanin Zephyr' },
+    {
+      gachaId: 30134,
+      type: 'character',
+      start,
+      end: '2026-10-15T21:59:00.000Z',
+      image: 'official-30134.png',
+      featured: [{ stars: 3, title: 'Heroic Author', name: 'Zenno Rob Roy' }],
+    },
+    {
+      gachaId: 30135,
+      type: 'support',
+      start,
+      end: '2026-10-15T21:59:00.000Z',
+      image: 'official-30135.png',
+      featured: [
+        { rarity: 'SSR', title: 'Party Formation', name: 'Mayano Top Gun' },
+        { rarity: 'SSR', title: 'Calm Breeze', name: 'Yamanin Zephyr' },
+      ],
+    },
   ],
   ...extra,
 });
@@ -129,10 +143,29 @@ describe('applyNews', () => {
     expect(r.global.cards).toEqual(seededToo.cards);
 
     const unknown = post(1091, '2026-10-07T22:00:00Z', '2026-10-07T22:00:00.000Z', {
-      banners: [{ id: 99999, start: '2026-10-07T22:00:00.000Z', end: null, image: 'x.png' }],
+      banners: [
+        { gachaId: 99999, type: 'support', start: '2026-10-07T22:00:00.000Z', end: null, image: 'x.png', featured: [] },
+      ],
     });
     expect(apply([unknown]).skipped).toEqual([
       { id: 99999, post: 'https://umamusume.com/news/1091/', reason: 'no JP banner has this id' },
+    ]);
+  });
+
+  it('leaves out paid scouts, and banners whose type JP disagrees with', () => {
+    const paid = apply([post(897, '2026-10-07T22:00:00Z', '2026-10-07T22:00:00.000Z', { paid: true })]);
+    expect(paid.banners).toEqual([]);
+
+    const swapped = post(1089, '2026-10-07T22:00:00Z', '2026-10-07T22:00:00.000Z');
+    swapped.banners[0].type = 'support';
+    const r = apply([swapped]);
+    expect(r.banners.map((b) => b.banner.id)).toEqual([30135]);
+    expect(r.skipped).toEqual([
+      {
+        id: 30134,
+        post: 'https://umamusume.com/news/1089/',
+        reason: 'the post lists it as a support banner, JP as a character one',
+      },
     ]);
   });
 });

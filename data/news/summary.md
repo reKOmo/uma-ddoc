@@ -1,338 +1,836 @@
-# Umamusume news — 2026-10-08 14:14 UTC
+# Umamusume news — 2026-10-09 21:47 UTC
 
-153 new, 0 updated.
+0 new, 0 edited.
 
-## New: Banners
-
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1073/) — posted 2026-09-28
-  - Spotlight Scout Availability Period: 2026-09-28 22:00 UTC → 2026-10-12 21:59 UTC
-  - Trainees: ★★★ [Fiery Aqua Vitae] Vodka, ★★★ [Nuit Étoilée de Scarlet] Daiwa Scarlet
-  - Support cards: SSR [Glad Tidings] Narita Brian, SSR [Are You Merry?] Air Groove, R [Tracen Academy] Sakura Laurel
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1072/) — posted 2026-09-27
-  - Spotlight Scout Availability Period: 2026-09-28 22:00 UTC → 2026-10-12 21:59 UTC
-  - Trainees: ★★★ [Fiery Aqua Vitae] Vodka, ★★★ [Nuit Étoilée de Scarlet] Daiwa Scarlet
-  - Support cards: SSR [Glad Tidings] Narita Brian, SSR [Are You Merry?] Air Groove, R [Tracen Academy] Sakura Laurel
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1052/) — posted 2026-09-23
-  - Spotlight Scout Availability Period: 2026-09-23 22:00 UTC → 2026-10-04 21:59 UTC
-  - Trainees: ★★★ [Butterfly Sting] Wonder Acute
-  - Support cards: SSR [Danke Schön] Eishin Flash, SR [Stop, Prez!] Narita Top Road
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1051/) — posted 2026-09-22
-  - Spotlight Scout Availability Period: 2026-09-23 22:00 UTC → 2026-10-04 21:59 UTC
-  - Trainees: ★★★ [Butterfly Sting] Wonder Acute
-  - Support cards: SSR [Danke Schön] Eishin Flash, SR [Stop, Prez!] Narita Top Road
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1040/) — posted 2026-09-15
-  - Spotlight Scout Availability Period: 2026-09-15 22:00 UTC → 2026-09-23 21:59 UTC
-  - Trainees: ★★★ [Desperate Measures] Nakayama Festa
-  - Support cards: SSR [Dear Mr. C.B.] Mr. C.B., SSR [Piece of Mind] Super Creek
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1039/) — posted 2026-09-14
-  - Spotlight Scout Availability Period: 2026-09-15 22:00 UTC → 2026-09-23 21:59 UTC
-  - Trainees: ★★★ [Desperate Measures] Nakayama Festa
-  - Support cards: SSR [Dear Mr. C.B.] Mr. C.B., SSR [Piece of Mind] Super Creek
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1026/) — posted 2026-09-07
-  - Spotlight Scout Availability Period: 2026-09-07 22:00 UTC → 2026-09-19 21:59 UTC
-  - Trainees: ★★★ [Raging Thunder] Tamamo Cross, ★★★ [Golden Dream] Inari One
-  - Support cards: SSR [Run Forth! Dash On! Ever Forward!] Oguri Cap, SSR [Pious Flame, Heavens Scorcher] Yaeno Muteki
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1025/) — posted 2026-09-06
-  - Spotlight Scout Availability Period: 2026-09-07 22:00 UTC → 2026-09-19 21:59 UTC
-  - Trainees: ★★★ [Raging Thunder] Tamamo Cross, ★★★ [Golden Dream] Inari One
-  - Support cards: SSR [Run Forth! Dash On! Ever Forward!] Oguri Cap, SSR [Pious Flame, Heavens Scorcher] Yaeno Muteki
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1006/) — posted 2026-09-01
-  - Spotlight Scout Availability Period: 2026-09-01 22:00 UTC → 2026-09-10 21:59 UTC
-  - Trainees: ★★★ [Fluttertail Spirit] Yamanin Zephyr
-  - Support cards: SSR [A Win Foreshadowed] Symboli Kris S, SR [Go, Go! Tsuyoshi!] Tsurumaru Tsuyoshi, R [Tracen Academy] Symboli Kris S, R [Tracen Academy] Tanino Gimlet
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1005/) — posted 2026-08-31
-  - Spotlight Scout Availability Period: 2026-09-01 22:00 UTC → 2026-09-10 21:59 UTC
-  - Trainees: ★★★ [Fluttertail Spirit] Yamanin Zephyr
-  - Support cards: SSR [A Win Foreshadowed] Symboli Kris S, SR [Go, Go! Tsuyoshi!] Tsurumaru Tsuyoshi, R [Tracen Academy] Symboli Kris S, R [Tracen Academy] Tanino Gimlet
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/990/) — posted 2026-08-25
-  - Spotlight Scout Availability Period: 2026-08-25 22:00 UTC → 2026-09-02 21:59 UTC
-  - Trainees: ★★★ [Flare] Aston Machan
-  - Support cards: SSR [Sentimental Flare ♪] Maruzensky, SSR [Wave of Gratitude] Fine Motion
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/989/) — posted 2026-08-24
-  - Spotlight Scout Availability Period: 2026-08-25 22:00 UTC → 2026-09-02 21:59 UTC
-  - Trainees: ★★★ [Flare] Aston Machan
-  - Support cards: SSR [Sentimental Flare ♪] Maruzensky, SSR [Wave of Gratitude] Fine Motion
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/967/) — posted 2026-08-18
-  - Spotlight Scout Availability Period: 2026-08-18 22:00 UTC → 2026-08-30 21:59 UTC
-  - Trainees: ★★★ [Fanatic♡Jiangshi] Agnes Digital, ★★★ [Dot-o'-Lantern] Meisho Doto
-  - Support cards: SSR [Moonlit Devil ♪] Mejiro Palmer, SSR [Sunlit Angel ♪] Daitaku Helios
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/966/) — posted 2026-08-17
-  - Spotlight Scout Availability Period: 2026-08-18 22:00 UTC → 2026-08-30 21:59 UTC
-  - Trainees: ★★★ [Fanatic♡Jiangshi] Agnes Digital, ★★★ [Dot-o'-Lantern] Meisho Doto
-  - Support cards: SSR [Moonlit Devil ♪] Mejiro Palmer, SSR [Sunlit Angel ♪] Daitaku Helios
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/947/) — posted 2026-08-12
-  - Spotlight Scout Availability Period: 2026-08-12 22:00 UTC → 2026-08-21 21:59 UTC
-  - Trainees: ★★★ [Rocket☆Star] Seeking the Pearl
-  - Support cards: SSR [Ah, Such Majesty] Daiichi Ruby, SR [The 3rd Miracle] K.S.Miracle, R [Tracen Academy] Daiichi Ruby, R [Tracen Academy] K.S.Miracle
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/946/) — posted 2026-08-11
-  - Spotlight Scout Availability Period: 2026-08-12 22:00 UTC → 2026-08-21 21:59 UTC
-  - Trainees: ★★★ [Rocket☆Star] Seeking the Pearl
-  - Support cards: SSR [Ah, Such Majesty] Daiichi Ruby, SR [The 3rd Miracle] K.S.Miracle, R [Tracen Academy] Daiichi Ruby, R [Tracen Academy] K.S.Miracle
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/934/) — posted 2026-08-05
-  - Spotlight Scout Availability Period: 2026-08-05 22:00 UTC → 2026-08-13 21:59 UTC
-  - Trainees: ★★★ [Darl'n Snowflake] Yukino Bijin
-  - Support cards: SSR [My Umadol Way! ☆] Smart Falcon, SSR [Beyond This Shining Moment] Silence Suzuka
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/933/) — posted 2026-08-04
-  - Spotlight Scout Availability Period: 2026-08-05 22:00 UTC → 2026-08-13 21:59 UTC
-  - Trainees: ★★★ [Darl'n Snowflake] Yukino Bijin
-  - Support cards: SSR [My Umadol Way! ☆] Smart Falcon, SSR [Beyond This Shining Moment] Silence Suzuka
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/907/) — posted 2026-07-27
-  - Spotlight Scout Availability Period: 2026-07-27 22:00 UTC → 2026-08-10 21:59 UTC
-  - Trainees: ★★★ [Dream Deliverer] Winning Ticket, ★★★ [Difference Engineer] Narita Taishin
-  - Support cards: SSR [Teio-Oo-Oo!!!] Tokai Teio, SSR [TT Ignition!] Twin Turbo
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/906/) — posted 2026-07-26
-  - Spotlight Scout Availability Period: 2026-07-27 22:00 UTC → 2026-08-10 21:59 UTC
-  - Trainees: ★★★ [Dream Deliverer] Winning Ticket, ★★★ [Difference Engineer] Narita Taishin
-  - Support cards: SSR [Teio-Oo-Oo!!!] Tokai Teio, SSR [TT Ignition!] Twin Turbo
-- [New Career Scenario Celebration Pretty Derby and Support Card Scouts out now!](https://umamusume.com/news/899/) — posted 2026-07-22
-  - New Career Scenario Celebration Scout Availability Period: 2026-07-22 22:00 UTC → 2026-08-10 21:59 UTC
-  - Trainees: ★★★ [Twilight Triumph] Smart Falcon
-  - Support cards: SSR [From the Ground Up] Light Hello, SSR [Q≠0] Agnes Tachyon, R [Event Producer] Light Hello
-- [3★ Guaranteed and SSR Guaranteed 1.5-Year Anniversary Scouts now available!](https://umamusume.com/news/897/) — posted 2026-07-22
-  - Availability Period: 2026-07-22 22:00 UTC → 2026-08-27 21:59 UTC
-- [Up to 100 free scouts! Daily Free 10x Scout has begun!](https://umamusume.com/news/901/) — posted 2026-07-22
-  - Daily Free 10x Scout Event Availability Period: 2026-07-22 22:00 UTC → 2026-08-01 14:59 UTC
-- [New Career Scenario Celebration Pretty Derby and Support Card Scouts coming soon!](https://umamusume.com/news/898/) — posted 2026-07-21
-  - New Career Scenario Celebration Scout Availability Period: 2026-07-22 22:00 UTC → 2026-08-10 21:59 UTC
-  - Trainees: ★★★ [Twilight Triumph] Smart Falcon
-  - Support cards: SSR [From the Ground Up] Light Hello, SSR [Q≠0] Agnes Tachyon, R [Event Producer] Light Hello
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/890/) — posted 2026-07-16
-  - Spotlight Scout Availability Period: 2026-07-16 22:00 UTC → 2026-07-26 21:59 UTC
-  - Trainees: ★★★ [Eightfold☆Fortune] Copano Rickey, ★★★ [Eightfold☆Fortune] Copano Rickey's Unique Skill, "Luck Runs My Way," includes an effect described as "increase velocity and acceleration based on how many passive skills the skill user has in effect." This effect increases the user's velocity and acceleration based on the number of skills with a green icon in effect, such as "Firm Conditions ○" or "Pace Chaser Savvy ○," up to a maximum of six such skills.
-  - Support cards: SSR [It's on the House] Manhattan Cafe, SR [Bobbing with the Waves] Seiun Sky
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/889/) — posted 2026-07-15
-  - Spotlight Scout Availability Period: 2026-07-16 22:00 UTC → 2026-07-26 21:59 UTC
-  - Trainees: ★★★ [Eightfold☆Fortune] Copano Rickey
-  - Support cards: SSR [It's on the House] Manhattan Cafe, SR [Bobbing with the Waves] Seiun Sky
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/877/) — posted 2026-07-07
-  - Spotlight Scout Availability Period: 2026-07-07 22:00 UTC → 2026-07-16 21:59 UTC
-  - Trainees: ★★★ [Iron Ambition] Bamboo Memory
-  - Support cards: SSR [Warm Heart, Soft Steps] Ikuno Dictus, SSR [Hometown Cheers] Yukino Bijin
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/876/) — posted 2026-07-06
-  - Spotlight Scout Availability Period: 2026-07-07 22:00 UTC → 2026-07-16 21:59 UTC
-  - Trainees: ★★★ [Iron Ambition] Bamboo Memory
-  - Support cards: SSR [Warm Heart, Soft Steps] Ikuno Dictus, SSR [Hometown Cheers] Yukino Bijin
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/869/) — posted 2026-07-02
-  - Spotlight Scout Availability Period: 2026-07-02 22:00 UTC → 2026-07-14 21:59 UTC
-  - Trainees: ★★★ [Fair Lady of the Waves] Mejiro McQueen, ★★★ [RUN! RUIN! LAUNCHER!] Gold Ship, ★★★ [RUN! RUIN! LAUNCHER!] Gold Ship's Unique Skill, "564 Escapades," selects two rare skills at random from among those she currently possesses and activates them regardless of any activation conditions.
-  - Support cards: SSR [Sentimental Flare ♪] Maruzensky, SSR [Trusting the Dice] Nakayama Festa
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/868/) — posted 2026-07-01
-  - Spotlight Scout Availability Period: 2026-07-02 22:00 UTC → 2026-07-14 21:59 UTC
-  - Trainees: ★★★ [Fair Lady of the Waves] Mejiro McQueen, ★★★ [RUN! RUIN! LAUNCHER!] Gold Ship
-  - Support cards: SSR [Sentimental Flare ♪] Maruzensky, SSR [Trusting the Dice] Nakayama Festa
-- [3★ and SSR Guaranteed Head Start Scouts now available!](https://umamusume.com/news/122/) — posted 2025-06-26
-  - Availability Period: 2025-06-26 00:00 UTC → open-ended
-  - Trainees: ★★★ [Special Dreamer] Special Week, ★★★ [Innocent Silence] Silence Suzuka, ★★★ [Peak Joy] Tokai Teio, ★★★ [Formula R] Maruzensky, ★★★ [Starlight Beat] Oguri Cap, ★★★ [Wild Frontier] Taiki Shuttle, ★★★ [Frontline Elegance] Mejiro McQueen, ★★★ [Emperor's Path] Symboli Rudolf, ★★★ [Rosy Dreams] Rice Shower
-  - Support cards: SSR [The Brightest Star in Japan!] Special Week, SSR [Beyond This Shining Moment] Silence Suzuka, SSR [Dream Big!] Tokai Teio, SSR [Breakaway Battleship] Gold Ship, SSR [Wild Rider] Vodka, SSR [Fairest Fleur] Grass Wonder, SSR [Champion's Passion] El Condor Pasa, SSR [Foolproof Plan] Seiun Sky, SSR [Split the Sky, White Lightning!] Tamamo Cross, SSR [Wave of Gratitude] Fine Motion, SSR [Watch My Star Fly!] Ines Fujin, SSR [BNWinner!] Winning Ticket, SSR [7 More Centimeters] Air Shakur, SSR [Run(my)way] Gold City, SSR [Eat Fast! Yum Fast!] Sakura Bakushin O, SSR [Piece of Mind] Super Creek, SSR [My Umadol Way! ☆] Smart Falcon, SSR [Even the Littlest Bud] Nishino Flower, SSR [Double Carrot Punch!] Biko Pegasus, SSR [Tracen Reception] Tazuna Hayakawa
-
-## New: Events
-
-- [The story event Illuminate the Heart is here!](https://umamusume.com/news/1077/) — posted 2026-09-28
-  - Event Availability Period: 2026-09-28 22:00 UTC → 2026-10-12 21:59 UTC
-- [Holiday Celebration Part 1 now available!](https://umamusume.com/news/1079/) — posted 2026-09-28
-  - Availability Period: 2026-09-28 22:00 UTC → 2026-10-29 21:59 UTC
-- [The event Aim for the Stars! Dream Team is here!](https://umamusume.com/news/1055/) — posted 2026-09-27
-  - Event Availability Period: 2026-09-27 22:00 UTC → 2026-10-04 21:59 UTC
-- [The race event Champions Meeting: Sagittarius Cup is coming in early October!](https://umamusume.com/news/1065/) — posted 2026-09-26
-  - Event Availability Period: 2026-10-07 22:00 UTC → open-ended
-- [The event Aim for the Stars! Dream Team is coming soon!](https://umamusume.com/news/1054/) — posted 2026-09-26
-  - Availability Period: 2026-09-27 22:00 UTC → 2026-10-04 21:59 UTC
-- [The story event Illuminate the Heart is coming soon!](https://umamusume.com/news/1076/) — posted 2026-09-24
-  - Event Availability Period: 2026-09-28 22:00 UTC → 2026-10-12 21:59 UTC
-- [The race event Champions Meeting: Scorpio Cup is here!](https://umamusume.com/news/1050/) — posted 2026-09-19
-  - Event Availability Period: 2026-09-19 22:00 UTC → 2026-09-25 21:59 UTC
-- [The story event "Hark Back, Run Forward" has ended!](https://umamusume.com/news/1024/) — posted 2026-09-19
-  - Reward Collection Period: 2026-09-19 22:00 UTC → 2026-09-22 21:59 UTC
-- [The league selection period for the Champions Meeting: Scorpio Cup has begun!](https://umamusume.com/news/1049/) — posted 2026-09-15
-  - Event Availability Period: 2026-09-19 22:00 UTC → 2026-09-25 21:59 UTC
-- [Fall G1 Celebration Part 2 now available!](https://umamusume.com/news/1001/) — posted 2026-09-08
-- [The story event "Hark Back, Run Forward" is here!](https://umamusume.com/news/1023/) — posted 2026-09-07
-  - Event Availability Period: 2026-09-07 22:00 UTC → 2026-09-19 21:59 UTC
-- [The race event Champions Meeting: Scorpio Cup is coming in mid-September!](https://umamusume.com/news/997/) — posted 2026-09-04
-  - Event Availability Period: 2026-09-15 22:00 UTC → open-ended
-- [The story event "Hark Back, Run Forward" is coming soon!](https://umamusume.com/news/1022/) — posted 2026-09-03
-  - Event Availability Period: 2026-09-07 22:00 UTC → 2026-09-19 21:59 UTC
-- [A Legend Race is here!](https://umamusume.com/news/1021/) — posted 2026-09-03
-  - Availability Period: 2026-09-03 22:00 UTC → 2026-09-06 14:59 UTC
-- [Increased Daily Race Tickets event coming soon!](https://umamusume.com/news/1018/) — posted 2026-09-02
-  - Availability Period: 2026-09-03 15:00 UTC → 2026-09-17 14:59 UTC
-- [Let's Go! Uma Outing now available!](https://umamusume.com/news/1010/) — posted 2026-09-01
-  - Event Availability Period: 2026-09-01 22:00 UTC → 2026-09-10 14:59 UTC
-- [A Legend Race is coming soon!](https://umamusume.com/news/1020/) — posted 2026-08-31
-  - Availability Period: 2026-09-03 22:00 UTC → 2026-09-06 14:59 UTC
-- [Let's Go! Uma Outing coming soon!](https://umamusume.com/news/1009/) — posted 2026-08-31
-  - Event Availability Period: 2026-09-01 22:00 UTC → 2026-09-10 14:59 UTC
-- [The story event "Days Flying By" has ended!](https://umamusume.com/news/974/) — posted 2026-08-30
-- [The race event Champions Meeting: Libra Cup is here!](https://umamusume.com/news/992/) — posted 2026-08-28
-  - Event Availability Period: 2026-08-28 22:00 UTC → 2026-09-03 21:59 UTC
-- [A special Umayuru Celebration has begun!](https://umamusume.com/news/994/) — posted 2026-08-26
-  - Gift Period: No time limit
-- [The league selection period for the Champions Meeting: Libra Cup has begun!](https://umamusume.com/news/991/) — posted 2026-08-25
-  - Event Availability Period: 2026-08-28 22:00 UTC → 2026-09-03 21:59 UTC
-- [1.5-Year Anniversary Celebrations ending soon!](https://umamusume.com/news/963/) — posted 2026-08-23
-- [The event "Trainer Aptitude Test" has ended!](https://umamusume.com/news/957/) — posted 2026-08-21
-- [The story event "Days Flying By" is here!](https://umamusume.com/news/973/) — posted 2026-08-18
-  - Event Availability Period: 2026-08-18 22:00 UTC → 2026-08-30 21:59 UTC
-- [The race event Champions Meeting: Libra Cup is coming in late August!](https://umamusume.com/news/945/) — posted 2026-08-15
-  - Event Availability Period: 2026-08-25 22:00 UTC → open-ended
-- [The story event "Days Flying By" is coming soon!](https://umamusume.com/news/972/) — posted 2026-08-14
-  - Event Availability Period: 2026-08-18 22:00 UTC → 2026-08-30 21:59 UTC
-- [A Legend Race is here!](https://umamusume.com/news/954/) — posted 2026-08-13
-  - Race Availability Period: 2026-08-13 22:00 UTC → 2026-08-16 14:59 UTC
-- [The event "Trainer Aptitude Test" is here!](https://umamusume.com/news/956/) — posted 2026-08-12
-  - Event Availability Period: 2026-08-12 22:00 UTC → 2026-08-21 21:59 UTC
-- [Fall G1 Celebration Part 1 now available!](https://umamusume.com/news/948/) — posted 2026-08-12
-  - Availability Period: Sprinters Stakes Missions
-- [The event "Trainer Aptitude Test" is coming soon!](https://umamusume.com/news/955/) — posted 2026-08-11
-  - Availability Period: 2026-08-12 22:00 UTC → 2026-08-21 21:59 UTC
-- [The story event "Wings of Steam and Steel" has ended!](https://umamusume.com/news/916/) — posted 2026-08-10
-- [A Legend Race is coming soon!](https://umamusume.com/news/953/) — posted 2026-08-09
-  - Race Availability Period: 2026-08-13 22:00 UTC → 2026-08-16 14:59 UTC
-- [The race event Champions Meeting: Virgo Cup is here!](https://umamusume.com/news/936/) — posted 2026-08-08
-  - Event Availability Period: 2026-08-08 22:00 UTC → 2026-08-14 21:59 UTC
-- [The league selection period for the Champions Meeting: Virgo Cup has begun!](https://umamusume.com/news/935/) — posted 2026-08-05
-  - Event Availability Period: 2026-08-08 22:00 UTC → 2026-08-14 21:59 UTC
-- [The story event "Wings of Steam and Steel" is here!](https://umamusume.com/news/915/) — posted 2026-07-27
-  - Event Availability Period: 2026-07-27 22:00 UTC → 2026-08-10 21:59 UTC
-- [1.5-Year Anniversary Celebration Part 3 now available!](https://umamusume.com/news/917/) — posted 2026-07-27
-  - Sale Period: 2026-07-27 22:00 UTC → 2026-08-24 14:59 UTC
-- [1.5-Year Anniversary Celebration Part 2 items now available on the Cygames WebStore!](https://umamusume.com/news/100084/) — posted 2026-07-27
-  - Sale Availability Period: 2026-07-27 22:00 UTC → 2026-08-24 14:59 UTC
-- [Umamusume: Pretty Derby Brighter Together: Our Grand Concert Support Event](https://umamusume.com/news/200014/) — posted 2026-07-27
-  - Event Period: 2026-07-27 00:00 UTC → 2026-08-02 23:59 UTC
-- [The story event "Wings of Steam and Steel" is coming soon!](https://umamusume.com/news/914/) — posted 2026-07-23
-  - Event Availability Period: 2026-07-27 22:00 UTC → 2026-08-10 21:59 UTC
-- [Umamusume: Pretty Derby Brighter Together: Our Grand Concert Celebration Event](https://umamusume.com/news/200013/) — posted 2026-07-23
-  - Event Period: 2026-07-23 00:00 UTC → 2026-07-26 23:59 UTC
-- [The race event Champions Meeting: Virgo Cup is coming in early August!](https://umamusume.com/news/908/) — posted 2026-07-22
-  - Event Availability Period: 2026-08-05 22:00 UTC → open-ended
-- [1.5-Year Anniversary Celebration Part 2 now available!](https://umamusume.com/news/902/) — posted 2026-07-22
-  - Availability Period: 2026-07-22 22:00 UTC → 2026-08-01 14:59 UTC
-- [1.5-Year Anniversary Celebration items now available on the Cygames WebStore!](https://umamusume.com/news/100083/) — posted 2026-07-22
-  - Sale Availability Period: 2026-07-22 22:00 UTC → 2026-08-28 14:59 UTC
-- [Umamusume: Pretty Derby Brighter Together: Our Grand Concert Release Support Event](https://umamusume.com/news/200012/) — posted 2026-07-20
-  - Event Period: 2026-07-20 00:00 UTC → 2026-07-25 23:59 UTC
-- [Unveiling the Latest Details on Umamusume – 7th EVENT WORLD TOUR: THE STAGE in LOS ANGELES](https://umamusume.com/news/200011/) — posted 2026-07-16
-- [The race event Champions Meeting: Leo Cup is here!](https://umamusume.com/news/881/) — posted 2026-07-15
-  - Event Availability Period: 2026-07-15 22:00 UTC → 2026-07-21 21:59 UTC
-- [The story event "Make a Splash! Summer Showdown! ☆" has ended!](https://umamusume.com/news/867/) — posted 2026-07-14
-- [1.5-Year Anniversary Celebration Part 1 now available!](https://umamusume.com/news/887/) — posted 2026-07-14
-  - Availability Period: 2026-07-14 22:00 UTC → 2026-08-27 21:59 UTC
-- [The league selection period for the Champions Meeting: Leo Cup has begun!](https://umamusume.com/news/880/) — posted 2026-07-12
-  - Event Availability Period: 2026-07-15 22:00 UTC → 2026-07-21 21:59 UTC
-- [The event "Aim for the Stars! Dream Team" has ended!](https://umamusume.com/news/854/) — posted 2026-07-03
-- [The story event "Make a Splash! Summer Showdown! ☆" is here!](https://umamusume.com/news/866/) — posted 2026-07-02
-  - Event Availability Period: 2026-07-02 22:00 UTC → 2026-07-14 21:59 UTC
-- [The race event Champions Meeting: Leo Cup is coming in mid-July!](https://umamusume.com/news/862/) — posted 2026-07-01
-  - Event Availability Period: 2026-07-12 22:00 UTC → open-ended
-- [Umamusume: Pretty Derby Golshi Week Celebration Event](https://umamusume.com/news/200010/) — posted 2026-04-27
-  - Event Period: 2026-04-27 00:00 UTC → 2026-05-03 23:59 UTC
-- [Umamusume: Pretty Derby Glorious Golden Vinyl Event](https://umamusume.com/news/200009/) — posted 2026-04-07
-  - Event Period: 2026-04-07 00:00 UTC → 2026-04-13 23:59 UTC
-- [Umamusume: Pretty Derby Trackblazer: Start of the Climax Celebration Event](https://umamusume.com/news/200008/) — posted 2026-03-13
-  - Event Period: 2026-03-13 00:00 UTC → 2026-03-16 23:59 UTC
-- [Umamusume: Pretty Derby Trackblazer: Start of the Climax Release Support Event](https://umamusume.com/news/200007/) — posted 2026-03-09
-  - Event Period: 2026-03-09 00:00 UTC → 2026-03-14 23:59 UTC
-- [Umamusume: Pretty Derby Unity Cup Celebration Event](https://umamusume.com/news/200006/) — posted 2025-11-06
-  - Event Period: 2025-11-06 00:00 UTC → 2025-11-10 23:59 UTC
-- [Umamusume: Pretty Derby Unity Cup Support Event](https://umamusume.com/news/200005/) — posted 2025-10-31
-  - Event Period: 2025-10-31 00:00 UTC → 2025-11-06 23:59 UTC
-- [Umamusume: Pretty Derby ― 6th EVENT: The New Frontier Giveaway](https://umamusume.com/news/200004/) — posted 2025-10-06
-  - Event Period: 2025-10-06 00:00 UTC → 2025-10-09 23:59 UTC
-- [Steam Release Celebration Event!](https://umamusume.com/news/100009/) — posted 2025-06-26
-- [Umamusume: Pretty Derby English Launch Celebration Event](https://umamusume.com/news/200001/) — posted 2025-06-26
-  - Event Period: 2025-06-26 00:00 UTC → 2025-07-10 23:59 UTC
-
-## New: Game updates
-
-- [New Functions and Songs coming soon to the Uma Jukebox!](https://umamusume.com/news/1046/) — posted 2026-09-12
-- [Check out all the latest updates!](https://umamusume.com/news/1029/) — posted 2026-09-06
-- [Check out all the latest updates!](https://umamusume.com/news/979/) — posted 2026-08-17
-- [Check out all the latest updates!](https://umamusume.com/news/904/) — posted 2026-07-21
-- [Check out all the latest updates!](https://umamusume.com/news/871/) — posted 2026-07-02
-- [Guidelines for Visiting Stables](https://umamusume.com/news/200003/) — posted 2025-07-10
-- [Check out all the launch countdown illustrations!](https://umamusume.com/news/146/) — posted 2025-07-03
-- [A Letter from the Developers](https://umamusume.com/news/200002/) — posted 2025-06-26
-
-## New: Other news
-
-- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/1004/) — posted 2026-09-28
-- [Updates to Recommended Devices](https://umamusume.com/news/100101/) — posted 2026-08-28
-- [Transfer Requests now available!](https://umamusume.com/news/1058/) — posted 2026-09-24
-  - Availability Period: 2026-09-24 22:00 UTC → 2026-09-28 21:59 UTC
-- [Transfer Requests coming soon!](https://umamusume.com/news/1057/) — posted 2026-09-23
-  - Availability Period: 2026-09-24 22:00 UTC → 2026-09-28 21:59 UTC
-- [Check out Sakura Chiyono O's SUPER KEEN ADVICE!](https://umamusume.com/news/1064/) — posted 2026-09-23
-- [Special Snowy Integrity outfits!](https://umamusume.com/news/1047/) — posted 2026-09-15
-  - Gift Period: 2026-09-15 22:00 UTC → open-ended
-- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/1003/) — posted 2026-09-15
-  - Availability Period: 2026-09-15 15:00 UTC → 2026-09-17 14:59 UTC
-- [New Functions and Songs added to the Uma Jukebox!](https://umamusume.com/news/1048/) — posted 2026-09-15
-- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/1002/) — posted 2026-09-13
-- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/952/) — posted 2026-09-06
-- [Transfer Requests now available!](https://umamusume.com/news/1016/) — posted 2026-09-01
-  - Availability Period: 2026-09-01 22:00 UTC → 2026-09-05 21:59 UTC
-- [Transfer Requests coming soon!](https://umamusume.com/news/1015/) — posted 2026-08-31
-  - Availability Period: 2026-09-01 22:00 UTC → 2026-09-05 21:59 UTC
-- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/951/) — posted 2026-08-30
-- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/950/) — posted 2026-08-23
-- [Issue with Independent Training](https://umamusume.com/news/100100/) — posted 2026-08-13
-- [New Team Ranks Added](https://umamusume.com/news/969/) — posted 2026-08-18
-- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/949/) — posted 2026-08-17
-- [Transfer Requests now available!](https://umamusume.com/news/959/) — posted 2026-08-12
-  - Availability Period: 2026-08-12 22:00 UTC → 2026-08-16 21:59 UTC
-- [Transfer Requests coming soon!](https://umamusume.com/news/958/) — posted 2026-08-11
-  - Availability Period: 2026-08-12 22:00 UTC → 2026-08-16 21:59 UTC
-- [Regarding the Three Cheers for Trainer! August Giveaway Gift Contents](https://umamusume.com/news/100099/) — posted 2026-08-06
-- [Timing of Addition of Future Trainees as Singers](https://umamusume.com/news/943/) — posted 2026-08-05
-- [List of Known Issues](https://umamusume.com/news/155/) — posted 2025-06-26
-- [Issue with Abnormal Attribute Gains in Independent Training](https://umamusume.com/news/100098/) — posted 2026-07-23
-- [Issue with Yaeno Muteki's Independent Training](https://umamusume.com/news/100097/) — posted 2026-07-23
-- [The new Career scenario "Brighter Together! Our Grand Concert" is here!](https://umamusume.com/news/905/) — posted 2026-07-22
-- [Maintenance Announcement](https://umamusume.com/news/100089/) — posted 2026-07-21
-- [Career Mode Race Rewards Adjustment Announcement](https://umamusume.com/news/100094/) — posted 2026-07-22
-- [Update Announcement](https://umamusume.com/news/100093/) — posted 2026-07-22
-- [Introducing the Independent Training Feature](https://umamusume.com/news/100087/) — posted 2026-07-22
-- [Special song present: "Ms. Victoria"!](https://umamusume.com/news/1011/) — posted 2026-07-21
-  - Gift Period: 2026-07-21 22:00 UTC → open-ended
-- [Transfer Requests now available!](https://umamusume.com/news/894/) — posted 2026-07-20
-  - Availability Period: 2026-07-20 22:00 UTC → 2026-07-26 21:59 UTC
-- [Transfer Requests coming soon!](https://umamusume.com/news/893/) — posted 2026-07-19
-  - Availability Period: 2026-07-20 22:00 UTC → 2026-07-26 21:59 UTC
-- [Maintenance Announcement](https://umamusume.com/news/100085/) — posted 2026-07-13
-- [New racecourses and Dirt races now available!](https://umamusume.com/news/896/) — posted 2026-07-14
-- [New racecourses and Dirt races coming soon!](https://umamusume.com/news/895/) — posted 2026-07-11
-- [Issue with the Unique Perk of [Sunny Passion ♪] Haru Urara](https://umamusume.com/news/100096/) — posted 2026-07-08
-- [Issue with Career Events](https://umamusume.com/news/100095/) — posted 2026-07-06
-- [Issue with the Skill "See Ya Later!" in Career](https://umamusume.com/news/100092/) — posted 2026-07-02
-- [Career Maintenance Announcement](https://umamusume.com/news/100091/) — posted 2026-07-02
-- [Maintenance Announcement](https://umamusume.com/news/100080/) — posted 2026-07-01
-- [Update Announcement](https://umamusume.com/news/100081/) — posted 2026-07-01
-- [Regarding Google Play Points](https://umamusume.com/news/498/) — posted 2026-01-19
-- [Regarding Connection Issues](https://umamusume.com/news/100028/) — posted 2025-07-30
-- [A Gift to Celebrate 150,000 Members on the Official Discord!](https://umamusume.com/news/100027/) — posted 2025-07-29
-- [A Gift to Celebrate 150,000 Followers on X!](https://umamusume.com/news/100026/) — posted 2025-07-25
-- [Error Code 100 issue](https://umamusume.com/news/100017/) — posted 2025-07-09
-- [Update Announcement [7:00 a.m., Jun 30 (UTC)]](https://umamusume.com/news/100011/) — posted 2025-06-30
-- [Error Code 102 issue](https://umamusume.com/news/100013/) — posted 2025-06-26
-- [Issue with Scout feature](https://umamusume.com/news/100012/) — posted 2025-06-26
-- [Only once each!<br>Rookie Starter Packs are now available!](https://umamusume.com/news/100001/) — posted 2025-06-26
-  - Purchase Period: 2025-06-26 00:30 UTC → open-ended
-- [Umamusume: Pretty Derby now available on Google Play Games (Beta) and Steam!](https://umamusume.com/news/100002/) — posted 2025-06-26
-- [Check out "Sakura Bakushin O's BAKUSHIN ADVICE!"](https://umamusume.com/news/128/) — posted 2025-06-26
 
 ## Global repository (data/)
 
-- Scenario Brighter Together Our Grand Concert (GL): "Brighter Together! Our Grand Concert" starts 2026-07-22 22:00 UTC
+- Added celebration event "Holiday Celebration Part 2" (2026-10-15)
+- Added campaign event "Bonus Daily Race Entry Tickets" (2026-10-08)
+- Added gift event "Team Trials Rally" (2026-10-07)
+- Added gift event "Event page for Sparkly Magic Show" (2026-10-07)
+- Added gift event "Sparkly Magic Show Holiday Present" (2026-10-07)
+- Added champions_meeting event "Sagittarius Cup" (2026-10-07) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-10-06)
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-10-04)
+- Added campaign event "Increased Bond Points" (2026-09-28)
+- Added gift event "Career Rally" (2026-09-28)
+- Added shop event "Friend Point Exchange" (2026-09-28)
+- Added celebration event "Holiday Celebration Part 1" (2026-09-28)
+- Added story event "Illuminate the Heart" (2026-09-28) — cards: [Don't Stop Anymore!] Sakura Laurel; titles: Illuminate the Heart
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-09-28)
+- Added special event "Aim for the Stars! Dream Team" (2026-09-27)
+- Added transfer_requests event "transfer_requests" (2026-09-24)
+- Added champions_meeting event "Scorpio Cup" (2026-09-15) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Added gift event "Special Snowy Integrity outfits" (2026-09-15)
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-09-15)
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-09-13)
+- Added campaign event "Bonus Star Piece rewards" (2026-09-13)
+- Added celebration event "Fall G1 Celebration Part 2" (2026-09-08)
+- Added story event "Hark Back, Run Forward" (2026-09-07) — cards: [Hopeful Petals Dancing in the Night] Mejiro Ardan; titles: Hark Back, Run Forward
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-09-06)
+- Added legend_race event "legend_race" (2026-09-03)
+- Added campaign event "Increased Daily Race Tickets" (2026-09-03)
+- Added transfer_requests event "transfer_requests" (2026-09-01)
+- Added uma_outing event "Uma Outing" (2026-09-01)
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-08-30)
+- Added login_bonus event "Umayuru Login Bonus" (2026-08-26)
+- Added celebration event "Umayuru Celebration" (2026-08-26) — cards: [Welcome to Umayuru] Tanino Gimlet
+- Added champions_meeting event "Libra Cup" (2026-08-25) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-08-23)
+- Added story event "Days Flying By" (2026-08-18) — cards: [Onwards, Demon Queen Lackeys!] Shinko Windy; titles: Days Flying By
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-08-17)
+- Added campaign event "Bonus Star Piece rewards" (2026-08-17)
+- Added legend_race event "legend_race" (2026-08-13)
+- Added transfer_requests event "transfer_requests" (2026-08-12)
+- Added special event "Trainer Aptitude Test" (2026-08-12)
+- Added celebration event "Fall G1 Celebration Part 1" (2026-08-12)
+- Added champions_meeting event "Virgo Cup" (2026-08-05) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Added missions event "Tracen Special: Training the Trainer!" (2026-07-27)
+- Added celebration event "1.5-Year Anniversary Celebration Part 3" (2026-07-27)
+- Added story event "Wings of Steam and Steel" (2026-07-27) — cards: [Uchronia Architect] Biwa Hayahide; titles: Wings of Steam and Steel
+- Added campaign event "Increased Daily Race Tickets" (2026-07-23)
+- Added gift event "A gift of 3,000 carats" (2026-07-22)
+- Added campaign event "2x Career Mode Rewards" (2026-07-22)
+- Added campaign event "Halved TP Costs" (2026-07-22)
+- Added missions event "1.5-Year Anniversary Celebration Missions Part 2" (2026-07-22) — cards: [U & Me] Mihono Bourbon
+- Added sale event "Discounted carats" (2026-07-22)
+- Added sale event "3★ Guaranteed 1.5-Year Anniversary Scout and SSR Guaranteed 1.5-Year Anniversary Scout" (2026-07-22)
+- Added login_bonus event "1.5-Year Anniversary Celebration Login Bonus" (2026-07-22) — cards: [U & Me] Mihono Bourbon
+- Added gift event "SSR Support Card [U & Me] Mihono Bourbon" (2026-07-22) — cards: [U & Me] Mihono Bourbon
+- Added celebration event "1.5-Year Anniversary Celebration Part 2" (2026-07-22)
+- Added campaign event "Daily Free 10x Scout" (2026-07-22)
+- Added gift event "Special song present: "Ms. Victoria"" (2026-07-21)
+- Added transfer_requests event "transfer_requests" (2026-07-20)
+- Added shop event "1.5-Year Anniversary Celebration Shop" (2026-07-14)
+- Added shop event "1.5-Year Anniversary Shop" (2026-07-14)
+- Added missions event "1.5-Year Anniversary Celebration Missions Part 1" (2026-07-14)
+- Added campaign event "Daily Free Scout" (2026-07-14)
+- Added login_bonus event "1.5-Year Anniversary Countdown Login Bonus" (2026-07-14)
+- Added celebration event "1.5-Year Anniversary Celebration Part 1" (2026-07-14)
+- Added champions_meeting event "Leo Cup" (2026-07-12) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+- Added story event "Make a Splash! Summer Showdown! ☆" (2026-07-02) — cards: [A Good Heart Blossoms to Its Fullest] Sakura Chiyono O; titles: Make a Splash! Summer Showdown!
+- Added gift event "A Gift to Celebrate 150,000 Members on the Official Discord" (2025-07-29)
+- Added gift event "A Gift to Celebrate 150,000 Followers on X" (2025-07-25)
+- Added gift event "Steam Release Celebration Event" (2025-06-26)
 
 ## Global repository (data/)
 
-- Scenario Grand Concert (GL): "Brighter Together! Our Grand Concert" starts 2026-07-22 22:00 UTC
+- Updated gift event "A gift of 3,000 carats" (2026-07-22)
+- Updated gift event "A Gift to Celebrate 150,000 Members on the Official Discord" (2025-07-29)
+- Updated gift event "A Gift to Celebrate 150,000 Followers on X" (2025-07-25)
+- Updated gift event "Steam Release Celebration Event" (2025-06-26)
 
 ## Global repository (data/)
 
-- Scenario GL: "Brighter Together! Our Grand Concert" starts on Global 2026-07-22 22:00 UTC
+- Updated special event "Aim for the Stars! Dream Team" (2026-09-27)
+- Updated legend_race event "legend_race" (2026-09-03)
+- Updated legend_race event "legend_race" (2026-08-13)
+- Updated special event "Trainer Aptitude Test" (2026-08-12)
+- Updated missions event "1.5-Year Anniversary Celebration Missions Part 2" (2026-07-22) — cards: [U & Me] Mihono Bourbon
+- Updated missions event "1.5-Year Anniversary Celebration Missions Part 1" (2026-07-14)
+- Updated story event "Make a Splash! Summer Showdown! ☆" (2026-07-02) — cards: [A Good Heart Blossoms to Its Fullest] Sakura Chiyono O; titles: Make a Splash! Summer Showdown!
+- Updated special event "Aim for the Stars! Dream Team" (2026-06-25)
+- Updated legend_race event "legend_race" (2026-06-07)
+- Updated legend_race event "legend_race" (2026-05-07)
+- Updated special event "Racing Carnival" (2026-04-16)
+- Updated special event "Trainer Aptitude Test" (2026-03-29)
+- Updated missions event "1st Anniversary Celebration Missions Part 3" (2026-03-23)
+- Updated legend_race event "legend_race" (2026-03-23)
+- Updated missions event "1st Anniversary Celebration Missions Part 2" (2026-03-12) — cards: [Special Dreamers!] Satono Diamond
+- Updated missions event "1st Anniversary Missions Part 1" (2026-03-02)
+- Updated legend_race event "legend_race" (2026-02-26)
+- Updated champions_meeting event "Aquarius Cup" (2026-02-18)
+- Updated special event "Racing Carnival" (2026-02-05)
+- Updated legend_race event "legend_race" (2026-01-22)
+- Updated special event "Trainer Aptitude Test" (2026-01-15)
+- Updated story event "Hungry for a Miracle" (2026-01-05) — cards: [Dazzling Day in the Snow] Marvelous Sunday; titles: Hungry for a Miracle
+- Updated champions_meeting event "Sagittarius Cup" (2026-01-03)
+- Updated legend_race event "legend_race" (2025-12-22)
+- Updated story event "Orchestra in Late Autumn" (2025-12-14) — cards: [Dancing Light into the Night] Yukino Bijin; titles: Orchestra in Late Autumn
+- Updated legend_race event "legend_race" (2025-12-04)
+- Updated story event "Halloween Makeover!" (2025-11-24) — cards: [The Ghost Finds Halloween Magic] Mihono Bourbon; titles: Halloween Makeover!
+- Updated champions_meeting event "Libra Cup" (2025-11-17)
+- Updated legend_race event "legend_race" (2025-11-13)
+- Updated missions event "Half Anniversary Celebration Missions Part 3" (2025-11-06)
+- Updated champions_meeting event "Virgo Cup" (2025-11-06)
+- Updated missions event "Half Anniversary Celebration Missions Part 2" (2025-11-03) — cards: [Winning Dream] Silence Suzuka
+- Updated missions event "Half Anniversary Celebration Missions Part 1" (2025-10-26)
+- Updated legend_race event "legend_race" (2025-10-26)
+- Updated champions_meeting event "Leo Cup" (2025-10-21)
+- Updated story event "Beaches, Bathing Suits & Blazing Trails" (2025-10-14) — cards: [Mini☆Vacation] Daiwa Scarlet; titles: Beaches, Bathing Suits & Blazing Trails
+- Updated story event "Epic Odyssey Uma Quest" (2025-09-21) — cards: [That Time I Became the Strongest] Gold Ship; titles: Epic Odyssey Uma Quest
+- Updated legend_race event "legend_race" (2025-09-11)
+- Updated story event "Racing Hearts Beauty in Bloom" (2025-08-28) — cards: [My Thoughts, My Desires] Mejiro Dober; titles: Racing Hearts Beauty in Bloom
+- Updated legend_race event "legend_race" (2025-08-21)
+- Updated legend_race event "legend_race" (2025-07-27)
+- Updated story event "Brand New Friends" (2025-07-16) — cards: [Just Keep Going] Matikanetannhauser, [Messing Around] Nice Nature; titles: Brand New Friends
+- Updated legend_race event "legend_race" (2025-07-06)
+- Updated story event "Dashing towards Your Dreams" (2025-06-26) — cards: [The Setting Sun and Rising Stars] Special Week; titles: Dashing towards Your Dreams
 
 ## Global repository (data/)
 
-- Scenario GL: "Brighter Together! Our Grand Concert" starts on Global 2026-07-22 22:00 UTC (out)
+- Updated missions event "Autumn G1 Celebration Missions Part 2 (Champions Cup)" (2026-10-08)
+- Updated missions event "Autumn G1 Celebration Missions Part 2 (Japan Cup)" (2026-10-01)
+- Updated missions event "Autumn G1 Celebration Missions Part 2 (Mile Championship)" (2026-09-29)
+- Updated missions event "Autumn G1 Celebration Missions Part 2 (Queen Elizabeth Cup)" (2026-09-23)
+- Updated missions event "Autumn G1 Celebration Missions Part 2 (JBC 2022)" (2026-09-10)
+- Updated missions event "Autumn G1 Celebration Missions Part 2 (Tenno Sho (Autumn))" (2026-09-08)
+- Updated missions event "Autumn G1 Celebration Missions Part 1 (Kikka Sho)" (2026-09-01)
+- Updated missions event "Autumn G1 Celebration Missions Part 1 (Shuuka Sho)" (2026-08-25)
+- Updated missions event "Autumn G1 Celebration Missions Part 1 (Mile CS Nambu Hai)" (2026-08-18)
+- Updated missions event "Autumn G1 Celebration Missions Part 1 (Sprinters Stakes)" (2026-08-12)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Takarazuka Kinen)" (2026-05-27)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Yasuda Kinen)" (2026-05-20)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Japan Derby)" (2026-05-13)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Oaks)" (2026-05-06)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Victoria Mile)" (2026-04-30)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (NHK Mile Cup)" (2026-04-26)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Tenno Sho (Spring))" (2026-04-21)
+- Updated missions event "Spring G1 Celebration Missions Part 1 (Satsuki Sho)" (2026-04-14)
+- Updated missions event "Spring G1 Celebration Missions Part 1 (Oka Sho)" (2026-04-07)
+- Updated missions event "Spring G1 Celebration Missions Part 1 (Osaka Hai)" (2026-03-31)
+- Updated missions event "Spring G1 Celebration Missions Part 1 (Takamatsunomiya Kinen)" (2026-03-26)
+- Updated missions event "Autumn G1 Celebration Missions Part 3 (Hopeful Stakes)" (2026-01-29)
+- Updated missions event "Autumn G1 Celebration Missions Part 3 (Arima Kinen)" (2026-01-22)
+- Updated missions event "Autumn G1 Celebration Missions Part 3 (Asahi Hai Futurity Stakes)" (2026-01-15)
+- Updated missions event "Autumn G1 Celebration Missions Part 3 (Hanshin Juvenile Fillies)" (2026-01-08)
+- Updated missions event "Autumn G1 Celebration Missions Part 3 (Champions Cup)" (2026-01-04)
+- Updated missions event "Autumn G1 Celebration Missions Part 3 (Japan Cup)" (2025-12-28)
+- Updated missions event "Autumn G1 Celebration Missions Part 3 (Mile Championship)" (2025-12-22)
+- Updated missions event "Autumn G1 Celebration Missions Part 3 (Queen Elizabeth Cup)" (2025-12-18)
+- Updated missions event "Autumn G1 Celebration Missions Part 2 (Tenno Sho (Autumn))" (2025-12-11)
+- Updated missions event "Autumn G1 Celebration Missions Part 2 (Kikka Sho)" (2025-12-04)
+- Updated missions event "Autumn G1 Celebration Missions Part 2 (Shuuka Sho)" (2025-12-01)
+- Updated missions event "Autumn G1 Celebration Missions Part 1 (Sprinters Stakes)" (2025-11-19)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Takarazuka Kinen)" (2025-09-07)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Yasuda Kinen)" (2025-08-31)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Japan Derby)" (2025-08-27)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Oaks)" (2025-08-20)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (Victoria Mile)" (2025-08-17)
+- Updated missions event "Spring G1 Celebration Missions Part 2 (NHK Mile Cup)" (2025-08-10)
+- Updated missions event "Golshi Week Special Missions" (2025-08-07)
+- Updated missions event "Spring G1 Celebration Missions Part 1 (Tenno Sho (Spring))" (2025-08-03)
+- Updated missions event "Spring G1 Celebration Missions Part 1 (Satsuki Sho)" (2025-07-27)
+- Updated missions event "Spring G1 Celebration Missions Part 1 (Oka Sho)" (2025-07-21)
+
+## Global repository (data/)
+
+- Updated celebration event "Fall G1 Celebration Part 2" (2026-09-08)
+- Updated celebration event "Fall G1 Celebration Part 1" (2026-08-12)
+- Updated celebration event "G1 Celebration" (2026-06-09)
+- Updated celebration event "Spring G1 Celebration Part 2" (2026-04-21)
+- Updated celebration event "Spring G1 Celebration Part 1" (2026-03-26)
+- Updated campaign event "G1 Race Commemoration" (2026-03-03)
+- Updated celebration event "Fall G1 Celebration Part 3" (2025-12-18)
+- Updated celebration event "Fall G1 Celebration Part 2" (2025-12-01)
+- Updated celebration event "Fall G1 Celebration Part 1" (2025-11-19)
+- Updated celebration event "Spring G1 Celebration Part 2" (2025-08-10)
+- Updated celebration event "Spring G1 Celebration Part 1" (2025-07-21)
+
+## Global repository (data/)
+
+- Updated missions event "New Title Missions" (2026-04-26)
+- Updated celebration event "Spring G1 Celebration Part 2" (2026-04-21)
+- Updated missions event "Tracen Special: Training the Trainer!" (2026-03-26)
+- Updated celebration event "Spring G1 Celebration Part 1" (2026-03-26)
+- Updated missions event "New missions" (2026-01-22)
+- Updated celebration event "Fall G1 Celebration Part 3" (2025-12-18)
+- Updated missions event "Golshi Week Celebration Hijack special missions" (2025-08-07)
+- Updated missions event "Beginning at 10:00 p.m., Jul 4 (UTC) and updating daily, special missions" (2025-07-04)
+- Updated missions event "Special missions" (2025-06-26)
+
+## Global repository (data/)
+
+- Updated celebration event "Holiday Celebration Part 2" (2026-10-15)
+- Updated campaign event "Bonus Daily Race Entry Tickets" (2026-10-08)
+- Added missions event "Champions Cup Missions" (2026-10-08)
+- Updated gift event "Team Trials Rally" (2026-10-07)
+- Updated gift event "Event page for Sparkly Magic Show" (2026-10-07)
+- Updated gift event "Sparkly Magic Show Holiday Present" (2026-10-07)
+- Updated champions_meeting event "Sagittarius Cup" (2026-10-07) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-10-06)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-10-04)
+- Added missions event "Japan Cup Missions" (2026-10-01)
+- Added missions event "Mile Championship Missions" (2026-09-29)
+- Updated campaign event "Increased Bond Points" (2026-09-28)
+- Updated gift event "Career Rally" (2026-09-28)
+- Updated shop event "Friend Point Exchange" (2026-09-28)
+- Updated celebration event "Holiday Celebration Part 1" (2026-09-28)
+- Updated story event "Illuminate the Heart" (2026-09-28) — cards: [Don't Stop Anymore!] Sakura Laurel; titles: Illuminate the Heart
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-09-28)
+- Updated special event "Aim for the Stars! Dream Team" (2026-09-27)
+- Updated transfer_requests event "transfer_requests" (2026-09-24)
+- Added missions event "Queen Elizabeth II Cup Missions" (2026-09-23)
+- Updated champions_meeting event "Scorpio Cup" (2026-09-15) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Updated gift event "Special Snowy Integrity outfits" (2026-09-15)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-09-15)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-09-13)
+- Updated campaign event "Bonus Star Piece rewards" (2026-09-13)
+- Added missions event "JBC Series Missions" (2026-09-10)
+- Added missions event "Tenno Sho (Autumn) Missions" (2026-09-08)
+- Updated celebration event "Fall G1 Celebration Part 2" (2026-09-08)
+- Updated story event "Hark Back, Run Forward" (2026-09-07) — cards: [Hopeful Petals Dancing in the Night] Mejiro Ardan; titles: Hark Back, Run Forward
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-09-06)
+- Updated legend_race event "legend_race" (2026-09-03)
+- Updated campaign event "Increased Daily Race Tickets" (2026-09-03)
+- Updated transfer_requests event "transfer_requests" (2026-09-01)
+- Updated uma_outing event "Uma Outing" (2026-09-01)
+- Added missions event "Kikuka Sho Missions" (2026-09-01)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-08-30)
+- Updated login_bonus event "Umayuru Login Bonus" (2026-08-26)
+- Updated celebration event "Umayuru Celebration" (2026-08-26) — cards: [Welcome to Umayuru] Tanino Gimlet
+- Updated champions_meeting event "Libra Cup" (2026-08-25) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Added missions event "Shuka Sho Missions" (2026-08-25)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-08-23)
+- Updated story event "Days Flying By" (2026-08-18) — cards: [Onwards, Demon Queen Lackeys!] Shinko Windy; titles: Days Flying By
+- Added missions event "Mile Championship Nanbu Hai Missions" (2026-08-18)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-08-17)
+- Updated campaign event "Bonus Star Piece rewards" (2026-08-17)
+- Updated legend_race event "legend_race" (2026-08-13)
+- Updated transfer_requests event "transfer_requests" (2026-08-12)
+- Updated special event "Trainer Aptitude Test" (2026-08-12)
+- Added missions event "Sprinters Stakes Missions" (2026-08-12)
+- Updated celebration event "Fall G1 Celebration Part 1" (2026-08-12)
+- Updated gift event "August Giveaway Gift Contents" (2026-08-06)
+- Updated champions_meeting event "Virgo Cup" (2026-08-05) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Updated missions event "Tracen Special: Training the Trainer!" (2026-07-27)
+- Updated celebration event "1.5-Year Anniversary Celebration Part 3" (2026-07-27)
+- Updated story event "Wings of Steam and Steel" (2026-07-27) — cards: [Uchronia Architect] Biwa Hayahide; titles: Wings of Steam and Steel
+- Updated campaign event "Increased Daily Race Tickets" (2026-07-23)
+- Updated campaign event "2x Career Mode Rewards" (2026-07-22)
+- Updated campaign event "Halved TP Costs" (2026-07-22)
+- Updated missions event "1.5-Year Anniversary Celebration Missions Part 2" (2026-07-22) — cards: [U & Me] Mihono Bourbon
+- Updated sale event "Discounted carats" (2026-07-22)
+- Updated sale event "3★ Guaranteed 1.5-Year Anniversary Scout and SSR Guaranteed 1.5-Year Anniversary Scout" (2026-07-22)
+- Updated login_bonus event "1.5-Year Anniversary Celebration Login Bonus" (2026-07-22) — cards: [U & Me] Mihono Bourbon
+- Updated gift event "SSR Support Card [U & Me] Mihono Bourbon" (2026-07-22) — cards: [U & Me] Mihono Bourbon
+- Updated gift event "A gift of 3,000 carats" (2026-07-22)
+- Updated celebration event "1.5-Year Anniversary Celebration Part 2" (2026-07-22)
+- Updated campaign event "Daily Free 10x Scout" (2026-07-22)
+- Updated gift event "Special song present: "Ms. Victoria"" (2026-07-21)
+- Updated transfer_requests event "transfer_requests" (2026-07-20)
+- Updated shop event "1.5-Year Anniversary Celebration Shop" (2026-07-14)
+- Updated shop event "1.5-Year Anniversary Shop" (2026-07-14)
+- Updated missions event "1.5-Year Anniversary Celebration Missions Part 1" (2026-07-14)
+- Updated campaign event "Daily Free Scout" (2026-07-14)
+- Updated login_bonus event "1.5-Year Anniversary Countdown Login Bonus" (2026-07-14)
+- Updated celebration event "1.5-Year Anniversary Celebration Part 1" (2026-07-14)
+- Updated champions_meeting event "Leo Cup" (2026-07-12) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+- Updated story event "Make a Splash! Summer Showdown! ☆" (2026-07-02) — cards: [A Good Heart Blossoms to Its Fullest] Sakura Chiyono O; titles: Make a Splash! Summer Showdown!
+- Updated campaign event "StarHorse4 Special Transfers" (2026-06-25)
+- Updated celebration event "StarHorse4 Collab Celebration" (2026-06-25)
+- Updated special event "Aim for the Stars! Dream Team" (2026-06-25)
+- Updated transfer_requests event "transfer_requests" (2026-06-25)
+- Updated campaign event "Bonus Daily Race Entry Tickets" (2026-06-25)
+- Updated champions_meeting event "Cancer Cup" (2026-06-21) — titles: Cancer Cup Platinum, Cancer Cup Gold, Cancer Cup Silver, Cancer Cup Bronze
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-06-21)
+- Added missions event "Japan Dirty Derby Support Missions" (2026-06-16)
+- Updated campaign event "Additional Free Retries" (2026-06-15)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-06-14)
+- Updated campaign event "Bonus Star Piece rewards" (2026-06-14)
+- Updated story event "Search! Solve! Summer!" (2026-06-11) — cards: ["Rhodonite and the Dreamstone"] Zenno Rob Roy; titles: Search! Solve! Summer!
+- Added missions event "Teio Sho Support Missions" (2026-06-09)
+- Updated celebration event "G1 Celebration" (2026-06-09)
+- Updated legend_race event "legend_race" (2026-06-07)
+- Updated transfer_requests event "transfer_requests" (2026-06-04)
+- Updated special event "Fuji Kiseki's Showtime" (2026-06-04)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-06-01)
+- Updated champions_meeting event "Gemini Cup" (2026-05-31) — titles: Gemini Cup Platinum, Gemini Cup Gold, Gemini Cup Silver, Gemini Cup Bronze
+- Updated gift event "Training Booster Giveaway" (2026-05-28)
+- Added missions event "Takarazuka Kinen Missions" (2026-05-27)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-05-25)
+- Added missions event "Yasuda Kinen Missions" (2026-05-20)
+- Updated story event "The Promised Hour: Silks & Three Riddles" (2026-05-18) — cards: [Day I Dreamed Of] Rice Shower; titles: The Promised Hour: Silks & Three Riddles
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-05-18)
+- Added missions event "Japanese Derby Missions" (2026-05-13)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-05-11)
+- Updated champions_meeting event "Taurus Cup" (2026-05-10) — titles: Taurus Cup Platinum, Taurus Cup Gold, Taurus Cup Silver, Taurus Cup Bronze
+- Updated transfer_requests event "transfer_requests" (2026-05-07)
+- Updated legend_race event "legend_race" (2026-05-07)
+- Added missions event "Japanese Oaks Missions" (2026-05-06)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-05-05)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-05-01)
+- Added missions event "Victoria Mile Missions" (2026-04-30)
+- Updated shop event "Friend Point Exchange" (2026-04-26)
+- Updated campaign event "Increased Chance of Win Rewards" (2026-04-26)
+- Updated campaign event "Uma Jukebox" (2026-04-26)
+- Updated campaign event "How to Challenge" (2026-04-26)
+- Updated campaign event "Golshi Week Celebration" (2026-04-26)
+- Updated celebration event "Golshi Week Celebration" (2026-04-26)
+- Updated missions event "New Title Missions" (2026-04-26)
+- Updated story event "Let Those Cheers Roar! Tracen Cheer Squad" (2026-04-26) — cards: [Go Go☆Princess!] Kawakami Princess; titles: Let Those Cheers Roar! Tracen Cheer Squad
+- Updated campaign event "Bonus Daily Race Entry Tickets" (2026-04-26)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-04-26)
+- Added missions event "NHK Mile Cup Missions" (2026-04-26)
+- Updated campaign event "Bonus Star Piece rewards" (2026-04-26)
+- Added missions event "Tenno Sho (Spring) Missions" (2026-04-21)
+- Updated celebration event "Spring G1 Celebration Part 2" (2026-04-21)
+- Updated champions_meeting event "Aries Cup" (2026-04-20) — titles: Aries Cup Platinum, Aries Cup Gold, Aries Cup Silver, Aries Cup Bronze
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-04-19)
+- Updated special event "Racing Carnival" (2026-04-16)
+- Added missions event "Satsuki Sho Missions" (2026-04-14)
+- Updated transfer_requests event "transfer_requests" (2026-04-12)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-04-12)
+- Updated gift event "Training Booster Giveaway" (2026-04-08)
+- Added missions event "Oka Sho Missions" (2026-04-07)
+- Updated special event "All Together! Top Umadol Project" (2026-04-06) — cards: [Almost... an Umadol?! ♡] Smart Falcon
+- Updated gift event "Giving Thanks to All Our Trainers" (2026-04-05)
+- Updated story event "Tonight at the Ligne Droite" (2026-04-05) — cards: [Mag!c Number] Air Shakur; titles: Tonight at the Ligne Droite
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-04-05)
+- Updated campaign event "Bonus Star Piece rewards in Career" (2026-03-31)
+- Added missions event "Osaka Hai Missions" (2026-03-31)
+- Updated campaign event "Bonus Star Piece rewards" (2026-03-31)
+- Updated special event "Trainer Aptitude Test" (2026-03-29)
+- Updated missions event "Tracen Special: Training the Trainer!" (2026-03-26)
+- Updated celebration event "1st Anniversary Celebration Part 4" (2026-03-26) — cards: [Passing the Dream On] Team Sirius
+- Updated campaign event "Daily Free Scout" (2026-03-26)
+- Updated champions_meeting event "Pisces Cup" (2026-03-26) — titles: Pisces Cup Platinum, Pisces Cup Gold, Pisces Cup Silver, Pisces Cup Bronze
+- Added missions event "Takamatsunomiya Kinen Missions" (2026-03-26)
+- Updated celebration event "Spring G1 Celebration Part 1" (2026-03-26)
+- Updated missions event "1st Anniversary Celebration Missions Part 3" (2026-03-23)
+- Updated sale event "1st Anniversary Celebration Part 3" (2026-03-23)
+- Updated celebration event "1st Anniversary Celebration Part 3" (2026-03-23)
+- Updated legend_race event "legend_race" (2026-03-23)
+- Updated shop event "1st Anniversary Celebration Shop" (2026-03-23)
+- Updated transfer_requests event "transfer_requests" (2026-03-22)
+- Updated campaign event "3★ Guaranteed 1st Anniversary Scout and SSR Guaranteed 1st Anniversary Scout" (2026-03-22)
+- Updated celebration event "White Day Celebration" (2026-03-22)
+- Updated gift event "Special Newstars Rose outfits" (2026-03-22)
+- Updated gift event "White Day Celebration Giveaway" (2026-03-14)
+- Updated login_bonus event "Part 1 of the 1st Anniversary Login Bonus" (2026-03-12) — cards: [Special Dreamers!] Satono Diamond
+- Updated gift event "SSR Support Card [Special Dreamers!] Satono Diamond" (2026-03-12) — cards: [Special Dreamers!] Satono Diamond
+- Updated gift event "A gift of 3,000 carats" (2026-03-12)
+- Updated missions event "1st Anniversary Celebration Missions Part 2" (2026-03-12) — cards: [Special Dreamers!] Satono Diamond
+- Updated sale event "1st Anniversary Celebration Part 2" (2026-03-12)
+- Updated celebration event "1st Anniversary Celebration Part 2" (2026-03-12)
+- Updated campaign event "Daily Free 10-Scout" (2026-03-12)
+- Updated story event "Flying Run-Up!" (2026-03-12) — cards: [Little by Little] Mejiro Bright, [At the End of the Day] Special Week; titles: Flying Run-Up!
+- Updated transfer_requests event "transfer_requests" (2026-03-05)
+- Added missions event "February Stakes Missions" (2026-03-03)
+- Updated campaign event "G1 Race Commemoration" (2026-03-03)
+- Updated campaign event "Daily Free Scout" (2026-03-03)
+- Updated campaign event "2x Career Mode Rewards campaign" (2026-03-02)
+- Updated campaign event "Halved TP Costs" (2026-03-02)
+- Updated missions event "1st Anniversary Missions Part 1" (2026-03-02)
+- Updated login_bonus event "1st Anniversary Countdown Login Bonus" (2026-03-02)
+- Updated celebration event "1st Anniversary Celebration Part 1" (2026-03-02)
+- Updated champions_meeting event "Aquarius Cup" (2026-03-02) — titles: Aquarius Cup Platinum, Aquarius Cup Gold, Aquarius Cup Silver, Aquarius Cup Bronze
+- Updated celebration event "Valentine's Day Celebration" (2026-03-02)
+- Updated campaign event "Increased Daily Race Tickets campaign" (2026-03-02)
+- Updated legend_race event "legend_race" (2026-02-26)
+- Updated gift event "Training Booster Giveaway" (2026-02-18)
+- Updated champions_meeting event "Aquarius Cup" (2026-02-18)
+- Updated story event "The Peak of Confection" (2026-02-18) — cards: [My Way] Tosen Jordan; titles: The Peak of Confection
+- Updated gift event "Valentine's Day Celebration Giveaway" (2026-02-14)
+- Updated transfer_requests event "transfer_requests" (2026-02-09)
+- Updated champions_meeting event "Capricorn Cup" (2026-02-09) — titles: Capricorn Cup Platinum, Capricorn Cup Gold, Capricorn Cup Silver, Capricorn Cup Bronze
+- Updated special event "Racing Carnival" (2026-02-05)
+- Updated gift event "February Helping Hand Giveaway" (2026-02-05)
+- Updated story event "Blossoming Beginnings! New Year's Karuta Showdown" (2026-01-29) — cards: [Leaping into the Unknown] Meisho Doto; titles: Blossoming Beginnings! New Year's Karuta Showdown
+- Added missions event "Hopeful Stakes Missions" (2026-01-29)
+- Updated transfer_requests event "transfer_requests" (2026-01-27)
+- Updated campaign event "Daily Free 10-Scout" (2026-01-27)
+- Updated gift event "Training Booster Giveaway" (2026-01-25)
+- Updated missions event "New missions" (2026-01-22)
+- Updated legend_race event "legend_race" (2026-01-22)
+- Added missions event "Arima Kinen Missions" (2026-01-22)
+- Updated champions_meeting event "Sagittarius Cup" (2026-01-19) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Updated campaign event "Bonus Daily Race Tickets" (2026-01-19)
+- Updated special event "Trainer Aptitude Test" (2026-01-15)
+- Added missions event "Asahi Hai Futurity Stakes Missions" (2026-01-15)
+- Updated campaign event "Bonus Star Piece rewards" (2026-01-13)
+- Updated champions_meeting event "Capricorn Cup" (2026-01-09)
+- Added missions event "Hanshin Juvenile Fillies Missions" (2026-01-08)
+- Updated gift event "January Helping Hand Giveaway" (2026-01-07)
+- Updated story event "Hungry for a Miracle" (2026-01-05) — cards: [Dazzling Day in the Snow] Marvelous Sunday; titles: Hungry for a Miracle
+- Added missions event "Champions Cup Missions" (2026-01-04)
+- Updated champions_meeting event "Sagittarius Cup" (2026-01-03)
+- Updated champions_meeting event "Scorpio Cup" (2025-12-28) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Updated campaign event "Bonus Daily Race Tickets" (2025-12-28)
+- Added missions event "Japan Cup Missions" (2025-12-28)
+- Updated special event "Fuji Kiseki's Showtime" (2025-12-24)
+- Updated legend_race event "legend_race" (2025-12-22)
+- Added missions event "Mile Championship Missions" (2025-12-22)
+- Updated transfer_requests event "transfer_requests" (2025-12-18)
+- Added missions event "Queen Elizabeth II Cup Missions" (2025-12-18)
+- Updated celebration event "Fall G1 Celebration Part 3" (2025-12-18)
+- Updated gift event "Training Booster Giveaway" (2025-12-15)
+- Updated story event "Orchestra in Late Autumn" (2025-12-14) — cards: [Dancing Light into the Night] Yukino Bijin; titles: Orchestra in Late Autumn
+- Updated gift event "A Gift to Celebrate Our Win as Best Mobile Game at The Game Awards" (2025-12-12)
+- Added missions event "Tenno Sho Missions" (2025-12-11)
+- Updated missions event "Tracen Special: Training the Trainer! Part 2" (2025-12-08)
+- Updated champions_meeting event "Libra Cup" (2025-12-08) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Updated legend_race event "legend_race" (2025-12-04)
+- Updated campaign event "Increased Daily Race attempts" (2025-12-04)
+- Added missions event "Kikuka Sho Missions" (2025-12-04)
+- Updated gift event "December Helping Hand Giveaway" (2025-12-03)
+- Updated champions_meeting event "Scorpio Cup" (2025-12-01)
+- Updated transfer_requests event "transfer_requests" (2025-12-01)
+- Added missions event "Shuka Sho Missions" (2025-12-01)
+- Updated celebration event "Fall G1 Celebration Part 2" (2025-12-01)
+- Updated gift event "Training Booster Giveaway" (2025-12-01)
+- Updated gift event "Fall G1 Race Celebration Gift" (2025-11-27)
+- Updated gift event "A Gift to Celebrate Our Nomination for Best Mobile Game at The Game Awards" (2025-11-26)
+- Updated story event "Halloween Makeover!" (2025-11-24) — cards: [The Ghost Finds Halloween Magic] Mihono Bourbon; titles: Halloween Makeover!
+- Updated gift event "Training Booster Giveaway" (2025-11-20)
+- Added missions event "Sprinters Stakes Missions" (2025-11-19)
+- Updated celebration event "Fall G1 Celebration Part 1" (2025-11-19)
+- Updated champions_meeting event "Libra Cup" (2025-11-17)
+- Updated champions_meeting event "Virgo Cup" (2025-11-16) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Updated gift event "A Gift to Celebrate 300,000 Followers on X" (2025-11-14)
+- Updated legend_race event "legend_race" (2025-11-13)
+- Updated gift event "thank-you present to all our trainers" (2025-11-13)
+- Updated transfer_requests event "transfer_requests" (2025-11-11)
+- Updated missions event "Half Anniversary Celebration Missions Part 3" (2025-11-06)
+- Updated celebration event "Half Anniversary Celebration Part 3" (2025-11-06)
+- Updated champions_meeting event "Virgo Cup" (2025-11-06)
+- Updated campaign event "Half Anniversary Celebration Part 2" (2025-11-06)
+- Updated gift event "November Helping Hand Giveaway" (2025-11-06)
+- Updated campaign event "Increased Daily Race Tickets" (2025-11-04)
+- Updated gift event "Special Glorious Azure outfits" (2025-11-03)
+- Updated missions event "Half Anniversary Celebration Missions Part 2" (2025-11-03) — cards: [Winning Dream] Silence Suzuka
+- Updated sale event "Half Anniversary Celebration Part 2" (2025-11-03)
+- Updated campaign event "One-time 3★ Guaranteed Anniversary Scout and SSR Guaranteed Half Anniversary Scout" (2025-11-03)
+- Updated login_bonus event "Half Anniversary Login Bonus" (2025-11-03) — cards: [Winning Dream] Silence Suzuka
+- Updated gift event "SSR Support Card [Winning Dream] Silence Suzuka" (2025-11-03) — cards: [Winning Dream] Silence Suzuka
+- Updated gift event "Eligible Trainers" (2025-11-03)
+- Updated celebration event "Half Anniversary Celebration Part 2" (2025-11-03)
+- Updated champions_meeting event "Leo Cup" (2025-10-30) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+- Updated missions event "Half Anniversary Celebration Missions Part 1" (2025-10-26)
+- Updated campaign event "Daily Free Scout" (2025-10-26)
+- Updated login_bonus event "Half Anniversary Celebration Part 1" (2025-10-26)
+- Updated celebration event "Half Anniversary Celebration Part 1" (2025-10-26)
+- Updated legend_race event "legend_race" (2025-10-26)
+- Updated login_bonus event "Celebrating the half anniversary with a login bonus" (2025-10-22)
+- Updated transfer_requests event "transfer_requests" (2025-10-21)
+- Updated champions_meeting event "Leo Cup" (2025-10-21)
+- Updated story event "Beaches, Bathing Suits & Blazing Trails" (2025-10-14) — cards: [Mini☆Vacation] Daiwa Scarlet; titles: Beaches, Bathing Suits & Blazing Trails
+- Updated gift event "A Gift to Celebrate 300,000 Members on the Official Discord" (2025-10-10)
+- Updated campaign event "Main Story Chapter 4 Celebration" (2025-10-08)
+- Updated gift event "Training Booster Giveaway" (2025-10-07)
+- Updated champions_meeting event "Cancer Cup" (2025-10-07) — titles: Cancer Cup Platinum, Cancer Cup Gold, Cancer Cup Silver, Cancer Cup Bronze
+- Updated celebration event "Main Story Chapter 4 Celebration" (2025-10-07)
+- Updated gift event "October Helping Hand Giveaway" (2025-10-07)
+- Updated campaign event "Umamusume: Cinderella Grey Broadcast Commemoration" (2025-10-06)
+- Updated transfer_requests event "transfer_requests" (2025-10-02)
+- Updated missions event "Special Missions" (2025-10-02)
+- Updated story event "Epic Odyssey Uma Quest" (2025-09-21) — cards: [That Time I Became the Strongest] Gold Ship; titles: Epic Odyssey Uma Quest
+- Updated gift event "Training Booster Giveaway" (2025-09-21)
+- Updated legend_race event "legend_race" (2025-09-11)
+- Updated campaign event "Bonus Daily Race Tickets" (2025-09-08)
+- Updated champions_meeting event "Gemini Cup" (2025-09-07) — titles: Gemini Cup Platinum, Gemini Cup Gold, Gemini Cup Silver, Gemini Cup Bronze
+- Updated gift event "September Helping Hand Giveaway" (2025-09-07)
+- Added missions event "Takarazuka Kinen Missions" (2025-09-07)
+- Added missions event "Yasuda Kinen Missions" (2025-08-31)
+- Updated story event "Racing Hearts Beauty in Bloom" (2025-08-28) — cards: [My Thoughts, My Desires] Mejiro Dober; titles: Racing Hearts Beauty in Bloom
+- Added missions event "Japanese Derby Missions" (2025-08-27)
+- Updated legend_race event "legend_race" (2025-08-21)
+- Added missions event "Japanese Oaks Missions" (2025-08-20)
+- Updated champions_meeting event "Taurus Cup" (2025-08-17) — titles: Taurus Cup Platinum, Taurus Cup Gold, Taurus Cup Silver, Taurus Cup Bronze
+- Added missions event "Victoria Mile Missions" (2025-08-17)
+- Added missions event "NHK Mile Cup Missions" (2025-08-10)
+- Updated celebration event "Spring G1 Celebration Part 2" (2025-08-10)
+- Updated shop event "Friend Point Exchange" (2025-08-07)
+- Updated missions event "Golshi Week Celebration Hijack special missions" (2025-08-07)
+- Updated campaign event "Golshi Mode" (2025-08-07)
+- Updated campaign event "Golshi Week Celebration Hijack" (2025-08-07)
+- Updated celebration event "Golshi Week Celebration Hijack" (2025-08-07)
+- Updated gift event "August Helping Hand Giveaway" (2025-08-07)
+- Updated gift event "Training Booster Giveaway" (2025-08-04)
+- Added missions event "Tenno Sho (Spring) Missions" (2025-08-03)
+- Updated campaign event "Increased Daily Race Tickets campaign" (2025-07-31)
+- Updated gift event "A Gift to Celebrate 150,000 Members on the Official Discord" (2025-07-29)
+- Updated legend_race event "legend_race" (2025-07-27)
+- Added missions event "Satsuki Sho Missions" (2025-07-27)
+- Updated gift event "Training Booster Giveaway" (2025-07-26)
+- Updated gift event "A Gift to Celebrate 150,000 Followers on X" (2025-07-25)
+- Added missions event "Oka Sho Missions" (2025-07-21)
+- Updated celebration event "Spring G1 Celebration Part 1" (2025-07-21)
+- Updated gift event "Spring G1 Race Giveaway" (2025-07-20)
+- Updated story event "Brand New Friends" (2025-07-16) — cards: [Just Keep Going] Matikanetannhauser, [Messing Around] Nice Nature; titles: Brand New Friends
+- Updated gift event "Training Booster Giveaway" (2025-07-16)
+- Updated missions event "New Trainer Missions" (2025-07-13)
+- Updated gift event "Training Booster Giveaway" (2025-07-11)
+- Updated gift event "July Helping Hand Giveaway" (2025-07-10)
+- Updated gift event "Training Booster Giveaway" (2025-07-07)
+- Updated legend_race event "legend_race" (2025-07-06)
+- Updated gift event "Increased Daily Race Tickets campaign" (2025-07-05)
+- Updated gift event "Release Celebration Part 2" (2025-07-04)
+- Updated missions event "Beginning at 10:00 p.m., Jul 4 (UTC) and updating daily, special missions" (2025-07-04)
+- Updated celebration event "Release Celebration Part 2" (2025-07-04)
+- Updated gift event "Training Booster Giveaway" (2025-07-03)
+- Updated story event "Dashing towards Your Dreams" (2025-06-26) — cards: [The Setting Sun and Rising Stars] Special Week; titles: Dashing towards Your Dreams
+- Updated celebration event "Log In for Tons of Presents" (2025-06-26)
+- Updated gift event "Steam Release Celebration Event" (2025-06-26)
+- Updated login_bonus event "Start the Races Login Bonus" (2025-06-26)
+- Updated campaign event "Daily Free Scout campaign" (2025-06-26)
+- Updated shop event "Friend Point Exchange" (2025-06-26) — cards: [Urara's Day Off!] Haru Urara
+- Updated campaign event "2x Career Mode Rewards campaign" (2025-06-26)
+- Updated missions event "Special missions" (2025-06-26)
+- Updated login_bonus event "Head Start Login Bonus" (2025-06-26)
+- Updated celebration event "Release Celebration Part 1" (2025-06-26)
+- Updated celebration event "Release Celebration campaigns available" (2025-06-26)
+
+## Global repository (data/)
+
+- Updated legend_race event "legend_race" (2026-05-07)
+- Updated legend_race event "legend_race" (2026-03-23)
+- Updated legend_race event "legend_race" (2026-02-26)
+- Updated legend_race event "legend_race" (2026-01-22)
+- Updated legend_race event "legend_race" (2025-12-22)
+- Updated legend_race event "legend_race" (2025-12-04)
+- Updated legend_race event "legend_race" (2025-11-13)
+- Updated legend_race event "legend_race" (2025-10-26)
+- Updated legend_race event "legend_race" (2025-09-11)
+- Updated legend_race event "legend_race" (2025-08-21)
+- Updated legend_race event "legend_race" (2025-07-27)
+- Updated legend_race event "legend_race" (2025-07-06)
+
+## Global repository (data/)
+
+- Updated missions event "Champions Cup Missions" (2026-10-08)
+- Updated missions event "Japan Cup Missions" (2026-10-01)
+- Updated missions event "Mile Championship Missions" (2026-09-29)
+- Updated missions event "Queen Elizabeth II Cup Missions" (2026-09-23)
+- Updated missions event "JBC Series Missions" (2026-09-10)
+- Updated missions event "Tenno Sho (Autumn) Missions" (2026-09-08)
+- Updated celebration event "Fall G1 Celebration Part 2" (2026-09-08)
+- Updated missions event "Kikuka Sho Missions" (2026-09-01)
+- Updated login_bonus event "Umayuru Login Bonus" (2026-08-26)
+- Updated missions event "Shuka Sho Missions" (2026-08-25)
+- Updated missions event "Mile Championship Nanbu Hai Missions" (2026-08-18)
+- Updated legend_race event "legend_race" (2026-08-13)
+- Updated missions event "Sprinters Stakes Missions" (2026-08-12)
+- Updated celebration event "Fall G1 Celebration Part 1" (2026-08-12)
+- Updated gift event "August Giveaway Gift Contents" (2026-08-06)
+- Updated missions event "Tracen Special: Training the Trainer!" (2026-07-27)
+- Updated login_bonus event "1.5-Year Anniversary Celebration Login Bonus" (2026-07-22) — cards: [U & Me] Mihono Bourbon
+- Updated gift event "SSR Support Card [U & Me] Mihono Bourbon" (2026-07-22) — cards: [U & Me] Mihono Bourbon
+- Updated celebration event "1.5-Year Anniversary Celebration Part 2" (2026-07-22)
+- Updated celebration event "StarHorse4 Collab Celebration" (2026-06-25)
+- Updated missions event "Japan Dirty Derby Support Missions" (2026-06-16)
+- Updated missions event "Teio Sho Support Missions" (2026-06-09)
+- Updated celebration event "G1 Celebration" (2026-06-09)
+- Updated legend_race event "legend_race" (2026-06-07)
+- Updated missions event "Takarazuka Kinen Missions" (2026-05-27)
+- Updated missions event "Yasuda Kinen Missions" (2026-05-20)
+- Updated missions event "Japanese Derby Missions" (2026-05-13)
+- Updated legend_race event "legend_race" (2026-05-07)
+- Updated missions event "Japanese Oaks Missions" (2026-05-06)
+- Updated missions event "Victoria Mile Missions" (2026-04-30)
+- Updated campaign event "How to Challenge" (2026-04-26)
+- Updated campaign event "Daily Free Scout" (2026-04-26)
+- Updated missions event "NHK Mile Cup Missions" (2026-04-26)
+- Updated missions event "Tenno Sho (Spring) Missions" (2026-04-21)
+- Updated celebration event "Spring G1 Celebration Part 2" (2026-04-21)
+- Updated missions event "Satsuki Sho Missions" (2026-04-14)
+- Updated missions event "Oka Sho Missions" (2026-04-07)
+- Updated missions event "Osaka Hai Missions" (2026-03-31)
+- Updated celebration event "1st Anniversary Celebration Part 4" (2026-03-26) — cards: [Passing the Dream On] Team Sirius
+- Updated missions event "Takamatsunomiya Kinen Missions" (2026-03-26)
+- Updated celebration event "Spring G1 Celebration Part 1" (2026-03-26)
+- Updated missions event "1st Anniversary Celebration Missions Part 3" (2026-03-23)
+- Updated sale event "1st Anniversary Celebration 1,500 Carats" (2026-03-23)
+- Updated celebration event "1st Anniversary Celebration Part 3" (2026-03-23)
+- Updated sale event "3★ Guaranteed 1st Anniversary Scout and SSR Guaranteed 1st Anniversary Scout" (2026-03-22)
+- Updated login_bonus event "Part 1 of the 1st Anniversary Login Bonus" (2026-03-12) — cards: [Special Dreamers!] Satono Diamond
+- Updated gift event "SSR Support Card [Special Dreamers!] Satono Diamond" (2026-03-12) — cards: [Special Dreamers!] Satono Diamond
+- Updated missions event "1st Anniversary Celebration Missions Part 2" (2026-03-12) — cards: [Special Dreamers!] Satono Diamond
+- Added sale event "Three-Times-Only 1st Anniversary Celebration Carats × 7,500" (2026-03-12)
+- Updated celebration event "1st Anniversary Celebration Part 2" (2026-03-12)
+- Updated missions event "February Stakes Missions" (2026-03-03)
+- Updated campaign event "G1 Race Commemoration" (2026-03-03)
+- Updated missions event "1st Anniversary Missions Part 1" (2026-03-02)
+- Updated legend_race event "legend_race" (2026-02-26)
+- Updated missions event "Hopeful Stakes Missions" (2026-01-29)
+- Updated legend_race event "legend_race" (2026-01-22)
+- Updated missions event "Arima Kinen Missions" (2026-01-22)
+- Updated missions event "Asahi Hai Futurity Stakes Missions" (2026-01-15)
+- Updated missions event "Hanshin Juvenile Fillies Missions" (2026-01-08)
+- Updated missions event "Champions Cup Missions" (2026-01-04)
+- Updated missions event "Japan Cup Missions" (2025-12-28)
+- Updated legend_race event "legend_race" (2025-12-22)
+- Updated missions event "Mile Championship Missions" (2025-12-22)
+- Updated missions event "Queen Elizabeth II Cup Missions" (2025-12-18)
+- Updated celebration event "Fall G1 Celebration Part 3" (2025-12-18)
+- Updated missions event "Tenno Sho Missions" (2025-12-11)
+- Updated missions event "Tracen Special: Training the Trainer! Part 2" (2025-12-08)
+- Updated legend_race event "legend_race" (2025-12-04)
+- Updated missions event "Kikuka Sho Missions" (2025-12-04)
+- Updated missions event "Shuka Sho Missions" (2025-12-01)
+- Updated celebration event "Fall G1 Celebration Part 2" (2025-12-01)
+- Updated missions event "Sprinters Stakes Missions" (2025-11-19)
+- Updated celebration event "Fall G1 Celebration Part 1" (2025-11-19)
+- Updated legend_race event "legend_race" (2025-11-13)
+- Updated campaign event "Daily Free 10x Scout" (2025-11-06)
+- Updated sale event "Half Anniversary Celebration Carats" (2025-11-03)
+- Updated login_bonus event "Half Anniversary Login Bonus" (2025-11-03) — cards: [Winning Dream] Silence Suzuka
+- Updated gift event "SSR Support Card [Winning Dream] Silence Suzuka" (2025-11-03) — cards: [Winning Dream] Silence Suzuka
+- Updated gift event "Half Anniversary Celebration gift" (2025-11-03)
+- Updated missions event "Half Anniversary Celebration Missions Part 1" (2025-10-26)
+- Updated login_bonus event "Half Anniversary Countdown Login Bonus" (2025-10-26)
+- Updated login_bonus event "Celebrating the half anniversary with a login bonus" (2025-10-26)
+- Updated legend_race event "legend_race" (2025-10-26)
+- Updated celebration event "Main Story Chapter 4 Celebration" (2025-10-07)
+- Updated campaign event "Umamusume: Cinderella Grey Broadcast Commemoration" (2025-10-06)
+- Updated missions event "Special Missions" (2025-10-02)
+- Updated legend_race event "legend_race" (2025-09-11)
+- Updated missions event "Takarazuka Kinen Missions" (2025-09-07)
+- Updated missions event "Yasuda Kinen Missions" (2025-08-31)
+- Updated missions event "Japanese Derby Missions" (2025-08-27)
+- Updated legend_race event "legend_race" (2025-08-21)
+- Updated missions event "Japanese Oaks Missions" (2025-08-20)
+- Updated missions event "Victoria Mile Missions" (2025-08-17)
+- Updated missions event "NHK Mile Cup Missions" (2025-08-10)
+- Updated celebration event "Spring G1 Celebration Part 2" (2025-08-10)
+- Updated campaign event "Golshi Mode" (2025-08-07)
+- Updated campaign event "Daily Free Scout" (2025-08-07)
+- Updated missions event "Tenno Sho (Spring) Missions" (2025-08-03)
+- Updated legend_race event "legend_race" (2025-07-27)
+- Updated missions event "Satsuki Sho Missions" (2025-07-27)
+- Updated missions event "Oka Sho Missions" (2025-07-21)
+- Updated celebration event "Spring G1 Celebration Part 1" (2025-07-21)
+- Updated legend_race event "legend_race" (2025-07-06)
+- Updated celebration event "Log In for Tons of Presents" (2025-06-26)
+
+## Global repository (data/)
+
+- Updated missions event "Mile Championship Missions" (2026-09-29)
+- Updated missions event "Queen Elizabeth II Cup Missions" (2026-09-23)
+- Updated missions event "JBC Series Missions" (2026-09-10)
+- Updated missions event "Tenno Sho (Autumn) Missions" (2026-09-08)
+- Updated missions event "Kikuka Sho Missions" (2026-09-01)
+- Updated missions event "Shuka Sho Missions" (2026-08-25)
+- Updated missions event "Mile Championship Nanbu Hai Missions" (2026-08-18)
+- Updated missions event "Takarazuka Kinen Missions" (2026-05-27)
+- Updated missions event "Yasuda Kinen Missions" (2026-05-20)
+- Updated missions event "NHK Mile Cup Missions" (2026-04-26)
+- Updated missions event "Tenno Sho (Spring) Missions" (2026-04-21)
+- Updated missions event "Satsuki Sho Missions" (2026-04-14)
+- Updated missions event "Oka Sho Missions" (2026-04-07)
+- Updated missions event "Osaka Hai Missions" (2026-03-31)
+- Updated missions event "Takamatsunomiya Kinen Missions" (2026-03-26)
+- Updated missions event "February Stakes Missions" (2026-03-03)
+- Updated missions event "Hopeful Stakes Missions" (2026-01-29)
+- Updated missions event "Arima Kinen Missions" (2026-01-22)
+- Updated missions event "Asahi Hai Futurity Stakes Missions" (2026-01-15)
+- Updated missions event "Hanshin Juvenile Fillies Missions" (2026-01-08)
+- Updated missions event "Queen Elizabeth II Cup Missions" (2025-12-18)
+- Updated missions event "Kikuka Sho Missions" (2025-12-04)
+- Updated missions event "Sprinters Stakes Missions" (2025-11-19)
+- Updated missions event "Takarazuka Kinen Missions" (2025-09-07)
+
+## Global repository (data/)
+
+- Updated celebration event "Holiday Celebration Part 2" (2026-10-07)
+- Updated celebration event "Umayuru Celebration" (2026-08-26) — cards: [Welcome to Umayuru] Tanino Gimlet
+- Updated celebration event "1.5-Year Anniversary Celebration Part 2" (2026-07-14)
+- Updated celebration event "1.5-Year Anniversary Celebration Part 1" (2026-07-14)
+- Updated celebration event "StarHorse4 Collab Celebration" (2026-06-25)
+- Updated celebration event "Golshi Week Celebration" (2026-04-26)
+- Updated celebration event "1st Anniversary Celebration Part 3" (2026-03-22)
+- Updated celebration event "1st Anniversary Celebration Part 1" (2026-03-02)
+- Updated celebration event "Half Anniversary Celebration Part 1" (2025-10-26)
+- Updated celebration event "Release Celebration Part 1" (2025-06-26)
+
+## Global repository (data/)
+
+- Updated celebration event "Fall G1 Celebration Part 1" (2025-11-19)
+- Updated gift event "Release Celebration Part 2" (2025-07-04)
+
+## Global repository (data/)
+
+- Updated login_bonus event "Umayuru Login Bonus" (2026-08-26)
+- Updated missions event "1.5-Year Anniversary Celebration Missions Part 2" (2026-07-22) — cards: [U & Me] Mihono Bourbon
+- Updated celebration event "1.5-Year Anniversary Celebration Part 2" (2026-07-14)
+- Updated celebration event "1st Anniversary Celebration Part 4" (2026-03-26) — cards: [Passing the Dream On] Team Sirius
+- Updated missions event "1st Anniversary Celebration Missions Part 2" (2026-03-12) — cards: [Special Dreamers!] Satono Diamond
+- Updated celebration event "1st Anniversary Celebration Part 2" (2026-03-12)
+- Updated missions event "Half Anniversary Celebration Missions Part 2" (2025-11-03) — cards: [Winning Dream] Silence Suzuka
+- Updated login_bonus event "Celebrating the half anniversary with a login bonus" (2025-10-26)
+- Updated celebration event "Log In for Tons of Presents" (2025-06-26)
+
+## Global repository (data/)
+
+- Updated champions_meeting event "Sagittarius Cup" (2026-10-07) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Updated champions_meeting event "Scorpio Cup" (2026-09-15) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Updated champions_meeting event "Libra Cup" (2026-08-25) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Updated champions_meeting event "Virgo Cup" (2026-08-05) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Updated champions_meeting event "Leo Cup" (2026-07-12) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+- Updated champions_meeting event "Cancer Cup" (2026-06-21) — titles: Cancer Cup Platinum, Cancer Cup Gold, Cancer Cup Silver, Cancer Cup Bronze
+- Updated champions_meeting event "Gemini Cup" (2026-05-31) — titles: Gemini Cup Platinum, Gemini Cup Gold, Gemini Cup Silver, Gemini Cup Bronze
+- Updated champions_meeting event "Taurus Cup" (2026-05-10) — titles: Taurus Cup Platinum, Taurus Cup Gold, Taurus Cup Silver, Taurus Cup Bronze
+- Updated champions_meeting event "Aries Cup" (2026-04-20) — titles: Aries Cup Platinum, Aries Cup Gold, Aries Cup Silver, Aries Cup Bronze
+- Updated champions_meeting event "Pisces Cup" (2026-03-26) — titles: Pisces Cup Platinum, Pisces Cup Gold, Pisces Cup Silver, Pisces Cup Bronze
+- Updated champions_meeting event "Aquarius Cup" (2026-03-02) — titles: Aquarius Cup Platinum, Aquarius Cup Gold, Aquarius Cup Silver, Aquarius Cup Bronze
+- Updated champions_meeting event "Aquarius Cup" (2026-02-18)
+- Updated champions_meeting event "Capricorn Cup" (2026-02-09) — titles: Capricorn Cup Platinum, Capricorn Cup Gold, Capricorn Cup Silver, Capricorn Cup Bronze
+- Updated champions_meeting event "Sagittarius Cup" (2026-01-19) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Updated champions_meeting event "Capricorn Cup" (2026-01-09)
+- Updated champions_meeting event "Sagittarius Cup" (2026-01-03)
+- Updated champions_meeting event "Scorpio Cup" (2025-12-28) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Updated champions_meeting event "Libra Cup" (2025-12-08) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Updated champions_meeting event "Scorpio Cup" (2025-12-01)
+- Updated champions_meeting event "Libra Cup" (2025-11-17)
+- Updated champions_meeting event "Virgo Cup" (2025-11-16) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Updated champions_meeting event "Virgo Cup" (2025-11-06)
+- Updated champions_meeting event "Leo Cup" (2025-10-30) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+- Updated champions_meeting event "Leo Cup" (2025-10-21)
+- Updated champions_meeting event "Cancer Cup" (2025-10-07) — titles: Cancer Cup Platinum, Cancer Cup Gold, Cancer Cup Silver, Cancer Cup Bronze
+- Updated champions_meeting event "Gemini Cup" (2025-09-07) — titles: Gemini Cup Platinum, Gemini Cup Gold, Gemini Cup Silver, Gemini Cup Bronze
+- Updated champions_meeting event "Taurus Cup" (2025-08-17) — titles: Taurus Cup Platinum, Taurus Cup Gold, Taurus Cup Silver, Taurus Cup Bronze
+
+## Global repository (data/)
+
+- Updated champions_meeting event "Aquarius Cup" (2026-03-02) — titles: Aquarius Cup Platinum, Aquarius Cup Gold, Aquarius Cup Silver, Aquarius Cup Bronze
+- Updated champions_meeting event "Sagittarius Cup" (2026-01-19) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Updated champions_meeting event "Scorpio Cup" (2025-12-28) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Updated champions_meeting event "Libra Cup" (2025-12-08) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Updated champions_meeting event "Virgo Cup" (2025-11-16) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Updated champions_meeting event "Leo Cup" (2025-10-30) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+
+## Global repository (data/)
+
+- Updated champions_meeting event "Capricorn Cup" (2026-02-09) — titles: Capricorn Cup Platinum, Capricorn Cup Gold, Capricorn Cup Silver, Capricorn Cup Bronze
+
+## Global repository (data/)
+
+- Added champions_meeting event "Sagittarius Cup" (2026-10-10) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Updated champions_meeting event "Sagittarius Cup" (2026-10-07)
+- Added champions_meeting event "Scorpio Cup" (2026-09-19) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Updated champions_meeting event "Scorpio Cup" (2026-09-15)
+- Added champions_meeting event "Libra Cup" (2026-08-28) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Updated champions_meeting event "Libra Cup" (2026-08-25)
+- Added champions_meeting event "Virgo Cup" (2026-08-08) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Updated champions_meeting event "Virgo Cup" (2026-08-05)
+- Added champions_meeting event "Leo Cup" (2026-07-15) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+- Updated champions_meeting event "Leo Cup" (2026-07-12)
+- Added champions_meeting event "Cancer Cup" (2026-06-24) — titles: Cancer Cup Platinum, Cancer Cup Gold, Cancer Cup Silver, Cancer Cup Bronze
+- Updated champions_meeting event "Cancer Cup" (2026-06-21)
+- Added champions_meeting event "Gemini Cup" (2026-06-04) — titles: Gemini Cup Platinum, Gemini Cup Gold, Gemini Cup Silver, Gemini Cup Bronze
+- Updated champions_meeting event "Gemini Cup" (2026-05-31)
+- Added champions_meeting event "Taurus Cup" (2026-05-14) — titles: Taurus Cup Platinum, Taurus Cup Gold, Taurus Cup Silver, Taurus Cup Bronze
+- Updated champions_meeting event "Taurus Cup" (2026-05-10)
+- Added champions_meeting event "Aries Cup" (2026-04-23) — titles: Aries Cup Platinum, Aries Cup Gold, Aries Cup Silver, Aries Cup Bronze
+- Updated champions_meeting event "Aries Cup" (2026-04-20)
+- Added champions_meeting event "Pisces Cup" (2026-03-30) — titles: Pisces Cup Platinum, Pisces Cup Gold, Pisces Cup Silver, Pisces Cup Bronze
+- Updated champions_meeting event "Pisces Cup" (2026-03-26)
+- Updated champions_meeting event "Aquarius Cup" (2026-03-06) — titles: Aquarius Cup Platinum, Aquarius Cup Gold, Aquarius Cup Silver, Aquarius Cup Bronze
+- Updated champions_meeting event "Capricorn Cup" (2026-02-13) — titles: Capricorn Cup Platinum, Capricorn Cup Gold, Capricorn Cup Silver, Capricorn Cup Bronze
+- Updated champions_meeting event "Sagittarius Cup" (2026-01-23) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Updated champions_meeting event "Scorpio Cup" (2026-01-01) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Updated champions_meeting event "Libra Cup" (2025-12-12) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Updated champions_meeting event "Virgo Cup" (2025-11-20) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Updated champions_meeting event "Leo Cup" (2025-11-03) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+- Updated champions_meeting event "Cancer Cup" (2025-10-10) — titles: Cancer Cup Platinum, Cancer Cup Gold, Cancer Cup Silver, Cancer Cup Bronze
+- Updated champions_meeting event "Gemini Cup" (2025-09-11) — titles: Gemini Cup Platinum, Gemini Cup Gold, Gemini Cup Silver, Gemini Cup Bronze
+- Updated champions_meeting event "Taurus Cup" (2025-08-21) — titles: Taurus Cup Platinum, Taurus Cup Gold, Taurus Cup Silver, Taurus Cup Bronze
+
+## Global repository (data/)
+
+- Updated champions_meeting event "Sagittarius Cup" (2026-10-10) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Updated champions_meeting event "Scorpio Cup" (2026-09-19) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Updated champions_meeting event "Libra Cup" (2026-08-28) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Updated champions_meeting event "Virgo Cup" (2026-08-08) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Updated champions_meeting event "Leo Cup" (2026-07-15) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+- Updated champions_meeting event "Cancer Cup" (2026-06-24) — titles: Cancer Cup Platinum, Cancer Cup Gold, Cancer Cup Silver, Cancer Cup Bronze
+- Updated champions_meeting event "Gemini Cup" (2026-06-04) — titles: Gemini Cup Platinum, Gemini Cup Gold, Gemini Cup Silver, Gemini Cup Bronze
+- Updated champions_meeting event "Taurus Cup" (2026-05-14) — titles: Taurus Cup Platinum, Taurus Cup Gold, Taurus Cup Silver, Taurus Cup Bronze
+- Updated champions_meeting event "Aries Cup" (2026-04-23) — titles: Aries Cup Platinum, Aries Cup Gold, Aries Cup Silver, Aries Cup Bronze
+- Updated champions_meeting event "Pisces Cup" (2026-03-30) — titles: Pisces Cup Platinum, Pisces Cup Gold, Pisces Cup Silver, Pisces Cup Bronze
+
+## Global repository (data/)
+
+- Updated champions_meeting event "Sagittarius Cup" (2026-10-07) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Updated champions_meeting event "Scorpio Cup" (2026-09-15) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Updated champions_meeting event "Libra Cup" (2026-08-25) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Updated champions_meeting event "Virgo Cup" (2026-08-05) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Updated champions_meeting event "Leo Cup" (2026-07-12) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+- Updated champions_meeting event "Cancer Cup" (2026-06-21) — titles: Cancer Cup Platinum, Cancer Cup Gold, Cancer Cup Silver, Cancer Cup Bronze
+- Updated champions_meeting event "Gemini Cup" (2026-05-31) — titles: Gemini Cup Platinum, Gemini Cup Gold, Gemini Cup Silver, Gemini Cup Bronze
+- Updated champions_meeting event "Taurus Cup" (2026-05-10) — titles: Taurus Cup Platinum, Taurus Cup Gold, Taurus Cup Silver, Taurus Cup Bronze
+- Updated champions_meeting event "Aries Cup" (2026-04-20) — titles: Aries Cup Platinum, Aries Cup Gold, Aries Cup Silver, Aries Cup Bronze
+- Updated champions_meeting event "Pisces Cup" (2026-03-26) — titles: Pisces Cup Platinum, Pisces Cup Gold, Pisces Cup Silver, Pisces Cup Bronze
+- Updated champions_meeting event "Aquarius Cup" (2026-03-02) — titles: Aquarius Cup Platinum, Aquarius Cup Gold, Aquarius Cup Silver, Aquarius Cup Bronze
+- Updated champions_meeting event "Capricorn Cup" (2026-02-09) — titles: Capricorn Cup Platinum, Capricorn Cup Gold, Capricorn Cup Silver, Capricorn Cup Bronze
+- Updated champions_meeting event "Sagittarius Cup" (2026-01-19) — titles: Sagittarius Cup Platinum, Sagittarius Cup Gold, Sagittarius Cup Silver, Sagittarius Cup Bronze
+- Updated champions_meeting event "Scorpio Cup" (2025-12-28) — titles: Scorpio Cup Platinum, Scorpio Cup Gold, Scorpio Cup Silver, Scorpio Cup Bronze
+- Updated champions_meeting event "Libra Cup" (2025-12-08) — titles: Libra Cup Platinum, Libra Cup Gold, Libra Cup Silver, Libra Cup Bronze
+- Updated champions_meeting event "Virgo Cup" (2025-11-16) — titles: Virgo Cup Platinum, Virgo Cup Gold, Virgo Cup Silver, Virgo Cup Bronze
+- Updated champions_meeting event "Leo Cup" (2025-10-30) — titles: Leo Cup Platinum, Leo Cup Gold, Leo Cup Silver, Leo Cup Bronze
+- Updated champions_meeting event "Cancer Cup" (2025-10-07) — titles: Cancer Cup Platinum, Cancer Cup Gold, Cancer Cup Silver, Cancer Cup Bronze
+- Updated champions_meeting event "Gemini Cup" (2025-09-07) — titles: Gemini Cup Platinum, Gemini Cup Gold, Gemini Cup Silver, Gemini Cup Bronze
+- Updated champions_meeting event "Taurus Cup" (2025-08-17) — titles: Taurus Cup Platinum, Taurus Cup Gold, Taurus Cup Silver, Taurus Cup Bronze
+
+## Global repository (data/)
+
+- Updated missions event "Tracen Special: Training the Trainer!" (2026-07-27)
+- Updated missions event "1st Anniversary Celebration Missions Part 3" (2026-03-23)
+- Updated missions event "February Stakes Missions" (2026-03-03)
+- Updated missions event "Special Missions" (2025-10-02)
+- Updated celebration event "Log In for Tons of Presents" (2025-06-26)
+
+## Global repository (data/)
+
+- Updated missions event "February Stakes Missions" (2026-03-03)

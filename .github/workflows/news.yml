@@ -1,8 +1,8 @@
-# Fetches new announcements (banners, events, updates) from the official Global site
-# (umamusume.com/news) once a day into data/news/, adds announced banners to Global's own record (data/,
-# scripts/update-global.js) and commits both with a summary of what was added. Posts usually go up at 22:00 UTC. Incremental: each run only asks for
-# posts newer than the last one (see scripts/fetch-news.js). A push made with GITHUB_TOKEN
-# doesn't trigger the deploy workflow, so when a banner was announced this starts a deploy
+# Fetches new posts (banners, events, updates) from the official Global site (umamusume.com/news) once a day into
+# data/news/posts.json, adds announced banners to Global's own record (data/, scripts/update-global.js) and commits
+# both with a summary of what was added. Posts usually go up at 22:00 UTC. Incremental: each run only asks for posts
+# newer than the last one (scripts/fetch-news-latest.js; the archive was fetched once with `pnpm news:all`). A push
+# made with GITHUB_TOKEN doesn't trigger the deploy workflow, so when a banner was announced this starts a deploy
 # itself, so announced banners reach the calendar.
 name: Fetch news
 
@@ -11,11 +11,6 @@ on:
   # schedule:
   #   - cron: "43 23 * * *"
   workflow_dispatch:
-    inputs:
-      backfill:
-        description: Fetch the whole news archive (index pages only)
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -35,11 +30,26 @@ jobs:
           node-version: 24
       - name: Fetch news
         id: news
-        run: node scripts/fetch-news.js ${{ inputs.backfill && '--backfill' || '' }}
+        run: node scripts/fetch-news-latest.js
       # Global's banners are JP's under the same ids: needs JP's banners (GameTora) + card names.
-      - name: Add announced banners to Global's record
-        if: steps.news.outputs.banners == 'true'
-        run: node scripts/update-cards.js && node scripts/scrape-gametora.js && node scripts/update-global.js
+      - name: Fetch card data and JP's banners
+        if: steps.news.outputs.update == 'true'
+        run: node scripts/update-cards.js && node scripts/scrape-gametora.js
+      # A model (OpenRouter's free Gemma) answers what the rules doubt in new events → data/news/ai_answers.json.
+      # Only events without a stored answer are asked. Skipped while the OPENROUTER_API_KEY secret isn't set; a
+      # failure here doesn't stop the run (the rules' values are kept).
+      - name: Ask a model about doubted event fields
+        if: steps.news.outputs.update == 'true'
+        continue-on-error: true
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          if [ -z "$OPENROUTER_API_KEY" ]; then echo "OPENROUTER_API_KEY not set, skipping"; exit 0; fi
+          node scripts/ai-events.js
+      # Events (data/global_events.json) are rebuilt by the same script, with the model's answers.
+      - name: Add announced banners and events to Global's record
+        if: steps.news.outputs.update == 'true'
+        run: node scripts/update-global.js
       - name: Commit new announcements
         if: steps.news.outputs.changed == 'true'
         run: |
@@ -49,7 +59,7 @@ jobs:
           git commit -m "News: $(sed -n 3p data/news/summary.md)" -m "$(tail -n +5 data/news/summary.md)"
           git push
       # - name: Redeploy with the announced banners
-      #   if: steps.news.outputs.banners == 'true'
+      #   if: steps.news.outputs.update == 'true'
       #   run: gh workflow run deploy.yml --ref ${{ github.ref_name }}
       #   env:
       #     GH_TOKEN: ${{ github.token }}

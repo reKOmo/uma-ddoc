@@ -10,7 +10,8 @@ const LOCAL = { hours: 'Hours', date: 'Date', month: 'Month' };
 
 // Greedy interval packing: each banner goes in the first row that's free by
 // its start, so overlapping banners stack and the row count stays minimal.
-function packRows(items) {
+// Items: { start, end } (ms) plus anything else; also packs the events strip (src/eventStrip.js).
+export function packRows(items) {
   const rows = [];
   for (const item of [...items].sort((a, b) => a.start - b.start)) {
     const row = rows.find((r) => r.end <= item.start);

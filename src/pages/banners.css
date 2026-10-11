@@ -216,6 +216,38 @@
   }
 }
 
+/* Event kinds' colour: the sheet's pill and dots, the bar's edge (src/eventStrip.js's EVENT_KINDS). Kinds share a
+   colour by family: free things (gifts, login bonuses), boosts (campaigns, missions); shops, sales, Transfer Requests
+   and Uma Outings stay neutral. */
+.event-kind,
+.event-dot,
+.bar {
+  --event-color: var(--event-other);
+}
+.kind-story {
+  --event-color: var(--event-story);
+}
+.kind-champions_meeting {
+  --event-color: var(--event-champions);
+}
+.kind-legend_race {
+  --event-color: var(--event-legend);
+}
+.kind-special {
+  --event-color: var(--event-special);
+}
+.kind-celebration {
+  --event-color: var(--event-celebration);
+}
+.kind-gift,
+.kind-login_bonus {
+  --event-color: var(--event-gift);
+}
+.kind-campaign,
+.kind-missions {
+  --event-color: var(--event-campaign);
+}
+
 .axis-months {
   height: 24px;
 }
@@ -340,7 +372,12 @@
   position: sticky;
   left: 0;
   z-index: 3;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
   margin: 8px 0 4px;
   padding: 2px 10px;
   font-size: 0.75rem;
@@ -349,6 +386,11 @@
   border: 1px solid var(--border);
   border-left: 0;
   border-radius: 0 999px 999px 0;
+}
+
+/* A folded group: just its label, dimmed. */
+.lane-label.collapsed {
+  color: var(--muted);
 }
 
 .lane {
@@ -468,6 +510,9 @@
 }
 .bar.type-friend {
   --edge: #f5c518;
+}
+.bar[class*="kind-"] {
+  --edge: var(--event-color);
 }
 
 /* Below the .bar rules: Biome wants rules in ascending specificity. */
@@ -681,6 +726,109 @@
   color: var(--muted);
 }
 
+/* The event sheet: kind pill, name, dates, parent link, cards, other rewards, titles, its parts, news link. */
+.event-kind {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--event-color) 25%, var(--panel));
+  border: 1px solid var(--event-color);
+  border-radius: 999px;
+}
+
+.event-name {
+  margin: 8px 0 0;
+  font-size: 1.2rem;
+}
+
+.event-rewards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event-rewards li {
+  padding: 8px 0;
+  font-weight: 600;
+  border-top: 1px solid var(--border);
+}
+
+.event-parts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event-parts li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.event-parts small {
+  flex: none;
+  color: var(--muted);
+}
+
+.event-titles,
+.event-none {
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+
+.event-none {
+  color: var(--muted);
+}
+
+.event-parent,
+.event-part {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.event-parent {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.event-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--event-color);
+  border-radius: 50%;
+}
+
+.event-has-card {
+  padding: 0 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.event-news {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
 @media (min-width: 768px) {
   .banners-header {
     padding: 16px 16px 12px;
@@ -706,4 +854,83 @@
     max-width: 480px;
     border-radius: 16px;
   }
+}
+
+/* Event bars: the post's art at the right end, uncropped, behind a gradient that keeps the name readable on the left. */
+.bar.event-bar {
+  background-position: right center;
+  background-size: auto 100%;
+}
+
+.bar.event-bar::before {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.78) 0, rgba(0, 0, 0, 0.6) 40%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+/* Too short for a label: a chip in the kind's colour (its name in the tooltip and sheet). */
+.bar.event-bar.chip {
+  padding: 0;
+  background-color: color-mix(in srgb, var(--event-color) 70%, #222);
+  border-left-width: 0;
+}
+
+.bar.event-bar.chip::before {
+  display: none;
+}
+
+/* A bar with parts leaves room at its right end for the fold button. */
+.bar.event-bar.has-parts:not(.chip) {
+  padding-right: 44px;
+}
+
+.bar-fold {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 6px;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.bar-fold.open {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* An event's parts, opened: their rows over a band in the event's colour, spanning it. */
+.event-part-rows {
+  position: relative;
+}
+
+.event-part-band {
+  position: absolute;
+  top: -2px;
+  bottom: 2px;
+  z-index: 1;
+  background: color-mix(in srgb, var(--event-color) 14%, transparent);
+  border-left: 2px solid var(--event-color);
+  border-radius: 0 0 6px 6px;
+}
+
+.lane.part-lane {
+  height: calc(var(--lane-height) * 0.8);
+}
+
+.part-lane .bar strong {
+  font-size: 0.8rem;
+}
+
+.lane-group.events {
+  padding-top: 0;
 }

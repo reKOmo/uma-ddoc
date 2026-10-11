@@ -2,7 +2,7 @@
 // Global's (scripts/lib/news.js, scripts/lib/scenarios.js).
 
 import { describe, it, expect } from 'vitest';
-import { toRecord } from '../scripts/lib/news.js';
+import { scenarioPost } from '../scripts/lib/news.js';
 import { applyScenarioNews, mergeGametora, retag } from '../scripts/lib/scenarios.js';
 
 const post = (id, posted, title, lines) => ({
@@ -15,7 +15,7 @@ const post = (id, posted, title, lines) => ({
 
 describe('scenario mentions in the news', () => {
   it('reads the name, and the start only when the sentence says it is added', () => {
-    const record = toRecord(
+    const record = scenarioPost(
       post(904, '2026-07-21 22:00:00', 'Check out all the latest updates!', [
         'New Career Scenario info!',
         'A new career scenario, titled "Brighter Together! Our Grand Concert," will be added to the game at 10:00 p.m., Jul 22, 2026 (UTC)!',
@@ -27,7 +27,7 @@ describe('scenario mentions in the news', () => {
   });
 
   it('keeps "!" in names, and dates nothing in a campaign post', () => {
-    const record = toRecord(
+    const record = scenarioPost(
       post(200006, '2025-11-06 08:00:00', 'Unity Cup Celebration Event', [
         'To celebrate the release of the new "Unity Cup: Shine On, Team Spirit!" Career Scenario, we\'re holding a giveaway.',
       ])
@@ -36,7 +36,7 @@ describe('scenario mentions in the news', () => {
   });
 
   it('ignores "scenario" anywhere else', () => {
-    const record = toRecord(
+    const record = scenarioPost(
       post(155, '2025-06-26 00:30:00', 'List of Known Issues', [
         '• In the Career Scenario "Unity Cup: Shine On, Team Spirit!", the game may freeze.',
         'New Career Scenario Celebration Support Card Scout',

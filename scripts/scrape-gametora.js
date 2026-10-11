@@ -7,8 +7,8 @@
 //                                    (see scripts/lib/scenarios.js)
 // Global isn't scraped any more: it has its own record in data/ (scripts/lib/global.js), kept up
 // from the official news. `--seed-global` writes that record's starting point from GameTora's
-// Global data: data/global_banners.json + data/global_cards.json if missing (or with `--force`), and
-// Global launch times of scenarios that have none yet.
+// Global data: data/global_banners.json + data/global_cards.json if missing (or with `--force`), and Global launch
+// times of scenarios that have none yet. (Global's events come from the news alone: scripts/lib/events.js.)
 //
 // A banner file holds { source, characters: [banner…], cards: [banner…] }, newest first,
 // where a banner is

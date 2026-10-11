@@ -1,7 +1,8 @@
 // Brings Global's own banner + card release record (data/, see scripts/lib/global.js) up to date
-// with the official news (data/news/announcements.json, from `pnpm fetch-news`): every scout post's
-// banners become Global banners, their cards Global releases, and the Career scenario launches the
-// posts name go into data/scenarios.json (en_start_date, official names; see scripts/lib/scenarios.js). Idempotent: the news-made
+// with the official news (data/news/posts.json, from `pnpm news:latest`): every scout post's
+// banners (scripts/lib/banner-posts.js) become Global banners, their cards Global releases, and the Career scenario launches the
+// posts name go into data/scenarios.json (en_start_date, official names; see scripts/lib/scenarios.js), and the in-game
+// events with the cards and items they give into data/global_events.json (scripts/lib/events.js). Idempotent: the news-made
 // entries are rebuilt from all posts each time, the seeded ones are left alone.
 //
 // Needs JP's banners (generated/jp_banners.json, `pnpm scrape-gametora`) for the banners' items,
@@ -13,12 +14,15 @@
 import { appendFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { GENERATED_DIR, NEWS_DIR } from './lib/paths.js';
+import { bannerPost } from './lib/banner-posts.js';
+import { loadPosts } from './lib/news-api.js';
+import { scenarioPost } from './lib/news.js';
 import { BANNERS_FILE, CARDS_FILE, applyNews, englishNames, readJson, writeGlobal } from './lib/global.js';
 import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.js';
+import { buildEvents, readAnswers, readCmTable, readEvents, writeEvents } from './lib/events.js';
 import { ensureCards } from './update-cards.js';
 import { buildCardFiles } from './build-cards.js';
 
-const NEWS_FILE = `${NEWS_DIR}announcements.json`;
 const SUMMARY_FILE = `${NEWS_DIR}summary.md`;
 
 const day = (iso) => iso.slice(0, 10);
@@ -32,9 +36,11 @@ export async function updateGlobal() {
   const cards = readJson(CARDS_FILE);
   const jp = readJson(`${GENERATED_DIR}jp_banners.json`);
   const cardData = readJson(`${GENERATED_DIR}cards.json`);
-  const posts = existsSync(NEWS_FILE) ? readJson(NEWS_FILE) : [];
+  const raw = [...loadPosts().values()];
+  const posts = raw.map(scenarioPost);
 
-  const result = applyNews({ posts, global, cards, jp, names: englishNames(global, cardData) });
+  const scouts = raw.map(bannerPost).filter(Boolean);
+  const result = applyNews({ posts: scouts, global, cards, jp, names: englishNames(global, cardData) });
   writeGlobal(result);
   await buildCardFiles();
 
@@ -45,6 +51,13 @@ export async function updateGlobal() {
     await fillColors(scenarios.scenarios); // a new scenario's cover colour (one image)
     writeScenarios(stored.source, scenarios.scenarios);
   }
+
+  // Events and what they give (data/global_events.json), rebuilt from every post.
+  const storedEvents = readEvents();
+  const oldEvents = new Map(storedEvents.map((e) => [e.id, JSON.stringify(e)]));
+  const events = buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers() });
+  writeEvents(events);
+  const changedEvents = events.filter((e) => oldEvents.get(e.id) !== JSON.stringify(e));
 
   const before = new Map(
     [...global.characters, ...global.cards].filter((b) => b.news_url).map((b) => [b.id, `${b.start} ${b.end}`])
@@ -73,22 +86,31 @@ export async function updateGlobal() {
         : 'announced, no Global date yet';
     lines.push(`- Scenario ${s.key}: "${s.full_en}" ${start}`);
   }
+  for (const e of changedEvents) {
+    const cardList = e.cards.map((c) => `[${c.title}] ${c.name}`).join(', ');
+    const extra = [cardList && `cards: ${cardList}`, e.titles.length && `titles: ${e.titles.join(', ')}`]
+      .filter(Boolean)
+      .join('; ');
+    lines.push(
+      `- ${oldEvents.has(e.id) ? 'Updated' : 'Added'} ${e.kind} event "${e.name ?? e.kind}" (${e.start ? day(e.start) : '?'})${extra ? ` — ${extra}` : ''}`
+    );
+  }
   for (const name of scenarios.unmatched) lines.push(`- Scenario "${name}" doesn't match any JP scenario`);
 
   const summary = lines.length ? `## Global repository (data/)\n\n${lines.join('\n')}\n` : '';
-  return { ...result, changed, released, scenarios, summary };
+  return { ...result, changed, released, scenarios, events: changedEvents, summary };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    const { changed, released, skipped, summary } = await updateGlobal();
+    const { changed, released, skipped, events, summary } = await updateGlobal();
     if (summary) {
       console.log(summary);
       if (existsSync(SUMMARY_FILE)) appendFileSync(SUMMARY_FILE, `\n${summary}`);
       if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\n${summary}`);
     }
     console.log(
-      `Global: ${changed.length} banners added or moved, ${released.length} card releases, ${skipped.length} skipped (${day(new Date().toISOString())}).`
+      `Global: ${changed.length} banners added or moved, ${released.length} card releases, ${events.length} events added or changed, ${skipped.length} skipped (${day(new Date().toISOString())}).`
     );
   } catch (err) {
     console.error(`Global update failed: ${err.message}`);

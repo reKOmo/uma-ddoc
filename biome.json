@@ -7,7 +7,13 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!data/global_*.json", "!data/scenarios.json", "!data/news/announcements.json"]
+    "includes": [
+      "**",
+      "!data/global_*.json",
+      "!data/scenarios.json",
+      "!data/news/posts.json",
+      "!data/news/ai_answers.json"
+    ]
   },
   "formatter": {
     "enabled": true,

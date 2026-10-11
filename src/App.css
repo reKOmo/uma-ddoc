@@ -11,6 +11,15 @@
   --rank-down: #c8372d;
   --global-line: #2f6fd6;
   --caution: #a86a00;
+  /* Global's in-game events on the Timeline, by kind. */
+  --event-story: #8e5cd9;
+  --event-champions: #d9a400;
+  --event-legend: #e5484d;
+  --event-campaign: #2fa38a;
+  --event-special: #3b7dd8;
+  --event-celebration: #e07b1a;
+  --event-gift: #d6458f;
+  --event-other: #69707a;
   /* Text on data-driven colours (scenario covers): pick by the colour's luminance, not the theme. */
   --ink-dark: #1c1f24;
   --ink-light: #ffffff;
@@ -35,6 +44,14 @@
     --rank-down: #f07167;
     --global-line: #6ea8fe;
     --caution: #e5a93a;
+    --event-story: #a98bf0;
+    --event-champions: #e5bd3a;
+    --event-legend: #f07167;
+    --event-campaign: #4cc4a8;
+    --event-special: #6aa5f0;
+    --event-celebration: #f39a45;
+    --event-gift: #f06fae;
+    --event-other: #9aa1aa;
   }
 }
 
