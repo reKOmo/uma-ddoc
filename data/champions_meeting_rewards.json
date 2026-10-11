@@ -1,0 +1,116 @@
+[
+  {
+    "since": "2025-06-26",
+    "note": "Final round rewards per league, group and place, from the in-game reward list; fill in the numbers (null = not filled in). Add a new block with a later `since` if the rewards ever change.",
+    "final": [
+      {
+        "league": "graded",
+        "group": "A",
+        "place": 1,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "graded",
+        "group": "A",
+        "place": 2,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "graded",
+        "group": "A",
+        "place": 3,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "graded",
+        "group": "B",
+        "place": 1,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "graded",
+        "group": "B",
+        "place": 2,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "graded",
+        "group": "B",
+        "place": 3,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "open",
+        "group": "A",
+        "place": 1,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "open",
+        "group": "A",
+        "place": 2,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "open",
+        "group": "A",
+        "place": 3,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "open",
+        "group": "B",
+        "place": 1,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "open",
+        "group": "B",
+        "place": 2,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      },
+      {
+        "league": "open",
+        "group": "B",
+        "place": 3,
+        "carats": null,
+        "monies": null,
+        "ticket_support": null,
+        "ticket_trainee": null
+      }
+    ]
+  }
+]
