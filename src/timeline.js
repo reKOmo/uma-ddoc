@@ -28,8 +28,9 @@ export function packRows(items) {
 // When a banner ends (ms): one without an end (a JP paid scout "until further notice") counts as a single day.
 const endOf = (banner) => (banner.end ? Date.parse(banner.end) : Date.parse(banner.start) + DAY);
 
-// sections: [{ key, label, banners }] → everything the view needs to draw.
-export function buildTimeline(sections, { now = Date.now(), utc = true } = {}) {
+// sections: [{ key, label, banners }] → everything the view needs to draw. `until` (ms): another time the calendar
+// must reach (the end of the last event drawn under the banners).
+export function buildTimeline(sections, { now = Date.now(), utc = true, until = now } = {}) {
   const f = utc ? UTC : LOCAL;
   const get = (d, part) => d[`get${f[part]}`]();
   const set = (d, part, value) => d[`set${f[part]}`](value);
@@ -42,7 +43,7 @@ export function buildTimeline(sections, { now = Date.now(), utc = true } = {}) {
   const times = all.flatMap((b) => [Date.parse(b.start), endOf(b)]);
   // A week of padding before the first banner, a month after the last (or today).
   const origin = startOfDay(Math.min(...times)) - 7 * DAY;
-  const last = Math.max(...times, now) + 30 * DAY;
+  const last = Math.max(...times, now, until) + 30 * DAY;
   const day = (ms) => (ms - origin) / DAY;
 
   // One entry per calendar day, for the day row of the axis.

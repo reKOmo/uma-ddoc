@@ -1,11 +1,12 @@
-// The card data build (scripts/lib/cards.js): upstream's lists + GameTora + Global's record → cards.json
-// and the per-server stats, and cards.json's shape (schemas/cards.schema.json).
+// The card data build (scripts/lib/cards.js): upstream's lists + our history of JP's cards (data/jp_cards.json) +
+// GameTora's list (slugs only) + Global's record → cards.json and the per-server stats, and cards.json's shape
+// (schemas/cards.schema.json).
 
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import Ajv2020 from 'ajv/dist/2020.js';
 import schema from '../schemas/cards.schema.json' with { type: 'json' };
-import { buildCards } from '../scripts/lib/cards.js';
+import { buildCards, fromGametora } from '../scripts/lib/cards.js';
 import { joinCards, withoutEvents } from '../tierlist/join-cards.js';
 
 // Upstream's card objects for one card, at every limit break.
@@ -42,11 +43,13 @@ const gametora = [
   gt(30200, 1099, 'New Girl', '新人', 'intelligence', { obtained: 'story_event' }),
 ];
 const globalCards = { 30001: { title_en: '[Our title]', release_gl: '2026-01-01' } };
-const { cards, stats } = buildCards({ upstream, gametora, globalCards, iconBase: 'https://up/' });
+// The history: everything GameTora has but its newest card (30200), which the news hasn't shown.
+const history = Object.fromEntries(gametora.slice(0, 3).map((c) => [c.support_id, fromGametora(c)]));
+const { cards, stats } = buildCards({ upstream, history, gametora, globalCards, iconBase: 'https://up/' });
 
 describe('cards.json', () => {
-  it("has every card upstream or GameTora has, with Global's title and date from our record", () => {
-    expect(Object.keys(cards)).toEqual(['30001', '30081', '30126', '30200']);
+  it("has every card upstream or the history has, with Global's title and date from our record", () => {
+    expect(Object.keys(cards)).toEqual(['30001', '30081', '30126']);
     expect(cards[30001]).toEqual({
       id: 30001,
       charId: 1015,
@@ -56,12 +59,25 @@ describe('cards.json', () => {
       title: { en: '[Our title]', jp: '[JP 30001]' },
       release: { gl: '2026-01-01', jp: '2022-01-01' },
       source: ['gacha'],
-      links: { gametora: 'https://gametora.com/umamusume/supports/30001-x' },
-      images: {
-        icon: 'https://up/support_card_s_30001.png',
-        art: 'https://gametora.com/images/umamusume/supports/tex_support_card_30001.png',
-      },
+      links: { gametora: '30001-x' },
+      images: { icon: 'https://up/support_card_s_30001.png' },
     });
+  });
+
+  it("reads the history: GameTora's list only gives slugs, never a card the history lacks", () => {
+    const changed = gametora.map((c) => ({
+      ...c,
+      name_jp: 'changed',
+      release: '2030-01-01',
+      url_name: `${c.support_id}-new`,
+    }));
+    const again = buildCards({ upstream, history, gametora: changed, globalCards, iconBase: 'https://up/' }).cards;
+    expect(again[30126]).toEqual({ ...cards[30126], links: { gametora: '30126-new' } });
+    expect(again[30200]).toBeUndefined();
+    // Without GameTora's list: the history alone, slugs included.
+    const offline = buildCards({ upstream, history, globalCards, iconBase: 'https://up/' }).cards;
+    expect(offline[30126]).toEqual(cards[30126]);
+    expect(offline[30200]).toBeUndefined();
   });
 
   it("names a character's cards Global doesn't have like its others, group cards after the group", () => {
@@ -70,17 +86,20 @@ describe('cards.json', () => {
     expect(cards[30081].source).toEqual(['main_story']);
   });
 
-  it('fills cards only GameTora has from GameTora, in our type names', () => {
-    expect(cards[30200]).toMatchObject({
+  it('fills a card upstream lacks from the history, in our type names', () => {
+    const newer = { ...history, 30200: fromGametora(gametora[3]) };
+    const withNew = buildCards({ upstream, history: newer, gametora, globalCards, iconBase: 'https://up/' }).cards;
+    expect(withNew[30200]).toMatchObject({
       type: 'wisdom',
       name: { en: 'New Girl', jp: '新人' },
       release: { gl: null, jp: '2022-01-01' },
       source: ['story_event'],
-      images: { icon: 'https://gametora.com/images/umamusume/supports/support_card_s_30200.png' },
+      links: { gametora: '30200-x' },
+      images: { icon: null }, // the app builds GameTora's
     });
   });
 
-  it('goes without GameTora, from upstream alone', () => {
+  it('goes without GameTora or the history, from upstream alone', () => {
     const alone = buildCards({ upstream, iconBase: 'https://up/' }).cards;
     expect(alone[30001]).toMatchObject({ charId: null, name: { en: 'T.M. Opera O', jp: 'テイエムオペラオー' } });
     expect(alone[30001].links.gametora).toBeNull();

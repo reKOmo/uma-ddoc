@@ -1,13 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { bannerPost } from '../scripts/lib/banner-posts.js';
-import {
-  applyJpNews,
-  GAMETORA_JP_FILE,
-  isRegular,
-  JP_BANNERS_FILE,
-  regularBanners,
-} from '../scripts/lib/jp-banners.js';
+import { applyJpNews, isRegular, JP_BANNERS_FILE, regularBanners } from '../scripts/lib/jp-banners.js';
+import { BANNERS_FILE as GLOBAL_BANNERS_FILE } from '../scripts/lib/global.js';
 import { postsFile } from '../scripts/lib/news-api.js';
 import { ja } from '../scripts/lib/news-lang/ja.js';
 import { GENERATED_DIR } from '../scripts/lib/paths.js';
@@ -89,8 +84,8 @@ describe.skipIf(!posts.length)('bannerPost (JP)', () => {
 });
 
 describe('applyJpNews', () => {
-  const item = (id, extra) => ({ id, char_id: 1, name: 'A', title: '[T]', rarity: 3, icon: 'i', rate: 7500, ...extra });
-  const seeded = (id, start, end, featured) => ({ id, image: `gt/${id}.png`, start, end, main: featured[0], featured });
+  const item = (id, extra) => ({ id, char_id: 1, name: 'A', title: '[T]', rarity: 3, rate: 7500, ...extra });
+  const seeded = (id, start, end, featured) => ({ id, start, end, main: featured[0], featured });
   const jp = {
     source: { site: 'gametora' },
     characters: [
@@ -110,7 +105,14 @@ describe('applyJpNews', () => {
       title: { jp: '[称号]' },
       images: { icon: 'c' },
     },
-    10001: { id: 10001, charId: 8, type: 'speed', name: { jp: 'アール' }, title: { jp: '[学園]' }, images: {} },
+    10001: {
+      id: 10001,
+      charId: 8,
+      type: 'speed',
+      name: { jp: 'アール' },
+      title: { jp: '[学園]' },
+      images: { icon: null },
+    },
   };
   const rerun = { start: '2025-04-10T03:00:00.000Z', end: '2025-04-17T02:59:00.000Z' };
   const post = {
@@ -183,6 +185,8 @@ describe('applyJpNews', () => {
       [null, 2, null, false],
     ]);
     expect(made.main.id).toBe(30001);
+    // No icons stored: the app builds them from the ids (src/gametora.js).
+    expect(made.featured.some((f) => 'icon' in f)).toBe(false);
     expect(result.unresolved).toEqual([{ banner: 3, item: expect.objectContaining({ name: 'だれ' }) }]);
     expect(find('characters', 50001)).toMatchObject({ paid: true, end: null, featured: [] });
   });
@@ -204,6 +208,36 @@ describe('applyJpNews', () => {
     const regular = regularBanners(result.jp);
     expect(regular.characters.map((b) => b.id)).toEqual([2, 1]);
     expect(regular.cards.map((b) => b.id)).toEqual([3]);
+  });
+
+  it("resolves a debuting trainee from GameTora's list, then from our own banners", () => {
+    const debut = {
+      ...post,
+      id: 10,
+      url: 'https://umamusume.jp/news/detail/?id=10',
+      banners: [
+        {
+          gachaId: 4,
+          type: 'character',
+          start: '2025-05-01T03:00:00.000Z',
+          end: '2025-05-10T02:59:00.000Z',
+          image: 'official/4.png',
+          featured: [{ stars: 3, title: '新衣装', name: 'シン' }],
+          paid: false,
+        },
+      ],
+    };
+    const featured = (r) => r.jp.characters.find((b) => b.id === 4).featured[0];
+    // Without GameTora's list: by name only.
+    const without = applyJpNews({ posts: [debut], jp, cards });
+    expect(without.unresolved.map((u) => u.banner)).toEqual([4]);
+    // With it (titles as GameTora writes them, brackets included): its id and character.
+    const trainees = [{ id: 105901, char_id: 1059, name: 'シン', title: '[新衣装]' }];
+    const withList = applyJpNews({ posts: [debut], jp, cards, trainees });
+    expect(featured(withList)).toMatchObject({ id: 105901, char_id: 1059 });
+    expect(withList.unresolved).toEqual([]);
+    // Stored, it resolves from our own banners on later runs without the list.
+    expect(featured(applyJpNews({ posts: [debut], jp: withList.jp, cards }))).toMatchObject({ id: 105901 });
   });
 });
 
@@ -227,11 +261,7 @@ describe.skipIf(!posts.length || !existsSync(JP_BANNERS_FILE))('the stored JP ba
   });
 
   it('keep every seeded banner, numeric ids but for re-runs, re-runs paired both ways', () => {
-    if (existsSync(GAMETORA_JP_FILE)) {
-      const seed = readJson(GAMETORA_JP_FILE);
-      const ids = new Set(gametora.keys());
-      for (const b of [...seed.characters, ...seed.cards]) expect(ids.has(b.id), String(b.id)).toBe(true);
-    }
+    expect(gametora.size).toBe(366); // GameTora's history as seeded
     for (const [, b] of all) {
       if (typeof b.id !== 'number') expect(b).toMatchObject({ id: `${b.rerunOf}-rerun`, from_news: true });
       if (b.rerunOf != null) expect(all.find(([, o]) => o.id === b.rerunOf)[1].rerun.id).toBe(b.id);
@@ -243,9 +273,28 @@ describe.skipIf(!posts.length || !existsSync(JP_BANNERS_FILE))('the stored JP ba
     expect([gametora.get(30130).b.rerunOf, gametora.get(30131).b.rerunOf]).toEqual([30116, 30117]);
   });
 
-  it('are what the news makes of them (pnpm update-jp leaves them unchanged)', () => {
+  it('are what the news makes of them (pnpm update-jp leaves them unchanged), from the seeded ones alone', () => {
     const cards = readJson(`${GENERATED_DIR}cards.json`);
-    const gt = existsSync(GAMETORA_JP_FILE) ? readJson(GAMETORA_JP_FILE) : null;
-    expect(applyJpNews({ posts: scouts, jp: stored, cards, gametora: gt }).jp).toEqual(stored);
+    const global = existsSync(GLOBAL_BANNERS_FILE) ? readJson(GLOBAL_BANNERS_FILE) : null;
+    expect(applyJpNews({ posts: scouts, jp: stored, cards, global }).jp).toEqual(stored);
+    // From the seeded history alone (no GameTora file): the same, every featured trainee and card resolved.
+    const seeded = (list) => list.filter((b) => !b.from_news);
+    const jp = { ...stored, characters: seeded(stored.characters), cards: seeded(stored.cards) };
+    const again = applyJpNews({ posts: scouts, jp, cards, global });
+    expect(again.jp).toEqual(stored);
+    // Unresolved: only a trainee debuting on a banner made from the news (no earlier banner names it, and the news
+    // gives no trainee ids); every card and every known trainee resolves.
+    const named = new Set(
+      [...stored.characters].filter((b) => !b.from_news).flatMap((b) => b.featured.map((f) => `${f.title}${f.name}`))
+    );
+    for (const { banner, item } of again.unresolved) {
+      const b = stored.characters.find((x) => x.id === banner);
+      expect(b?.from_news, `${banner} ${item.title}${item.name}`).toBe(true);
+      expect(named.has(`${item.title}${item.name}`), `${item.title}${item.name}`).toBe(false);
+    }
+  });
+
+  it('store no GameTora URLs (the app builds the art and icons from ids)', () => {
+    expect(JSON.stringify({ ...stored, source: null })).not.toMatch(/gametora\.com/);
   });
 });

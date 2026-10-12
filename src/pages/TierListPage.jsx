@@ -4,6 +4,7 @@ import { COMBINED, STATS, rankByUsefulness } from '../../tierlist/index.js';
 import { cards } from '../../tierlist/cards.js';
 import { getServerConfig } from '../../tierlist/scenarios.js';
 import { TIER_NAMES, toTiers } from '../tiers.js';
+import { cardIcon } from '../gametora.js';
 import { DEFAULTS, getFilters, isDefault, saveFilters } from '../tierListFilters.js';
 import { useTranslation } from 'react-i18next';
 import { lbName, statName } from '../i18n/index.js';
@@ -177,7 +178,7 @@ export default function TierListPage({ server, scenario, onScenarioChange }) {
                         title={card.char_name}
                       >
                         <figure>
-                          <img src={cards[card.id].images.icon} alt={card.char_name} loading="lazy" />
+                          <img src={cardIcon(card.id, cards)} alt={card.char_name} loading="lazy" />
                           <span className="lb">{lbName(card.lb)}</span>
                           <figcaption>
                             <span className="name">{card.char_name}</span>

@@ -1,13 +1,15 @@
 """Predicts the Global release date of every JP support card that isn't on Global yet, with the
 model that did best in the walk-forward backtest. Also predicts Global's future banners from JP's
-(generated/predicted_global_banners.json, see banners.py) and Career scenarios (into data/scenarios.json,
-see scenarios.py). Writes generated/predicted_gl_releases.json:
+(generated/predicted_global_banners.json, see banners.py), Career scenarios (into data/scenarios.json,
+see scenarios.py) and events (generated/predicted_global_events.json, after pairing Global's events with JP's into
+generated/event_pairs.json: see events.py; the pairs are known dates too). Writes generated/predicted_gl_releases.json:
 
   { model, fitted_at, anchor: { release_jp, release_gl }, global_days_per_jp_day,
     known_dates: [{ release_jp, release_gl }], backtest: { "<lo>-<hi>": [median, p90, n] },
     cards: { id: { release_jp, predicted_gl, lo, hi, confirmed } } }
 
-`confirmed` cards come out on a known date's JP day (their Global date is a known one, not a guess).
+`confirmed` comes only from known_dates.json: a card on a JP day its `dates` give, or on one of its confirmed `banners`.
+A card on another known day (from Global's banners or paired events) has that day's Global date but isn't `confirmed`.
 Predictions go through the known dates in data/known_dates.json and never fall on a Japanese
 weekend (see adjust.py). lo / hi is a rough 90% range: the backtest's 90th-percentile error, scaled
 with how many JP days the card is from the nearest fixed point (the last release or a known date).
@@ -23,9 +25,11 @@ from datetime import datetime, timezone
 
 import numpy as np
 
-from adjust import load_known_dates, snap_weekday, with_known_dates
+from adjust import confirmed_cards, hand_known_days, load_known_dates, snap_weekday, with_known_dates
 from backtest import errors, run
 from banners import BANNERS_OUTPUT, predict_banners
+from events import EVENTS_OUTPUT, PAIRS_OUTPUT, anchor_points, pair_events, past_ref, predict_events, write_pairs
+from events import summary as events_summary
 from scenarios import SCENARIOS, predict_scenarios
 from data import GENERATED, batches, load_cards, to_date
 
@@ -46,16 +50,36 @@ def main():
     b = batches(cards)
     model = deepcopy(best).fit(b['jp'].to_numpy(float), b['gl'].to_numpy(float))
 
-    known = load_known_dates(model.anchor[0])
     err = errors(best, b)
 
-    def predict(jp):
-        """JP days (sorted) → (Global days, not snapped to a weekday; ± range in days)."""
-        predicted, distance = with_known_dates(jp, model, known)
-        # Global keeps JP's order: never before the last Global release or an earlier JP card.
-        return np.maximum.accumulate(np.maximum(predicted, model.anchor[1])), interval_width(err, distance)
+    def predictor(known):
+        def predict(jp):
+            """JP days (sorted) → (Global days, not snapped to a weekday; ± range in days)."""
+            predicted, distance = with_known_dates(jp, model, known)
+            # Global keeps JP's order: never before the last Global release or an earlier JP card.
+            return np.maximum.accumulate(np.maximum(predicted, model.anchor[1])), interval_width(err, distance)
+        return predict
+
+    # Global's events paired with JP's (events.py): where JP's card releases put a JP event (between Global's
+    # releases, then the model through the known dates so far) is what a pair must fit. The pairs are known dates too.
+    past, future = past_ref(b), predictor(load_known_dates(model.anchor[0]))
+
+    def ref(jp):
+        order = np.argsort(jp)
+        ahead = np.empty(len(jp))
+        ahead[order] = future(jp[order])[0]
+        return np.where(jp <= model.anchor[0], past(jp), ahead)
+
+    pairs = pair_events(ref)
+    write_pairs(pairs)
+    # (only ahead of Global's last release: Global sometimes runs an event a few days before the cards of earlier JP days)
+    anchors = [(jp, gl) for jp, gl in anchor_points(pairs) if gl >= model.anchor[1]]
+    known = load_known_dates(model.anchor[0], events=anchors)
+    predict = predictor(known)
 
     known_jp = {jp for jp, _ in known}
+    # confirmed: only from known_dates.json: a JP day its `dates` give, or a card on one of its `banners`
+    confirmed_days, confirmed_ids = hand_known_days(), confirmed_cards()
     upcoming = cards[cards['status'] == 'upcoming'].copy()
     predicted, width = predict(upcoming['jp'].to_numpy(float))
     width = np.where(upcoming['jp'].isin(known_jp), 0, width)  # on a known date: no range
@@ -75,7 +99,7 @@ def main():
                 'predicted_gl': to_date(row.predicted_gl),
                 'lo': to_date(row.lo),
                 'hi': to_date(row.hi),
-                'confirmed': row.jp in known_jp,
+                'confirmed': row.jp in confirmed_days or int(row.id) in confirmed_ids,
             }
             for row in upcoming.itertuples()
         },
@@ -83,6 +107,7 @@ def main():
     OUTPUT.write_text(json.dumps(result, indent=1, ensure_ascii=False) + '\n')
     banners = predict_banners(predict, model.anchor[0], result['fitted_at'])
     scenarios = predict_scenarios(predict)
+    events = predict_events(predict, model.anchor[0], known, pairs, result['fitted_at'])
 
     skipped = cards[cards['status'] == 'skipped']
     print(f'model: {model.name}, {model.slope:.3f} Global days per JP day, anchored at '
@@ -103,6 +128,8 @@ def main():
         en = s['en_start_date']
         print(f'{s["key"]:<11}{s["jp_start_date"]["date"][:10]:<12}{en["date"][:10]:<20}{en["lo"]} – {en["hi"]}')
     print(f'{len(scenarios)} scenario launches → {SCENARIOS.relative_to(GENERATED.parent)}')
+    print(f'\n{events_summary(pairs, events)}')
+    print(f'→ {PAIRS_OUTPUT.relative_to(GENERATED.parent)}, {EVENTS_OUTPUT.relative_to(GENERATED.parent)}')
 
 
 if __name__ == '__main__':

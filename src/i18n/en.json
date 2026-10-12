@@ -58,7 +58,9 @@
     "lagExpected": "Expected after {{duration}}",
     "links": "Links",
     "link": {
-      "gametora": "GameTora"
+      "gametora": "GameTora",
+      "umapyoi_jp": "JP announcement (umapyoi.net)",
+      "umapyoi_gl": "Global announcement (umapyoi.net)"
     },
     "others": "Other scenarios",
     "previous": "Previous",
@@ -122,7 +124,7 @@
     "confirmedFrom": "Dates confirmed by the official release schedule; art and cards from the JP banner of {{dates}}.",
     "predictedFrom_one": "Predicted from the JP banner of {{dates}}; could be {{count}} day earlier or later.",
     "predictedFrom_other": "Predicted from the JP banner of {{dates}}; could be {{count}} days earlier or later.",
-    "announced": "From the <a>official announcement</a>.",
+    "announced": "From the <a>official announcement</a> (also on <u>umapyoi.net</u>).",
     "paidBadge": "paid",
     "paid": "A paid scout: its pulls cost paid jewels only.",
     "rerunOf": "Re-run of the banner of {{dates}}",
@@ -143,6 +145,8 @@
   },
   "events": {
     "barTitle": "{{name}} ({{kind}}) · {{dates}}",
+    "predictedBarTitle": "{{name}} ({{kind}}) · predicted {{dates}}",
+    "confirmedBarTitle": "{{name}} ({{kind}}) · confirmed {{dates}}",
     "details": "Event details",
     "kind": {
       "story": "Story event",
@@ -167,6 +171,12 @@
     "titles": "Titles: {{titles, list}}",
     "noRewards": "No rewards listed.",
     "news": "Read the announcement",
+    "jpNews": "Read JP's announcement",
+    "umapyoi": "On umapyoi.net",
+    "predictedFrom_one": "Predicted from the JP event of {{dates}}; could be {{count}} day earlier or later.",
+    "predictedFrom_other": "Predicted from the JP event of {{dates}}; could be {{count}} days earlier or later.",
+    "confirmedFrom": "Dates confirmed by the official release schedule; from the JP event of {{dates}}.",
+    "predictedNames": "Names and rewards as JP's announcement gives them; Global's may differ.",
     "copies_one": "{{count}} copy",
     "copies_other": "{{count}} copies",
     "items": "Other rewards",
@@ -290,7 +300,7 @@
     "credit": {
       "gametora": {
         "name": "GameTora",
-        "description": "Banner history, scenarios, card links and images"
+        "description": "Scenarios, card links and images"
       },
       "pullGuide": {
         "name": "Luh's Umamusume Support Card Encyclopedia",
@@ -299,6 +309,10 @@
       "tierList": {
         "name": "Uma Tiers by Euophrys",
         "description": "The tier list calculation Umaddoc is based on, and its card data"
+      },
+      "umapyoi": {
+        "name": "Umapyoi",
+        "description": "Game news"
       }
     }
   }

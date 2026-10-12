@@ -1,6 +1,9 @@
 // Builds the card data from the raw inputs (see scripts/lib/cards.js):
 //   generated/raw/upstream/*.js           upstream's card lists + events (`pnpm update-cards`)
-//   generated/raw/gametora_cards.json     GameTora's support cards (`pnpm scrape-gametora`; optional)
+//   data/jp_cards.json                    our history of JP's cards (JP names, titles, release dates, source, slug…;
+//                                         committed): a frozen record of GameTora's, then the JP news' cards
+//                                         augmented from GameTora (`pnpm update-jp`, scripts/lib/jp-cards.js)
+//   generated/raw/gametora_cards.json     GameTora's support cards (`pnpm scrape-gametora`; optional): slugs only
 //   data/global_cards.json                Global's titles + release dates (`pnpm update-global`)
 // into
 //   generated/cards.json                          every card: names, titles, releases, links… (schemas/cards.schema.json)
@@ -12,11 +15,13 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { buildCards } from './lib/cards.js';
 import { CARDS_FILE as GLOBAL_CARDS_FILE } from './lib/global.js';
+import { JP_CARDS_FILE, readJpCards } from './lib/jp-cards.js';
 import { GENERATED_DIR } from './lib/paths.js';
 import { readSources } from './lib/sources.js';
 import { UPSTREAM_RAW } from './lib/upstream.js';
 
 export const GAMETORA_CARDS_FILE = `${GENERATED_DIR}raw/gametora_cards.json`;
+export { JP_CARDS_FILE };
 export const OUTPUTS = ['cards.json', 'card_stats/gl_card_stats.json', 'card_stats/jp_card_stats.json'];
 
 // One card per line, so the files stay readable and diffable.
@@ -37,6 +42,7 @@ export async function buildCardFiles() {
       jp: await importFresh(`${UPSTREAM_RAW}jp.js`),
       events: await importFresh(`${UPSTREAM_RAW}card-events.js`),
     },
+    history: readJpCards(),
     gametora: existsSync(GAMETORA_CARDS_FILE) ? readJson(GAMETORA_CARDS_FILE) : [],
     globalCards: existsSync(GLOBAL_CARDS_FILE) ? readJson(GLOBAL_CARDS_FILE) : {},
     iconBase: `https://raw.githubusercontent.com/${repo}/${ref}/public/cardImages/`,

@@ -841,6 +841,14 @@
   border-radius: 999px;
 }
 
+/* The official post and umapyoi.net's copy of it, side by side (wrapping on phones). */
+.event-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+}
+
 .event-news {
   display: inline-flex;
   align-items: center;
@@ -877,14 +885,9 @@
   }
 }
 
-/* Event bars: the post's art at the right end, uncropped, behind a gradient that keeps the name readable on the left. */
+/* Event bars: the post's official art covering the bar, like a banner's official art (and its gradient). */
 .bar.event-bar {
-  background-position: right center;
-  background-size: auto 100%;
-}
-
-.bar.event-bar::before {
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.78) 0, rgba(0, 0, 0, 0.6) 40%, rgba(0, 0, 0, 0.1) 100%);
+  background-size: cover;
 }
 
 /* Too short for a label: a chip in the kind's colour (its name in the tooltip and sheet). */

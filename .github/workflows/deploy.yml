@@ -36,7 +36,7 @@ jobs:
         run: pnpm lint
       - name: Generate card data
         run: pnpm update-cards
-      - name: Scrape JP banners and card links from GameTora
+      - name: Scrape new cards, scenarios and JP's event history from GameTora
         run: pnpm scrape-gametora
       # Normally already done and committed by news.yml; rerun so a news commit made any other way
       # still shows up (not committed from here). JP's first: Global's news pairs with JP's banners by id.

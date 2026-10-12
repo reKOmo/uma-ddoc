@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { scenarioPost } from '../scripts/lib/news.js';
-import { applyScenarioNews, mergeGametora, retag } from '../scripts/lib/scenarios.js';
+import { applyJpScenarioNews, applyScenarioNews, mergeGametora, retag } from '../scripts/lib/scenarios.js';
 
 const post = (id, posted, title, lines) => ({
   announce_id: id,
@@ -59,7 +59,7 @@ const out = (date) => ({ date, tag: 'out' });
 const PREDICTED_GM = { date: '2026-11-25T22:00:00.000Z', tag: 'predicted', lo: '2026-11-21', hi: '2026-11-29' };
 
 describe('mergeGametora', () => {
-  it("adds JP's scenarios with key, name, tagged JP launch and link; Global's launch only when seeding", () => {
+  it("adds JP's scenarios with key, name, tagged JP launch and link; never Global's launch", () => {
     const merged = mergeGametora([], GAMETORA, { now: NOW });
     const row = (s) => [s.key, s.full_en, s.full_jp, s.en_start_date, s.jp_start_date, s.links.gametora];
     expect(merged.map(row)).toEqual([
@@ -74,8 +74,6 @@ describe('mergeGametora', () => {
       ['GM', 'Grandmasters Legacies Immortal', 'JP grand-masters', null, out(iso(1677207600)), `${GT}grand-masters`],
       ['LArc', null, 'JP project-larc', null, out(iso(1692846000)), `${GT}project-larc`],
     ]);
-    const seeded = mergeGametora([], GAMETORA, { seedGlobal: true, now: NOW });
-    expect(seeded[0].en_start_date).toEqual(out(iso(1784757600)));
   });
 
   it("keeps our names and Global launches, takes GameTora's English once it has one", () => {
@@ -85,7 +83,7 @@ describe('mergeGametora', () => {
         : s
     );
     const translated = GAMETORA.map((r) => (r.url_name === 'project-larc' ? { ...r, name_en: "Project L'Arc" } : r));
-    const merged = mergeGametora(ours, translated, { seedGlobal: true, now: NOW });
+    const merged = mergeGametora(ours, translated, { now: NOW });
     expect(merged[0].full_en).toBe('Brighter Together! Our Grand Concert');
     expect(merged[0].en_start_date).toEqual(out('2026-07-22T22:00:00.000Z'));
     expect(merged[2]).toMatchObject({ full_en: "Project L'Arc", full_jp: 'JP project-larc' });
@@ -113,6 +111,18 @@ describe('applyScenarioNews', () => {
     expect(changed.map((s) => s.key)).toEqual(['GL']);
   });
 
+  it('links the post that dates the launch (umapyoi.net has a copy), not an undated mention', () => {
+    const { scenarios } = applyScenarioNews({
+      posts: [
+        news(903, '2026-07-01', [{ full: 'Brighter Together! Our Grand Concert', start: null }]),
+        news(904, '2026-07-21', [{ full: 'Brighter Together! Our Grand Concert', start: '2026-07-22T22:00:00.000Z' }]),
+      ],
+      scenarios: base,
+      now: NOW,
+    });
+    expect(scenarios[0].links.umapyoi_gl).toBe(904);
+  });
+
   it("names Global's next scenario: by name, else JP's next one; a date replaces the prediction", () => {
     const named = applyScenarioNews({
       posts: [news(1200, '2026-12-01', [{ full: 'Grandmasters: Legacies Immortal', start: null }])],
@@ -136,6 +146,33 @@ describe('applyScenarioNews', () => {
       full_en: 'Some New Official Name',
       en_start_date: { date: '2027-01-10T22:00:00.000Z', tag: 'confirmed' },
     });
+  });
+});
+
+describe('applyJpScenarioNews', () => {
+  const post = (id, title) => ({
+    announce_id: id,
+    announce_label: 1,
+    title,
+    message: '',
+    post_at: '2026-06-29 12:00:00',
+  });
+  const scenario = (key, full_jp) => ({ key, full_jp, links: { gametora: `https://gametora.com/umamusume/${key}` } });
+
+  it("links JP's launch post by the Japanese name, however it's spaced; leaves others alone", () => {
+    const { scenarios, unmatched } = applyJpScenarioNews({
+      posts: [
+        post(3306, '育成シナリオ「らっしゃい！トレセン軒！ ～恩返し、始めました～」公開！'),
+        post(3300, '育成シナリオ「らっしゃい！トレセン軒！ ～恩返し、始めました～」の不具合について'),
+        post(3400, '育成シナリオ「まだない名前」公開！'),
+      ],
+      scenarios: [
+        scenario('TracenKen', 'らっしゃい！トレセン軒！～恩返し、始めました～'),
+        scenario('BD', 'Beyond Dreams'),
+      ],
+    });
+    expect(scenarios.map((s) => s.links.umapyoi_jp)).toEqual([3306, undefined]);
+    expect(unmatched).toEqual(['まだない名前']);
   });
 });
 

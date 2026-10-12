@@ -8,6 +8,9 @@
 // itemList(items) → an event's items with the common currencies first (carats, monies, shards, tickets, vouchers),
 //   the rest in the post's order.
 // subEvents(event, events) → a celebration's sub-events, by start.
+// withPredicted(real, predicted) → the real events, then the predicted ones (Global's future events from JP's,
+//   `predicted: true`, ids `jp-…`) Global's own news hasn't overtaken: a predicted event is left out, with its parts,
+//   when a real top-level event of its kind starts at or after it (the prediction is stale or the same event).
 
 import { DAY, packRows } from './timeline.js';
 
@@ -65,4 +68,23 @@ export function itemList(items) {
 
 export function subEvents(event, events) {
   return events.filter((e) => e.parent === event.id).sort((a, b) => a.start.localeCompare(b.start));
+}
+
+export function withPredicted(real, predicted) {
+  const latest = new Map(); // kind → the latest start of a real top-level event of it (ms)
+  for (const event of real)
+    if (event.start && !event.parent) {
+      const start = Date.parse(event.start);
+      if (!(latest.get(event.kind) >= start)) latest.set(event.kind, start);
+    }
+  const byId = new Map(predicted.map((event) => [event.id, event]));
+  const top = (event) => {
+    const parent = event.parent && byId.get(event.parent);
+    return parent && parent !== event ? top(parent) : event;
+  };
+  const kept = predicted.filter((event) => {
+    const root = top(event);
+    return !root.start || !(latest.get(root.kind) >= Date.parse(root.start));
+  });
+  return [...real, ...kept];
 }

@@ -11,6 +11,7 @@ const CREDITS = [
   ['gametora', 'https://gametora.com/umamusume'],
   ['tierList', 'https://euophrys.github.io/uma-tiers/'],
   ['pullGuide', PULL_GUIDE_URL],
+  ['umapyoi', 'https://umapyoi.net/'],
 ];
 
 // One setting: a heading, a hint, and a segmented toggle over its options. labels and details

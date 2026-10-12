@@ -18,6 +18,8 @@ import './banners.css';
 
 import { PREDICTED, bannerStatus as status, loadBanners, loadEvents, loadRealBanners } from '../bannerData.js';
 import StatusBadge from '../StatusBadge.jsx';
+import { cardIcon } from '../gametora.js';
+import { umapyoiUrl } from '../umapyoi.js';
 
 const ZOOMS = [4, 8, 16, 32]; // pixels per day
 // Trainee icons don't show rarity (card icons do), so it's spelled out.
@@ -58,6 +60,10 @@ const isOfficialArt = (banner) => !!(banner.announced || banner.news_image);
 // labels stop at the 22nd so they never collide with the next month's 1st.
 const dayLabelStep = (px) => (px >= 16 ? 1 : px >= 8 ? 2 : 7);
 const showDayLabel = (date, step) => (date - 1) % step === 0 && (step < 7 || date <= 22);
+
+// When the last of these events ends (ms; one without an end: a day after its start).
+const lastEnd = (events) =>
+  Math.max(...events.filter((e) => e.start).map((e) => (e.end ? Date.parse(e.end) : Date.parse(e.start) + DAY)));
 
 function barTitleKey(banner) {
   if (banner.confirmed) return 'banners.confirmedBarTitle';
@@ -104,17 +110,32 @@ export default function BannersPage({ server, scenario, bannerId }) {
     );
   }, [server, globalBanners]);
 
+  // The server's in-game events, in labelled groups under the banners (names as the news gives them: Japanese on JP);
+  // events with parts (a celebration's sub-events, mission sets) are folded until opened.
+  const [eventData, setEventData] = useState(null); // { server, events }
+  useEffect(() => {
+    let cancelled = false;
+    loadEvents(SERVERS[server].banners).then((events) => {
+      if (!cancelled) setEventData({ server, events });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [server]);
+  const serverEvents = eventData?.server === server ? eventData.events : null;
+  // (The calendar waits for the events too: predicted ones can run past the last banner.)
   const timeline = useMemo(
     () =>
       data &&
+      serverEvents &&
       buildTimeline(
         [
           { key: 'characters', label: t('banners.characters'), banners: data.characters },
           { key: 'cards', label: t('banners.supportCards'), banners: data.cards },
         ],
-        { utc: timeZone === 'utc' }
+        { utc: timeZone === 'utc', until: lastEnd(serverEvents) }
       ),
-    [data, t, timeZone]
+    [data, serverEvents, t, timeZone]
   );
   const px = ZOOMS[zoom];
   // The scroller only exists once the timeline has loaded.
@@ -159,19 +180,6 @@ export default function BannersPage({ server, scenario, bannerId }) {
   // The Career scenario strip at the top: which scenario runs when on this server.
   const scenarios = useMemo(() => scenarioSegments(scenarioData.scenarios, server), [server]);
 
-  // The server's in-game events, in labelled groups under the banners (names as the news gives them: Japanese on JP);
-  // events with parts (a celebration's sub-events, mission sets) are folded until opened.
-  const [eventData, setEventData] = useState(null); // { server, events }
-  useEffect(() => {
-    let cancelled = false;
-    loadEvents(SERVERS[server].banners).then((events) => {
-      if (!cancelled) setEventData({ server, events });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [server]);
-  const serverEvents = eventData?.server === server ? eventData.events : null;
   const events = useMemo(() => (serverEvents ? eventGroups(serverEvents) : []), [serverEvents]);
   const [unfolded, setUnfolded] = useState(() => new Set());
   // Groups (banner sections, event groups) folded away by their label, remembered in this browser.
@@ -524,8 +532,12 @@ function BannerSheet({ banner, kind, server, scenario, format, banners, onSelect
           <p className="sheet-prediction">
             <Trans
               i18nKey="banners.announced"
-              // biome-ignore lint/a11y/useAnchorContent: <Trans> fills the link with the catalog's <a> text.
-              components={{ a: <a href={banner.news_url} target="_blank" rel="noreferrer" /> }}
+              components={{
+                // biome-ignore lint/a11y/useAnchorContent: <Trans> fills the link with the catalog's <a> text.
+                a: <a href={banner.news_url} target="_blank" rel="noreferrer" />,
+                // biome-ignore lint/a11y/useAnchorContent: <Trans> fills the link with the catalog's <u> text.
+                u: <a href={umapyoiUrl(banner.news_url)} target="_blank" rel="noreferrer" />,
+              }}
             />
           </p>
         )}
@@ -603,6 +615,19 @@ function toggled(set, key) {
 }
 // An event's name, or its kind's when it has none (Legend Races, Transfer Requests).
 const eventName = (t, event) => event.name ?? t(`events.kind.${event.kind}`);
+// Where an event stands, as a banner would (`end`: ms, a day after the start when it has none): predicted from JP's
+// (half-transparent bar), confirmed (nearly solid), else ended / live / upcoming.
+const eventStatus = (event, end) =>
+  status({
+    start: event.start,
+    end: new Date(end).toISOString(),
+    predicted: event.predicted,
+    confirmed: event.confirmed,
+  });
+function eventTitleKey(event) {
+  if (event.confirmed) return 'events.confirmedBarTitle';
+  return event.predicted ? 'events.predictedBarTitle' : 'events.barTitle';
+}
 function EventRows({ rows, at, format, unfolded, onToggle, onSelect, depth = 0 }) {
   const { t } = useTranslation();
   const name = (event) => eventName(t, event);
@@ -624,9 +649,9 @@ function EventRows({ rows, at, format, unfolded, onToggle, onSelect, depth = 0 }
               <Fragment key={event.id}>
                 <button
                   type="button"
-                  className={`bar event-bar kind-${event.kind} ${status({ start: event.start, end: new Date(end).toISOString() })}${chip ? ' chip' : ''}${parts ? ' has-parts' : ''}`}
+                  className={`bar event-bar kind-${event.kind} ${eventStatus(event, end)}${chip ? ' chip' : ''}${parts ? ' has-parts' : ''}`}
                   style={{ left, width, ...(event.image && !chip && { backgroundImage: `url(${event.image})` }) }}
-                  title={t('events.barTitle', {
+                  title={t(eventTitleKey(event), {
                     name: name(event),
                     kind: t(`events.kind.${event.kind}`),
                     dates: event.end ? dateRange(event, format.long) : format.long(event.start),
@@ -681,6 +706,10 @@ function EventRows({ rows, at, format, unfolded, onToggle, onSelect, depth = 0 }
   });
 }
 
+// A predicted event's JP dates (one without an end: its start).
+const jpDates = (event, format) =>
+  event.jp_end ? dateRange({ start: event.jp_start, end: event.jp_end }, format) : format(event.jp_start);
+
 // An in-game event in the banner sheet's style: the support cards it gives first, then its other rewards and titles;
 // its parts (sub-events, mission sets), or the event it's part of.
 function EventSheet({ event, events, format, onSelect, onClose }) {
@@ -712,10 +741,19 @@ function EventSheet({ event, events, format, onSelect, onClose }) {
         <span className={`event-kind kind-${event.kind}`}>{t(`events.kind.${event.kind}`)}</span>
         <h2 className="event-name">{name(event)}</h2>
         <p className="sheet-dates">
+          {event.predicted && <StatusBadge banner={event} />}
           {event.end
             ? `${dateRange(event, format.time)} · ${t('banners.days', { count: days })}`
             : format.time(event.start)}
         </p>
+        {event.predicted && (
+          <p className="sheet-prediction">
+            {event.confirmed
+              ? t('events.confirmedFrom', { dates: jpDates(event, format.long) })
+              : t('events.predictedFrom', { dates: jpDates(event, format.long), count: event.margin_days })}{' '}
+            {t('events.predictedNames')}
+          </p>
+        )}
         {parent && (
           <button type="button" className="event-parent" onClick={() => onSelect(parent)}>
             {t('events.partOf', { name: name(parent) })}
@@ -729,11 +767,12 @@ function EventSheet({ event, events, format, onSelect, onClose }) {
               {event.cards.map((card) => (
                 <li key={`${card.title}|${card.name}`}>
                   <div className="item-icon">
-                    {cards[card.id]?.images.icon && <img src={cards[card.id].images.icon} alt="" loading="lazy" />}
+                    {cards[card.id] && <img src={cardIcon(card.id, cards)} alt="" loading="lazy" />}
                   </div>
                   <div className="item-info">
                     <span className="item-name">
-                      <strong>{card.name}</strong>
+                      {/* A predicted event's cards are JP's; Global's English name where the card data has one. */}
+                      <strong>{(event.predicted && cards[card.id]?.name.en) || card.name}</strong>
                       <span className="item-title" title={card.title}>
                         [{card.title}]
                       </span>
@@ -802,10 +841,18 @@ function EventSheet({ event, events, format, onSelect, onClose }) {
           </>
         )}
         {event.news_url && (
-          <a className="event-news" href={event.news_url} target="_blank" rel="noreferrer">
-            {t('events.news')}
-            <ExternalLink size={15} aria-hidden="true" />
-          </a>
+          <p className="event-links">
+            <a className="event-news" href={event.news_url} target="_blank" rel="noreferrer">
+              {t(event.predicted ? 'events.jpNews' : 'events.news')}
+              <ExternalLink size={15} aria-hidden="true" />
+            </a>
+            {umapyoiUrl(event.news_url) && (
+              <a className="event-news" href={umapyoiUrl(event.news_url)} target="_blank" rel="noreferrer">
+                {t('events.umapyoi')}
+                <ExternalLink size={15} aria-hidden="true" />
+              </a>
+            )}
+          </p>
         )}
       </div>
     </div>

@@ -30,8 +30,7 @@ const day = (iso) => iso.slice(0, 10);
 const when = (iso) => `${iso.slice(0, 16).replace('T', ' ')} UTC`;
 
 export async function updateGlobal() {
-  if (!existsSync(BANNERS_FILE))
-    throw new Error('data/ has no Global banners yet: run pnpm scrape-gametora --seed-global');
+  if (!existsSync(BANNERS_FILE)) throw new Error('data/ has no Global banners (data/global_banners.json is committed)');
   await ensureCards();
   const global = readJson(BANNERS_FILE);
   const cards = readJson(CARDS_FILE);

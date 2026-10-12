@@ -9,7 +9,6 @@ const item = (id, char_id, name, title, rarity, extra = {}) => ({
   name,
   title,
   rarity,
-  icon: `icon-${id}`,
   rate: 7500,
   new: true,
   ...extra,
@@ -103,9 +102,9 @@ describe('applyNews', () => {
       announced: true,
       news_url: 'https://umamusume.com/news/1089/',
     });
-    expect(cardBanner.featured.map((i) => [i.id, i.name, i.title, i.icon, i.new])).toEqual([
-      [30072, 'Mayano Top Gun', '[Party Formation]', 'icon-30072', false],
-      [30126, 'Yamanin Zephyr', '[Calm Breeze]', 'icon-30126', true],
+    expect(cardBanner.featured.map((i) => [i.id, i.name, i.title, i.new])).toEqual([
+      [30072, 'Mayano Top Gun', '[Party Formation]', false],
+      [30126, 'Yamanin Zephyr', '[Calm Breeze]', true],
     ]);
     expect(cardBanner.main.id).toBe(30072); // same rarity, higher rate
     // Zenno Rob Roy has no English name anywhere yet: the post's only trainee pairs with the only item.

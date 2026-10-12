@@ -1,16 +1,19 @@
-// JP's banners (data/jp_banners.json, committed): GameTora's history, seeded once (pnpm update-jp --seed), with the
-// banners the JP news announces merged over it (docs/jp-news-plan.md, decision 2). Same shape as GameTora's file
-// (generated/jp_banners.json, which pnpm scrape-gametora keeps writing: the seed and a check):
-// { source, characters: [banner…], cards: [banner…] }, newest first, one banner per line.
+// JP's banners (data/jp_banners.json, committed): GameTora's history, seeded once (2026-10; GameTora's banners
+// aren't scraped any more), with the banners the JP news announces merged over it (docs/jp-news-plan.md, decision 2).
+// { source, characters: [banner…], cards: [banner…] }, newest first, one banner per line, where a banner is
+//   { id, image?, start, end, main, featured: [item…] } and an item { id, char_id, name, title, rarity, type?, rate,
+//   new } (`type`: support cards). `featured` lists every rate-up item, `main` is the one with the highest rarity (then
+//   rate). No GameTora URLs: the app builds the art (gacha/img_bnr_gacha_<id>.png) and icons from ids
+//   (src/gametora.js); `image` is only the official art of a banner made from the news.
 //
 // What the news adds (rebuilt from every post each time; seeded entries are never lost):
-// - a banner GameTora has: `announced: true`, `news_url`, `news_image` (the post's official art; `image` stays
-//   GameTora's). Its dates stay GameTora's (the news agrees on all of them; disagreements are listed). The R cards the
+// - a banner GameTora has: `announced: true`, `news_url`, `news_image` (the post's official art; the app shows
+//   it over GameTora's). Its dates stay GameTora's (the news agrees on all of them; disagreements are listed). The R cards the
 //   post lists (GameTora leaves them out) are added to its featured, each marked `from_news: true`.
 // - a banner GameTora lacks (select-pickup supports, Twinkle Collection 30xxx, paid 50xxx): a new entry made from the
 //   post, `from_news: true`, `image` = `news_image` = the official art, featured resolved to ids (support cards by
-//   generated/cards.json's title.jp + name.jp, trainees by title + name on any GameTora banner; unresolved ones keep
-//   their names with id null), R cards kept, `rate` null (posts don't give rates).
+//   generated/cards.json's title.jp + name.jp, trainees by title + name on any banner of this file or Global's;
+//   unresolved ones keep their names with id null), R cards kept, `rate` null (posts don't give rates).
 // - `paid: true` on paid banners (gacha id ≥ 50000; Global never runs them, ml/ and Global's news skip them).
 // - re-runs (a scout re-held after an issue, decision 6): the original keeps its dates and gets `rerun: { id, start,
 //   end }`; the re-run is GameTora's banner with the same featured starting then (its `rerunOf` = the original's id),
@@ -18,13 +21,15 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { bannerPost } from './banner-posts.js';
-import { pickMain } from './global.js';
+import { BANNERS_FILE as GLOBAL_BANNERS_FILE, pickMain } from './global.js';
 import { ja } from './news-lang/ja.js';
 import { norm } from './news-text.js';
 import { DATA_DIR, GENERATED_DIR } from './paths.js';
 
 export const JP_BANNERS_FILE = `${DATA_DIR}jp_banners.json`;
-export const GAMETORA_JP_FILE = `${GENERATED_DIR}jp_banners.json`;
+// GameTora's trainee outfits (`pnpm scrape-gametora`), cut to { id, char_id, name, title } (Japanese): only for a
+// trainee our banners have never shown (a debut), which the news names without an id.
+export const GAMETORA_TRAINEES_FILE = `${GENERATED_DIR}raw/gametora_trainees.json`;
 
 const KINDS = ['characters', 'cards'];
 const KIND_OF_TYPE = { character: 'characters', support: 'cards' };
@@ -52,13 +57,15 @@ export const regularBanners = (jp) => ({
 });
 
 // The featured item a post's entry ({ rarity|stars, title, name }) stands for: support cards by our card data,
-// trainees by GameTora's banners.
-function resolver({ cards, banners }) {
+// trainees by the banners' own items (`banners`: JP's and Global's banner files).
+function resolver({ cards, banners, trainees: gametora = null }) {
   const supports = new Map();
   for (const c of Object.values(cards)) if (c.title?.jp && c.name?.jp) supports.set(key(c.title.jp, c.name.jp), c);
   const trainees = new Map();
   for (const jp of banners)
     for (const b of jp?.characters ?? []) for (const f of b.featured) if (f.id) trainees.set(key(f.title, f.name), f);
+  // A debut: GameTora's list (our banners' ids win; once stored, a trainee resolves from them without it).
+  for (const t of gametora ?? []) if (!trainees.has(key(t.title, t.name))) trainees.set(key(t.title, t.name), t);
   return (entry, kind) => {
     const title = `[${entry.title}]`;
     if (kind === 'cards') {
@@ -70,7 +77,6 @@ function resolver({ cards, banners }) {
         title,
         rarity: RARITY[entry.rarity],
         type: card ? (GAMETORA_TYPE[card.type] ?? card.type) : null,
-        icon: card?.images?.icon ?? null,
         rate: null,
       };
     }
@@ -81,17 +87,17 @@ function resolver({ cards, banners }) {
       name: entry.name,
       title,
       rarity: entry.stars,
-      icon: trainee?.icon ?? null,
       rate: null,
     };
   };
 }
 
 // The news (scout posts as bannerPost(post, ja) reads them) merged over the stored banners (data/jp_banners.json).
-// Pure and idempotent. `gametora`: GameTora's current file, only to resolve trainee ids (optional).
+// Pure and idempotent. `global`: Global's banners (data/global_banners.json), only to resolve trainee ids (optional);
+// `trainees`: GameTora's trainee list (GAMETORA_TRAINEES_FILE), for trainees no banner has shown yet (optional).
 // Returns { jp, enriched, made, reruns, unresolved: [{ banner, item }], mismatches: [{ id, post, what }],
 // skipped: [{ id, post, reason }] }.
-export function applyJpNews({ posts, jp, cards, gametora = null }) {
+export function applyJpNews({ posts, jp, cards, global = null, trainees = null }) {
   const kinds = {};
   for (const kind of KINDS)
     kinds[kind] = jp[kind]
@@ -102,7 +108,7 @@ export function applyJpNews({ posts, jp, cards, gametora = null }) {
       }));
   const seeded = new Map();
   for (const kind of KINDS) for (const b of kinds[kind]) seeded.set(b.id, { kind, banner: b });
-  const resolve = resolver({ cards, banners: [jp, gametora] });
+  const resolve = resolver({ cards, banners: [jp, global], trainees });
 
   // id → the newest post naming it (with dates), and the newest giving it a re-run.
   const latest = new Map();
@@ -189,7 +195,7 @@ export function applyJpNews({ posts, jp, cards, gametora = null }) {
     else {
       rerun = {
         id: `${id}-rerun`,
-        image: banner.image,
+        ...(banner.image && { image: banner.image }),
         start,
         end,
         main: null,
@@ -249,28 +255,18 @@ export function writeJpBanners(jp, file = JP_BANNERS_FILE) {
   );
 }
 
-// data/jp_banners.json from GameTora's file, once (`force` to start over).
-export function seedJpBanners({ force = false } = {}) {
-  if (existsSync(JP_BANNERS_FILE) && !force)
-    throw new Error('data/jp_banners.json exists already: pass --force to seed it again from GameTora');
-  if (!existsSync(GAMETORA_JP_FILE)) throw new Error('no generated/jp_banners.json: run pnpm scrape-gametora');
-  const gametora = readJpBanners(GAMETORA_JP_FILE);
-  writeJpBanners(gametora);
-  return gametora;
-}
-
 const banners = (n) => `${n} banner${n === 1 ? '' : 's'}`;
 
 // The JP news' banners merged into data/jp_banners.json; returns a summary { lines: [...] } for summary.md.
 //   posts  the stored JP posts (data/news/jp/posts.json)    cards  generated/cards.json
 export async function updateJpBanners({ posts, cards }) {
-  if (!existsSync(JP_BANNERS_FILE))
-    return { lines: ['JP banners: not seeded yet (pnpm update-jp --seed makes data/jp_banners.json).'] };
+  if (!existsSync(JP_BANNERS_FILE)) return { lines: ['JP banners: no data/jp_banners.json.'] };
   const jp = readJpBanners();
-  const gametora = existsSync(GAMETORA_JP_FILE) ? readJpBanners(GAMETORA_JP_FILE) : null;
+  const global = existsSync(GLOBAL_BANNERS_FILE) ? readJpBanners(GLOBAL_BANNERS_FILE) : null;
+  const trainees = existsSync(GAMETORA_TRAINEES_FILE) ? JSON.parse(readFileSync(GAMETORA_TRAINEES_FILE, 'utf8')) : null;
   const scouts = posts.map((post) => bannerPost(post, ja)).filter(Boolean);
   const before = JSON.stringify(jp);
-  const result = applyJpNews({ posts: scouts, jp, cards, gametora });
+  const result = applyJpNews({ posts: scouts, jp, cards, global, trainees });
   writeJpBanners(result.jp);
   const changed = JSON.stringify(result.jp) !== before;
 

@@ -1,13 +1,14 @@
 // Global's own record of gacha banners and card releases, in data/ (committed):
 //   data/global_banners.json  { source, characters: [banner…], cards: [banner…] }, newest first, in
-//                             the shape scripts/scrape-gametora.js writes for JP
+//                             data/jp_banners.json's shape (scripts/lib/jp-banners.js; no GameTora URLs: the app
+//                             builds the art, en/gacha/img_bnr_gacha_<id>.png, and icons from ids)
 //   data/global_cards.json    { [card id]: { title_en, release_gl, news_url? } } for cards out on Global
-// Seeded once from GameTora (pnpm scrape-gametora --seed-global) and kept up since from the official
+// Seeded once from GameTora (2026-10) and kept up since from the official
 // news (data/news/, pnpm update-global). Entries made from the news carry `news_url` (banners also
 // `announced: true`); seeded ones are never changed.
 //
 // A scout post names its banners by gacha id, which Global shares with JP, so a banner from the
-// news is JP's banner with that id (featured ids, icons, rates) under Global's dates and art, with
+// news is JP's banner with that id (featured ids, rates) under Global's dates and art, with
 // the English names and titles the post lists.
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -19,7 +20,7 @@ export const CARDS_FILE = `${DATA_DIR}global_cards.json`;
 
 const RARITY = { R: 1, SR: 2, SSR: 3 };
 
-// The highest rarity, then the highest rate (scrape-gametora.js's heuristic for `main`).
+// The highest rarity, then the highest rate (our heuristic for `main`, as when the banners were seeded).
 export function pickMain(featured) {
   return (
     featured.reduce(
@@ -95,7 +96,7 @@ export function applyNews({ posts, global, cards, jp, names }) {
     const lengthMs = Date.parse(jpBanner.end) - Date.parse(jpBanner.start);
     const banner = {
       id,
-      image: a.image ?? jpBanner.image,
+      ...((a.image ?? jpBanner.image) && { image: a.image ?? jpBanner.image }),
       start: isoMs(a.start),
       end: a.end ? endOfMinute(isoMs(a.end)) : new Date(Date.parse(a.start) + lengthMs).toISOString(),
       main: null,

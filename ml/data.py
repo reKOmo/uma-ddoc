@@ -1,5 +1,6 @@
-"""Loads cards and their release dates from generated/cards.json (`pnpm build-cards`): JP's from
-GameTora, Global's from Global's own record (data/global_cards.json, see scripts/lib/global.js).
+"""Loads cards and their release dates from generated/cards.json (`pnpm build-cards`): JP's from our
+history of JP's cards (data/jp_cards.json: GameTora's, frozen, then the JP news' new cards), Global's from Global's own
+record (data/global_cards.json, see scripts/lib/global.js).
 
 Global releases JP's support cards in JP's order, so the unit of prediction is a
 "batch": every card released in JP on the same day. Dates are days since the epoch.

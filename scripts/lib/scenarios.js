@@ -13,17 +13,20 @@
 // full_jp    the full Japanese name (GameTora; refreshed every scrape)
 // *_date     launch dates as above; en_start_date is predicted until the news gives Global's
 // links      gametora: the scenario's GameTora page; cover: its key art (GameTora's media, no text, so it
-//            serves both servers)
+//            serves both servers); umapyoi_jp / umapyoi_gl: the post id of its launch post in JP's / Global's news
+//            (the scenario page links umapyoi.net's copy: JP's in Japanese), from `update-jp` / `update-global`
 // color      the main colour of the cover ("#rrggbb", scripts/lib/colors.js), computed once per cover
 //            (fillColors) and kept, so images aren't downloaded again
 // JP's side (jp_start_date, links, new scenarios) comes from GameTora on every `pnpm scrape-gametora`;
-// Global's (en_start_date, official names) from the official news (`pnpm update-global`), GameTora's
-// Global dates only when seeding (--seed-global), predictions from `pnpm predict-gl`. Global releases
-// JP's scenarios in JP's order.
+// Global's (en_start_date, official names) from the official news (`pnpm update-global`; GameTora's Global dates
+// seeded them once), predictions from `pnpm predict-gl`. Global releases JP's scenarios in JP's order.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { imageColor } from './colors.js';
+import { ja } from './news-lang/ja.js';
+import { norm as normAny } from './news-text.js'; // keeps kana and kanji, unlike norm() below
 import { DATA_DIR } from './paths.js';
+import { categorize } from './post-categories.js';
 
 export const SCENARIOS_FILE = `${DATA_DIR}scenarios.json`;
 const GAMETORA = 'https://gametora.com/umamusume/';
@@ -80,9 +83,8 @@ export function retag(scenarios, now = Date.now()) {
 const byJpStart = (a, b) => (a.jp_start_date?.date ?? '9').localeCompare(b.jp_start_date?.date ?? '9');
 
 // Merges GameTora's scenarios (its `scenarios` data file) into ours: JP launch times, Japanese names
-// and links always, new scenarios added, GameTora's English name where we have none.
-// With seedGlobal, also takes GameTora's Global launch times where we have none (or only a prediction). Pure.
-export function mergeGametora(scenarios, raws, { seedGlobal = false, now = Date.now() } = {}) {
+// and links always, new scenarios added, GameTora's English name where we have none. Never Global's dates. Pure.
+export function mergeGametora(scenarios, raws, { now = Date.now() } = {}) {
   const result = scenarios.map((s) => ({ ...s, links: { ...s.links } }));
   for (const raw of raws) {
     const english = raw.name_en_full ?? raw.name_en ?? null;
@@ -111,7 +113,6 @@ export function mergeGametora(scenarios, raws, { seedGlobal = false, now = Date.
       entry.links.cover = cover;
       entry.color = null;
     }
-    if (seedGlobal && unknownOnGlobal(entry) && raw.start_en) entry.en_start_date = known(iso(raw.start_en), now);
   }
   return result.sort(byJpStart);
 }
@@ -144,6 +145,7 @@ export function applyScenarioNews({ posts, scenarios, now = Date.now() }) {
       if (mention.start) {
         entry.en_start_date = known(mention.start, now);
         entry.full_en = mention.full;
+        if (post.id) entry.links.umapyoi_gl = post.id; // the post that dates the launch
       } else if (unknownOnGlobal(entry)) {
         entry.full_en = mention.full;
       }
@@ -151,6 +153,22 @@ export function applyScenarioNews({ posts, scenarios, now = Date.now() }) {
   }
   const changed = result.filter((s) => before.get(s.key) !== state(s));
   return { scenarios: result, changed, unmatched: [...new Set(unmatched)] };
+}
+
+// JP's launch posts (育成シナリオ「X」公開！: categorize(post, ja) → other / scenario, name X) → each scenario's
+// links.umapyoi_jp, matched by its Japanese name (spacing and punctuation aside). Pure; returns the scenarios and the
+// names it couldn't match.
+export function applyJpScenarioNews({ posts, scenarios }) {
+  const result = scenarios.map((s) => ({ ...s, links: { ...s.links } }));
+  const unmatched = [];
+  for (const post of [...posts].sort((a, b) => a.post_at.localeCompare(b.post_at))) {
+    const c = categorize(post, ja);
+    if (c.kind !== 'scenario' || !c.name) continue;
+    const entry = result.find((s) => s.full_jp && normAny(s.full_jp) === normAny(c.name));
+    if (entry) entry.links.umapyoi_jp = c.id;
+    else unmatched.push(c.name);
+  }
+  return { scenarios: result, unmatched };
 }
 
 // Computes the colours of covers that have none yet (downloads only those images). Mutates; returns
@@ -180,6 +198,7 @@ export function readScenarios() {
       en_start_date: upgrade(x.en_start_date),
       jp_start_date: upgrade(x.jp_start_date),
       links: {
+        ...x.links, // umapyoi_jp / umapyoi_gl when the news has them
         gametora: x.links.gametora,
         cover: x.links.cover ?? null,
       },

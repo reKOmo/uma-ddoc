@@ -59,6 +59,7 @@ describe('catalogs', () => {
       ...Object.keys(COMBINED).map((k) => `scenario.${k}`),
       ...['live', 'upcoming', 'ended', 'predicted', 'confirmed'].map((s) => `banners.status.${s}`),
       ...['out', 'confirmed', 'predicted'].map((s) => `banners.scenarioTag.${s}`),
+      ...['barTitle', 'predictedBarTitle', 'confirmedBarTitle'].flatMap((k) => [`banners.${k}`, `events.${k}`]),
       ...['out', 'confirmed', 'predicted'].map((s) => `scenarioPage.status.${s}`),
       'scenarioPage.link.gametora',
       ...['early', 'mid', 'late', 'month'].map((k) => `pullGuide.${k}`),

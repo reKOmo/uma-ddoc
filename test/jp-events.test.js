@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CM_PHASES, EVENT_KINDS, buildEvents, eventsFile, postEvents } from '../scripts/lib/events.js';
 import { cardIndex } from '../scripts/lib/event-rewards.js';
+import { cmPhasesFrom, cutEvents, fillFromGametora, gametoraEvents } from '../scripts/lib/gametora-events.js';
 import { postsFile } from '../scripts/lib/news-api.js';
 import { ja } from '../scripts/lib/news-lang/ja.js';
 import { GENERATED_DIR } from '../scripts/lib/paths.js';
@@ -237,6 +238,132 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
   });
 });
 
+// GameTora's JP history filled in where the news has none (scripts/lib/gametora-events.js).
+describe("GameTora's story events, Champions Meetings and Legend Races", () => {
+  const unix = (iso) => Date.parse(iso) / 1000;
+  const raw = {
+    story: [
+      {
+        id: 1003,
+        name_ja: '花咲く乙女のJunePride',
+        start_ja: unix('2021-05-28T03:00:00Z'),
+        end_ja: unix('2021-06-10T02:59:59Z'),
+        event_support_ids: [30041],
+      },
+      {
+        id: 1015,
+        name_ja: 'シーク・ソルヴ・サマーウォーク！',
+        start_ja: unix('2022-06-30T03:00:00Z'),
+        end_ja: unix('2022-07-11T02:59:59Z'),
+        event_support_ids: [30104],
+      },
+    ],
+    champions_meeting: [
+      { id: 9, name: 'カプリコーン杯', start: unix('2022-01-22T03:00:00Z'), end: unix('2022-01-28T02:59:59Z') },
+      { id: 10, name: 'アクエリアス杯', start: unix('2022-02-18T03:00:00Z'), end: unix('2022-02-24T02:59:59Z') },
+    ],
+    legend_race: [
+      {
+        id: null,
+        name_ja: 'エリザベス女王杯',
+        start: unix('2026-10-08T03:00:00Z'),
+        end: unix('2026-10-13T19:59:59Z'),
+        races: [],
+      },
+    ],
+  };
+  const news = [
+    {
+      id: '835',
+      kind: 'story',
+      name: 'シーク・ソルヴ・サマーウォーク！',
+      parent: null,
+      start: '2022-06-30T03:00:00.000Z',
+      end: '2022-07-11T02:59:00.000Z',
+      cards: [],
+      items: [],
+      titles: [],
+      news_url: 'https://umamusume.jp/news/detail/?id=836',
+      image: null,
+      source: 'news',
+    },
+    {
+      id: '526',
+      kind: 'champions_meeting',
+      name: 'カプリコーン杯',
+      parent: null,
+      start: '2022-01-01T03:00:00.000Z',
+      end: null,
+      cards: [],
+      items: [],
+      titles: [],
+      phases: [],
+      news_url: 'https://umamusume.jp/news/detail/?id=526',
+      image: null,
+      source: 'news',
+    },
+  ];
+  const cardsJp = { 30041: { rarity: 'SSR', title: { jp: '[おもい、ねがう]' }, name: { jp: 'メジロドーベル' } } };
+
+  it("cuts GameTora's files to the fields read, races included", () => {
+    const cut = cutEvents({
+      'events/story-events': [{ ...raw.story[0], banners: [1], bonus_chars: [] }],
+      'events/champions-meeting': [{ ...raw.champions_meeting[0], race: {}, name_en: 'Capricorn Cup' }],
+      'events/legend-race': [
+        { ...raw.legend_race[0], distance: 2200, races: [{ card_id: 1, start: 2, end: 3, boss_stats: [] }] },
+      ],
+    });
+    expect(Object.keys(cut.story[0])).toEqual(['id', 'name_ja', 'start_ja', 'end_ja', 'event_support_ids']);
+    expect(cut.champions_meeting[0]).not.toHaveProperty('name_en');
+    expect(cut.legend_race[0].races).toEqual([{ card_id: 1, start: 2, end: 3 }]);
+  });
+
+  it('makes events of our shape: a story with its cards, a cup from round 1 with its schedule, an unnamed race', () => {
+    const events = gametoraEvents(raw, cardsJp);
+    expect(events.find((e) => e.id === 'gt-story-1003')).toEqual({
+      id: 'gt-story-1003',
+      kind: 'story',
+      name: '花咲く乙女のJunePride',
+      parent: null,
+      start: '2021-05-28T03:00:00.000Z',
+      end: '2021-06-10T02:59:00.000Z',
+      cards: [{ id: 30041, rarity: 'SSR', title: 'おもい、ねがう', name: 'メジロドーベル', copies: null }],
+      items: [],
+      titles: [],
+      news_url: null,
+      image: null,
+      source: 'gametora',
+    });
+    const cup = events.find((e) => e.id === 'gt-cm-10');
+    expect(cup.start).toBe('2022-02-18T03:00:00.000Z');
+    expect(cup.phases.map((p) => p.key)).toEqual(CM_PHASES.map(([key]) => key).filter((k) => k !== 'league_selection'));
+    expect(cup.phases.at(-1)).toEqual({ key: 'final_race', start: '2022-02-23T03:00:00.000Z', end: cup.end });
+    expect(events.find((e) => e.kind === 'legend_race')).toMatchObject({ id: 'gt-lr-20261008', name: null });
+  });
+
+  it('has the same schedule as the news gives cups since mid-2022', () => {
+    const e = read(eventsFile('jp')).find((x) => x.id === '1065');
+    if (!e) return;
+    const round1 = e.phases.find((p) => p.key === 'round_1');
+    expect(cmPhasesFrom(Date.parse(round1.start), Date.parse(e.end))).toEqual(e.phases.slice(1));
+  });
+
+  it('fills only where the news has nothing of the kind, and dates a cup the news only announced', () => {
+    const { events, filled, dated } = fillFromGametora(news, raw, cardsJp);
+    expect(filled.map((e) => e.id).sort()).toEqual(['gt-cm-10', 'gt-lr-20261008', 'gt-story-1003']);
+    expect(dated).toHaveLength(1);
+    expect(events.find((e) => e.id === '526')).toMatchObject({
+      start: '2022-01-22T03:00:00.000Z',
+      end: '2022-01-28T02:59:00.000Z',
+      news_url: 'https://umamusume.jp/news/detail/?id=526',
+      source: 'news',
+    });
+    expect(events.find((e) => e.id === '835')).toBe(news[0]);
+    // Idempotent: run over its own output, nothing more is added.
+    expect(fillFromGametora(events, raw, cardsJp).events).toEqual(events);
+  });
+});
+
 const stored = eventsFile('jp');
 describe.skipIf(!existsSync(stored))('the stored JP events', () => {
   const events = read(stored);
@@ -267,6 +394,17 @@ describe.skipIf(!existsSync(stored))('the stored JP events', () => {
     expect(items.filter((i) => /有償|回限定|称号/.test(i.name))).toEqual([]);
     expect(items.filter((i) => i.local && /[\p{Script=Katakana}\p{Script=Han}]/u.test(i.name))).toEqual([]);
     expect(items.filter((i) => i.name === 'Carats').every((i) => i.local === 'ジュエル')).toBe(true);
+  });
+
+  it("fills GameTora's events only before mid-2022, where the news has none of the kind, marked as GameTora's", () => {
+    const filled = events.filter((e) => e.source === 'gametora');
+    expect(filled.length).toBeGreaterThan(20);
+    expect(filled.filter((e) => e.start >= '2022-07' || e.news_url || e.parent)).toEqual([]);
+    const news = events.filter((e) => e.source === 'news' && !e.parent && e.end);
+    const overlaps = (a, b) => a.kind === b.kind && a.start <= b.end && b.start <= a.end;
+    expect(filled.filter((g) => news.some((e) => overlaps(e, g))).map((e) => e.id)).toEqual([]);
+    // With them, every story event since the launch has its SSR (but one the 2021 news names none for).
+    expect(events.filter((e) => e.kind === 'story' && !e.cards.some((c) => c.rarity === 'SSR')).length).toBeLessThan(2);
   });
 
   it('links parts to an event that exists, and places every event in a group once', () => {

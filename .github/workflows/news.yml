@@ -35,8 +35,9 @@ jobs:
       - name: Fetch JP's news
         id: news_jp
         run: node scripts/fetch-news-latest.js --server jp
-      # Both records need card names, and Global's banners are JP's under the same ids: JP's banners (GameTora).
-      - name: Fetch card data and JP's banners
+      # Both records need card names and titles (generated/cards.json: upstream's lists, data/jp_cards.json, and
+      # GameTora's support card list for cards newer than it); JP's banners are our own (data/jp_banners.json).
+      - name: Fetch card data
         if: steps.news.outputs.update == 'true' || steps.news_jp.outputs.update == 'true'
         run: node scripts/update-cards.js && node scripts/scrape-gametora.js
       # A model (OpenRouter's free Gemma) answers what the rules doubt in new events → data/news/gl/ai_answers.json.

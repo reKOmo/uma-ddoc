@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "cards.schema.json",
   "title": "Cards",
-  "description": "Every support card upstream or GameTora has, with what the site shows (generated/cards.json, built by `pnpm build-cards`, see scripts/lib/cards.js). The tier list calculation's inputs are in generated/card_stats/.",
+  "description": "Every support card upstream, data/jp_cards.json or GameTora has, with what the site shows (generated/cards.json, built by `pnpm build-cards`, see scripts/lib/cards.js). The tier list calculation's inputs are in generated/card_stats/.",
   "type": "object",
   "propertyNames": { "pattern": "^\\d+$" },
   "additionalProperties": {
@@ -12,7 +12,7 @@
     "properties": {
       "id": { "description": "The card id (the same on both servers and on GameTora).", "type": "integer" },
       "charId": {
-        "description": "GameTora's character id (for group cards, one member's); null without GameTora's data.",
+        "description": "GameTora's character id (for group cards, one member's; from data/jp_cards.json); null without it.",
         "type": ["integer", "null"]
       },
       "type": {
@@ -29,7 +29,7 @@
         "$ref": "#/$defs/texts"
       },
       "release": {
-        "description": "Release dates per server (gl: data/global_cards.json, jp: GameTora), null when not out (or unknown).",
+        "description": "Release dates per server (gl: data/global_cards.json, jp: data/jp_cards.json, from GameTora), null when not out (or unknown).",
         "type": "object",
         "required": ["gl", "jp"],
         "additionalProperties": false,
@@ -44,18 +44,23 @@
         "type": "object",
         "required": ["gametora"],
         "additionalProperties": false,
-        "properties": { "gametora": { "type": ["string", "null"], "pattern": "^https://gametora\\.com/" } }
+        "properties": {
+          "gametora": {
+            "description": "GameTora's page slug (its url_name, e.g. 30321-duramente): the app links https://gametora.com/umamusume/supports/<slug>.",
+            "type": ["string", "null"],
+            "pattern": "^\\d+-[a-z0-9-]+$"
+          }
+        }
       },
       "images": {
         "type": "object",
-        "required": ["icon", "art"],
+        "required": ["icon"],
         "additionalProperties": false,
         "properties": {
           "icon": {
-            "description": "Square icon (upstream's where it has the card, else GameTora's).",
-            "type": "string"
-          },
-          "art": { "description": "Full card art (GameTora's, 3:4).", "type": "string" }
+            "description": "Upstream's square icon (at upstream's commit) where it has the card, else null: the app builds GameTora's from the id, as it does the full art.",
+            "type": ["string", "null"]
+          }
         }
       }
     }

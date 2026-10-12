@@ -8,6 +8,7 @@ import { rankHistory } from '../rankHistory.js';
 import { loadPredictions } from '../predictions.js';
 import { currentAdvice, latestAdvice, loadPullGuide, sheetLink, upcomingBanner } from '../pullGuide.js';
 import { loadBanners } from '../bannerData.js';
+import { cardArt, cardIcon, cardPage } from '../gametora.js';
 import StatusBadge from '../StatusBadge.jsx';
 import ScenarioPicker from '../ScenarioPicker.jsx';
 import RankChart, { formatDay } from './RankChart.jsx';
@@ -136,7 +137,7 @@ export default function CardPage({ cardId, server, scenario }) {
   return (
     <div className="page card-page">
       <div className="card-hero">
-        <img className="card-art" src={card.images.art} alt={name} />
+        <img className="card-art" src={cardArt(cardId)} alt={name} />
         <div className="card-facts">
           <h1>{name}</h1>
           {title && <p className="card-title">{title}</p>}
@@ -146,7 +147,7 @@ export default function CardPage({ cardId, server, scenario }) {
             {card.type === 'group' && <span className="tag">{t('card.group')}</span>}
           </p>
           {card.links.gametora && (
-            <a className="gametora-link" href={card.links.gametora} target="_blank" rel="noreferrer">
+            <a className="gametora-link" href={cardPage(card.links.gametora)} target="_blank" rel="noreferrer">
               {t('card.viewOnGameTora')}
               <ExternalLink size={16} aria-hidden="true" />
             </a>
@@ -526,7 +527,7 @@ function RankOverTime({ cardId, server, scenarios, combined, defaultScenario, ra
                             {point.overtakenBy.map((c) => (
                               <li key={c.id}>
                                 <a className="passed-card" href={`#/card/${c.id}`}>
-                                  <img src={cards[c.id]?.images.icon} alt="" loading="lazy" />
+                                  <img src={cardIcon(c.id, cards)} alt="" loading="lazy" />
                                   <span>
                                     <strong>{nameOf(c.id, server)}</strong>
                                     {titleOf(c.id, server) && <small>{titleOf(c.id, server)}</small>}

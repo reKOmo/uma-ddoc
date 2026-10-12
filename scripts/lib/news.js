@@ -28,5 +28,5 @@ export function scenarioPost(post) {
     if (start && !mention.start) mention.start = start;
     found.set(norm(full), mention);
   }
-  return { posted, scenarios: [...found.values()] };
+  return { id: Number(post.announce_id), posted, scenarios: [...found.values()] };
 }

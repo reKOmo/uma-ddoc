@@ -291,6 +291,16 @@ export const ja = {
   notGivenList: /中から|候補|対象サポートカード|レンタル|セット内容|交換/,
   copies: /^(?=.*?合計\s*(\d+)\s*枚)|(?:最大|計)\s*(\d+)\s*枚|(\d+)\s*枚ずつ/,
   cardMention: /\[([^\]]+)\]\s*([^\s\]、。！!？?「」『』()（）×]+)/g,
+  // New cards (scripts/lib/jp-cards.js reads these; cardsIn() above never does): a card an event gives, named with
+  // its rarity. A story event's own SSR ("・イベント限定SSRサポートカード「[“最強”なる眷属]ドゥラメンテ」": rarity, title,
+  // name), or a card given on a line that says so (`newCardGiven`, not `notGiven`): "SSRサポートカード「[…]ライスシャワー」
+  // をプレゼント", "「SSR[Endless Game]ルーラーシップ」を最大2枚プレゼント" (rarity before or inside the quotes, title, name).
+  // (Some posts leave the quotes out, "・イベント限定SSRサポートカード[黄金の夢に溺れよ] オルフェーヴル": then only at the end
+  // of a line, where the name can't run on into the sentence.)
+  eventCard:
+    /イベント限定\s*(SSR|SR|R)\s*(?:サポートカード)?\s*(?:「\s*\[([^\]]+)\]\s*([^」]+?)\s*」|\[([^\]]+)\]\s*([^\s、。！「」]+)\s*$)/g,
+  giftCard: /(?:(?<![A-Za-z])(SSR|SR|R)\s*(?:サポートカード)?\s*)?「\s*(SSR|SR|R)?\s*\[([^\]]+)\]\s*([^」]+?)\s*」/g,
+  newCardGiven: /プレゼント|獲得|お贈り/,
   login: /^(?:・\s*)?ログイン(\d+)(?:[～〜~](\d+))?日目[：:]\s*/,
   dated: new RegExp(`^\\d{1,2}/\\d{1,2}\\s+\\d{1,2}:\\d{2}\\s*(?!${TILDE})`),
   // "・タフネス30×3", "「マニー」×100000", "ジュエル3000個" (a gift's contents)
@@ -407,5 +417,7 @@ export const ja = {
     ['campaign', /キャンペーン/],
   ],
   gives: /プレゼントの?内容|報酬内容/,
+  // Parts that don't stretch their celebration: sales (a starter pack stays on sale for a year or more after it).
+  notSpanning: (event) => event.kind === 'sale',
   missionRewards: (line) => /ミッション/.test(line) && /報酬/.test(line),
 };

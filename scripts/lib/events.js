@@ -326,7 +326,7 @@ export function postEvents(post, index = new Map(), lang = en) {
   // sub-event's end.
   const [overview, ...subs] = events;
   if (!overview.start && c.phase !== 'ended') {
-    const all = span(subs);
+    const all = span(subs.filter((e) => !lang.notSpanning?.(e)));
     overview.start = openingPeriod(blocks[0], year, lang)?.start ?? all?.start ?? posted;
     overview.end = all?.end ?? null;
   }
@@ -507,8 +507,9 @@ export function buildEvents(posts, { cmTable = [], cards = {}, answers = {}, lan
   for (const e of events) if (alias.has(e.parent)) e.parent = alias.get(e.parent);
   // An event spans its parts (a celebration dated from its first section, a 3-day collab, runs as long as its login
   // bonus and gifts).
+  // (lang.notSpanning: parts that don't stretch their event; JP: sales, a pack on sale for a year or more after it.)
   const parts = Map.groupBy(
-    events.filter((e) => e.parent),
+    events.filter((e) => e.parent && !lang.notSpanning?.(e)),
     (e) => e.parent
   );
   for (const e of events) if (parts.has(e.id)) Object.assign(e, span([e, ...parts.get(e.id)]));

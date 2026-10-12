@@ -13,9 +13,13 @@ import './card.css'; // shared: .card-tags, .tag, .gametora-link (pill button), 
 import './scenario.css';
 
 const day = (ms) => new Date(ms).toISOString().slice(0, 10);
-// scenario.links that are pages to visit (the rest, like `cover`, are images), each with a
-// scenarioPage.link.<key> name.
-const LINK_KEYS = ['gametora'];
+// scenario.links that are pages to visit (the rest, like `cover`, are images), in this order, each with a
+// scenarioPage.link.<key> name: GameTora's page, and the launch post on umapyoi.net (JP's in Japanese, Global's).
+const LINKS = {
+  gametora: (url) => url,
+  umapyoi_jp: (id) => `https://umapyoi.net/news/${id}?lang=jp`,
+  umapyoi_gl: (id) => `https://umapyoi.net/en/news/${id}`,
+};
 
 // Server-agnostic: both servers' launches side by side, "Newest on …" for each server it's the latest on.
 const SERVER_ORDER = ['jp', 'gl'];
@@ -67,7 +71,9 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }) {
   const rankable = SERVER_ORDER.some((s) => getServerConfig(s).availableScenarios.includes(scenario.key));
   const [jp, en] = [scenario.jp_start_date, scenario.en_start_date];
   // External pages about the scenario (links other than images), in this order.
-  const links = LINK_KEYS.filter((key) => scenario.links[key]).map((key) => [key, scenario.links[key]]);
+  const links = Object.entries(LINKS)
+    .filter(([key]) => scenario.links[key])
+    .map(([key, url]) => [key, url(scenario.links[key])]);
 
   function openTierList() {
     onScenarioChange(scenario.key);
