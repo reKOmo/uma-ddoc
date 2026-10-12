@@ -123,6 +123,10 @@
     "predictedFrom_one": "Predicted from the JP banner of {{dates}}; could be {{count}} day earlier or later.",
     "predictedFrom_other": "Predicted from the JP banner of {{dates}}; could be {{count}} days earlier or later.",
     "announced": "From the <a>official announcement</a>.",
+    "paidBadge": "paid",
+    "paid": "A paid scout: its pulls cost paid jewels only.",
+    "rerunOf": "Re-run of the banner of {{dates}}",
+    "reheld": "Re-held {{dates}}",
     "details": "Banner details",
     "days_one": "{{count}} day",
     "days_other": "{{count}} days",
@@ -143,10 +147,13 @@
     "kind": {
       "story": "Story event",
       "champions_meeting": "Champions Meeting",
+      "league_of_heroes": "League of Heroes",
       "legend_race": "Legend Race",
       "transfer_requests": "Transfer Requests",
       "uma_outing": "Uma Outing",
       "special": "Special event",
+      "factor_research": "Factor Research",
+      "masters_challenge": "Masters Challenge",
       "celebration": "Celebration",
       "campaign": "Campaign",
       "gift": "Gift",
@@ -169,6 +176,7 @@
     "group": {
       "story": "Story & special events",
       "champions_meeting": "Champions Meetings",
+      "league_of_heroes": "League of Heroes",
       "legend_race": "Legend Races",
       "celebration": "Celebrations",
       "gifts": "Gifts & login bonuses",
@@ -187,7 +195,13 @@
       "round_2": "Round 2",
       "final_registration": "Final round: registration",
       "final_matching": "Final round: matching",
-      "final_race": "Final round: race"
+      "final_race": "Final round: race",
+      "team_formation": "Team formation",
+      "main_stage": "Main stage",
+      "extra_registration": "Extra stage: registration",
+      "extra_matching": "Extra stage: matching",
+      "extra_voting": "Extra stage: votes",
+      "extra_race": "Extra stage: race"
     }
   },
   "card": {

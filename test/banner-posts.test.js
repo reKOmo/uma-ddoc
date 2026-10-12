@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { bannerPost } from '../scripts/lib/banner-posts.js';
-import { POSTS_FILE } from '../scripts/lib/news-api.js';
+import { postsFile } from '../scripts/lib/news-api.js';
 
 const art = (id) =>
   `<figure><img src="https://example.com/uploads/Header/gacha_banner_${id}_L1791410400.png?c=1&amp;x=2"></figure>`;
@@ -86,9 +86,9 @@ describe('bannerPost', () => {
   });
 });
 
-describe.skipIf(!existsSync(POSTS_FILE))('the stored news', () => {
-  const posts = JSON.parse(readFileSync(POSTS_FILE, 'utf8'));
-  const banners = posts.map(bannerPost).filter(Boolean);
+describe.skipIf(!existsSync(postsFile('gl')))('the stored news', () => {
+  const posts = JSON.parse(readFileSync(postsFile('gl'), 'utf8'));
+  const banners = posts.map((post) => bannerPost(post)).filter(Boolean);
 
   it('types and dates every banner', () => {
     expect(banners.length).toBeGreaterThan(0);

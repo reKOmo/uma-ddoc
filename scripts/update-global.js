@@ -1,29 +1,30 @@
 // Brings Global's own banner + card release record (data/, see scripts/lib/global.js) up to date
-// with the official news (data/news/posts.json, from `pnpm news:latest`): every scout post's
+// with the official news (data/news/gl/posts.json, from `pnpm news:latest`): every scout post's
 // banners (scripts/lib/banner-posts.js) become Global banners, their cards Global releases, and the Career scenario launches the
 // posts name go into data/scenarios.json (en_start_date, official names; see scripts/lib/scenarios.js), and the in-game
 // events with the cards and items they give into data/global_events.json (scripts/lib/events.js). Idempotent: the news-made
 // entries are rebuilt from all posts each time, the seeded ones are left alone.
 //
-// Needs JP's banners (generated/jp_banners.json, `pnpm scrape-gametora`) for the banners' items,
-// and our card data (generated/cards.json) for English names. Appends what changed to data/news/summary.md,
+// Needs JP's banners (data/jp_banners.json, without paid scouts and our own re-run entries) for the banners' items,
+// and our card data (generated/cards.json) for English names. Appends what changed to data/news/gl/summary.md,
 // then rebuilds the card data with the new Global releases (scripts/build-cards.js).
 //
 // Usage: pnpm update-global
 
 import { appendFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { GENERATED_DIR, NEWS_DIR } from './lib/paths.js';
+import { GENERATED_DIR, newsDir } from './lib/paths.js';
 import { bannerPost } from './lib/banner-posts.js';
 import { loadPosts } from './lib/news-api.js';
 import { scenarioPost } from './lib/news.js';
 import { BANNERS_FILE, CARDS_FILE, applyNews, englishNames, readJson, writeGlobal } from './lib/global.js';
 import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.js';
+import { readJpBanners, regularBanners } from './lib/jp-banners.js';
 import { buildEvents, readAnswers, readCmTable, readEvents, writeEvents } from './lib/events.js';
 import { ensureCards } from './update-cards.js';
 import { buildCardFiles } from './build-cards.js';
 
-const SUMMARY_FILE = `${NEWS_DIR}summary.md`;
+const SUMMARY_FILE = `${newsDir('gl')}summary.md`;
 
 const day = (iso) => iso.slice(0, 10);
 const when = (iso) => `${iso.slice(0, 16).replace('T', ' ')} UTC`;
@@ -34,12 +35,12 @@ export async function updateGlobal() {
   await ensureCards();
   const global = readJson(BANNERS_FILE);
   const cards = readJson(CARDS_FILE);
-  const jp = readJson(`${GENERATED_DIR}jp_banners.json`);
+  const jp = regularBanners(readJpBanners());
   const cardData = readJson(`${GENERATED_DIR}cards.json`);
   const raw = [...loadPosts().values()];
   const posts = raw.map(scenarioPost);
 
-  const scouts = raw.map(bannerPost).filter(Boolean);
+  const scouts = raw.map((post) => bannerPost(post)).filter(Boolean);
   const result = applyNews({ posts: scouts, global, cards, jp, names: englishNames(global, cardData) });
   writeGlobal(result);
   await buildCardFiles();

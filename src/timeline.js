@@ -25,6 +25,9 @@ export function packRows(items) {
   return rows.map((r) => r.items);
 }
 
+// When a banner ends (ms): one without an end (a JP paid scout "until further notice") counts as a single day.
+const endOf = (banner) => (banner.end ? Date.parse(banner.end) : Date.parse(banner.start) + DAY);
+
 // sections: [{ key, label, banners }] → everything the view needs to draw.
 export function buildTimeline(sections, { now = Date.now(), utc = true } = {}) {
   const f = utc ? UTC : LOCAL;
@@ -36,7 +39,7 @@ export function buildTimeline(sections, { now = Date.now(), utc = true } = {}) {
     return d.getTime();
   };
   const all = sections.flatMap((s) => s.banners);
-  const times = all.flatMap((b) => [Date.parse(b.start), Date.parse(b.end)]);
+  const times = all.flatMap((b) => [Date.parse(b.start), endOf(b)]);
   // A week of padding before the first banner, a month after the last (or today).
   const origin = startOfDay(Math.min(...times)) - 7 * DAY;
   const last = Math.max(...times, now) + 30 * DAY;
@@ -70,7 +73,7 @@ export function buildTimeline(sections, { now = Date.now(), utc = true } = {}) {
       rows: packRows(
         s.banners.map((banner) => {
           const start = Date.parse(banner.start);
-          const end = Date.parse(banner.end);
+          const end = endOf(banner);
           return { banner, start, end, from: day(start), length: (end - start) / DAY };
         })
       ),

@@ -700,3 +700,9 @@ h1 {
   color: #fff;
   background: #2f9e6e;
 }
+
+/* A paid scout (JP's guaranteed ★3/SSR, step-up… banners), on the Timeline's sheet. */
+.badge.paid {
+  color: #fff;
+  background: #c2410c;
+}

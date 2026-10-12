@@ -227,13 +227,16 @@
 .kind-story {
   --event-color: var(--event-story);
 }
-.kind-champions_meeting {
+.kind-champions_meeting,
+.kind-league_of_heroes {
   --event-color: var(--event-champions);
 }
 .kind-legend_race {
   --event-color: var(--event-legend);
 }
-.kind-special {
+.kind-special,
+.kind-factor_research,
+.kind-masters_challenge {
   --event-color: var(--event-special);
 }
 .kind-celebration {
@@ -577,6 +580,12 @@
   border-radius: 10px;
 }
 
+/* A scout's name from its post (JP's paid scouts list no featured items to go by). */
+.sheet-banner-name {
+  margin: 12px 0 0;
+  font-weight: 600;
+}
+
 .sheet-dates {
   display: flex;
   flex-wrap: wrap;
@@ -774,6 +783,12 @@
   color: var(--muted);
 }
 
+/* A schedule's exact times are long: they wrap on phones instead of running off the sheet. */
+.event-schedule small {
+  flex: 0 1 auto;
+  text-align: right;
+}
+
 .event-titles,
 .event-none {
   margin: 12px 0;
@@ -801,6 +816,12 @@
 .event-parent {
   margin-bottom: 4px;
   font-weight: 600;
+}
+
+/* A banner's re-run or original (JP), when it isn't on the calendar. */
+.event-parent:disabled {
+  color: var(--muted);
+  cursor: default;
 }
 
 .event-dot {

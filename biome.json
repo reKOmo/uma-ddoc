@@ -10,9 +10,10 @@
     "includes": [
       "**",
       "!data/global_*.json",
+      "!data/jp_*.json",
       "!data/scenarios.json",
-      "!data/news/posts.json",
-      "!data/news/ai_answers.json"
+      "!data/news/*/posts.json",
+      "!data/news/*/ai_answers.json"
     ]
   },
   "formatter": {

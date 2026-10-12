@@ -39,7 +39,9 @@ jobs:
       - name: Scrape JP banners and card links from GameTora
         run: pnpm scrape-gametora
       # Normally already done and committed by news.yml; rerun so a news commit made any other way
-      # still shows up (not committed from here).
+      # still shows up (not committed from here). JP's first: Global's news pairs with JP's banners by id.
+      - name: Apply the official JP news to JP's banners and events
+        run: pnpm update-jp
       - name: Apply the official news to Global's banners
         run: pnpm update-global
       - uses: astral-sh/setup-uv@v10.2.0 # no floating v10 tag (setup-uv stopped publishing major tags after v7)

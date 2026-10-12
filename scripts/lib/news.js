@@ -1,4 +1,4 @@
-// The new Career scenarios a news post (data/news/posts.json, as the API sends it) names, for Global's scenario
+// The new Career scenarios a news post (data/news/gl/posts.json, as the API sends it) names, for Global's scenario
 // launches (scripts/lib/scenarios.js applyScenarioNews()). Pure.
 //
 // scenarioPost(post) → { posted, scenarios: [{ full, start }] }: 'the new Career scenario "X" has been added', 'A new

@@ -32,6 +32,15 @@ describe('globalProgress', () => {
     expect(globalProgress({ global: announced, jp, now: day('2026-01-06') }).toKnown).toBe(true);
   });
 
+  it("ignores JP's paid banners and our own re-run entries (Global never runs them)", () => {
+    const withPaid = {
+      characters: [{ ...banner(1, '2022-01-01', '2022-01-31'), paid: true }, banner('1-rerun', '2022-01-01')],
+      cards: jp.cards,
+    };
+    const p = globalProgress({ global, jp: withPaid, now: day('2026-01-06') });
+    expect(p).toMatchObject({ from: day('2022-01-01'), to: day('2022-01-10') });
+  });
+
   it("isn't pulled back by a rerun of an older JP banner", () => {
     const withRerun = { characters: [], cards: [banner(2, '2026-01-01'), banner(1, '2026-01-05')] };
     const p = globalProgress({ global: withRerun, jp, now: day('2026-01-06') });

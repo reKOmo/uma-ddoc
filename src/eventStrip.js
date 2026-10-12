@@ -1,4 +1,5 @@
-// Global's in-game events (data/global_events.json) for their lanes on the banner calendar. Pure.
+// Each server's in-game events (data/global_events.json, data/jp_events.json) for their lanes on the banner calendar.
+// Pure.
 //
 // eventGroups(events) → [{ key, rows }]: the events in labelled groups by type (EVENT_GROUPS), each packed on its own
 //   so overlapping events stack; rows of [{ event, start, end, parts }] (times in ms; `parts`: the rows of its own
@@ -10,12 +11,14 @@
 
 import { DAY, packRows } from './timeline.js';
 
-const FIRST = [/^carats$/i, /^monies$/i, /crystal shards/i, /scout tickets?$/i, /voucher/i];
+// (JP items Global has go by Global's names; a JP voucher is an 引換券.)
+const FIRST = [/^carats$/i, /^monies$/i, /crystal shards/i, /scout tickets?$/i, /voucher|引換券/i];
 
 // The Timeline's event groups, in order, and the kinds in each.
 export const EVENT_GROUPS = [
-  ['story', ['story', 'special']],
+  ['story', ['story', 'special', 'factor_research', 'masters_challenge']],
   ['champions_meeting', ['champions_meeting']],
+  ['league_of_heroes', ['league_of_heroes']],
   ['legend_race', ['legend_race']],
   ['celebration', ['celebration']],
   ['gifts', ['gift', 'login_bonus']],

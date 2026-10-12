@@ -23,4 +23,13 @@ describe('buildTimeline', () => {
   it("uses the viewer's days with utc: false", () => {
     expect(barStart(buildTimeline(sections, { now, utc: false }))).toEqual([15, 0]);
   });
+
+  it('counts a banner without an end (a paid scout "until further notice") as one day', () => {
+    const open = [
+      { key: 'cards', banners: [...sections[0].banners, { start: '2026-03-11T03:00:00.000Z', end: null }] },
+    ];
+    const timeline = buildTimeline(open, { now });
+    expect(Number.isFinite(timeline.days)).toBe(true);
+    expect(timeline.sections[0].rows[0][0].length).toBe(1);
+  });
 });

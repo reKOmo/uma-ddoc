@@ -1,7 +1,7 @@
-// Banner files for the Timeline and the card page, only downloaded when one of them asks.
+// Banner (and event) files for the Timeline and the card page, only downloaded when one of them asks.
 const BANNERS = {
   global: () => import('../data/global_banners.json'), // ours: seeded from GameTora, kept up from the news
-  jp: () => import('../generated/jp_banners.json'),
+  jp: () => import('../data/jp_banners.json'), // ours: GameTora's history + the JP news (scripts/lib/jp-banners.js)
 };
 // Global's future banners, predicted from JP's by `pnpm predict-gl` (ml/). Optional: the glob is
 // empty when the file hasn't been generated, and the page goes without. (Banners announced in the
@@ -24,6 +24,14 @@ export async function loadBanners(name) {
     real
   );
 }
+
+// Each server's in-game events (scripts/lib/events.js: built from the news by `update-global` / `update-jp`), only
+// downloaded when the Timeline shows that server.
+const EVENTS = {
+  global: () => import('../data/global_events.json'),
+  jp: () => import('../data/jp_events.json'),
+};
+export const loadEvents = (name) => EVENTS[name]().then((m) => m.default);
 
 // Where a banner stands, as its badge (.badge.<status>) and banners.status.<status> say.
 export function bannerStatus(banner, now = Date.now()) {

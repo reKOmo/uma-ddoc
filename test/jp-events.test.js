@@ -1,0 +1,280 @@
+// JP's in-game events from the JP news (scripts/lib/events.js read with the Japanese lexicon, news-lang/ja.js), on the
+// posts sampled in test/fixtures/jp-news-samples.json, and the stored data/jp_events.json.
+import { existsSync, readFileSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
+import { CM_PHASES, EVENT_KINDS, buildEvents, eventsFile, postEvents } from '../scripts/lib/events.js';
+import { cardIndex } from '../scripts/lib/event-rewards.js';
+import { postsFile } from '../scripts/lib/news-api.js';
+import { ja } from '../scripts/lib/news-lang/ja.js';
+import { GENERATED_DIR } from '../scripts/lib/paths.js';
+import { EVENT_GROUPS, eventGroups } from '../src/eventStrip.js';
+
+const read = (file) => JSON.parse(readFileSync(file, 'utf8'));
+const cardsFile = `${GENERATED_DIR}cards.json`;
+const cards = existsSync(cardsFile) ? read(cardsFile) : {};
+// Card lookups need GameTora's Japanese titles (pnpm scrape-gametora).
+const withJp = cards['30113']?.title?.jp != null;
+const index = cardIndex(cards, ja);
+
+const file = postsFile('jp');
+describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
+  const posts = read(file);
+  const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
+  const of = (id) => postEvents(byId.get(String(id)), index, ja);
+  const one = (id) => {
+    const events = of(id);
+    expect(events).toHaveLength(1);
+    return events[0];
+  };
+  const build = (...ids) =>
+    buildEvents(
+      ids.map((id) => byId.get(String(id))),
+      { cards, lang: ja }
+    );
+  const copies = (e) => e.cards.map((c) => [c.id, c.copies]);
+
+  it('reads a story event: dates in JST, its SSR and its title', () => {
+    const e = one(915);
+    expect(e).toMatchObject({
+      kind: 'story',
+      name: '鉄翼蒸気奇譚',
+      start: '2022-08-29T03:00:00.000Z',
+      end: '2022-09-12T02:59:00.000Z',
+      titles: ['鉄翼蒸気奇譚'],
+      items: [],
+      news_url: 'https://umamusume.jp/news/detail/?id=915',
+    });
+    expect(one(3481)).toMatchObject({ start: '2026-09-30T03:00:00.000Z', end: '2026-10-13T02:59:00.000Z' });
+    if (withJp) {
+      expect(copies(e)).toEqual([[30113, null]]); // story posts never say how many copies
+      expect(copies(one(3481))).toEqual([[30321, null]]);
+    }
+  });
+
+  it('merges a story announced with a typo in its name (乱華 / 爛華)', () => {
+    const events = build(3220, 3221);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ id: '3220', name: '紅蓮の咆哮 白焔の爛華' });
+  });
+
+  it("reads a Champions Meeting's schedule, from its league selection", () => {
+    const e = one(810);
+    expect(e).toMatchObject({ kind: 'champions_meeting', name: 'ジェミニ杯', start: '2022-06-10T03:00:00.000Z' });
+    expect(e.phases.map((p) => p.key)).toEqual(CM_PHASES.map(([key]) => key));
+    expect(e.end).toBe(e.phases.at(-1).end);
+    expect(e.titles).toEqual(['ジェミニ杯プラチナ', 'ジェミニ杯ゴールド', 'ジェミニ杯シルバー', 'ジェミニ杯ブロンズ']);
+    expect(e.items).toEqual([
+      { name: 'タフネス30', count: 3 },
+      { name: '目覚まし時計', count: 3 },
+    ]);
+    const [cup] = build(3463, 3464);
+    expect(cup).toMatchObject({ id: '3463', name: 'CLASSIC', start: '2026-09-26T03:00:00.000Z' });
+    expect(cup.titles).toContain('凱旋門に刻む蹄跡');
+  });
+
+  it('merges a cup announced two months ahead without dates ("9月下旬") into the cup', () => {
+    const events = build(2670, 2776, 2777);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ id: '2670', start: '2025-09-19T03:00:00.000Z' });
+    expect(events[0].phases).toHaveLength(6);
+  });
+
+  it('reads Legend Races: every race, items without amounts', () => {
+    expect(one(404)).toMatchObject({ kind: 'legend_race', name: null, start: '2021-09-14T03:00:00.000Z' });
+    const e = one(806);
+    expect(e).toMatchObject({ start: '2022-06-24T03:00:00.000Z', end: '2022-06-29T19:59:00.000Z' });
+    expect(e.items).toContainEqual({ name: 'Rainbow Crystal Shards', count: null, local: '虹の結晶片' });
+    expect(e.items).toContainEqual({ name: '金の結晶片', count: null });
+    expect(one(3426)).toMatchObject({ start: '2026-09-06T03:00:00.000Z', end: '2026-09-11T19:59:00.000Z' });
+  });
+
+  it('reads a League of Heroes: no name, its schedule from team formation, its titles but not placeholders', () => {
+    const e = one(3380);
+    expect(e).toMatchObject({ kind: 'league_of_heroes', name: null, start: '2026-08-11T03:00:00.000Z' });
+    expect(e.phases.map((p) => p.key)).toEqual(ja.schedules.league_of_heroes.map(([key]) => key));
+    expect(e.titles).toContain('英雄譚');
+    expect(e.titles.some((t) => t.includes('○'))).toBe(false);
+    expect(e.items.some((i) => /称号/.test(i.name))).toBe(false);
+    const [league] = build(3379, 3380);
+    expect(league).toMatchObject({ id: '3379', end: '2026-08-23T02:59:00.000Z' });
+  });
+
+  it("reads specials: an event's own period, not when rewards are collected", () => {
+    // 技能試験 posts open with the period heading, no sentence
+    expect(one(3313)).toMatchObject({
+      kind: 'special',
+      name: 'トレーナー技能試験',
+      start: '2026-06-29T03:00:00.000Z',
+      end: '2026-07-10T02:59:00.000Z',
+    });
+    expect(one(3331)).toMatchObject({
+      kind: 'factor_research',
+      name: 'アグネスタキオンの因子研究',
+      start: '2026-07-10T03:00:00.000Z',
+      end: '2026-07-21T02:59:00.000Z',
+    });
+  });
+
+  it("cuts a celebration at its parts' art: login bonus, gift, missions, shop, sale; no scouts or summaries", () => {
+    const events = of(902);
+    const parts = events.filter((e) => e.parent === '902');
+    expect(events[0]).toMatchObject({ kind: 'celebration', start: '2022-08-24T03:00:00.000Z', items: [] });
+    expect(parts.map((e) => e.kind).sort()).toEqual(
+      ['campaign', 'campaign', 'campaign', 'campaign', 'gift', 'login_bonus', 'missions', 'sale', 'shop'].sort()
+    );
+    // the paid ★3/SSR scouts aren't parts, nor is the block summing up the card's copies
+    expect(parts.some((e) => /ガチャ」?$|確定/.test(e.name))).toBe(false);
+    const byKind = Object.fromEntries(parts.map((e) => [e.kind, e]));
+    // a gift sent without a period: from the post to the deadline of who gets it
+    expect(byKind.gift).toMatchObject({
+      name: 'ジュエル3000個',
+      start: '2022-08-24T03:00:00.000Z',
+      end: '2022-09-29T02:59:00.000Z',
+      items: [{ name: 'Carats', count: 3000, local: 'ジュエル' }],
+    });
+    // login prose: "1日ジュエルを300個、…最大で3000個のジュエル"
+    expect(byKind.login_bonus.items).toEqual([{ name: 'Carats', count: 3000, local: 'ジュエル' }]);
+    expect(byKind.sale.name).toBe('1.5th Anniv.記念 3回限定 ジュエル 7500個');
+    if (withJp) {
+      // "「…ログインボーナス」で最大2枚、「…ミッション第2弾」で最大3枚、合計5枚"
+      expect(copies(byKind.login_bonus)).toEqual([[30121, 2]]);
+      expect(copies(byKind.missions)).toEqual([[30121, 3]]);
+      const parts3407 = of(3407).filter((e) => e.cards.length);
+      expect(parts3407.map((e) => [e.kind, ...copies(e)])).toEqual([
+        ['login_bonus', [30313, 2]],
+        ['missions', [30313, 3]],
+      ]);
+    }
+  });
+
+  it('splits an intro off a celebration, so its first art starts a part', () => {
+    const events = of(657);
+    expect(events[0].items).toEqual([]);
+    expect(events.find((e) => e.kind === 'login_bonus')).toMatchObject({
+      start: '2022-03-07T03:00:00.000Z',
+      items: [{ name: 'Carats', count: 2250, local: 'ジュエル' }],
+    });
+    expect(events.find((e) => e.kind === 'missions').items).toContainEqual({
+      name: '1st Anniversary SSR引換券',
+      count: null,
+    });
+  });
+
+  it('reads New Year parts across the year, and skips the scouts it links to', () => {
+    const events = of(2984);
+    expect(events.find((e) => e.name === 'お正月特別ログインボーナス')).toMatchObject({
+      start: '2025-12-31T20:00:00.000Z',
+      end: '2026-01-29T19:59:00.000Z',
+      items: [{ name: 'Carats', count: 4200, local: 'ジュエル' }],
+    });
+    expect(events.some((e) => /ガチャ」?$/.test(e.name) && !/無料/.test(e.name))).toBe(false);
+  });
+
+  it('reads login days, mission sets in one period, dated gift rows', () => {
+    const christmas = of(1093).find((e) => e.kind === 'gift' && /クリスマスプレゼント/.test(e.name));
+    expect(christmas.items).toContainEqual({ name: 'Carats', count: 650, local: 'ジュエル' });
+    expect(christmas.items).toContainEqual({ name: 'Support Points', count: 5000, local: 'サポートPt' });
+    const g1 = of(3233);
+    expect(g1.find((e) => e.kind === 'gift').items).toEqual([{ name: 'Monies', count: 600000, local: 'マニー' }]);
+    const [missions] = buildEvents([byId.get('3233')], { lang: ja }).filter((e) => e.parent === '3233-1');
+    expect(missions).toMatchObject({
+      kind: 'missions',
+      name: '帝王賞応援の期間限定ミッション',
+      start: '2026-06-24T20:00:00.000Z',
+    });
+    expect(buildEvents([byId.get('3233')], { lang: ja }).filter((e) => e.parent === '3233-1')).toHaveLength(4);
+    // "「目覚まし時計」×50、「タフネス30」×10" on ten dated rows
+    expect(of(2559).find((e) => e.items.length).items).toEqual([
+      { name: '目覚まし時計', count: 500 },
+      { name: 'タフネス30', count: 100 },
+    ]);
+  });
+
+  it('counts a card given once per episode, and 26 weekly login windows into the next year', () => {
+    const events = of(3466);
+    expect(events.find((e) => e.kind === 'login_bonus')).toMatchObject({
+      kind: 'login_bonus',
+      start: '2026-09-27T14:00:00.000Z',
+      end: '2027-04-04T19:59:00.000Z',
+      items: [{ name: 'Carats', count: 3900, local: 'ジュエル' }],
+    });
+    if (withJp) expect(copies(events.find((e) => e.kind === 'gift'))).toEqual([[30318, 5]]);
+    // "第1話から第3話では1枚ずつ、第4話では2枚の合計5枚"
+    if (withJp) expect(copies(of(2525).find((e) => e.kind === 'gift'))).toEqual([[30260, 5]]);
+  });
+
+  it('reads gifts once, until the deadline of who gets them', () => {
+    expect(one(1743)).toMatchObject({
+      kind: 'gift',
+      start: '2024-01-31T06:00:00.000Z',
+      end: '2024-02-29T14:59:00.000Z',
+      items: [{ name: 'Carats', count: 3000, local: 'ジュエル' }],
+    });
+    expect(one(2657).items).toEqual([{ name: 'Carats', count: 1500, local: 'ジュエル' }]);
+  });
+
+  it('reads login bonuses: once-only prose, day headers', () => {
+    expect(one(1567)).toMatchObject({
+      kind: 'login_bonus',
+      items: [{ name: 'Carats', count: 500, local: 'ジュエル' }],
+    });
+    const gold = of(3210).find((e) => e.kind === 'login_bonus');
+    expect(gold.items).toHaveLength(6);
+    expect(gold.items[0]).toEqual({ name: 'GOLDコイン/フェノーメノ', count: 1 });
+  });
+
+  it("lists nothing a sale's buyers pay for", () => {
+    const events = build(3472);
+    const sale = events.find((e) => e.kind === 'sale');
+    expect(sale.items).toEqual([]);
+    expect(events.flatMap((e) => e.items).some((i) => /有償/.test(i.name))).toBe(false);
+  });
+
+  it('merges a celebration announced a week ahead into the running one', () => {
+    const events = build(2363, 2372).filter((e) => !e.parent);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ id: '2363', news_url: 'https://umamusume.jp/news/detail/?id=2372' });
+  });
+});
+
+const stored = eventsFile('jp');
+describe.skipIf(!existsSync(stored))('the stored JP events', () => {
+  const events = read(stored);
+  const since = (kind, date) => events.filter((e) => e.kind === kind && e.start >= date);
+
+  it('only uses kinds the app styles and labels, with dates in order', () => {
+    expect(events.filter((e) => !EVENT_KINDS.includes(e.kind))).toEqual([]);
+    expect(events.filter((e) => !e.start || (e.end && e.end < e.start)).map((e) => e.id)).toEqual([]);
+  });
+
+  it.skipIf(!withJp)('gives every story event since mid-2022 its SSR', () => {
+    const stories = since('story', '2022-06');
+    expect(stories.length).toBeGreaterThan(40);
+    expect(stories.filter((e) => !e.cards.some((c) => c.rarity === 'SSR')).map((e) => e.id)).toEqual([]);
+  });
+
+  it('gives every Champions Meeting since mid-2022 its schedule, every League of Heroes its own', () => {
+    const keys = CM_PHASES.map(([key]) => key);
+    for (const e of since('champions_meeting', '2022-06'))
+      expect({ id: e.id, phases: e.phases?.map((p) => p.key) }).toEqual({ id: e.id, phases: keys });
+    const loh = ja.schedules.league_of_heroes.map(([key]) => key);
+    for (const e of since('league_of_heroes', '2023-05'))
+      expect({ id: e.id, phases: e.phases?.map((p) => p.key) }).toEqual({ id: e.id, phases: loh });
+  });
+
+  it('lists no paid items, and keeps the Japanese name of what goes by Global’s', () => {
+    const items = events.flatMap((e) => e.items);
+    expect(items.filter((i) => /有償|回限定|称号/.test(i.name))).toEqual([]);
+    expect(items.filter((i) => i.local && /[\p{Script=Katakana}\p{Script=Han}]/u.test(i.name))).toEqual([]);
+    expect(items.filter((i) => i.name === 'Carats').every((i) => i.local === 'ジュエル')).toBe(true);
+  });
+
+  it('links parts to an event that exists, and places every event in a group once', () => {
+    const ids = new Set(events.map((e) => e.id));
+    expect(events.filter((e) => e.parent && !ids.has(e.parent))).toEqual([]);
+    const placed = (items) => items.flatMap((item) => [item.event.id, ...placed(item.parts.flat())]);
+    const all = eventGroups(events).flatMap((g) => placed(g.rows.flat()));
+    expect(all.sort()).toEqual(events.map((e) => e.id).sort());
+    expect(EVENT_GROUPS.flatMap(([, kinds]) => kinds)).toContain('league_of_heroes');
+  });
+});

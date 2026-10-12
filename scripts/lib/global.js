@@ -53,7 +53,7 @@ function pairEnglish(items, entries, names) {
 // like JP's "special" banners.
 //   posts     scout posts, as scripts/lib/banner-posts.js reads them (bannerPost())
 //   global    data/global_banners.json      cards  data/global_cards.json
-//   jp        GameTora's JP banners (generated/jp_banners.json)
+//   jp        JP's banners (data/jp_banners.json, regular ones: scripts/lib/jp-banners.js's regularBanners())
 //   names     Map char_id → English name
 // Returns { global, cards, banners: [{ banner, kind, post, unmatched }], skipped: [{ id, post, reason }] }.
 export function applyNews({ posts, global, cards, jp, names }) {

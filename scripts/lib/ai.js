@@ -52,9 +52,11 @@ function body(config, { system, user, schema }) {
       messages,
       ...(!config.think && { format: schema }),
       think: config.think,
-      stream: false,
-      // Ollama's default context (4,096 tokens) cuts a long post plus its reasoning off before the answer.
-      options: { temperature: 0, num_ctx: 16384 },
+      // Streamed: a slow answer (a big model on a laptop) would otherwise outlast fetch's 5-minute wait for headers.
+      stream: true,
+      // Ollama's default context (4,096 tokens) cuts a long post plus its reasoning off before the answer. An answer
+      // is short: a model that loops (the same item over and over) is cut off, and its JSON then fails to parse.
+      options: { temperature: 0, num_ctx: 16384, ...(!config.think && { num_predict: 2048 }) },
     };
   }
   return {
@@ -76,12 +78,25 @@ export function parseJson(text) {
   return JSON.parse(text.slice(start, end + 1));
 }
 
+// Ollama's streamed reply (one JSON object per line) as one: { message: { content } }.
+async function streamed(res) {
+  const text = await res.text();
+  const parts = text
+    .split('\n')
+    .filter((line) => line.trim())
+    .map((line) => JSON.parse(line));
+  const error = parts.find((p) => p.error);
+  if (error) throw new Error(`ollama: ${error.error}`);
+  return { message: { content: parts.map((p) => p.message?.content ?? '').join('') } };
+}
+
 let last = 0;
 export async function ask(config, { system, user, schema }) {
   for (let attempt = 0; ; attempt++) {
     const wait = last + config.pause - Date.now();
     if (wait > 0) await sleep(wait);
     last = Date.now();
+    // (A dropped connection, "fetch failed": tried again like a 5xx.)
     const res = await fetch(config.url, {
       method: 'POST',
       headers: {
@@ -90,13 +105,15 @@ export async function ask(config, { system, user, schema }) {
         ...(config.provider === 'openrouter' && { 'X-Title': 'Umaddoc' }),
       },
       body: JSON.stringify(body(config, { system, user, schema })),
-    });
+    }).catch((err) => (attempt < 2 ? { status: 599, dropped: err } : Promise.reject(err)));
+    if (res.dropped)
+      console.warn(`  ${config.provider}: ${res.dropped.message} (${res.dropped.cause?.code ?? '?'}), again`);
     if ((res.status === 429 || res.status >= 500) && attempt < 5) {
       await sleep(2 ** attempt * 5000); // 5 s, 10 s, 20 s…
       continue;
     }
     if (!res.ok) throw new Error(`${config.provider} ${res.status}: ${(await res.text()).slice(0, 300)}`);
-    const json = await res.json();
+    const json = config.provider === 'ollama' ? await streamed(res) : await res.json();
     const content = json.message?.content ?? json.choices?.[0]?.message?.content;
     if (!content) throw new Error(`${config.provider}: empty reply ${JSON.stringify(json).slice(0, 300)}`);
     return parseJson(content);

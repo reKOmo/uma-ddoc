@@ -2,7 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { EVENT_GROUPS, eventGroups, itemList, partCount, subEvents } from '../src/eventStrip.js';
 import { CM_PHASES, EVENT_KINDS } from '../scripts/lib/events.js';
 import { DAY } from '../src/timeline.js';
-import events from '../data/global_events.json' with { type: 'json' };
+import en from '../src/i18n/en.json' with { type: 'json' };
+import globalEvents from '../data/global_events.json' with { type: 'json' };
+import jpEvents from '../data/jp_events.json' with { type: 'json' };
+
+// The Timeline shows each server's events the same way.
+const SERVERS = [
+  ['Global', globalEvents],
+  ['JP', jpEvents],
+];
 
 describe('eventGroups', () => {
   const event = (id, kind, start, end, parent = null) => ({ id, kind, start, end, parent });
@@ -27,7 +35,7 @@ describe('eventGroups', () => {
     expect(groups[2].rows[0][0].end - groups[2].rows[0][0].start).toBe(DAY); // no end: one day
   });
 
-  it('places every dated event in the data once, in a known group', () => {
+  it.each(SERVERS)('places every dated event in the data once, in a known group (%s)', (_, events) => {
     const placed = (items) => items.flatMap((item) => [item.event.id, ...placed(item.parts.flat())]);
     const all = eventGroups(events).flatMap((g) => placed(g.rows.flat()));
     expect(all.sort()).toEqual(
@@ -36,6 +44,9 @@ describe('eventGroups', () => {
         .map((e) => e.id)
         .sort()
     );
+  });
+
+  it('puts every kind in a group', () => {
     expect(EVENT_GROUPS.flatMap(([, kinds]) => kinds).sort()).toEqual([...EVENT_KINDS].sort());
   });
 });
@@ -70,19 +81,29 @@ describe('subEvents', () => {
   });
 });
 
-describe('the event data', () => {
+describe.each(SERVERS)('the event data (%s)', (_, events) => {
   it('only uses kinds the app styles and labels', () => {
     expect(events.filter((e) => !EVENT_KINDS.includes(e.kind))).toEqual([]);
   });
 
   it('gives every Champions Meeting its schedule, in order', () => {
     const keys = CM_PHASES.map(([key]) => key);
-    for (const e of events.filter((x) => x.kind === 'champions_meeting'))
+    // (Only an announcement without dates of its own has none: JP's first cup of 2022, from a thin 2021 archive.)
+    for (const e of events.filter((x) => x.kind === 'champions_meeting' && (x.end || x.phases?.length)))
       expect({ id: e.id, phases: e.phases?.map((p) => p.key) }).toEqual({ id: e.id, phases: keys });
+  });
+
+  it('labels every phase', () => {
+    const phases = new Set(events.flatMap((e) => e.phases ?? []).map((p) => p.key));
+    expect([...phases].filter((key) => !en.events.phase[key])).toEqual([]);
   });
 
   it('links sub-events to a celebration that exists', () => {
     const ids = new Set(events.map((e) => e.id));
     expect(events.filter((e) => e.parent && !ids.has(e.parent))).toEqual([]);
+  });
+
+  it('gives every item a name, and JP items their Japanese one', () => {
+    expect(events.flatMap((e) => e.items).filter((i) => !i.name || (i.local != null && !i.local))).toEqual([]);
   });
 });

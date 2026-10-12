@@ -1,16 +1,18 @@
 // Asks a language model (scripts/lib/ai.js) about what the rules doubt in the news events (scripts/lib/events.js
-// `doubts`), and stores its answers in data/news/ai_answers.json (committed; buildEvents() applies them at build time,
+// `doubts`), and stores its answers in data/news/<gl|jp>/ai_answers.json (committed; buildEvents() applies them at build time,
 // so builds and deploys never call a model). Only events without an answer for the current text and questions are
 // asked, so a normal day asks about the 0–3 new ones.
 //
 // Usage:
-//   pnpm news:ai [--model M] [--provider ollama|openrouter] [--think] [--limit N]
+//   pnpm news:ai [--server gl|jp] [--model M] [--provider ollama|openrouter] [--think] [--limit N]
+//       --server: whose news (gl: Global's English posts, the default; jp: JP's Japanese ones, asked in the Japanese
+//       questions, answers in data/news/jp/ai_answers.json)
 //       ask about every event's doubted or empty fields (askedFields()) that have no answer to the current question
 //       (staleFields(): per-field versions, so a changed question re-asks only its field; saves as it goes)
 //   pnpm news:ai --compare [--sample N | --ids 994-1,902-12] [--model M]
 //       testing: ask N events (default 20: half with doubts, half without), or these, about every field, nothing saved; prints
 //       how the model's answers (through the build's checks) compare with the rules' per field and writes
-//       generated/ai-compare-<model>.json
+//       generated/ai-compare-<model>.json (JP: ai-compare-<model>-jp.json)
 // Environment: see scripts/lib/ai.js (AI_PROVIDER, AI_MODEL, OPENROUTER_API_KEY, OLLAMA_URL).
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -20,6 +22,7 @@ import { aiConfig, ask } from './lib/ai.js';
 import { applyAnswer, mergeAnswer, question, staleFields } from './lib/event-questions.js';
 import { eventFragments, readAnswers, writeAnswers } from './lib/events.js';
 import { norm } from './lib/event-rewards.js';
+import { lexicon } from './lib/news-lang/index.js';
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -32,17 +35,21 @@ const config = aiConfig(process.env, {
 });
 const cardsFile = `${GENERATED_DIR}cards.json`;
 const cards = existsSync(cardsFile) ? JSON.parse(readFileSync(cardsFile, 'utf8')) : {};
-const fragments = eventFragments([...loadPosts().values()], cards);
-console.log(`${config.provider} ${config.model}${config.think ? ' (thinking)' : ''}: ${fragments.length} events`);
+const server = arg('server', 'gl');
+const lang = lexicon(server);
+const fragments = eventFragments([...loadPosts(server).values()], cards, lang);
+console.log(
+  `${server}: ${config.provider} ${config.model}${config.think ? ' (thinking)' : ''}: ${fragments.length} events`
+);
 
 async function timed(event, options) {
   const t = Date.now();
-  const answer = await ask(config, question(event, options));
+  const answer = await ask(config, question(event, { ...options, lang }));
   return { answer, ms: Date.now() - t };
 }
 
 if (!process.argv.includes('--compare')) {
-  const answers = readAnswers();
+  const answers = readAnswers(server);
   const todo = fragments.filter((f) => staleFields(f, answers[f.aiKey]).length);
   const limit = Number(arg('limit', todo.length));
   console.log(
@@ -54,7 +61,7 @@ if (!process.argv.includes('--compare')) {
     try {
       const { answer, ms } = await timed(f, { fields });
       answers[f.aiKey] = mergeAnswer(answers[f.aiKey], fields, answer, config.model);
-      writeAnswers(answers);
+      writeAnswers(answers, server);
       console.log(`  ${f.id} (${fields.join(', ')}) ${(ms / 1000).toFixed(1)} s`);
     } catch (err) {
       failed++;
@@ -96,7 +103,7 @@ if (!process.argv.includes('--compare')) {
       const { answer, ms } = await timed(f, { all: true });
       total += ms;
       // What would be used: the answer through the same checks as at build time, taken wherever it's valid.
-      const used = applyAnswer(f, answer, { trustModel: true });
+      const used = applyAnswer(f, answer, { trustModel: true, lang });
       const r = counts(f.items);
       const m = counts(used.items);
       const items = [...new Set([...Object.keys(r), ...Object.keys(m)])].map((k) => ({
@@ -144,7 +151,7 @@ if (!process.argv.includes('--compare')) {
   );
   for (const [field, t] of Object.entries(tally)) console.log(`  ${field.padEnd(7)} ${JSON.stringify(t)}`);
   mkdirSync(GENERATED_DIR, { recursive: true });
-  const file = `${GENERATED_DIR}ai-compare-${config.model.replace(/[^\w.-]+/g, '_')}${config.think ? '-think' : ''}.json`;
+  const file = `${GENERATED_DIR}ai-compare-${config.model.replace(/[^\w.-]+/g, '_')}${config.think ? '-think' : ''}${server === 'gl' ? '' : `-${server}`}.json`;
   writeFileSync(
     file,
     `${JSON.stringify({ model: config.model, at: new Date().toISOString(), tally, rows }, null, 1)}\n`

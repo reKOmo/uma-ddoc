@@ -5,4 +5,5 @@
 export const ROOT = new URL('../../', import.meta.url).pathname;
 export const GENERATED_DIR = `${ROOT}generated/`;
 export const DATA_DIR = `${ROOT}data/`;
-export const NEWS_DIR = `${DATA_DIR}news/`;
+// The official news per server (gl, jp): posts.json, summary.md, ai_answers.json.
+export const newsDir = (server = 'gl') => `${DATA_DIR}news/${server}/`;

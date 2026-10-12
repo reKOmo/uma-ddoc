@@ -12,6 +12,7 @@ import {
   staleFields,
 } from '../scripts/lib/event-questions.js';
 import { parseJson } from '../scripts/lib/ai.js';
+import { ja } from '../scripts/lib/news-lang/ja.js';
 
 const TEXT = [
   'As of 10:00 p.m., Aug 26, 2026 (UTC), an Umayuru Login Bonus has begun!',
@@ -196,5 +197,98 @@ describe('asking again', () => {
     expect(merged.answer.start).toBe('2026-08-26 22:00');
     expect(merged.answer.items).toHaveLength(1);
     expect(staleFields(e, merged)).toEqual([]);
+  });
+});
+
+// JP's posts (Japanese, times in JST, years mostly left out): made-up text in their style.
+const TEXT_JA = [
+  '12/26 12:00から「ゆく年くる年ログインボーナス」を開催中です！',
+  '開催期間中にログインすると、1日ジュエルを150個、最大で2250個のジュエルをプレゼントいたします！',
+  'SSRサポートカード「[ためしの一枚]サンプルウマ娘」を、ログインボーナスで最大2枚獲得できます！',
+  'イベント限定称号「ゆく年くる年」も獲得できます。',
+  '開催期間',
+  '12/26 12:00 ～ 1/9 4:59',
+];
+const eventJa = (fields = {}) => ({
+  id: '2314-3',
+  posted: '2025-12-20T03:00:00.000Z',
+  kind: 'login_bonus',
+  name: 'ゆく年くる年ログインボーナス',
+  parent: '2314',
+  start: '2025-12-26T03:00:00.000Z',
+  end: '2026-01-08T19:59:00.000Z',
+  cards: [{ id: 99999, rarity: 'SSR', title: 'ためしの一枚', name: 'サンプルウマ娘', copies: null }],
+  items: [{ name: 'Carats', count: 150, local: 'ジュエル' }],
+  titles: [],
+  text: TEXT_JA.join('\n'),
+  doubts: { items: 'per day', dates: 'from a sentence' },
+  ...fields,
+});
+
+describe('JP questions', () => {
+  it('asks in JP terms: times in JST, the post date, cards as the posts write them', () => {
+    const q = question(eventJa(), { all: true, lang: ja });
+    expect(q.system).toMatch(/JST/);
+    expect(q.system).not.toMatch(/UTC/);
+    expect(q.user).toContain('(2025-12-26 12:00 to 2026-01-09 04:59 JST, as read so far)');
+    expect(q.user).toContain('Posted: 2025-12-20');
+    expect(q.user).toContain('「[ためしの一枚]サンプルウマ娘」');
+    expect(q.user).toContain('最大で2250個');
+    expect(q.schema.properties.kind.enum).toContain('special');
+    // Kinds only for a celebration's sub-events (JP's top-level events can be `special` too).
+    expect(
+      question(eventJa({ parent: null, kind: 'special' }), { all: true, lang: ja }).schema.properties
+    ).not.toHaveProperty('kind');
+  });
+
+  it('is the English question unless asked for JP', () => {
+    expect(question(event()).system).toMatch(/UTC/);
+    expect(question(event()).user).not.toContain('Posted:');
+  });
+});
+
+describe('JP answers', () => {
+  const apply = (answer, fields) => applyAnswer(eventJa(fields), answer, { lang: ja });
+
+  it('maps item names to Global names, keeping the Japanese, and multiplies', () => {
+    const e = apply({
+      items: [
+        { name: '「ジュエル」', each: 150, times: 15, total: null },
+        { name: 'マニー', each: 100, times: 1, total: null }, // not in the text
+        { name: 'イベント限定称号「ゆく年くる年」', each: 1, times: 1, total: null }, // a title
+        { name: '[ためしの一枚]サンプルウマ娘', each: 2, times: 1, total: null }, // a card's copies
+      ],
+    });
+    expect(e.items).toEqual([{ name: 'Carats', count: 2250, local: 'ジュエル' }]);
+    expect(e.cards[0].copies).toBe(2);
+    expect(apply({ items: [{ name: 'ジュエル', each: 150, times: null, total: 2250 }] }).items[0].count).toBe(2250);
+  });
+
+  it('takes copies the post gives as a digit (枚), never one it only names', () => {
+    const copies = (n) => apply({ cards: [{ title: 'ためしの一枚', copies: n }] }).cards[0].copies;
+    expect(copies(2)).toBe(2);
+    expect(copies(3)).toBeNull();
+    const named = { text: 'ミッションをクリアすると「[ためしの一枚]サンプルウマ娘」などの報酬を獲得できます！' };
+    expect(
+      applyAnswer(eventJa(named), { cards: [{ title: 'ためしの一枚', copies: 1 }] }, { lang: ja }).cards[0].copies
+    ).toBeNull();
+  });
+
+  it('reads dates as JST in the year nearest the post, an end before the start in the next year', () => {
+    const e = apply({ start: '2025-12-26 12:00', end: '2025-01-09 04:59' }); // the year slipped: still January after
+    expect(e.start).toBe('2025-12-26T03:00:00.000Z');
+    expect(e.end).toBe('2026-01-08T19:59:00.000Z');
+    expect(apply({ start: '2026-02-30 12:00', end: null }).start).toBe(eventJa().start); // no such day
+    expect(apply({ start: '2027-12-26 12:00', end: null }).start).toBe('2025-12-26T03:00:00.000Z'); // the post's year
+  });
+
+  it("takes names the text has, not a kind's generic one; kinds only for sub-events", () => {
+    const named = (name) => apply({ name }, { name: '対象のトレーナー', doubts: { name: 'a heading' } }).name;
+    expect(named('ゆく年くる年ログインボーナス')).toBe('ゆく年くる年ログインボーナス');
+    expect(named('ログインボーナス')).toBe('対象のトレーナー');
+    expect(named('冬のログインボーナス')).toBe('対象のトレーナー'); // not in the text
+    const kind = (fields) => applyAnswer(eventJa(fields), { kind: 'special' }, { lang: ja, trustModel: true }).kind;
+    expect(kind({})).toBe('special');
+    expect(kind({ parent: null, kind: 'campaign' })).toBe('campaign');
   });
 });

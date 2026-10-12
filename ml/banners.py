@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 
 from adjust import confirmed_banners, snap_weekday
-from data import DATA, GENERATED
+from data import DATA, GENERATED, jp_banners, promo_ids
 
 BANNERS_OUTPUT = GENERATED / 'predicted_global_banners.json'
 GLOBAL_START_HOUR = 22  # UTC; 07:00 JST the next day
@@ -39,7 +39,7 @@ def english_names():
     """JP's banners, char_id → English name (our cards' then Global's banners'), card id → English
     name and title (for support cards; a group card's name is the group's)."""
     read = lambda name: json.loads((GENERATED / name).read_text())  # noqa: E731
-    glob, jp, cards = json.loads((DATA / 'global_banners.json').read_text()), read('jp_banners.json'), read('cards.json')
+    glob, jp, cards = json.loads((DATA / 'global_banners.json').read_text()), jp_banners(), read('cards.json')
     # Group cards are named after the group, not their character.
     chars = {c['charId']: c['name']['en'] for c in cards.values() if c['charId'] and c['name']['en'] and c['type'] != 'group'}
     for banner in glob['characters'] + glob['cards']:
@@ -57,6 +57,19 @@ def translate(item, chars, titles, is_card):
         name, title = titles[item['id']]
         out['name'] = name or out['name']
         out['title'] = title or out['title']
+    return out
+
+
+# What the JP news adds to a JP banner (data/jp_banners.json): not Global's.
+JP_NEWS_KEYS = ('announced', 'news_url', 'news_image', 'from_news', 'rerun', 'rerunOf', 'paid', 'name', 'note')
+
+
+def jp_banner(banner):
+    """The JP banner without what the JP news added. One only the news has keeps `news_image`: its `image` is the
+    post's official art, which the Timeline crops differently from GameTora's."""
+    out = {k: v for k, v in banner.items() if k not in JP_NEWS_KEYS}
+    if banner.get('from_news'):
+        out['news_image'] = banner['image']
     return out
 
 
@@ -80,13 +93,18 @@ def predict_banners(predict, anchor_jp, fitted_at):
     glob = json.loads((DATA / 'global_banners.json').read_text())
     on_global = {b['id'] for b in glob['characters'] + glob['cards']}
     confirmed = confirmed_banners()
+    # Global doesn't get promo cards: they're left out of a banner, and a banner of nothing else isn't predicted.
+    promo = promo_ids()
+    only_promo = lambda b: bool(b['featured']) and all(f['id'] in promo for f in b['featured'])  # noqa: E731
     result = {'source': {'predicted_from': 'jp_banners.json', 'fitted_at': fitted_at}}
     for kind in ['characters', 'cards']:
         todo = sorted(
             (
                 b
                 for b in jp[kind]
-                if b['id'] not in on_global and (b['id'] in confirmed or np.floor(epoch_days(b['start'])) > anchor_jp)
+                if b['id'] not in on_global
+                and not only_promo(b)
+                and (b['id'] in confirmed or np.floor(epoch_days(b['start'])) > anchor_jp)
             ),
             key=lambda b: b['start'],
         )
@@ -100,9 +118,11 @@ def predict_banners(predict, anchor_jp, fitted_at):
         ends = starts + np.maximum(lengths, 1)
         result[kind] = [
             {
-                **banner,
+                **jp_banner(banner),
                 'main': translate(banner.get('main'), chars, titles, kind == 'cards'),
-                'featured': [translate(item, chars, titles, kind == 'cards') for item in banner['featured']],
+                'featured': [
+                    translate(item, chars, titles, kind == 'cards') for item in banner['featured'] if item['id'] not in promo
+                ],
                 'start': iso_at(start, GLOBAL_START_HOUR),
                 'end': iso_at(end, GLOBAL_START_HOUR, minus_ms=1000),
                 'predicted': True,

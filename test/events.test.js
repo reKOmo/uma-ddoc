@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { eventBlocks } from '../scripts/lib/event-blocks.js';
 import { cardIndex, cardsIn, itemsIn, missionsIn, titlesIn } from '../scripts/lib/event-rewards.js';
 import { EVENT_KINDS, buildEvents, cmItems, postEvents } from '../scripts/lib/events.js';
-import { POSTS_FILE } from '../scripts/lib/news-api.js';
+import { postsFile } from '../scripts/lib/news-api.js';
 import { categorize } from '../scripts/lib/post-categories.js';
 
 const h2 = (text) => `<h2 class="heading"> ${text}</h2>\n`;
@@ -414,8 +414,8 @@ describe('mission sets', () => {
   });
 });
 
-describe.skipIf(!existsSync(POSTS_FILE))('the stored news', () => {
-  const posts = JSON.parse(readFileSync(POSTS_FILE, 'utf8'));
+describe.skipIf(!existsSync(postsFile('gl')))('the stored news', () => {
+  const posts = JSON.parse(readFileSync(postsFile('gl'), 'utf8'));
   const events = buildEvents(posts);
 
   it('makes every event post into dated events of known kinds', () => {

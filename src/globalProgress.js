@@ -5,16 +5,19 @@
 //
 // globalProgress({ global, jp, predicted, now }) →
 //   { estimate, from, to, toKnown } (JP times, ms) or null when no Global banner has started
-//   global     data/global_banners.json            jp  generated/jp_banners.json
+//   global     data/global_banners.json            jp  data/jp_banners.json (paid scouts and our own re-run entries,
+//              which Global never runs, are left out)
 //   predicted  generated/predicted_global_banners.json (optional): future banners with jp_start,
 //              `confirmed` when their dates are known
 // `toKnown` is false when the window's end comes from a prediction (or there is no next banner,
 // in which case the window is the current JP banner itself).
 
 const all = (banners) => [...(banners?.characters ?? []), ...(banners?.cards ?? [])];
+// JP banners Global could run: not paid, not one of our "<id>-rerun" entries.
+const regular = (banners) => all(banners).filter((b) => !b.paid && typeof b.id === 'number');
 
 export function globalProgress({ global, jp, predicted, now = Date.now() }) {
-  const jpBanners = new Map(all(jp).map((b) => [b.id, b]));
+  const jpBanners = new Map(regular(jp).map((b) => [b.id, b]));
   const pairs = [
     ...all(global)
       .filter((b) => jpBanners.has(b.id))
@@ -32,7 +35,7 @@ export function globalProgress({ global, jp, predicted, now = Date.now() }) {
 
   if (!next) {
     // No later banner known at all: the window is the JP banner Global is running.
-    const current = all(jp).find((b) => Date.parse(b.start) === prev.jp);
+    const current = regular(jp).find((b) => Date.parse(b.start) === prev.jp);
     const to = current ? Date.parse(current.end) : prev.jp;
     return { estimate: prev.jp, from: prev.jp, to, toKnown: false };
   }

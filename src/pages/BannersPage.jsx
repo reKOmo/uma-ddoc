@@ -16,7 +16,7 @@ import { timeZoneOptions, useSettings } from '../settings.jsx';
 import i18n, { formatDate, formatDateTime, formatNumber, scenarioName, statName } from '../i18n/index.js';
 import './banners.css';
 
-import { PREDICTED, bannerStatus as status, loadBanners, loadRealBanners } from '../bannerData.js';
+import { PREDICTED, bannerStatus as status, loadBanners, loadEvents, loadRealBanners } from '../bannerData.js';
 import StatusBadge from '../StatusBadge.jsx';
 
 const ZOOMS = [4, 8, 16, 32]; // pixels per day
@@ -45,8 +45,14 @@ function dateFormats(timeZone) {
     isJanuary: (date) => (timeZone === 'utc' ? date.getUTCMonth() : date.getMonth()) === 0,
   };
 }
+// (A banner without an end, a JP paid scout "until further notice": since its start.)
 const dateRange = (banner, format) =>
-  i18n.t('common.dateRange', { start: format(banner.start), end: format(banner.end) });
+  banner.end
+    ? i18n.t('common.dateRange', { start: format(banner.start), end: format(banner.end) })
+    : i18n.t('banners.since', { date: format(banner.start) });
+// A banner's art: the official one from the news where there is one (cropped differently from GameTora's).
+const artOf = (banner) => banner.news_image ?? banner.image;
+const isOfficialArt = (banner) => !!(banner.announced || banner.news_image);
 
 // Label every day when there's room, else every 2nd day, else weekly. Weekly
 // labels stop at the 22nd so they never collide with the next month's 1st.
@@ -59,7 +65,8 @@ function barTitleKey(banner) {
 }
 
 function barLabel(banner) {
-  if (!banner.main) return '—';
+  // A scout without featured items (JP's paid ones: guaranteed ★3/SSR, step-up…) goes by its name from the post.
+  if (!banner.main) return banner.name ?? '—';
   const others = banner.featured.length - 1;
   return others > 0 ? i18n.t('banners.barLabel', { name: banner.main.name, count: others }) : banner.main.name;
 }
@@ -117,8 +124,14 @@ export default function BannersPage({ server, scenario, bannerId }) {
 
   useLayoutEffect(() => {
     if (!timeline || centerOn.current !== null) return;
-    centerOn.current = linked ? timeline.at((Date.parse(linked.start) + Date.parse(linked.end)) / 2) : timeline.today;
+    centerOn.current = linked
+      ? timeline.at((Date.parse(linked.start) + Date.parse(linked.end ?? linked.start)) / 2)
+      : timeline.today;
   }, [timeline, linked]);
+
+  // Another server's calendar: the open sheet was the old one's.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs on a server change only.
+  useEffect(() => setSelected(null), [server]);
 
   // A linked banner opens its sheet.
   useEffect(() => {
@@ -146,17 +159,20 @@ export default function BannersPage({ server, scenario, bannerId }) {
   // The Career scenario strip at the top: which scenario runs when on this server.
   const scenarios = useMemo(() => scenarioSegments(scenarioData.scenarios, server), [server]);
 
-  // Global's in-game events, in labelled groups under the banners (no data for JP); events with parts (a
-  // celebration's sub-events, mission sets) are folded until opened.
-  const [globalEvents, setGlobalEvents] = useState(null);
+  // The server's in-game events, in labelled groups under the banners (names as the news gives them: Japanese on JP);
+  // events with parts (a celebration's sub-events, mission sets) are folded until opened.
+  const [eventData, setEventData] = useState(null); // { server, events }
   useEffect(() => {
-    if (server !== 'gl' || globalEvents) return;
-    import('../../data/global_events.json').then((m) => setGlobalEvents(m.default));
-  }, [server, globalEvents]);
-  const events = useMemo(
-    () => (server === 'gl' && globalEvents ? eventGroups(globalEvents) : []),
-    [server, globalEvents]
-  );
+    let cancelled = false;
+    loadEvents(SERVERS[server].banners).then((events) => {
+      if (!cancelled) setEventData({ server, events });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [server]);
+  const serverEvents = eventData?.server === server ? eventData.events : null;
+  const events = useMemo(() => (serverEvents ? eventGroups(serverEvents) : []), [serverEvents]);
   const [unfolded, setUnfolded] = useState(() => new Set());
   // Groups (banner sections, event groups) folded away by their label, remembered in this browser.
   const [collapsed, setCollapsed] = useState(getCollapsed);
@@ -336,11 +352,11 @@ export default function BannersPage({ server, scenario, bannerId }) {
                         <button
                           type="button"
                           key={banner.id}
-                          className={`bar ${section.key} ${status(banner)} type-${banner.main?.type ?? 'none'}${banner.announced ? ' official-art' : ''}`}
+                          className={`bar ${section.key} ${status(banner)} type-${banner.main?.type ?? 'none'}${isOfficialArt(banner) ? ' official-art' : ''}`}
                           style={{
                             left: from * px,
                             width: Math.max(length * px, 6),
-                            backgroundImage: `url(${banner.image})`,
+                            backgroundImage: `url(${artOf(banner)})`,
                           }}
                           title={t(barTitleKey(banner), {
                             label: barLabel(banner),
@@ -379,10 +395,10 @@ export default function BannersPage({ server, scenario, bannerId }) {
         </div>
       )}
 
-      {selected?.event && (
+      {selected?.event && serverEvents && (
         <EventSheet
           event={selected.event}
-          events={globalEvents}
+          events={serverEvents}
           format={format}
           onSelect={(event) => setSelected({ event })}
           onClose={() => setSelected(null)}
@@ -394,6 +410,12 @@ export default function BannersPage({ server, scenario, bannerId }) {
           server={server}
           scenario={scenario}
           format={format}
+          banners={data}
+          onSelect={(banner, kind) => {
+            if (timeline)
+              centerOn.current = timeline.at((Date.parse(banner.start) + Date.parse(banner.end ?? banner.start)) / 2);
+            setSelected({ banner, kind });
+          }}
           onClose={() => setSelected(null)}
         />
       )}
@@ -438,8 +460,11 @@ function CardRank({ item, rankings }) {
   );
 }
 
-function BannerSheet({ banner, kind, server, scenario, format, onClose }) {
+function BannerSheet({ banner, kind, server, scenario, format, banners, onSelect, onClose }) {
   const { t } = useTranslation();
+  // A re-run and its original (JP: a scout re-held after an issue) point to each other.
+  const rerunOf = banner.rerunOf != null && banners?.[kind].find((b) => b.id === banner.rerunOf);
+  const rerun = banner.rerun && banners?.[kind].find((b) => b.id === banner.rerun.id);
   const days = Math.round((Date.parse(banner.end) - Date.parse(banner.start)) / DAY);
   const stats = kind === 'cards' ? [...new Set(banner.featured.map((i) => STAT_OF_TYPE[i.type]).filter(Boolean))] : [];
   // A predicted or announced banner's new cards aren't in Global's card data yet; JP's tier list has them.
@@ -459,10 +484,13 @@ function BannerSheet({ banner, kind, server, scenario, format, onClose }) {
         <button type="button" className="sheet-close" onClick={onClose} aria-label={t('common.close')}>
           <ChevronDown size={24} aria-hidden="true" />
         </button>
-        <img className="sheet-banner" src={banner.image} alt="" />
+        <img className="sheet-banner" src={artOf(banner)} alt="" />
+        {banner.name && <p className="sheet-banner-name">{banner.name}</p>}
         <p className="sheet-dates">
           <StatusBadge banner={banner} />
-          {dateRange(banner, format.time)} · {t('banners.days', { count: days })}
+          {banner.paid && <span className="badge paid">{t('banners.paidBadge')}</span>}
+          {dateRange(banner, format.time)}
+          {banner.end && ` · ${t('banners.days', { count: days })}`}
         </p>
         {banner.confirmed && (
           <p className="sheet-prediction">
@@ -479,6 +507,19 @@ function BannerSheet({ banner, kind, server, scenario, format, onClose }) {
             })}
           </p>
         )}
+        {banner.paid && <p className="sheet-prediction">{t('banners.paid')}</p>}
+        {rerunOf && (
+          <button type="button" className="event-parent" onClick={() => onSelect(rerunOf, kind)}>
+            {t('banners.rerunOf', { dates: dateRange(rerunOf, format.long) })}
+            <ChevronRight size={15} aria-hidden="true" />
+          </button>
+        )}
+        {banner.rerun && (
+          <button type="button" className="event-parent" disabled={!rerun} onClick={() => onSelect(rerun, kind)}>
+            {t('banners.reheld', { dates: dateRange(banner.rerun, format.long) })}
+            {rerun && <ChevronRight size={15} aria-hidden="true" />}
+          </button>
+        )}
         {banner.announced && (
           <p className="sheet-prediction">
             <Trans
@@ -493,7 +534,7 @@ function BannerSheet({ banner, kind, server, scenario, format, onClose }) {
         </h2>
         <ul className="featured">
           {banner.featured.map((item) => (
-            <li key={item.id}>
+            <li key={item.id ?? `${item.title}|${item.name}`}>
               {/* NEW sits on the icon, leaving the rank row room for "See more". */}
               <div className="item-icon">
                 {item.icon && <img src={item.icon} alt="" loading="lazy" />}
@@ -510,7 +551,7 @@ function BannerSheet({ banner, kind, server, scenario, format, onClose }) {
                 </span>
                 <span className="item-meta">
                   {kind === 'cards' ? <CardRank item={item} rankings={rankings} /> : TRAINEE_RARITY[item.rarity]}
-                  {kind === 'cards' && (
+                  {kind === 'cards' && item.id != null && (
                     <a className="see-more" href={`#/card/${item.id}`}>
                       {t('banners.seeMore')}
                       <ChevronRight size={15} aria-hidden="true" />
@@ -520,7 +561,7 @@ function BannerSheet({ banner, kind, server, scenario, format, onClose }) {
               </div>
             </li>
           ))}
-          {banner.featured.length === 0 && <li className="empty">{t('banners.noItems')}</li>}
+          {banner.featured.length === 0 && <li className="empty">{banner.note ?? t('banners.noItems')}</li>}
         </ul>
         {stats.length > 0 && (
           <p className="rank-note">
@@ -719,9 +760,10 @@ function EventSheet({ event, events, format, onSelect, onClose }) {
             <ul className="event-rewards">
               {items.map((item) => (
                 <li key={item.name}>
+                  {/* JP's items go by Global's names where Global has them (to sort alike); shown as JP calls them. */}
                   {item.count == null
-                    ? item.name
-                    : t('events.itemCount', { name: item.name, count: count(item.count) })}
+                    ? (item.local ?? item.name)
+                    : t('events.itemCount', { name: item.local ?? item.name, count: count(item.count) })}
                 </li>
               ))}
             </ul>
@@ -730,7 +772,7 @@ function EventSheet({ event, events, format, onSelect, onClose }) {
         {event.phases?.length > 0 && (
           <>
             <h3 className="featured-heading">{t('events.schedule')}</h3>
-            <ul className="event-parts">
+            <ul className="event-parts event-schedule">
               {event.phases.map((phase) => (
                 <li key={phase.key}>
                   <span>{t(`events.phase.${phase.key}`)}</span>

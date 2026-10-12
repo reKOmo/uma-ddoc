@@ -1,4 +1,4 @@
-// A news post (data/news/posts.json, as the API sends it) cut into blocks, one per event it describes. Pure.
+// A news post (data/news/gl/posts.json, as the API sends it) cut into blocks, one per event it describes. Pure.
 //
 // A post can describe several events: a celebration post has a login bonus, a present, a gift, extra race tickets…
 // each starting with its own header art (<figure><img …/header_26800002_….png></figure>), then a sentence saying what
@@ -13,30 +13,39 @@
 //   intro     the block's lines before its first heading
 //   sections  [{ heading, lines }]: every <h2>/<h3>/<h4> heading in order with the lines under it
 
-import { decodeEntities, sections } from './news-text.js';
+import { en } from './news-lang/en.js';
+import { decodeEntities, sections, toLines } from './news-text.js';
 
-const FIGURE = /<figure>\s*<img[^>]*\ssrc="([^"]+)"[^>]*>\s*<\/figure>/gi;
-
-function block(html, art) {
+function block(html, art, lang) {
   const [{ lines: intro }, ...rest] = sections(html, '234');
   const url = art ? decodeEntities(art) : null;
   return {
     art: url,
-    artId: url?.match(/_(\d{8})(?:_|\.)/)?.[1] ?? null,
+    artId: url?.match(lang.artId)?.[1] ?? null,
     intro,
     sections: rest.map(({ heading, lines }) => ({ heading, lines })),
   };
 }
 
-export function eventBlocks(post) {
-  const html = post.message ?? '';
-  const arts = [...html.matchAll(FIGURE)].filter((m) => !/gacha_banner_/.test(m[1]));
-  if (!arts.length) return [block(html, null)];
-  return arts.map((m, i) => {
-    const start = i === 0 ? 0 : m.index;
-    const end = arts[i + 1]?.index ?? html.length;
-    return block(html.slice(start, end).replace(m[0], ''), m[1]);
-  });
+// `lang`: the posts' wording (scripts/lib/news-lang/: which art starts a block), English by default.
+export function eventBlocks(post, lang = en) {
+  const html = lang.clean(post.message ?? '');
+  const arts = [...html.matchAll(lang.blockArt)].filter((m) => !lang.notBlockArt.test(m[1]));
+  if (!arts.length) return [block(html, null, lang)];
+  // (JP: the post's intro is a block of its own when text comes before the first art, `lang.introBlock`: that art
+  // starts a part.)
+  const intro =
+    lang.introBlock && toLines(html.slice(0, arts[0].index)).length
+      ? [block(html.slice(0, arts[0].index), null, lang)]
+      : [];
+  return [
+    ...intro,
+    ...arts.map((m, i) => {
+      const start = i === 0 && !intro.length ? 0 : m.index;
+      const end = arts[i + 1]?.index ?? html.length;
+      return block(html.slice(start, end).replace(m[0], ''), m[1], lang);
+    }),
+  ];
 }
 
 // A block's text as one list of lines, headings included (some lists hang off a heading: "Main Rewards",

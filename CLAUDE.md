@@ -15,7 +15,8 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   A floating "Back to top" button shows once scrolled past a screen.
   On desktop the tiers are a bit right of centre (left column 1.25× the right), the pickers and filter in a sticky column to their left (`.tier-sidebar`); on phones, above the tiers.
 - **Timeline** (`#/timeline`, a tab; `#/banners` still works) — a horizontal, scrollable/draggable calendar of past and current
-  gacha banners (Global: our own record in `data/`, kept up from the official news; JP: scraped
+  gacha banners (Global: our own record in `data/`, kept up from the official news; JP: our own record too, GameTora's
+  history seeded once and the JP news merged over it, R cards, paid scouts and re-runs included;
   from GameTora), with a detail sheet per banner that
   shows each featured support card's tier-list rank. Global's calendar continues into the
   future with JP's banners at their predicted Global dates (`ml/`), drawn half-transparent
@@ -25,9 +26,11 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   `src/scenarioStrip.js`), each in its cover's colour: the current one solid, unlaunched ones faint (confirmed) or
   dashed (predicted), with a line down the calendar where each begins; labels stick to the left edge while scrolling, with a › arrow (it opens the scenario page) right after the
   name on desktop and at the segment's right edge on phones (`overflow: clip`, not hidden, keeps sticky working).
-  On Global, events under the banners (`data/global_events.json`, `src/eventStrip.js`) in labelled groups by type
-  (`EVENT_GROUPS`: story & special, Champions Meetings, Legend Races, celebrations, gifts & login bonuses, missions,
-  bonuses, shops & sales, transfers & outings), each group packed on its own. Every group label (the banner sections'
+  Events under the banners on both servers (`data/global_events.json` / `data/jp_events.json`, loaded per server by
+  `loadEvents()` in `src/bannerData.js`; JP's names as the posts give them, items by their Japanese `local` name;
+  `src/eventStrip.js`) in labelled groups by type
+  (`EVENT_GROUPS`: story & special, Champions Meetings, League of Heroes (JP), Legend Races, celebrations, gifts & login
+  bonuses, missions, bonuses, shops & sales, transfers & outings), each group packed on its own. Every group label (the banner sections'
   too) folds its group away (`src/timelineGroups.js`: remembered in localStorage, try/catch; rows stay fixed, bars
   never move). An event with parts (a celebration's sub-events, an event's mission sets) is one bar with a "+N" fold
   button (`.bar-fold`); unfolded, its parts' rows open under its row over a band tinted in its colour
@@ -94,21 +97,25 @@ pnpm build-cards       # raw inputs + data/global_cards.json → generated/cards
                        # scripts that change an input run it themselves)
 pnpm scrape-gametora    # JP banner history + support card list + JP scenarios from GameTora → generated/, then build-cards
                        # (--seed-global [--force]: rewrite data/'s banners from GameTora's Global data; one-off)
+pnpm update-jp         # JP news → data/jp_banners.json (news merged over GameTora's history) + data/jp_events.json
+                       # (--seed [--force]: seed data/jp_banners.json from generated/jp_banners.json; once)
 pnpm update-global     # official news → Global's banners, card releases, scenario launches + events in data/ (needs scrape-gametora),
                        # then build-cards
 pnpm fetch-pull-guide  # pull advice + notes per card from Luh's Support Card Encyclopedia → generated/pull_guide.json (after predict-gl)
 pnpm clone-upstream    # clone/update upstream main into upstream/ (for test:upstream)
-pnpm news:latest       # new + edited posts from umamusume.com/news → data/news/posts.json (+ summary.md); periodic runs
+pnpm news:latest       # new + edited posts from umamusume.com/news → data/news/gl/posts.json (+ summary.md); periodic runs
 pnpm news:all          # every post the site still serves (walks the archive post by post; resumable; once)
 pnpm news:umapyoi      # the posts the official site no longer serves, from umapyoi.net's mirror (resumable; once)
+                       # each of the three takes --server jp (umamusume.jp → data/news/jp/): news:latest:jp, news:all:jp,
+                       # news:umapyoi:jp (parsed by `update-jp`)
 pnpm news:categories   # every stored post with its category (banner / event kind / other), for checking the parser
 pnpm news:events       # the events the stored news makes (cards, items, titles), printed; nothing written
-pnpm news:ai           # ask a model about what the rules doubt in events → data/news/ai_answers.json (see "Events");
+pnpm news:ai           # ask a model about what the rules doubt in events → data/news/<server>/ai_answers.json (--server jp);
                        # --model M, --provider ollama|openrouter, --limit N; --compare [--sample N | --ids a,b] tests a
                        # model against the rules (nothing saved, report in generated/ai-compare-<model>.json)
 
 pnpm setup-ml              # create ml/.venv (uv, Python 3.13) + install ml/requirements.txt
-pnpm predict-gl            # predicted Global release dates of JP-only cards → generated/ (Python, ml/)
+pnpm predict-gl            # predicted Global release dates of JP-only cards → generated/ (Python, ml/; promo cards never)
 pnpm predict-gl:backtest   # walk-forward backtest of the candidate models
 ```
 
@@ -118,8 +125,9 @@ through an `import.meta.glob`, so it's optional: without `pnpm predict-gl` there
 `data/known_dates.json` (committed; predictions pass through them).
 
 On a fresh checkout only upstream's card data is fetched automatically (`cards.json` then has no GameTora
-fields: no titles, links, JP dates or JP-only cards). The Timeline imports `generated/jp_banners.json`, so run
-`pnpm scrape-gametora` once before `pnpm dev`/`build` (Global's banners are committed in `data/`).
+fields: no titles, links, JP dates or JP-only cards), so run `pnpm scrape-gametora` once before `pnpm dev`/`build`
+(both servers' banners are committed in `data/`; `generated/jp_banners.json` is only GameTora's view now, the seed and a
+check).
 
 ## Layout
 
@@ -135,7 +143,7 @@ tierlist/          ranking code (runs in Node and the browser)
                      strings ↔ upstream's codes)
   cli.js             `pnpm rank`
 scripts/
-  lib/paths.js       ROOT, GENERATED_DIR, DATA_DIR, NEWS_DIR (every script's paths)
+  lib/paths.js       ROOT, GENERATED_DIR, DATA_DIR, newsDir(server) (every script's paths)
   lib/sources.js     generated/sources.json (file → where its data came from): readSources(), writeSources()
   lib/upstream.js    everything that knows about the upstream repo (REPO, DATA_FILES,
                      UPSTREAM_DIR, UPSTREAM_RAW, download)
@@ -144,7 +152,12 @@ scripts/
   build-cards.js     raw inputs → generated/cards.json + card_stats/<gl|jp>_card_stats.json (buildCardFiles())
   lib/cards.js       pure: buildCards() (the merge, + the round-trip check against upstream's lists)
   scrape-gametora.js  GameTora: JP banner history + support card list (generated/raw/) (+ the one-off Global seed)
-  update-global.js   data/news/ → Global's banners + card releases in data/, appends to data/news/summary.md
+  update-global.js   data/news/ → Global's banners + card releases in data/, appends to data/news/gl/summary.md
+  update-jp.js       data/news/jp/ → data/jp_banners.json + data/jp_events.json, appends to data/news/jp/summary.md
+  lib/jp-banners.js  pure: applyJpNews() (JP news → data/jp_banners.json), regularBanners() (what Global and ml/ read),
+                     seed / reader / writer
+  lib/news-lang/     the news' wording per language, read by every parser below (`lang`, English by default):
+                     en.js (Global), ja.js + ja-banners.js (JP), index.js (lexicon(server))
   lib/global.js      pure: applyNews() (news posts + JP banners → Global banners/releases), data/ reader/writer
   lib/event-blocks.js  pure: eventBlocks() (a post cut at its header art into blocks: intro + h2–h4 sections)
   lib/event-rewards.js pure: cardsIn() (cards by lookup), itemsIn(), titlesIn(), missionsIn()
@@ -161,11 +174,11 @@ scripts/
                      mergeGametora() (JP side), applyScenarioNews() (Global side, from the news)
   fetch-pull-guide.js  Luh's Support Card Encyclopedia (Google Sheet) → generated/pull_guide.json
   lib/pull-guide.js  pure: the sheet's HTML view → entries (dates, Pull?, notes) → advice per banner (findBanner())
-  fetch-news-latest.js  new/edited posts → data/news/posts.json + summary.md (incremental, news.yml)
-  fetch-news-all.js  the whole archive → data/news/posts.json (one-off, resumable)
-  fetch-news-umapyoi.js  older posts from umapyoi.net's mirror → data/news/posts.json (one-off, resumable)
+  fetch-news-latest.js  new/edited posts → data/news/<server>/posts.json + summary.md (incremental, news.yml)
+  fetch-news-all.js  the whole archive → data/news/<server>/posts.json (one-off, resumable)
+  fetch-news-umapyoi.js  older posts from umapyoi.net's mirror → data/news/<server>/posts.json (one-off, resumable)
   categorize-news.js `pnpm news:categories`
-  lib/news-api.js    the news API client (gentle pacing) + posts.json reader/writer
+  lib/news-api.js    the news API client per server (gl / jp; gentle pacing), posts.json reader/writer, --server
   lib/news-text.js   pure: HTML → lines/sections, period dates (parsePeriod), shared by the news parsers
   lib/post-categories.js  pure: categorize(post) → banner / event (+ kind) / other, phase, name
   lib/banner-posts.js  pure: bannerPost(post) → a scout post's banners (gacha id, type, period, art, featured list)
@@ -225,12 +238,15 @@ data/                ours, committed (nothing can regenerate it; generated/ is r
                                            then from the news (`update-global`); news-made entries carry news_url
   scenarios.json     every Career scenario: key, full_en, full_jp, en/jp_start_date, links.gametora
   known_dates.json   Global dates known ahead of time, by hand (`dates` by JP date, `banners` by gacha id)
-  global_events.json Global's in-game events (the app reads this): built from news/posts.json alone by
+  global_events.json Global's in-game events (the app reads this): built from news/gl/posts.json alone by
                      `update-global`; never edit by hand
+  jp_banners.json    JP's banners: GameTora's history seeded once, the JP news merged over it (`update-jp`)
+  jp_events.json     JP's in-game events, from news/jp/posts.json alone (`update-jp`); never edit by hand
   champions_meeting_rewards.json  Champions Meeting final-round rewards per league/group/place, by hand, in
                      blocks by `since` date
-  news/              official Global news: posts.json (raw, `news:latest` / `news:all` / `news:umapyoi`), summary.md,
+  news/gl/           official Global news: posts.json (raw, `news:latest` / `news:all` / `news:umapyoi`), summary.md,
                      ai_answers.json (a model's answers about doubted event fields, `news:ai`; applied at build time)
+  news/jp/           official JP news (Japanese originals), the same files
 generated/           build-time data, gitignored — never edit or commit
 upstream/            clone of upstream main, gitignored — only test:upstream reads it
 .github/workflows/   deploy.yml, upstream-check.yml
@@ -247,16 +263,19 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 | Every card's shown data | `generated/cards.json` (`schemas/cards.schema.json`) | no | `pnpm build-cards`, from the raw inputs + `data/global_cards.json` |
 | Tier list calculation inputs | `generated/card_stats/gl_card_stats.json`, `jp_card_stats.json` | no | `pnpm build-cards` |
 | Where generated files came from | `generated/sources.json`: `{ [file name]: source }` (upstream's repo + commit for `raw/upstream/*`, GameTora for `raw/gametora_cards.json`, the sheet's URL + update date for `pull_guide.json`, each with `fetched_at`); each script sets its own files' entries (`scripts/lib/sources.js`) | no | `update-cards`, `scrape-gametora`, `fetch-pull-guide` |
-| JP banner history | `generated/jp_banners.json` | no | `pnpm scrape-gametora` (every deploy) |
-| Global banner history + card releases | `data/global_banners.json`, `data/global_cards.json` | yes | seeded from GameTora once; `pnpm update-global` from `data/news/` (`news.yml`; deploys rerun it) |
+| JP banner history, GameTora's view | `generated/jp_banners.json` (the seed of the next row, and a check) | no | `pnpm scrape-gametora` (every deploy) |
+| JP banners | `data/jp_banners.json` (GameTora's shape; what the Timeline, `update-global` and `ml/` read) | yes | seeded once from the row above (`pnpm update-jp --seed`); `pnpm update-jp` merges the JP news over it (`news.yml`; deploys rerun it) |
+| JP's events + what they give | `data/jp_events.json` (same shape as Global's) | yes | `pnpm update-jp`: built from `data/news/jp/posts.json` (+ `data/news/jp/ai_answers.json`) |
+| Global banner history + card releases | `data/global_banners.json`, `data/global_cards.json` | yes | seeded from GameTora once; `pnpm update-global` from `data/news/gl/` (`news.yml`; deploys rerun it) |
 | Career scenarios + launch times on both servers | `data/scenarios.json` | yes | JP side: `pnpm scrape-gametora` (every deploy); Global side: `pnpm update-global` from the news (seeded once from GameTora) |
 | Predicted Global release dates of JP-only cards and future Global banners | `generated/predicted_gl_releases.json`, `predicted_global_banners.json` | no | `pnpm predict-gl` (every deploy) |
 | Pull advice + notes per card (Global banners) | `generated/pull_guide.json` | no | `pnpm fetch-pull-guide` (every deploy; optional for the site) |
-| Global's events + what they give | `data/global_events.json` (output, what the app reads) | yes | `pnpm update-global`: built from `data/news/posts.json` (+ the answers below) |
-| A model's answers about what the rules doubt in events | `data/news/ai_answers.json` (by event aiKey: `{ model, at, versions, answer }`, one per line, excluded from Biome) | yes | `pnpm news:ai` (locally with Ollama; in `news.yml` with OpenRouter's free Gemma) |
+| Global's events + what they give | `data/global_events.json` (output, what the app reads) | yes | `pnpm update-global`: built from `data/news/gl/posts.json` (+ the answers below) |
+| A model's answers about what the rules doubt in events | `data/news/gl/ai_answers.json` (by event aiKey: `{ model, at, versions, answer }`, one per line, excluded from Biome) | yes | `pnpm news:ai` (locally with Ollama; in `news.yml` with OpenRouter's free Gemma) |
 | Champions Meeting rewards per league/group/place | `data/champions_meeting_rewards.json` | yes | by hand, from the in-game reward list |
 | Announced Global dates | `data/known_dates.json` (`dates` by JP date, `banners` by JP gacha id with exact start/end) | yes | by hand, e.g. from the monthly release schedule image (Global's banners in `data/` add more) |
-| Official Global news (banners, events, updates) | `data/news/posts.json` (each post as the API sends it), `data/news/summary.md` (last run's additions) | yes | `pnpm news:latest` (`news.yml`, daily); `pnpm news:all` once |
+| Official Global news (banners, events, updates) | `data/news/gl/posts.json` (each post as the API sends it), `data/news/gl/summary.md` (last run's additions) | yes | `pnpm news:latest` (`news.yml`, daily); `pnpm news:all` once |
+| Official JP news (Japanese originals) | `data/news/jp/posts.json`, `data/news/jp/summary.md`, `ai_answers.json` | yes | `pnpm news:all:jp` + `news:umapyoi:jp` once; `news:latest:jp` (`news.yml`); answers: `news:ai --server jp` |
 | Upstream code (for comparison only) | `upstream/` | no | `pnpm clone-upstream` (manual locally; CI clones it) |
 
 - **The calculation is ours** (`tierlist/tierlist-calc.js`, `scenarios.js`): nothing
@@ -315,12 +334,31 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   `news:all` walks the whole archive from the newest post (1–2 s pauses, a one-off). The site doesn't keep everything:
   163 posts, mostly from July 2026 on, a few back to the June 2025 launch. The rest (425 posts, every month since
   launch) came from umapyoi.net, which mirrors the official English news (`GET https://umapyoi.net/api/v1/en/news` →
-  every id, `/api/v1/en/news/<id>` → a post; same ids, titles and HTML as the official ones): `news:umapyoi` turns them
+  every id, `/api/v1/en/news/<id>` → a post; same ids, titles and HTML as the official ones): `news:umapyoi` (0.1 s pauses: umapyoi.net allows 10 requests a second) turns them
   into the official shape (unix → "YYYY-MM-DD HH:MM:SS", `image_big` = its thumbnail, the same file; no `from_date` /
-  `to_date` / `next_announce_id`) with `source: 'umapyoi'`. 588 posts in all; the old art is still served. `data/news/posts.json` keeps each post's
+  `to_date` / `next_announce_id`) with `source: 'umapyoi'`. 588 posts in all; the old art is still served. `data/news/gl/posts.json` keeps each post's
   `detail` exactly as sent (+ `next_announce_id`, `fetched_at`), one per line, newest first, excluded from Biome;
   parsers read it, so a parser change needs no request. Timestamps from the API are UTC. Post ids come in series:
   1… in-game news, 100001… notices (issues, maintenance, store), 200001… community posts (X giveaways, letters).
+- **Official JP news** (`umamusume.jp/api/ajax/pr_info_index` / `pr_info_detail`, **GET** with query params; a POST
+  gets the site's HTML; `scripts/lib/news-api.js`' `SERVERS.jp`): same pacing. The index is paged from 1 with
+  `total_page_count`, and lists **every** post the site serves (317 on 2026-10-11, ids 107…3497): all of them from
+  2026-07-23 on (id 3348; about the last 2½ months), plus 188 older ones it kept, scattered back to April 2023 and a
+  few from the 2021 launch (rules, the known-issues post 155, updated often, sits among the newest), so index order
+  isn't post order. A detail's `prev_announce_id` is the next **lower id** the site serves and
+  `next_announce_id` the next higher (by id, not post date: 60 of 316 links go to a newer post), both stored as sent;
+  `olderId()` reads either server's. Walking them from every index post found nothing the index lacks. Times are
+  **JST** strings (`apiDate(s, 'jp')` → UTC); `update_at` is null when never edited. `image_big` is the header art
+  (`prd-info-umamusume.akamaized.net/announce/<id>/Header/<file>`, 95 of 317 have one); a post page is
+  `umamusume.jp/news/detail/?id=<id>` (client-rendered). Older posts come from umapyoi.net's mirror of the Japanese
+  originals, `GET /api/v1/news` (2,663 ids, 100…3497, back to the 2021 launch) / `/api/v1/news/<id>` (no language
+  segment; drop its machine-translated `title_english` / `message_english`): same ids; on 8 posts both serve, title,
+  `message` (byte for byte, same `<p data-local-id>` markup) and post time match. Its `post_at` is unix (→ JST
+  string), its `image` the thumbnail (`…/Thumbnail/<file>`, the header art's file), `article_image` the header art
+  on some older posts (null on recent ones): `news:umapyoi:jp` takes `article_image`, else `image` under `Header/`.
+  2,663 JP posts in all (317 official, 2,346 from umapyoi; per year 96 / 380 / 541 / 592 / 614 / 440 for 2021–2026),
+  every id umapyoi lists, none without a message or time; 1,485 umapyoi posts have header art (old ones checked: still
+  served).
 - **Post categories** (`scripts/lib/post-categories.js`): `categorize(post)` → `{ category: banner | event | other,
   kind, phase, name, banners }`, from the title (very regular; first matching rule wins), the id series and, for
   banners, the body. Event kinds: story, champions_meeting, legend_race, transfer_requests, uma_outing, special
@@ -432,7 +470,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   section) so it gives this event's share; JSON schema of just those fields. Amounts are asked in parts (`each` ×
   `times`, or a `total` the text states): small models read numbers well but multiply badly, so the code multiplies.
   System prompt: answer only from the text, never guess or assume a default; null is better than a wrong answer.
-  Answers are stored in `data/news/ai_answers.json` by event aiKey (id + a hash of its text and context, so an edited
+  Answers are stored in `data/news/gl/ai_answers.json` by event aiKey (id + a hash of its text and context, so an edited
   post is asked again) with per-field versions (`FIELD_VERSIONS`: bump one when its question changes, so only that
   field is re-asked) and applied at build time by `applyAnswer()`, rules first: a doubted or empty field takes the
   answer, a value the rules are sure of is never touched. An answer is used only if it checks out: item and event
@@ -447,6 +485,67 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   150 × 22 windows = 3,300 carats, 3,000-carat login bonuses, Golshi Mode's 1,200,000 Monies, ×5 card gifts, ×2 login
   and ×3 missions copies); every number and date it changed is in its post. `--compare` asks events about every field
   and reports agreement with the rules per field (how these were chosen).
+- **One parser, two languages** (`scripts/lib/news-lang/`): the news parsers (post-categories, banner-posts,
+  event-blocks, event-rewards, events) are shared and take a lexicon `lang` (English by default): every pattern they
+  read a post with (title rules, phases, period headings, item / copies / login patterns, sub-event kinds, art, CM phase
+  headings) plus hooks: `parsePeriod` + `dateRef` (EN: the post's UTC year; JP: `parsePeriodJa`, JST, the year nearest
+  the post), `clean(html)` (JP: zero-width spaces, full-width digits, unquoted attributes, line breaks at headings),
+  `community(post)`, a rule's kind as a function of the post. JP-only behaviour sits behind optional hooks English
+  doesn't set (scouts: `firstList`, `paidBanner`, `periodLabel`, `rerunPeriod`; events: `introBlock`, `blockRole`,
+  `partCopies`, `deadline`, `schedules`, `sameDates`, `unionDates`, `titlePrefix`, `localName`, `splitItems`…).
+  **A change to the shared code must leave Global's output byte-identical** (`update-global` before/after, `news:events`).
+  `norm()` keeps letters of every script (kana, kanji). What the JP posts look like, and the user's decisions:
+  docs/jp-news-findings.md; the plan: docs/jp-news-plan.md.
+- **JP categories** (`news-lang/ja.js`): label 2/3 = community (≈ EN's 200001 series; label 5 is one maintenance post),
+  scouts by their art (exactly the 466 posts with `gacha_banner_` art), then anchored title rules (`^ストーリーイベント「…」
+  (開催決定|開催|終了)！$`, `^(レースイベント|M/D|N月下旬)「チャンピオンズミーティング X」`, …) so event-named bug posts stay
+  other. JP kinds Global lacks: `league_of_heroes` (no name, in UNNAMED_KINDS), `factor_research` (因子研究),
+  `masters_challenge`. A campaign post showing ≥ 2 parts' art is a celebration. Names stay Japanese (decision 1): a
+  name is the leading 「…」/『…』 when only the phase follows it, else the title without its phase.
+- **News → JP banners** (`scripts/lib/jp-banners.js`, `pnpm update-jp`): `data/jp_banners.json` is GameTora's history
+  (seeded once, 366 banners) with the JP news merged over it, rebuilt from every post each time (idempotent; seeded
+  entries never lost). A banner GameTora has gets `announced`, `news_url`, `news_image` (official art; `image` and
+  dates stay GameTora's: all 574 post/GameTora pairs agree on start, end and type) and the R cards the post lists,
+  as `from_news` featured items (GameTora leaves R cards out). Banners GameTora lacks (select-pickup supports, Twinkle
+  Collection 30xxx, paid 50xxx) are made from the post (`from_news: true`, featured resolved: supports by cards.json
+  title.jp + name.jp, trainees by title + name on GameTora's banners). `paid: true` per banner (gacha id ≥ 50000; a post
+  can mix both). Re-runs (decision 6): the original keeps its dates and gets `rerun: { id, start, end }`; the re-run is
+  GameTora's banner with the same featured starting then (`rerunOf`), else ours with id `<id>-rerun` (the only string
+  ids). JP scouts: only the first featured list after a banner's art counts, labelled windows in one period section,
+  a `再開催期間` section re-holds every scout of its post. Every news-confirmed banner gets `name`, the scout's name from its post (its heading in
+  group-select posts, else the next 「…ガチャ…」 in the post that fits its type: ★ / 育成 / プリティーダービー for trainees,
+  SSR / サポートカード for cards; a post naming only its whole scout gives every banner that name), and one without a
+  featured list (JP's paid scouts: guaranteed ★3/SSR, step-up, start dash list only which releases can appear) gets
+  `note`, the post's line about what it draws from. The Timeline labels a bar with no featured item by its `name`
+  (every JP banner has a label) and shows `name` under the sheet's art, `note` in place of the empty featured list. `regularBanners()` (and ml/data.py's `jp_banners()`) is what
+  Global's news pairing, `globalProgress` and `ml/` read: no paid banners, no string ids, GameTora's featured (no
+  `from_news` items), so their output didn't change. The Timeline shows paid badges and links re-runs both ways.
+- **JP events** (`buildEvents(posts, { lang: ja })` → `data/jp_events.json`, `pnpm update-jp`): Global's model, JP
+  wording. Celebration posts are cut at part art (`header_…`, `banner_…`, `header_CP_/EV_…`, bare `<img>` too; the
+  intro is its own block; scout links and paid gachas, card-copy summaries and feature news aren't parts). Periods are
+  JST; gifts run to their 対象のトレーナー deadline; Champions Meetings have Global's phases (the headings never changed
+  since 2022), League of Heroes its own (team formation, main stage, extra stage registration / matching / votes /
+  race). Items: Global's canonical name where Global has the item (Carats, Monies, Support Points, shards, tickets) with
+  the Japanese one in `local`, else the Japanese name; paid packs, costs and exchanges excluded. Cards by title.jp +
+  name.jp; campaign copies per part from the post's summary (「…」で最大2枚). 1,120 events (438 top-level). Checked
+  against GameTora's JP event data on 2026-10-11 (a one-off script): every story event from mid-2022 (44/45 with the
+  SSR; the miss is a 2021 announcement naming none), Champions Meeting (36/36: round 1 = GameTora's start, same end)
+  and Legend Race (48/48) matches; before mid-2022 the archive is thin (2021: 96 posts).
+- **The model on JP events** (`news:ai --server jp`): the questions are per language (`QUESTIONS` in
+  event-questions.js: Japanese SYSTEM / FIELDS / made-up EXAMPLES; English's unchanged, so Global's stored answers
+  still match). JP times are JST: the model gets the post date and answers dates in JST as the post writes them; the
+  code converts them to UTC with the year nearest the post. Sub-event kinds also allow `special` (an event embedded in
+  a celebration post). Answer names go through the JP lexicon (`itemName(raw, ja)`, `local`). Run locally with
+  `gemma4:26b` on 2026-10-11/12: all 268 doubted (+ empty-field) JP fragments answered (312 stored, ~1 h); applied, it
+  changed 56 events: sub-events named by their own sentence instead of the celebration, events embedded in celebration
+  posts typed `special` and merged into their own post's event (no more duplicates), mission sets listed twice merged
+  (1,120 → 1,110 events). Known weak spot: the cosmetic 特別ホーム画面 parts became `special`.
+- **JP on the Timeline and in the workflows**: JP's calendar has the event lanes Global has (groups, parts, sheets).
+  A banner without an end (an open-ended scout, 終了日時未定) counts as one day in `timeline.js` and reads "from
+  <start>". `fetch-news-latest --server jp` categorizes with the JP lexicon (summary + `update`). `news.yml`: Global's
+  news, then JP's (`news_jp`); cards + GameTora if either updated; the model for each server that updated;
+  `update-jp`, then `update-global` (Global's news pairs with JP's banners by id); one commit whose subject sums both
+  servers. `deploy.yml` runs `update-jp` before `update-global` (not committed).
 - **Pull guide** (`scripts/lib/pull-guide.js`): Luh's Umamusume Support Card Encyclopedia, a public Google Sheet
   (one tab per Global scenario era, one row per card banner; reruns get their own row). Read from each tab's HTML
   view (`htmlview/sheet?gid=…`): the CSV export has no hyperlinks, and a row's card id is only in its GameTora link
@@ -504,6 +603,9 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   character; existing cards' scores don't change (averaged rankings keep the Global-only
   0–1000 scale, so upcoming cards can score above 1000). JP's newest cards have no stats
   upstream yet and are left out. Cards not on Global with a prediction get the chart too.
+  **Promo cards** (cards.json `source` promo: collabs, campaigns) are never predicted: Global isn't expected to get promo
+  banners or cards (ml/data.py `is_promo()`: status 'promo'; ml/banners.py drops them from predicted banners and skips a
+  banner of nothing else). One Global does get comes from the news like any release.
 - Server keys: `gl` / `jp` for tier-list code, `global` / `jp` for banner files
   (`src/servers.js` maps them). GameTora card types map to stat tabs via `STAT_OF_TYPE`
   (`intelligence` → `wisdom`, `group` → `friend`).
@@ -516,6 +618,14 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   cards on no banner), `latestAdvice`, `sheetLink`.
 - `news.test.js`: the first parser (periods, kinds, banner ids + art, featured).
 - `post-categories.test.js`: categories, event kinds, phases and names from real titles; community posts never events.
+- `jp-news.test.js`: `parsePeriodJa` (JST, year nearest the post, open ends), JP `categorize()` (kinds, names, phases,
+  admin posts kept out, celebrations by part art, labels), `norm()` on Japanese; over the stored JP news: scouts exactly
+  where scout art is, the fixture samples (`test/fixtures/jp-news-samples.json`, ids sampled per kind) by group.
+- `jp-banners.test.js`: JP scout posts (first list, periods, R cards, paid per banner, re-runs) on fixtures,
+  `applyJpNews()` (enrich, make, re-runs, idempotent); over the stored data: every GameTora banner a post shows agrees
+  on start, end and type; re-runs paired both ways.
+- `jp-events.test.js`: JP events on fixture posts (story, CM, LR, LoH, specials, celebrations, gifts, login bonuses,
+  sales) and over the stored data (story SSRs, CM / LoH schedules, no paid items, `local` names, parents exist).
 - `banner-posts.test.js`: a scout post's banners (type, period, art, own list, each once), open-ended and
   year-crossing periods, paid scouts; every stored banner typed and dated, every regular scout's list non-empty.
 - `events.test.js`: posts cut into blocks; cards (phrasings, copies, trainees/unknown/bonus cards skipped); items
@@ -534,11 +644,13 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   score 0–1000.
 - `calc.test.js`: one known score (Kitasan Black ≈ 372, from upstream's own test).
 - `rank-history.test.js`: `rankHistory()` on a small synthetic ranking.
-- `global-progress.test.js`: the Global-in-JP estimate, window ends (known vs. predicted), reruns ignored.
+- `global-progress.test.js`: the Global-in-JP estimate, window ends (known vs. predicted), reruns, paid and `-rerun`
+  banners ignored.
 - `scenarios.test.js`: scenario mentions in news (dated vs. not, false positives), `fromGametora`, `applyScenarioNews`.
 - `event-strip.test.js`: events in groups by type with parts only under their parent (`eventGroups()`, `partCount()`),
-  item order, sub-events; the data: every dated event placed once, only known kinds and groups (the app's lists = the
-  build's), every Champions Meeting with its schedule, existing parents.
+  item order, sub-events; the data, for both servers: every dated event placed once, only known kinds and groups (the
+  app's lists = the build's), every Champions Meeting with its schedule (but an announcement-only one), phase labels,
+  existing parents, named items.
 - `event-questions.test.js`: doubts (amounts in sentences, per day, purchases not; copies in several places), the
   questions (only asked fields, every field when comparing, kind only for sub-events), `applyAnswer()` (doubted and
   empty fields, never sure ones; gaps / model modes; invalid answers, generic names, a year off, card copies among
@@ -551,7 +663,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   Scenarios tab's list.
 - `scenario-names.test.js`: `scenarioName()` under the Scenario names setting (Global with JP fallback, JP).
 - `settings-page.test.jsx`: About shows the version, the disclaimer and both credit links.
-- `timeline.test.js`: calendar days in UTC vs. the viewer's timezone (TZ pinned to Europe/Warsaw).
+- `timeline.test.js`: calendar days in UTC vs. the viewer's timezone (TZ pinned to Europe/Warsaw); end-less banners.
 - `i18n.test.jsx`: every key used in `src/` exists (literal `t('…')`, `i18nKey="…"`, tab
   labels, and dynamically built ones); other catalogs match `en.json`'s keys; plurals,
   lists and `<Trans>` render as expected.
@@ -616,14 +728,15 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   (none on JP while its newest scenario isn't one the tier list ranks). Every scenario in `data/scenarios.json` is
   listed, newest first; those the tier list doesn't rank yet are disabled with "Not in the tier list yet".
 - `deploy.yml` — on push to main, daily, and manually: install → `pnpm lint` → `update-cards` →
-  `scrape-gametora` → `update-global` (not committed) → `setup-ml` + `predict-gl` → `fetch-pull-guide` → `pnpm test` → build → GitHub Pages. If any
+  `scrape-gametora` → `update-jp` → `update-global` (both not committed) → `setup-ml` + `predict-gl` → `fetch-pull-guide` → `pnpm test` → build → GitHub Pages. If any
   step fails the job fails and the last good deploy stays live.
 - `upstream-check.yml` — on push to main, daily, and manually: install →
   `clone-upstream` → `update-cards` → `pnpm test:upstream`. A failure (GitHub emails)
   means upstream changed; deploys don't depend on it.
-- `news.yml` — manual for now (the daily 23:43 UTC schedule and the redeploy are commented out): `news:latest`; if a
-  banner, event or scenario post came in, `update-cards` + `scrape-gametora`, then `news:ai` (OpenRouter, with the
-  `OPENROUTER_API_KEY` repo secret; skipped when it isn't set, never fails the run), then `update-global`; commits `data/` with the summary as the commit
+- `news.yml` — manual for now (the daily 23:43 UTC schedule and the redeploy are commented out): `news:latest` for
+  Global, then `--server jp`; if a banner, event or scenario post came in on either, `update-cards` + `scrape-gametora`,
+  then `news:ai` per server that updated (OpenRouter, with the `OPENROUTER_API_KEY` repo secret; skipped when it isn't
+  set, never fails the run), then `update-jp` and `update-global`; commits `data/` with both summaries as the commit
   message and job summary, and starts `deploy.yml` (a GITHUB_TOKEN push doesn't trigger it). Needs
   `contents: write`, `actions: write`.
 - Pages source must be set to "GitHub Actions".

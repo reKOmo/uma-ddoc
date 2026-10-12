@@ -15,7 +15,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from data import DATA, GENERATED, to_date, to_days
+from data import DATA, jp_banners, to_date, to_days
 
 KNOWN_DATES = DATA / 'known_dates.json'
 
@@ -45,7 +45,7 @@ def banner_dates(banners):
     """(jp, gl) days of Global banners ({ id, start }) with a JP one of the same id: the JP start's date
     in JST (cards' release_jp) → the Global start's date in UTC (cards' release_gl; Global banners start
     at 22:00 UTC)."""
-    jp = json.loads((GENERATED / 'jp_banners.json').read_text())
+    jp = jp_banners()
     jp_start = {b['id']: b['start'] for b in jp['characters'] + jp['cards']}
     pairs = [(jp_start[b['id']], b['start']) for b in banners if b['id'] in jp_start]
     if not pairs:
