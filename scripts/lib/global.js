@@ -5,7 +5,8 @@
 //   data/global_cards.json    { [card id]: { title_en, release_gl, news_url? } } for cards out on Global
 // Seeded once from GameTora (2026-10) and kept up since from the official
 // news (data/news/, pnpm update-global). Entries made from the news carry `news_url` (banners also
-// `announced: true`); seeded ones are never changed.
+// `announced: true`). Seeded banners (no `announced`) keep their dates and items; one a post shows gets that post's
+// `news_url` and official art (`news_image`), as JP's GameTora banners do (scripts/lib/jp-banners.js).
 //
 // A scout post names its banners by gacha id, which Global shares with JP, so a banner from the
 // news is JP's banner with that id (featured ids, rates) under Global's dates and art, with
@@ -58,9 +59,10 @@ function pairEnglish(items, entries, names) {
 //   names     Map char_id → English name
 // Returns { global, cards, banners: [{ banner, kind, post, unmatched }], skipped: [{ id, post, reason }] }.
 export function applyNews({ posts, global, cards, jp, names }) {
-  const seeded = (list) => list.filter((b) => !b.news_url);
+  // Seeded banners, without what an earlier run took from the posts (taken again below: idempotent).
+  const seeded = (list) => list.filter((b) => !b.announced).map(({ news_url, news_image, ...b }) => b);
   const kinds = { characters: seeded(global.characters), cards: seeded(global.cards) };
-  const seededIds = new Set([...kinds.characters, ...kinds.cards].map((b) => b.id));
+  const seededById = new Map([...kinds.characters, ...kinds.cards].map((b) => [b.id, b]));
   const jpBanners = new Map();
   for (const kind of ['characters', 'cards']) for (const b of jp[kind]) jpBanners.set(b.id, { kind, banner: b });
 
@@ -74,7 +76,13 @@ export function applyNews({ posts, global, cards, jp, names }) {
   const made = [];
   const skipped = [];
   for (const [id, { post, announced: a }] of announced) {
-    if (seededIds.has(id)) continue;
+    // A seeded banner the news shows: its post and official art; its dates and items stay.
+    const seededBanner = seededById.get(id);
+    if (seededBanner) {
+      seededBanner.news_url = post.url;
+      if (a.image) seededBanner.news_image = a.image;
+      continue;
+    }
     const source = jpBanners.get(id);
     if (!source) {
       skipped.push({ id, post: post.url, reason: 'no JP banner has this id' });

@@ -1,7 +1,7 @@
-// The Career scenario strip on the banner calendar (src/scenarioStrip.js).
+// The Career scenario strip on the banner calendar (src/timeline/scenarioStrip.js).
 
 import { describe, it, expect } from 'vitest';
-import { scenarioSegments } from '../src/scenarioStrip.js';
+import { scenarioSegments } from '../src/timeline/scenarioStrip.js';
 
 const date = (iso, tag) => ({ date: iso, tag });
 const SCENARIOS = [

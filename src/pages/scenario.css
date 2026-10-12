@@ -68,11 +68,6 @@
   gap: 8px;
 }
 
-.scenario-actions button.gametora-link {
-  background: var(--panel);
-  cursor: pointer;
-}
-
 /* ── Launch: one card, JP on the left → Global on the right, the gap in the middle ── */
 
 .scenario-launch {

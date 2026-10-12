@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
-import { EVENT_GROUPS, eventGroups, itemList, partCount, subEvents, withPredicted } from '../src/eventStrip.js';
+import { EVENT_GROUPS, itemList, withPredicted } from '../src/timeline/events.js';
+import { eventEntries } from '../src/timeline/entries.js';
+import { DAY, laneGroups, partCount } from '../src/timeline/layout.js';
 import { CM_PHASES, EVENT_KINDS } from '../scripts/lib/events.js';
-import { DAY } from '../src/timeline.js';
 import en from '../src/i18n/en.json' with { type: 'json' };
 import globalEvents from '../data/global_events.json' with { type: 'json' };
 import jpEvents from '../data/jp_events.json' with { type: 'json' };
@@ -14,8 +15,12 @@ const SERVERS = [
   ['JP', jpEvents],
 ];
 
-describe('eventGroups', () => {
-  const event = (id, kind, start, end, parent = null) => ({ id, kind, start, end, parent });
+// Events in their lane groups, as the Timeline draws them.
+const eventGroups = (events) => laneGroups(eventEntries(events));
+const idsOf = (rows) => rows.map((row) => row.map((item) => item.entry.id));
+
+describe('event lanes', () => {
+  const event = (id, kind, start, end, parent = null) => ({ id, kind, start, end, parent, cards: [], items: [] });
 
   it('groups events by type, each packed on its own, parts only under their parent', () => {
     const groups = eventGroups([
@@ -26,19 +31,19 @@ describe('eventGroups', () => {
       event('3-m1', 'missions', '2026-01-02T00:00:00Z', '2026-01-09T00:00:00Z', '3'),
       event('4', 'gift', '2026-01-03T00:00:00Z', null),
     ]);
-    expect(groups.map((g) => [g.key, g.rows.map((row) => row.map((item) => item.event.id))])).toEqual([
-      ['story', [['1'], ['2']]],
-      ['celebration', [['3']]],
-      ['gifts', [['4']]],
+    expect(groups.map((g) => [g.key, idsOf(g.rows)])).toEqual([
+      ['events-story', [['1'], ['2']]],
+      ['events-celebration', [['3']]],
+      ['events-gifts', [['4']]],
     ]);
     const celebration = groups[1].rows[0][0];
-    expect(celebration.parts.map((row) => row.map((item) => item.event.id))).toEqual([['3-1'], ['3-m1']]);
+    expect(idsOf(celebration.parts)).toEqual([['3-1'], ['3-m1']]);
     expect(partCount(celebration)).toBe(2);
     expect(groups[2].rows[0][0].end - groups[2].rows[0][0].start).toBe(DAY); // no end: one day
   });
 
   it.each(SERVERS)('places every dated event in the data once, in a known group (%s)', (_, events) => {
-    const placed = (items) => items.flatMap((item) => [item.event.id, ...placed(item.parts.flat())]);
+    const placed = (items) => items.flatMap((item) => [item.entry.id, ...placed(item.parts.flat())]);
     const all = eventGroups(events).flatMap((g) => placed(g.rows.flat()));
     expect(all.sort()).toEqual(
       events
@@ -72,14 +77,16 @@ describe('itemList', () => {
   });
 });
 
-describe('subEvents', () => {
-  it("lists a celebration's sub-events by start", () => {
-    const all = [
-      { id: '902', parent: null, start: '2026-07-22T22:00:00Z' },
-      { id: '902-21', parent: '902', start: '2026-07-23T15:00:00Z' },
-      { id: '902-11', parent: '902', start: '2026-07-22T22:00:00Z' },
-    ];
-    expect(subEvents(all[0], all).map((e) => e.id)).toEqual(['902-11', '902-21']);
+describe('event parts', () => {
+  it("lists a celebration's sub-events by start, each pointing back to it", () => {
+    const event = (id, parent, start) => ({ id, kind: 'gift', parent, start, end: null, cards: [], items: [] });
+    const [celebration, , part] = eventEntries([
+      event('902', null, '2026-07-22T22:00:00Z'),
+      event('902-21', '902', '2026-07-23T15:00:00Z'),
+      event('902-11', '902', '2026-07-22T22:00:00Z'),
+    ]);
+    expect(celebration.parts).toEqual(['event:902-11', 'event:902-21']);
+    expect(part).toMatchObject({ parent: 'event:902', relations: [{ type: 'partOf', target: 'event:902' }] });
   });
 });
 
@@ -117,8 +124,24 @@ describe.each(SERVERS)('the event data (%s)', (_, events) => {
 
 describe('withPredicted', () => {
   const real = [
-    { id: '1', kind: 'story', parent: null, start: '2026-10-01T00:00:00Z', end: '2026-10-10T00:00:00Z' },
-    { id: '1-m1', kind: 'missions', parent: '1', start: '2026-10-20T00:00:00Z', end: '2026-10-25T00:00:00Z' },
+    {
+      id: '1',
+      kind: 'story',
+      parent: null,
+      start: '2026-10-01T00:00:00Z',
+      end: '2026-10-10T00:00:00Z',
+      cards: [],
+      items: [],
+    },
+    {
+      id: '1-m1',
+      kind: 'missions',
+      parent: '1',
+      start: '2026-10-20T00:00:00Z',
+      end: '2026-10-25T00:00:00Z',
+      cards: [],
+      items: [],
+    },
   ];
   const ids = (events) => events.map((e) => e.id);
 
@@ -132,14 +155,14 @@ describe('withPredicted', () => {
 
   it("draws them in Global's groups, kinds Global lacks too, parts under their predicted parent", () => {
     const groups = eventGroups(withPredicted(real, fixture.events));
-    const rows = Object.fromEntries(groups.map((g) => [g.key, g.rows.map((row) => row.map((i) => i.event.id))]));
+    const rows = Object.fromEntries(groups.map((g) => [g.key, idsOf(g.rows)]));
     expect(rows).toEqual({
-      story: [['1', 'jp-3500', 'jp-3400']],
-      champions_meeting: [['jp-3444']],
-      league_of_heroes: [['jp-3379']],
+      'events-story': [['1', 'jp-3500', 'jp-3400']],
+      'events-champions_meeting': [['jp-3444']],
+      'events-league_of_heroes': [['jp-3379']],
     });
     const story = groups[0].rows[0][1];
-    expect(story.parts.map((row) => row.map((i) => i.event.id))).toEqual([['jp-3500-m1']]);
+    expect(idsOf(story.parts)).toEqual([['jp-3500-m1']]);
   });
 
   it("keeps every predicted event after Global's latest real one of its kind (the real data)", () => {

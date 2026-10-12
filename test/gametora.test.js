@@ -34,10 +34,14 @@ describe('GameTora URLs', () => {
       cards: [{ id: 2, image: 'official.png', main: null, featured: [{ id: 30001, type: 'speed' }] }],
     };
     const filled = withArt(file, 'global');
-    expect(filled.characters[0].image).toBe(`${IMAGES}en/gacha/img_bnr_gacha_1.png`);
+    expect(filled.characters[0]).toMatchObject({ image: `${IMAGES}en/gacha/img_bnr_gacha_1.png`, officialArt: false });
     expect(filled.characters[0].main.icon).toBe(traineeIcon(1001, 100101));
     expect(filled.characters[0].featured.map((f) => f.icon)).toEqual([traineeIcon(1001, 100101), null]);
-    expect(filled.cards[0]).toMatchObject({ image: 'official.png', main: null });
+    expect(filled.cards[0]).toMatchObject({ image: 'official.png', officialArt: true, main: null });
+    // A GameTora banner the news confirmed: its post's art over GameTora's.
+    expect(
+      withArt({ characters: [], cards: [{ id: 3, news_image: 'post.png', featured: [] }] }, 'jp').cards[0]
+    ).toMatchObject({ image: 'post.png', officialArt: true });
     expect(filled.cards[0].featured[0].icon).toBe(cardIcon(30001));
     expect(file.characters[0].image).toBeUndefined(); // the loaded file isn't changed
   });

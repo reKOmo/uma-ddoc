@@ -60,7 +60,7 @@ export async function updateGlobal() {
   const changedEvents = events.filter((e) => oldEvents.get(e.id) !== JSON.stringify(e));
 
   const before = new Map(
-    [...global.characters, ...global.cards].filter((b) => b.news_url).map((b) => [b.id, `${b.start} ${b.end}`])
+    [...global.characters, ...global.cards].filter((b) => b.announced).map((b) => [b.id, `${b.start} ${b.end}`])
   );
   const changed = result.banners.filter(({ banner }) => before.get(banner.id) !== `${banner.start} ${banner.end}`);
   const released = Object.entries(result.cards).filter(

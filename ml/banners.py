@@ -6,7 +6,8 @@ the same shape as data/global_banners.json, so the Banners page can draw them al
 
 Each banner is the JP one (featured items; no art URL: the app shows JP's GameTora art, built from the id, or the
 official art a news-made JP banner keeps as `image` + `news_image`) with Global start / end, plus
-  predicted: true, jp_start, jp_end, margin_days (± range of the start, from the backtest).
+  predicted: true, jp_start, jp_end, margin_days (± range of the start, from the backtest), news_url (JP's post, when
+  the JP news showed it).
 Banners Global already has (data/global_banners.json, ours: seeded from GameTora, kept up from the
 official news) are left out, whatever their dates. Banners with confirmed dates (data/known_dates.json
 `banners`) take them: start, end, confirmed: true, confirmed_source, margin_days 0.
@@ -127,6 +128,8 @@ def predict_banners(predict, anchor_jp, fitted_at):
                 'start': iso_at(start, GLOBAL_START_HOUR),
                 'end': iso_at(end, GLOBAL_START_HOUR, minus_ms=1000),
                 'predicted': True,
+                # JP's post about it (the Timeline links it, as it does a predicted event's).
+                **({'news_url': banner['news_url']} if banner.get('news_url') else {}),
                 'jp_start': banner['start'],
                 'jp_end': banner['end'],
                 'margin_days': round(float(m)),

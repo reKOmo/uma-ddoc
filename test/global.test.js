@@ -136,10 +136,15 @@ describe('applyNews', () => {
     expect(moved.cards[30126].release_gl).toBe('2026-10-08');
   });
 
-  it("never changes seeded banners, and skips ids JP doesn't have", () => {
+  it("keeps a seeded banner's dates and items, adding its post and official art, and skips ids JP doesn't have", () => {
     const seededToo = { ...SEEDED, cards: [{ ...SEEDED.cards[0], id: 30135 }] };
     const r = apply([post(1089, '2026-10-07T22:00:00Z', '2026-10-07T22:00:00.000Z')], seededToo);
-    expect(r.global.cards).toEqual(seededToo.cards);
+    expect(r.global.cards).toEqual([
+      { ...seededToo.cards[0], news_url: 'https://umamusume.com/news/1089/', news_image: 'official-30135.png' },
+    ]);
+    expect(r.banners).toEqual([]); // nothing made from the post: the banner was already there
+    // Idempotent: run again over its own output, the same.
+    expect(apply([post(1089, '2026-10-07T22:00:00Z', '2026-10-07T22:00:00.000Z')], r.global).global).toEqual(r.global);
 
     const unknown = post(1091, '2026-10-07T22:00:00Z', '2026-10-07T22:00:00.000Z', {
       banners: [

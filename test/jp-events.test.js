@@ -8,7 +8,9 @@ import { cmPhasesFrom, cutEvents, fillFromGametora, gametoraEvents } from '../sc
 import { postsFile } from '../scripts/lib/news-api.js';
 import { ja } from '../scripts/lib/news-lang/ja.js';
 import { GENERATED_DIR } from '../scripts/lib/paths.js';
-import { EVENT_GROUPS, eventGroups } from '../src/eventStrip.js';
+import { EVENT_GROUPS } from '../src/timeline/events.js';
+import { eventEntries } from '../src/timeline/entries.js';
+import { laneGroups } from '../src/timeline/layout.js';
 
 const read = (file) => JSON.parse(readFileSync(file, 'utf8'));
 const cardsFile = `${GENERATED_DIR}cards.json`;
@@ -410,8 +412,8 @@ describe.skipIf(!existsSync(stored))('the stored JP events', () => {
   it('links parts to an event that exists, and places every event in a group once', () => {
     const ids = new Set(events.map((e) => e.id));
     expect(events.filter((e) => e.parent && !ids.has(e.parent))).toEqual([]);
-    const placed = (items) => items.flatMap((item) => [item.event.id, ...placed(item.parts.flat())]);
-    const all = eventGroups(events).flatMap((g) => placed(g.rows.flat()));
+    const placed = (items) => items.flatMap((item) => [item.entry.id, ...placed(item.parts.flat())]);
+    const all = laneGroups(eventEntries(events)).flatMap((g) => placed(g.rows.flat()));
     expect(all.sort()).toEqual(events.map((e) => e.id).sort());
     expect(EVENT_GROUPS.flatMap(([, kinds]) => kinds)).toContain('league_of_heroes');
   });

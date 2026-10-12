@@ -7,14 +7,16 @@ import { TIER_NAMES, cardRanks } from '../tiers.js';
 import { rankHistory } from '../rankHistory.js';
 import { loadPredictions } from '../predictions.js';
 import { currentAdvice, latestAdvice, loadPullGuide, sheetLink, upcomingBanner } from '../pullGuide.js';
-import { loadBanners } from '../bannerData.js';
+import { loadBanners } from '../timeline/data.js';
+import { bannerStatus } from '../timeline/entries.js';
+import { dateFormats, dateRange } from '../timeline/format.js';
 import { cardArt, cardIcon, cardPage } from '../gametora.js';
-import StatusBadge from '../StatusBadge.jsx';
+import StatusBadge from '../timeline/StatusBadge.jsx';
 import ScenarioPicker from '../ScenarioPicker.jsx';
 import RankChart, { formatDay } from './RankChart.jsx';
 import { Trans, useTranslation } from 'react-i18next';
-import { formatDate, formatDuration, lbName, scenarioName, serverName, statName } from '../i18n/index.js';
-import { timeZoneOptions, useSettings } from '../settings.jsx';
+import { formatDuration, lbName, scenarioName, serverName, statName } from '../i18n/index.js';
+import { useSettings } from '../settings.jsx';
 import './card.css';
 
 const LIMIT_BREAKS = [0, 1, 2, 3, 4];
@@ -147,7 +149,7 @@ export default function CardPage({ cardId, server, scenario }) {
             {card.type === 'group' && <span className="tag">{t('card.group')}</span>}
           </p>
           {card.links.gametora && (
-            <a className="gametora-link" href={cardPage(card.links.gametora)} target="_blank" rel="noreferrer">
+            <a className="link-button" href={cardPage(card.links.gametora)} target="_blank" rel="noreferrer">
               {t('card.viewOnGameTora')}
               <ExternalLink size={16} aria-hidden="true" />
             </a>
@@ -262,7 +264,7 @@ function PullAdvice({ cardId }) {
       <div className="pull-entry">
         {/* The banner's art behind it, as on the Timeline's bars. */}
         <div
-          className={banner ? `pull-banner has-art${banner.announced ? ' official-art' : ''}` : 'pull-banner'}
+          className={banner ? `pull-banner has-art${banner.officialArt ? ' official-art' : ''}` : 'pull-banner'}
           style={banner ? { backgroundImage: `url(${banner.image})` } : undefined}
         >
           <h2 className="pull-heading">{t('pullGuide.upcomingBanner')}</h2>
@@ -275,7 +277,7 @@ function PullAdvice({ cardId }) {
                 <div className="pull-head">
                   {label && <span className="pull-label">{label}</span>}
                   {banner && (
-                    <a className="gametora-link pull-banner-link" href={`#/timeline/gl/${banner.id}`}>
+                    <a className="link-button pull-banner-link" href={`#/timeline/gl/${banner.id}`}>
                       {t('pullGuide.seeBanner')}
                       <ChevronRight size={16} aria-hidden="true" />
                     </a>
@@ -300,7 +302,7 @@ function PullAdvice({ cardId }) {
           </div>
         )}
         <div className="pull-actions">
-          <a className="gametora-link" href={sheetLink(entry ?? latest)} target="_blank" rel="noreferrer">
+          <a className="link-button" href={sheetLink(entry ?? latest)} target="_blank" rel="noreferrer">
             {t('pullGuide.seeMore')}
             <ExternalLink size={16} aria-hidden="true" />
           </a>
@@ -317,17 +319,12 @@ function ShouldPullChip({ pill }) {
   return <span className={`verdict-chip verdict-${kind}`}>{t(`pullGuide.verdict.${kind}`) + plus}</span>;
 }
 
-// The banner's status badge and dates, in the Settings timezone, as in the Timeline's banner sheet.
+// The banner's status badge and dates, in the Settings timezone, as in the Timeline's sheet.
 function BannerDates({ banner, timeZone }) {
-  const { t } = useTranslation();
-  const format = (iso) =>
-    formatDate(iso, { ...timeZoneOptions(timeZone), year: 'numeric', month: 'short', day: 'numeric' });
   return (
     <>
-      <StatusBadge banner={banner} />
-      <span className="pull-dates">
-        {t('common.dateRange', { start: format(banner.start), end: format(banner.end) })}
-      </span>
+      <StatusBadge status={bannerStatus(banner)} />
+      <span className="pull-dates">{dateRange(banner, dateFormats(timeZone).long)}</span>
     </>
   );
 }

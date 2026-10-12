@@ -1,7 +1,7 @@
-// Where Global is in JP's history (src/globalProgress.js).
+// Where Global is in JP's history (src/timeline/globalProgress.js).
 
 import { describe, it, expect } from 'vitest';
-import { globalProgress } from '../src/globalProgress.js';
+import { globalProgress } from '../src/timeline/globalProgress.js';
 
 const day = (d) => Date.parse(`${d}T00:00:00Z`);
 const banner = (id, start, end = start) => ({ id, start: `${start}T00:00:00Z`, end: `${end}T00:00:00Z` });

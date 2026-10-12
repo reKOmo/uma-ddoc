@@ -15,8 +15,10 @@ export const traineeIcon = (charId, id) => `${IMAGES}characters/thumb/chara_stan
 const ART_PREFIX = { global: 'en/', jp: '' };
 export const bannerArt = (id, art) => `${IMAGES}${ART_PREFIX[art]}gacha/img_bnr_gacha_${Number.parseInt(id, 10)}.png`;
 
-// A banner file ({ characters, cards }) with what the app shows filled in: each banner's `image` (the official art it
-// stores, else GameTora's for `art`: 'global' | 'jp'), each item's `icon` (none without an id).
+// A banner file ({ characters, cards }) with what the app shows filled in: each banner's `image` (the official art from
+// its post, `news_image` or a news-made banner's `image`, else GameTora's for `art`: 'global' | 'jp') and
+// `officialArt` (the official art: 936×228, no margin, so it's cropped differently from GameTora's), each item's
+// `icon` (none without an id).
 // `cards`: generated/cards.json, so a card upstream has shows upstream's icon (GameTora's otherwise).
 export function withArt(file, art, cards) {
   const item = (kind) => (it) =>
@@ -34,7 +36,8 @@ export function withArt(file, art, cards) {
   const banners = (kind) =>
     file[kind].map((b) => ({
       ...b,
-      image: b.image ?? bannerArt(b.id, art),
+      image: b.news_image ?? b.image ?? bannerArt(b.id, art),
+      officialArt: (b.news_image ?? b.image) != null,
       main: item(kind)(b.main),
       featured: b.featured.map(item(kind)),
     }));

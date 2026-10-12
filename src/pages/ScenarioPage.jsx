@@ -7,9 +7,9 @@ import { useTranslation } from 'react-i18next';
 import { getServerConfig } from '../../tierlist/scenarios.js';
 import { formatDate, formatDateTime, formatDuration, scenarioName, serverName } from '../i18n/index.js';
 import { DATE_FIELD, SCENARIOS, isCurrent, scenarioByKey } from '../scenarioRelease.js';
-import { ink } from '../scenarioStrip.js';
+import { ink } from '../timeline/scenarioStrip.js';
 import { timeZoneOptions, useSettings } from '../settings.jsx';
-import './card.css'; // shared: .card-tags, .tag, .gametora-link (pill button), .card-section
+import './card.css'; // shared: .card-tags, .tag, .card-section
 import './scenario.css';
 
 const day = (ms) => new Date(ms).toISOString().slice(0, 10);
@@ -109,7 +109,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }) {
             </p>
             {rankable && (
               <div className="scenario-actions">
-                <button type="button" className="gametora-link" onClick={openTierList}>
+                <button type="button" className="link-button" onClick={openTierList}>
                   <Trophy size={16} aria-hidden="true" />
                   {t('scenarioPage.openTierList')}
                 </button>

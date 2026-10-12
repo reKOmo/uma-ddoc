@@ -53,24 +53,6 @@
   border-radius: 999px;
 }
 
-.gametora-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 0 14px;
-  font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
-  border: 1px solid var(--accent);
-  border-radius: 999px;
-}
-
-.gametora-link:active {
-  color: var(--accent-text);
-  background: var(--accent);
-}
-
 /* ── Scenario × limit break tier table ── */
 
 .card-section {

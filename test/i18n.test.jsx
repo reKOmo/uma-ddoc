@@ -11,7 +11,8 @@ import { COMBINED, STATS } from '../tierlist/index.js';
 import { SERVERS } from '../src/servers.js';
 import { CM_PHASES, EVENT_KINDS } from '../scripts/lib/events.js';
 import { ja } from '../scripts/lib/news-lang/ja.js';
-import { EVENT_GROUPS } from '../src/eventStrip.js';
+import { EVENT_GROUPS } from '../src/timeline/events.js';
+import { LANE_GROUPS } from '../src/timeline/layout.js';
 
 const I18N_DIR = new URL('../src/i18n/', import.meta.url);
 const SRC_DIR = new URL('../src/', import.meta.url);
@@ -57,9 +58,14 @@ describe('catalogs', () => {
       ...STATS.map((s) => `stat.${s}`),
       ...Object.keys(SERVERS).map((s) => `server.${s}`),
       ...Object.keys(COMBINED).map((k) => `scenario.${k}`),
-      ...['live', 'upcoming', 'ended', 'predicted', 'confirmed'].map((s) => `banners.status.${s}`),
-      ...['out', 'confirmed', 'predicted'].map((s) => `banners.scenarioTag.${s}`),
-      ...['barTitle', 'predictedBarTitle', 'confirmedBarTitle'].flatMap((k) => [`banners.${k}`, `events.${k}`]),
+      ...['live', 'upcoming', 'ended', 'predicted', 'confirmed'].map((s) => `timeline.status.${s}`),
+      ...['out', 'confirmed', 'predicted'].map((s) => `timeline.scenarioTag.${s}`),
+      ...['barTitle', 'predictedBarTitle', 'confirmedBarTitle'].map((k) => `timeline.${k}`),
+      ...['characters', 'cards'].map((k) => `timeline.kind.${k}`),
+      ...['rerunOf', 'reheld', 'partOf'].map((k) => `timeline.relation.${k}`),
+      ...['button', 'title', 'line'].map((k) => `timeline.mark.global.${k}`),
+      ...['featuredTrainees', 'featuredCards', 'supportCards'].map((k) => `timeline.${k}`),
+      ...LANE_GROUPS.map((g) => g.label),
       ...['out', 'confirmed', 'predicted'].map((s) => `scenarioPage.status.${s}`),
       'scenarioPage.link.gametora',
       ...['early', 'mid', 'late', 'month'].map((k) => `pullGuide.${k}`),
@@ -84,8 +90,8 @@ describe('i18next', () => {
   });
 
   it('picks plural forms by count', () => {
-    expect(t('banners.days', { count: 1 })).toBe('1 day');
-    expect(t('banners.days', { count: 7 })).toBe('7 days');
+    expect(t('timeline.days', { count: 1 })).toBe('1 day');
+    expect(t('timeline.days', { count: 7 })).toBe('7 days');
   });
 
   it('formats lists', () => {

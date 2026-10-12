@@ -1,7 +1,7 @@
 {
   "nav": {
     "tierList": "Cards",
-    "banners": "Timeline",
+    "timeline": "Timeline",
     "scenarios": "Scenarios",
     "settings": "Settings"
   },
@@ -90,12 +90,9 @@
     "reset": "Reset filters",
     "noMatches": "No cards match “{{query}}” with this filter."
   },
-  "banners": {
+  "timeline": {
     "title": "Timeline",
     "today": "Today",
-    "globalNow": "Global now",
-    "globalNowTitle": "Jump to where Global is in JP's history (estimated)",
-    "globalLine": "Global ≈ {{date}}",
     "scenarios": "Career scenarios",
     "scenarioTitle": "{{name}} ({{status}}) · {{dates}}",
     "scenarioTag": {
@@ -111,7 +108,6 @@
     "characters": "Characters",
     "supportCards": "Support cards",
     "barLabel": "{{name}} +{{count}}",
-    "barTitle": "{{label}} · {{dates}}",
     "status": {
       "live": "live",
       "upcoming": "upcoming",
@@ -119,35 +115,58 @@
       "predicted": "predicted",
       "confirmed": "confirmed"
     },
-    "predictedBarTitle": "{{label}} · predicted {{dates}}",
-    "confirmedBarTitle": "{{label}} · confirmed {{dates}}",
-    "confirmedFrom": "Dates confirmed by the official release schedule; art and cards from the JP banner of {{dates}}.",
-    "predictedFrom_one": "Predicted from the JP banner of {{dates}}; could be {{count}} day earlier or later.",
-    "predictedFrom_other": "Predicted from the JP banner of {{dates}}; could be {{count}} days earlier or later.",
-    "announced": "From the <a>official announcement</a> (also on <u>umapyoi.net</u>).",
     "paidBadge": "paid",
     "paid": "A paid scout: its pulls cost paid jewels only.",
-    "rerunOf": "Re-run of the banner of {{dates}}",
-    "reheld": "Re-held {{dates}}",
-    "details": "Banner details",
     "days_one": "{{count}} day",
     "days_other": "{{count}} days",
     "featuredCards": "Featured cards",
     "featuredTrainees": "Featured trainees",
     "new": "new",
     "seeMore": "See more",
-    "noItems": "No rate-up items listed.",
     "notRanked": "Not ranked yet",
     "rankNote": "Ranks are for MLB copies in the {{scenario}} tier list.",
-    "predictedRankNote": "Ranks are for MLB copies in Japan's {{scenario}} tier list, which has every card on this banner (Global's may not yet).",
     "showGroup": "Show {{name}}",
-    "hideGroup": "Hide {{name}}"
+    "hideGroup": "Hide {{name}}",
+    "kind": {
+      "characters": "Trainee scout",
+      "cards": "Support card scout"
+    },
+    "barTitle": "{{label}} ({{kind}}) · {{dates}}",
+    "predictedBarTitle": "{{label}} ({{kind}}) · predicted {{dates}}",
+    "confirmedBarTitle": "{{label}} ({{kind}}) · confirmed {{dates}}",
+    "mark": {
+      "global": {
+        "button": "Global now",
+        "title": "Jump to where Global is in JP's history (estimated)",
+        "line": "Global ≈ {{date}}"
+      }
+    },
+    "predictedFrom_one": "Predicted from JP's dates ({{dates}}); could be {{count}} day earlier or later.",
+    "predictedFrom_other": "Predicted from JP's dates ({{dates}}); could be {{count}} days earlier or later.",
+    "confirmedFrom": "Dates confirmed by the official release schedule; JP's were {{dates}}.",
+    "fromJp": "Names, art and rewards as JP has them; Global's may differ.",
+    "relation": {
+      "rerunOf": "Re-run of the banner of {{dates}}",
+      "reheld": "Re-held {{dates}}",
+      "partOf": "Part of {{name}}"
+    },
+    "upcomingRankNote": "Cards not on {{server}} yet are ranked as if they were out.",
+    "nothingListed": "Nothing listed.",
+    "copies_one": "{{count}} copy",
+    "copies_other": "{{count}} copies",
+    "range": "{{min}}–{{max}}",
+    "titles": "Titles: {{titles, list}}",
+    "news": "See on {{site}}",
+    "umapyoi": "See on umapyoi.net",
+    "items": "Other rewards",
+    "itemCount": "{{name}} × {{count}}",
+    "includes": "Includes",
+    "schedule": "Schedule",
+    "showParts_one": "Show {{count}} part of {{name}}",
+    "showParts_other": "Show {{count}} parts of {{name}}",
+    "hideParts": "Hide the parts of {{name}}"
   },
   "events": {
-    "barTitle": "{{name}} ({{kind}}) · {{dates}}",
-    "predictedBarTitle": "{{name}} ({{kind}}) · predicted {{dates}}",
-    "confirmedBarTitle": "{{name}} ({{kind}}) · confirmed {{dates}}",
-    "details": "Event details",
     "kind": {
       "story": "Story event",
       "champions_meeting": "Champions Meeting",
@@ -166,23 +185,6 @@
       "shop": "Shop",
       "sale": "Sale"
     },
-    "cards": "Support cards",
-    "range": "{{min}}–{{max}}",
-    "titles": "Titles: {{titles, list}}",
-    "noRewards": "No rewards listed.",
-    "news": "Read the announcement",
-    "jpNews": "Read JP's announcement",
-    "umapyoi": "On umapyoi.net",
-    "predictedFrom_one": "Predicted from the JP event of {{dates}}; could be {{count}} day earlier or later.",
-    "predictedFrom_other": "Predicted from the JP event of {{dates}}; could be {{count}} days earlier or later.",
-    "confirmedFrom": "Dates confirmed by the official release schedule; from the JP event of {{dates}}.",
-    "predictedNames": "Names and rewards as JP's announcement gives them; Global's may differ.",
-    "copies_one": "{{count}} copy",
-    "copies_other": "{{count}} copies",
-    "items": "Other rewards",
-    "itemCount": "{{name}} × {{count}}",
-    "partOf": "Part of {{name}}",
-    "includes": "Includes",
     "group": {
       "story": "Story & special events",
       "champions_meeting": "Champions Meetings",
@@ -195,10 +197,6 @@
       "shops": "Shops & sales",
       "transfers": "Transfers & outings"
     },
-    "showParts_one": "Show {{count}} part of {{name}}",
-    "showParts_other": "Show {{count}} parts of {{name}}",
-    "hideParts": "Hide the parts of {{name}}",
-    "schedule": "Schedule",
     "phase": {
       "league_selection": "League selection",
       "round_1": "Round 1",

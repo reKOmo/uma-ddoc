@@ -1,14 +1,15 @@
-// Tier grouping shared by the tier list page and the banner sheet.
+// Tier grouping shared by the tier list page and the Timeline's sheet.
 
 export const TIER_NAMES = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
-// GameTora's support card types → the tier list's stat tabs.
+// Support card types → the tier list's stat tabs (banner files say GameTora's `intelligence`, cards.json `wisdom`).
 export const STAT_OF_TYPE = {
   speed: 'speed',
   stamina: 'stamina',
   power: 'power',
   guts: 'guts',
   intelligence: 'wisdom',
+  wisdom: 'wisdom',
   friend: 'friend',
   group: 'friend',
 };

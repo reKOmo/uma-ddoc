@@ -116,7 +116,7 @@ function openingPeriod(block, year, lang) {
 }
 
 // A Champions Meeting's schedule, from its post's phase headings: [{ key, start, end }] in order (CM_PHASES).
-// Its keys are the same in every lexicon (the app's list: src/eventStrip.js).
+// Its keys are the same in every lexicon (the app's list: src/timeline/events.js).
 export const CM_PHASES = en.cmPhases;
 export function cmPhases(block, year, lang = en, schedule = lang.cmPhases) {
   return schedule.flatMap(([key, re]) => {

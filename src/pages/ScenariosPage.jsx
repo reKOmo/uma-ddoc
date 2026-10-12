@@ -6,7 +6,7 @@ import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatDate, scenarioName, serverName } from '../i18n/index.js';
 import { DATE_FIELD, SCENARIOS, isCurrent } from '../scenarioRelease.js';
-import { ink } from '../scenarioStrip.js';
+import { ink } from '../timeline/scenarioStrip.js';
 import { timeZoneOptions, useSettings } from '../settings.jsx';
 import './scenarios.css';
 

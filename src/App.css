@@ -648,6 +648,29 @@ h1 {
   }
 }
 
+/* A link or button drawn as an outlined pill, filled while pressed: the card page's GameTora / guide / "See banner"
+   links, the scenario page's actions, the Timeline sheet's post links. */
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.link-button:active {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
 /* A pill-shaped link to a card page ("See more", "See card"). */
 .see-more {
   display: inline-flex;

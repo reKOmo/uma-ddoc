@@ -1,0 +1,110 @@
+/* The detail sheet (src/Sheet.jsx): slides up from the bottom on phones, centred on desktop. vaul animates it in and
+   out and moves it while dragged (transforms of its own: nothing here sets one). The sheet itself never scrolls (vaul
+   turns off touch scrolling on it and draws a strip below it): its body does. */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.sheet {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 11;
+  display: flex;
+  flex-direction: column;
+  max-height: 85dvh;
+  background: var(--panel);
+  border-radius: 16px 16px 0 0;
+}
+
+.sheet:focus {
+  outline: none;
+}
+
+/* Phones: a down arrow across the top, outside the scrolling body: tap it to close, drag it to move the sheet. */
+.sheet-close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 100%;
+  height: 36px;
+  padding: 4px 0 0;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-radius: 16px 16px 0 0;
+  cursor: pointer;
+}
+
+.sheet-close:hover {
+  color: var(--text);
+}
+
+.sheet-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px calc(16px + env(safe-area-inset-bottom));
+}
+
+/* A dialog in the middle, nearly square, its × at the top right; centred without a transform (vaul's drag would set
+   it). It fades in and out instead of vaul's slide from the bottom (its selector, outranked: one more class). */
+@media (min-width: 768px) {
+  .sheet {
+    inset: 0;
+    width: min(720px, calc(100vw - 64px));
+    height: min(720px, calc(100dvh - 64px));
+    max-height: none;
+    margin: auto;
+    border-radius: 16px;
+  }
+
+  /* Text can be selected: vaul turns selection off wherever there's a mouse (a mouse drag moves the sheet), but the
+     desktop sheet doesn't drag. */
+  .sheet[data-vaul-drawer] {
+    user-select: text;
+  }
+
+  /* vaul's strip below the sheet (it covers the gap when a phone's sheet is dragged up) would show under the dialog. */
+  .sheet[data-vaul-drawer][data-vaul-drawer-direction]::after {
+    display: none;
+  }
+
+  .sheet[data-vaul-drawer][data-vaul-snap-points][data-vaul-drawer-direction][data-state="open"] {
+    animation: sheet-fade-in 150ms ease-out;
+  }
+
+  .sheet[data-vaul-drawer][data-vaul-snap-points][data-vaul-drawer-direction][data-state="closed"] {
+    animation: sheet-fade-out 150ms ease-in forwards;
+  }
+
+  @keyframes sheet-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes sheet-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  .sheet-close {
+    align-self: flex-end;
+    width: 32px;
+    height: 32px;
+    margin: 8px 8px 4px 0;
+    padding: 0;
+    border-radius: 8px;
+  }
+
+  .sheet-close:hover {
+    background: var(--border);
+  }
+}

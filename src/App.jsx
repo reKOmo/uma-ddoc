@@ -5,7 +5,7 @@ import { scenarioOptions } from '../tierlist/index.js';
 import { SERVERS } from './servers.js';
 import { serverName } from './i18n/index.js';
 import TierListPage from './pages/TierListPage.jsx';
-import BannersPage from './pages/BannersPage.jsx';
+import TimelinePage from './pages/TimelinePage.jsx';
 import CardPage from './pages/CardPage.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
 import { useSettings } from './settings.jsx';
@@ -18,10 +18,10 @@ import { useTranslation } from 'react-i18next';
 const ROUTES = {
   '#/': { label: 'nav.tierList', title: 'tierList.title', Icon: Trophy, Page: TierListPage },
   '#/timeline': {
-    label: 'nav.banners',
-    title: 'banners.title',
+    label: 'nav.timeline',
+    title: 'timeline.title',
     Icon: CalendarRange,
-    Page: BannersPage,
+    Page: TimelinePage,
     fullHeight: true,
   },
   '#/scenarios': { label: 'nav.scenarios', title: 'scenarioList.title', Icon: Route, Page: ScenariosPage },
