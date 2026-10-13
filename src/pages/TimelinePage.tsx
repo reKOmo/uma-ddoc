@@ -68,10 +68,8 @@ export default function TimelinePage({ server, scenario, linkId }) {
   const centerOn = useRef(null);
 
   const loaded = useAsync(() => loadTimeline(server).then((l) => ({ server, ...l })), [server]).data;
-  // (Another server's data is still the old one's until it loads: the last loaded one is kept.)
-  const [kept, setKept] = useState(null); // { server, entries, marks }
-  if (loaded && loaded !== kept) setKept(loaded);
-  const current = kept?.server === server ? kept : null;
+  // (Right after a server change, until the hook resets, its data is still the old server's.)
+  const current = loaded?.server === server ? loaded : null;
 
   const byKey = useMemo(() => new Map(current?.entries.map((entry) => [entry.key, entry])), [current]);
   const timeline = useMemo(
