@@ -933,6 +933,21 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 
 ## Code style
 
+- **Use libraries, don't hand-write.** Before writing a mechanism yourself (UI behaviour, parsing, retries, storage,
+  routing, dates…), look for a maintained library and use it; write it yourself only when nothing fits or it's
+  genuinely a few lines. Prefer small, focused, fast libraries (they're shipped to phones: bundle size and speed are
+  user experience) over big do-everything ones; take a heavy library only when its weight is actually needed. Choose
+  stable, long-established, widely used libraries over what's newly fashionable: the code should need little
+  maintenance (few breaking releases, a long track record, an active but calm project).
+- **Keep it simple, as a lazy senior dev would:** the least code that does the job clearly. No speculative
+  abstractions, options or layers; no cleverness where plain code reads better; delete rather than work around.
+- **Comments: as few as possible.** Names and types say what code does; a comment only says why, where that isn't
+  obvious (a workaround, a data quirk, a trap someone would fall into). No file headers restating what a file is or
+  exports, no comments narrating the code, no section banners. Keep licence / attribution headers, `biome-ignore`
+  reasons and `TODO(ts)` notes.
+- **Frontend: reusable components.** UI is built from shared components (`src/ui/`, `src/FilterSheet.tsx`,
+  `src/Sheet.tsx`, `src/Dropdown.tsx`…). Reuse one before writing new markup; when two places need the same piece,
+  make it a component instead of copying it.
 - **TypeScript** (`tsconfig.json`, strict): `pnpm typecheck` must pass; see "TypeScript everywhere" above. Tests type
   partial data with `fixture<T>()` and must-exist lookups with `present()` (`test/helpers.ts`).
 - **Biome** (`biome.json`) formats and lints TS/TSX, CSS (CSS Modules parsed) and JSON; run `pnpm format`
