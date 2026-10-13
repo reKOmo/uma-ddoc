@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Global's own record of gacha banners and card releases, in data/ (committed):
 //   data/global_banners.json  { source, characters: [banner…], cards: [banner…] }, newest first, in
 //                             data/jp_banners.json's shape (scripts/lib/jp-banners.js; no GameTora URLs: the app
@@ -14,33 +13,65 @@
 // the English names and titles the post lists.
 
 import { readFileSync, writeFileSync } from 'node:fs';
+import type { Banner, BannerFile, BannerId, BannerItem } from '../../shared/schemas/banner.ts';
+import type { CardsFile, GlobalCard } from '../../shared/schemas/card.ts';
 import { DATA_DIR } from './paths.ts';
 import { norm } from './news-text.ts';
 
 export const BANNERS_FILE = `${DATA_DIR}global_banners.json`;
 export const CARDS_FILE = `${DATA_DIR}global_cards.json`;
 
-const RARITY = { R: 1, SR: 2, SSR: 3 };
+// A card's record in data/global_cards.json: a news-made release also carries the post that released it, and
+// `title_en` is null where the post gives no title (the schema says string: scripts/lib keeps them as written).
+// TODO(ts): shared/schemas/card.ts' GlobalCardSchema has neither; it's not this task's file.
+type GlobalCardRecord = Omit<GlobalCard, 'title_en'> & { title_en: string | null; news_url?: string };
+type CardRecords = Record<string, GlobalCardRecord>;
+type Kind = 'characters' | 'cards';
+// char_id → English name (englishNames()).
+type NameMap = Map<number | null, string>;
+
+// A scout post as bannerPost() (scripts/lib/banner-posts.ts, not typed yet) gives it: the fields read here.
+type ScoutFeatured = { title: string; name: string; rarity?: string; stars?: number };
+type ScoutBanner = {
+  gachaId: number;
+  type: 'character' | 'support' | null;
+  start: string | null;
+  end: string | null;
+  image?: string | null;
+  featured: ScoutFeatured[];
+};
+type ScoutPost = { id: number; url: string; posted: string | null; paid: boolean; banners: ScoutBanner[] };
+
+// A banner applyNews() made from a post, and a post it skipped.
+export type NewsBanner = { banner: Banner; kind: Kind; post: string; unmatched: string[] };
+export type NewsSkip = { id: number; post: string; reason: string };
+export type NewsResult = { global: BannerFile; cards: CardRecords; banners: NewsBanner[]; skipped: NewsSkip[] };
+
+const BANNER_KINDS: Kind[] = ['characters', 'cards'];
+
+const RARITY: Partial<Record<string, number>> = { R: 1, SR: 2, SSR: 3 };
 
 // The highest rarity, then the highest rate (our heuristic for `main`, as when the banners were seeded).
-export function pickMain(featured) {
+export function pickMain(featured: BannerItem[]): BannerItem | null {
   return (
-    featured.reduce(
+    featured.reduce<BannerItem | null>(
       (best, item) =>
-        !best || item.rarity > best.rarity || (item.rarity === best.rarity && item.rate > best.rate) ? item : best,
+        !best || item.rarity > best.rarity || (item.rarity === best.rarity && (item.rate ?? 0) > (best.rate ?? 0))
+          ? item
+          : best,
       null
     ) ?? null
   );
 }
 
 // Posts end banners at "9:59 p.m."; scraped banners end on the last second of that minute.
-const endOfMinute = (iso) => iso?.replace(/:00(\.000)?Z$/, ':59.000Z');
-const isoMs = (iso) => new Date(iso).toISOString();
+const endOfMinute = (iso: string) => iso?.replace(/:00(\.000)?Z$/, ':59.000Z');
+const isoMs = (iso: string) => new Date(iso).toISOString();
 
 // Pairs a JP banner's items with the post's English list ({ name, title, rarity|stars }): by
 // character name first (`names`: char_id → English name), then, if one item and one entry are
 // left, with each other (the post lists each banner's items under its own art). Returns [{ item, entry }] (entry null when unmatched).
-function pairEnglish(items, entries, names) {
+function pairEnglish(items: BannerItem[], entries: { name: string; title: string }[], names: NameMap) {
   const left = [...entries];
   const pairs = items.map((item) => {
     const i = left.findIndex((e) => names.get(item.char_id) && norm(e.name) === norm(names.get(item.char_id)));
@@ -59,23 +90,38 @@ function pairEnglish(items, entries, names) {
 //   jp        JP's banners (data/jp_banners.json, regular ones: scripts/lib/jp-banners.js's regularBanners())
 //   names     Map char_id → English name
 // Returns { global, cards, banners: [{ banner, kind, post, unmatched }], skipped: [{ id, post, reason }] }.
-export function applyNews({ posts, global, cards, jp, names }) {
+export function applyNews({
+  posts,
+  global,
+  cards,
+  jp,
+  names,
+}: {
+  posts: ScoutPost[];
+  global: BannerFile;
+  cards: CardRecords;
+  jp: Pick<BannerFile, 'characters' | 'cards'>;
+  names: NameMap;
+}): NewsResult {
   // Seeded banners, without what an earlier run took from the posts (taken again below: idempotent).
-  const seeded = (list) => list.filter((b) => !b.announced).map(({ news_url, news_image, ...b }) => b);
-  const kinds = { characters: seeded(global.characters), cards: seeded(global.cards) };
-  const seededById = new Map([...kinds.characters, ...kinds.cards].map((b) => [b.id, b]));
-  const jpBanners = new Map();
-  for (const kind of ['characters', 'cards']) for (const b of jp[kind]) jpBanners.set(b.id, { kind, banner: b });
+  const seeded = (list: Banner[]): Banner[] =>
+    list.filter((b) => !b.announced).map(({ news_url, news_image, ...b }) => b);
+  const kinds: Record<Kind, Banner[]> = { characters: seeded(global.characters), cards: seeded(global.cards) };
+  const seededById = new Map<BannerId, Banner>(
+    [...kinds.characters, ...kinds.cards].map((b): [BannerId, Banner] => [b.id, b])
+  );
+  const jpBanners = new Map<BannerId, { kind: Kind; banner: Banner }>();
+  for (const kind of BANNER_KINDS) for (const b of jp[kind]) jpBanners.set(b.id, { kind, banner: b });
 
   // id → { post, announced } from the newest post naming it.
-  const announced = new Map();
+  const announced = new Map<number, { post: ScoutPost; announced: ScoutBanner & { start: string } }>();
   for (const post of [...posts].sort((a, b) => (a.posted ?? '').localeCompare(b.posted ?? ''))) {
     if (post.paid) continue;
-    for (const b of post.banners) if (b.start) announced.set(b.gachaId, { post, announced: b });
+    for (const b of post.banners) if (b.start) announced.set(b.gachaId, { post, announced: { ...b, start: b.start } });
   }
 
-  const made = [];
-  const skipped = [];
+  const made: NewsBanner[] = [];
+  const skipped: NewsSkip[] = [];
   for (const [id, { post, announced: a }] of announced) {
     // A seeded banner the news shows: its post and official art; its dates and items stay.
     const seededBanner = seededById.get(id);
@@ -95,17 +141,18 @@ export function applyNews({ posts, global, cards, jp, names }) {
       skipped.push({ id, post: post.url, reason: `the post lists it as a ${a.type} banner, JP as a ${type} one` });
       continue;
     }
-    const entries = a.featured.map((f) => ({ ...f, rarity: kind === 'cards' ? RARITY[f.rarity] : f.stars }));
+    const entries = a.featured.map((f) => ({ ...f, rarity: kind === 'cards' ? RARITY[f.rarity ?? ''] : f.stars }));
     const pairs = pairEnglish(jpBanner.featured, entries, names);
     const featured = pairs.map(({ item, entry }) => ({
       ...item,
       name: entry?.name ?? names.get(item.char_id) ?? item.name,
       title: entry ? `[${entry.title}]` : item.title,
     }));
-    const lengthMs = Date.parse(jpBanner.end) - Date.parse(jpBanner.start);
-    const banner = {
+    const lengthMs = Date.parse(jpBanner.end ?? '') - Date.parse(jpBanner.start);
+    const image = a.image ?? jpBanner.image;
+    const banner: Banner = {
       id,
-      ...((a.image ?? jpBanner.image) && { image: a.image ?? jpBanner.image }),
+      ...(image && { image }),
       start: isoMs(a.start),
       end: a.end ? endOfMinute(isoMs(a.end)) : new Date(Date.parse(a.start) + lengthMs).toISOString(),
       main: null,
@@ -122,17 +169,18 @@ export function applyNews({ posts, global, cards, jp, names }) {
   }
 
   // Card releases: the seeded ones, then each news-made card banner's cards that weren't out yet.
-  const nextCards = Object.fromEntries(Object.entries(cards).filter(([, c]) => !c.news_url));
-  const firstOutfit = new Map();
+  const nextCards: CardRecords = Object.fromEntries(Object.entries(cards).filter(([, c]) => !c.news_url));
+  const firstOutfit = new Map<BannerItem['id'], string>();
   for (const b of kinds.characters) for (const item of b.featured) firstOutfit.set(item.id, b.start);
-  made.sort((x, y) => x.banner.start.localeCompare(y.banner.start) || x.banner.id - y.banner.id);
+  made.sort((x, y) => x.banner.start.localeCompare(y.banner.start) || Number(x.banner.id) - Number(y.banner.id));
   for (const { banner, kind } of made) {
     const day = banner.start.slice(0, 10);
     for (const item of banner.featured) {
       if (kind === 'cards') {
-        const known = nextCards[item.id]?.release_gl;
+        const key = String(item.id); // as an object key, as before
+        const known = nextCards[key]?.release_gl;
         item.new = !known || known >= day;
-        if (!known) nextCards[item.id] = { title_en: item.title ?? null, release_gl: day, news_url: banner.news_url };
+        if (!known) nextCards[key] = { title_en: item.title ?? null, release_gl: day, news_url: banner.news_url };
       } else {
         const first = firstOutfit.get(item.id);
         item.new = !first || first >= banner.start;
@@ -143,7 +191,7 @@ export function applyNews({ posts, global, cards, jp, names }) {
     kinds[kind].push(banner);
   }
 
-  const newestFirst = (a, b) => b.start.localeCompare(a.start) || b.id - a.id;
+  const newestFirst = (a: Banner, b: Banner) => b.start.localeCompare(a.start) || Number(b.id) - Number(a.id);
   return {
     global: { ...global, characters: kinds.characters.sort(newestFirst), cards: kinds.cards.sort(newestFirst) },
     cards: Object.fromEntries(Object.entries(nextCards).sort(([a], [b]) => Number(a) - Number(b))),
@@ -154,8 +202,8 @@ export function applyNews({ posts, global, cards, jp, names }) {
 
 // char_id → English name, from our cards (generated/cards.json; group cards are named after the group)
 // and Global's banners.
-export function englishNames(global, cards) {
-  const names = new Map();
+export function englishNames(global: BannerFile, cards: CardsFile): NameMap {
+  const names: NameMap = new Map();
   for (const card of Object.values(cards)) {
     if (card.charId && card.name.en && card.type !== 'group') names.set(card.charId, card.name.en);
   }
@@ -164,11 +212,12 @@ export function englishNames(global, cards) {
   return names;
 }
 
-export const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
+// TODO(ts): JSON.parse gives any; the caller names the file's type (its schema in shared/schemas/).
+export const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8')) as T;
 
 // One banner / card per line, so commits diff per entry (the files are excluded from Biome).
-export function writeGlobal({ global, cards }) {
-  const list = (items) => (items.length ? `[\n${items.map((b) => JSON.stringify(b)).join(',\n')}\n]` : '[]');
+export function writeGlobal({ global, cards }: { global: BannerFile; cards: CardRecords }) {
+  const list = (items: Banner[]) => (items.length ? `[\n${items.map((b) => JSON.stringify(b)).join(',\n')}\n]` : '[]');
   writeFileSync(
     BANNERS_FILE,
     `{\n"source": ${JSON.stringify(global.source)},\n"characters": ${list(global.characters)},\n"cards": ${list(global.cards)}\n}\n`
