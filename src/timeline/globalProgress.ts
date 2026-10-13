@@ -18,12 +18,12 @@ type Banners = Pick<BannerFile, 'characters' | 'cards'>;
 
 export type GlobalProgress = { estimate: number; from: number; to: number; toKnown: boolean };
 
-const all = (banners: Partial<Banners> | undefined): Banner[] => [
+const all = (banners: Partial<Banners> | null | undefined): Banner[] => [
   ...(banners?.characters ?? []),
   ...(banners?.cards ?? []),
 ];
 // JP banners Global could run: not paid, not one of our "<id>-rerun" entries.
-const regular = (banners: Partial<Banners> | undefined): Banner[] =>
+const regular = (banners: Partial<Banners> | null | undefined): Banner[] =>
   all(banners).filter((b) => !b.paid && typeof b.id === 'number');
 
 export function globalProgress({
@@ -34,7 +34,7 @@ export function globalProgress({
 }: {
   global: Partial<Banners> | undefined;
   jp: Partial<Banners> | undefined;
-  predicted?: Partial<Banners>;
+  predicted?: Partial<Banners> | null;
   now?: number;
 }): GlobalProgress | null {
   const jpBanners = new Map(regular(jp).map((b) => [b.id, b] as const));

@@ -4,7 +4,7 @@
 
 import { EVENT_GROUPS } from './events.ts';
 
-// What the layout reads of an entry (src/timeline/entries.ts). TODO(ts): swap for the entry type once entries.ts is typed.
+// What the layout reads of an entry (an Entry, src/timeline/entries.ts; the tests lay out bare ones).
 type LaneEntry = {
   key: string;
   kind: string;
@@ -51,11 +51,10 @@ export type LaneGroup = { key: string; label: string; kinds: string[] };
 export const LANE_GROUPS: LaneGroup[] = [
   { key: 'cards', label: 'timeline.supportCards', kinds: ['cards'] },
   { key: 'characters', label: 'timeline.characters', kinds: ['characters'] },
-  // TODO(ts): events.ts is still untyped, so its kinds infer as string | string[] (always a string[] there)
   ...EVENT_GROUPS.map(([key, kinds]) => ({
     key: `events-${key}`,
     label: `events.group.${key}`,
-    kinds: kinds as string[],
+    kinds,
   })),
 ];
 

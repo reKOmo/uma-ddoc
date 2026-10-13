@@ -197,7 +197,10 @@ function bannerEntry(
   };
 }
 
-export function bannerEntries(file: ArtBannerFile, { now = Date.now() }: { now?: number } = {}): Entry[] {
+export function bannerEntries(
+  file: Pick<ArtBannerFile, 'characters' | 'cards'>,
+  { now = Date.now() }: { now?: number } = {}
+): Entry[] {
   return (['cards', 'characters'] as const).flatMap((group) => {
     const byId = new Map(file[group].map((b) => [b.id, b] as const));
     return file[group].map((banner) => bannerEntry(banner, group, byId, now));

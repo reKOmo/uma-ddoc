@@ -10,9 +10,9 @@
 
 import { cards } from '../../tierlist/cards.ts';
 import { SERVERS } from '../servers.ts';
-import { withArt } from '../gametora.ts';
+import { type ArtBannerFile, withArt } from '../gametora.ts';
 import { withPredicted } from './events.ts';
-import { bannerEntries, eventEntries } from './entries.ts';
+import { type Entry, bannerEntries, eventEntries } from './entries.ts';
 import { globalProgress } from './globalProgress.ts';
 import type { BannerFile } from '../../shared/schemas/banner.ts';
 import type {
@@ -27,10 +27,7 @@ import type {
 type Server = keyof typeof SERVERS;
 type BannerName = 'global' | 'jp';
 // A server's banners, real or merged with predicted (no source: the Timeline doesn't read it).
-type Banners = Pick<BannerFile, 'characters' | 'cards'>;
-// What the Timeline keeps of an entry (./entries.ts): its id, and the counterpart loadTimeline() adds.
-// TODO(ts): swap for the entry type once entries.ts is typed.
-type TimelineEntry = { id: string | number; counterpart?: { server: Server; id: string } };
+type Banners = Pick<ArtBannerFile, 'characters' | 'cards'>;
 // A mark over the calendar (see MARKS).
 type Mark = { key: string; at: number; window: { from: number; to: number; open: boolean } | null };
 
@@ -48,12 +45,12 @@ const PREDICTED: Partial<Record<BannerName, (() => Promise<BannerFile>)[]>> = {
 };
 
 // A server's real banners alone, with their art and icons (src/gametora.js: the files store no GameTora URLs).
-export const loadRealBanners = (name: BannerName): Promise<BannerFile> =>
+export const loadRealBanners = (name: BannerName): Promise<ArtBannerFile> =>
   // TODO(ts): a JSON import's type is wider than the schema (strings for enums); test/schemas.test.ts checks the file
   BANNERS[name]().then((m) => withArt(m.default as BannerFile, name, cards));
 
 // A server's predicted banners alone (JP's banners at Global's dates: JP's art), or null without the file.
-const loadPredictedBanners = (name: BannerName): Promise<BannerFile> | null =>
+const loadPredictedBanners = (name: BannerName): Promise<ArtBannerFile> | null =>
   PREDICTED[name]?.[0]?.().then((file) => withArt(file, 'jp', cards)) ?? null;
 
 export async function loadBanners(name: BannerName): Promise<Banners> {
@@ -102,8 +99,8 @@ const MARKS: Partial<Record<Server, (jp: Banners) => Promise<Mark[]>>> = {
 };
 
 // Global's banners, real and predicted (JP's marks and counterparts both read them; loaded once a page).
-let globalBannersPromise: Promise<[BannerFile, BannerFile | null]> | null = null;
-const globalBanners = (): Promise<[BannerFile, BannerFile | null]> =>
+let globalBannersPromise: Promise<[ArtBannerFile, ArtBannerFile | null]> | null = null;
+const globalBanners = (): Promise<[ArtBannerFile, ArtBannerFile | null]> =>
   (globalBannersPromise ??= Promise.all([loadRealBanners('global'), loadPredictedBanners('global')]));
 
 // Global ↔ JP event pairs, by `pnpm predict-gl` (ml/events.py: [{ gl, jp, … }], top-level events). Optional like the
@@ -150,21 +147,17 @@ const loadFiles = (server: Server): Promise<[Banners, EventsFile]> => {
   const name = SERVERS[server].banners as BannerName;
   return Promise.all([loadBanners(name), loadEvents(name)]);
 };
-const toEntries = (banners: Banners, events: EventsFile, now: number): TimelineEntry[] => [
+const toEntries = (banners: Banners, events: EventsFile, now: number): Entry[] => [
   ...bannerEntries(banners, { now }),
-  // TODO(ts): entries.ts is untyped, so its options type comes out as { now } alone (it also takes cards)
-  ...eventEntries(events, { cards, now } as { now: number }),
+  ...eventEntries(events, { cards, now }),
 ];
 
-export async function loadEntries(server: Server, now = Date.now()): Promise<TimelineEntry[]> {
+export async function loadEntries(server: Server, now = Date.now()): Promise<Entry[]> {
   const [banners, events] = await loadFiles(server);
   return toEntries(banners, events, now);
 }
 
-export async function loadTimeline(
-  server: Server,
-  now = Date.now()
-): Promise<{ entries: TimelineEntry[]; marks: Mark[] }> {
+export async function loadTimeline(server: Server, now = Date.now()): Promise<{ entries: Entry[]; marks: Mark[] }> {
   const [banners, events] = await loadFiles(server);
   const [marks, counterparts] = await Promise.all([
     MARKS[server]?.(banners) ?? [],

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { rankByUsefulness } from '../../tierlist/index.ts';
+import { type Stat, rankByUsefulness } from '../../tierlist/index.ts';
 import { STAT_OF_TYPE, cardRanks } from '../tiers.ts';
 import { cards } from '../../tierlist/cards.ts';
 import { SHEET_ANIMATION_MS } from '../Sheet.tsx';
@@ -31,7 +31,7 @@ export function useRankings(server: keyof typeof SERVERS, scenario: string, ids:
           .map(Number)
           .filter((id) => STAT_OF_TYPE[CARDS[id]?.type])
       : [];
-    const statOf = (id: number): string => STAT_OF_TYPE[CARDS[id].type];
+    const statOf = (id: number): Stat => STAT_OF_TYPE[CARDS[id].type];
     const stats = [...new Set(wanted.map(statOf))];
     const rank = async (options?: { upcoming: boolean }): Promise<Map<number, CardRank | null>> => {
       const rankings = await Promise.all(stats.map((stat) => rankByUsefulness(server, scenario, stat, options)));
