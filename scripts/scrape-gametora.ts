@@ -1,4 +1,3 @@
-// @ts-nocheck
 // What we still take from GameTora (https://gametora.com/umamusume), into:
 //   generated/raw/gametora_cards.json    the support card list, cut to the fields we read: ids, names, titles, type,
 //                                        rarity, JP release date ("YYYY-MM-DD"), how it's obtained, the page's URL
@@ -26,6 +25,8 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import type { GametoraEventsFile } from '../shared/schemas/gametora.ts';
+import type { Scenario } from '../shared/schemas/scenario.ts';
 import { DATA_DIR, GENERATED_DIR } from './lib/paths.ts';
 import { fillColors, mergeGametora, readScenarios, writeScenarios } from './lib/scenarios.ts';
 import { writeSources } from './lib/sources.ts';
@@ -52,24 +53,30 @@ const CARD_FIELDS = [
 const SITE = 'https://gametora.com';
 const HEADERS = { 'User-Agent': 'uma-ddoc scraper (Umaddoc, static tier list site)' };
 
-async function getJson(url) {
+// GameTora's manifest: each data file's name → its current hash.
+type Manifest = Record<string, string>;
+// A row of a GameTora data file (its internal format: the fields read here are cut and written out below).
+type Row = Record<string, unknown>;
+
+async function getJson(url: string): Promise<unknown> {
   const res = await fetch(url, { headers: HEADERS });
   if (!res.ok) throw new Error(`${url}: ${res.status} ${res.statusText}`);
   return res.json();
 }
 
 // Data files are versioned: the manifest maps each name to its current hash.
-const getManifest = () => getJson(`${SITE}/data/manifests/umamusume.json`);
-function dataUrl(manifest, name) {
+// TODO(ts): GameTora's manifest (its internal format): dataUrl() fails loudly on a name it doesn't list.
+const getManifest = async (): Promise<Manifest> => (await getJson(`${SITE}/data/manifests/umamusume.json`)) as Manifest;
+function dataUrl(manifest: Manifest, name: string): string {
   if (!manifest[name]) throw new Error(`GameTora no longer lists data file "${name}"`);
   return `${SITE}/data/umamusume/${name}.${manifest[name]}.json`;
 }
 
-const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const pause = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 // One file at a time, 2 s apart.
-async function loadData(names, manifest) {
-  const files = {};
+async function loadData(names: string[], manifest: Manifest): Promise<Record<string, unknown>> {
+  const files: Record<string, unknown> = {};
   for (const name of names) {
     await pause(2000);
     files[name] = await getJson(dataUrl(manifest, name));
@@ -79,13 +86,15 @@ async function loadData(names, manifest) {
 
 // JP's event history (story events, Champions Meetings, Legend Races) → raw/gametora_events.json, cut to the fields
 // update-jp reads (scripts/lib/gametora-events.js). One file at a time, 2 s apart.
-export async function scrapeEvents(manifest) {
-  const files = {};
+export async function scrapeEvents(manifest: Manifest): Promise<ReturnType<typeof cutEvents>> {
+  const files: Record<string, unknown> = {};
   for (const { file } of Object.values(GAMETORA_EVENT_FILES)) {
     await pause(2000);
     files[file] = await getJson(dataUrl(manifest, file));
   }
-  const events = cutEvents(files);
+  // TODO(ts): cutEvents (scripts/lib/gametora-events.ts, untyped for now) returns its object loosely;
+  // it's GametoraEventsFile.
+  const events = cutEvents(files) as GametoraEventsFile;
   mkdirSync(`${GENERATED_DIR}raw`, { recursive: true });
   const lines = Object.entries(events).map(
     ([kind, list]) => `${JSON.stringify(kind)}: [\n${list.map((e) => JSON.stringify(e)).join(',\n')}\n]`
@@ -104,13 +113,16 @@ export async function scrapeEvents(manifest) {
 
 // The support card list (raw/gametora_cards.json, then the card data is rebuilt) and the Career scenarios
 // (data/scenarios.json's JP side), then the event history.
-export async function scrapeGametora() {
+export async function scrapeGametora(): Promise<void> {
   const manifest = await getManifest();
   const data = await loadData(['support-cards', 'character-cards', 'scenarios'], manifest);
 
   mkdirSync(`${GENERATED_DIR}raw`, { recursive: true });
-  const supportCards = data['support-cards'].map((c) =>
-    Object.fromEntries(CARD_FIELDS.map((field) => [field, c[field] ?? null]))
+  // TODO(ts): GameTora's rows (its internal format): the fields used here are cut and written out,
+  // as the files have them.
+  const supportRows = data['support-cards'] as Row[];
+  const supportCards = supportRows.map((c) =>
+    Object.fromEntries(CARD_FIELDS.map((field): [string, unknown] => [field, c[field] ?? null]))
   );
   writeFileSync(GAMETORA_CARDS_FILE, `[\n${supportCards.map((c) => JSON.stringify(c)).join(',\n')}\n]\n`);
   writeSources({
@@ -118,7 +130,8 @@ export async function scrapeGametora() {
   });
   // Trainee outfits, only for a trainee debuting on a JP banner (the news names it without an id): scripts/lib/
   // jp-banners.js resolves the rest from our own banners.
-  const trainees = data['character-cards'].map((c) => ({
+  // TODO(ts): as above, GameTora's rows (only the trainee fields read here).
+  const trainees = (data['character-cards'] as Row[]).map((c) => ({
     id: c.card_id,
     char_id: c.char_id,
     name: c.name_jp ?? null,
@@ -130,14 +143,14 @@ export async function scrapeGametora() {
   });
   console.log(`gametora_trainees: ${trainees.length} trainee outfits`);
   const history = readJpCards();
-  const added = supportCards.filter((c) => !history[c.support_id]).length;
+  const added = supportCards.filter((c) => !history[String(c.support_id)]).length;
   console.log(
     `gametora_cards: ${supportCards.length} support cards, ${added} not in data/jp_cards.json (pnpm update-jp adds those the JP news shows)`
   );
   await buildCardFiles();
 
   mkdirSync(DATA_DIR, { recursive: true });
-  const scenarios = mergeGametora(readScenarios().scenarios, data.scenarios);
+  const scenarios: Scenario[] = mergeGametora(readScenarios().scenarios, data.scenarios);
   // Cover colours: only covers without one are downloaded (once each).
   const colored = await fillColors(scenarios, HEADERS);
   if (colored) console.log(`scenario colours: ${colored} computed from their covers`);
@@ -153,7 +166,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     if (process.argv.includes('--events')) await scrapeEvents(await getManifest());
     else await scrapeGametora();
   } catch (err) {
-    console.error(`GameTora scrape failed: ${err.message}`);
+    console.error(`GameTora scrape failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 }

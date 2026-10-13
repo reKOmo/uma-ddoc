@@ -1,23 +1,26 @@
-// @ts-nocheck
 // Prints every stored news post (data/news/<server>/posts.json) with its category (scripts/lib/post-categories.js), grouped
 // by category and kind, for checking the parser. No requests.
 //
 // Usage: pnpm news:categories [--server jp]   (--counts: only the number of posts per category / kind)
 
+import type { NewsPost } from '../shared/schemas/news.ts';
 import { loadPosts, serverArg } from './lib/news-api.ts';
 import { lexicon } from './lib/news-lang/index.ts';
-import { categorize, plain } from './lib/post-categories.ts';
+import { type Categorized, categorize, plain } from './lib/post-categories.ts';
+import type { Server } from './lib/news-text.ts';
 
-const server = serverArg();
+// TODO(ts): serverArg() (scripts/lib/news-api.ts, untyped for now) has checked it is gl or jp.
+const server = serverArg() as Server;
 const lang = lexicon(server);
 const counts = process.argv.includes('--counts');
 
-const groups = new Map();
+const groups = new Map<string, { c: Categorized; post: NewsPost }[]>();
 for (const post of loadPosts(server).values()) {
   const c = categorize(post, lang);
   const key = `${c.category}${c.kind ? ` / ${c.kind}` : ''}`;
-  if (!groups.has(key)) groups.set(key, []);
-  groups.get(key).push({ c, post });
+  const list = groups.get(key) ?? [];
+  list.push({ c, post });
+  groups.set(key, list);
 }
 
 for (const [key, list] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {

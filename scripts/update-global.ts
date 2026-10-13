@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Brings Global's own banner + card release record (data/, see scripts/lib/global.js) up to date
 // with the official news (data/news/gl/posts.json, from `pnpm news:latest`): every scout post's
 // banners (scripts/lib/banner-posts.js) become Global banners, their cards Global releases, and the Career scenario launches the
@@ -14,6 +13,9 @@
 
 import { appendFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import type { BannerItem } from '../shared/schemas/banner.ts';
+import type { GlobalCard } from '../shared/schemas/card.ts';
+import type { GameEvent } from '../shared/schemas/event.ts';
 import { GENERATED_DIR, newsDir } from './lib/paths.ts';
 import { bannerPost } from './lib/banner-posts.ts';
 import { loadPosts } from './lib/news-api.ts';
@@ -27,10 +29,21 @@ import { buildCardFiles } from './build-cards.ts';
 
 const SUMMARY_FILE = `${newsDir('gl')}summary.md`;
 
-const day = (iso) => iso.slice(0, 10);
-const when = (iso) => `${iso.slice(0, 16).replace('T', ' ')} UTC`;
+const day = (iso: string): string => iso.slice(0, 10);
+const when = (iso: string): string => `${iso.slice(0, 16).replace('T', ' ')} UTC`;
 
-export async function updateGlobal() {
+// A card the news released on Global: its data/global_cards.json entry, with the post it came from.
+type Released = GlobalCard & { news_url?: string };
+
+export type GlobalUpdate = ReturnType<typeof applyNews> & {
+  changed: ReturnType<typeof applyNews>['banners'];
+  released: [string, Released][];
+  scenarios: ReturnType<typeof applyScenarioNews>;
+  events: GameEvent[];
+  summary: string;
+};
+
+export async function updateGlobal(): Promise<GlobalUpdate> {
   if (!existsSync(BANNERS_FILE)) throw new Error('data/ has no Global banners (data/global_banners.json is committed)');
   await ensureCards();
   const global = readJson(BANNERS_FILE);
@@ -49,14 +62,16 @@ export async function updateGlobal() {
   const stored = readScenarios();
   const scenarios = applyScenarioNews({ posts, scenarios: stored.scenarios });
   if (stored.scenarios.length) {
-    await fillColors(scenarios.scenarios); // a new scenario's cover colour (one image)
+    // a new scenario's cover colour (one image; no headers: imageColor's default)
+    await fillColors(scenarios.scenarios, undefined);
     writeScenarios(stored.source, scenarios.scenarios);
   }
 
   // Events and what they give (data/global_events.json), rebuilt from every post.
-  const storedEvents = readEvents();
+  const storedEvents: GameEvent[] = readEvents();
   const oldEvents = new Map(storedEvents.map((e) => [e.id, JSON.stringify(e)]));
-  const events = buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers() });
+  // TODO(ts): buildEvents (scripts/lib/events.ts, untyped for now) infers a looser shape; its output is GameEvent.
+  const events = buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers() }) as GameEvent[];
   writeEvents(events);
   const changedEvents = events.filter((e) => oldEvents.get(e.id) !== JSON.stringify(e));
 
@@ -64,14 +79,16 @@ export async function updateGlobal() {
     [...global.characters, ...global.cards].filter((b) => b.announced).map((b) => [b.id, `${b.start} ${b.end}`])
   );
   const changed = result.banners.filter(({ banner }) => before.get(banner.id) !== `${banner.start} ${banner.end}`);
-  const released = Object.entries(result.cards).filter(
+  // TODO(ts): applyNews (scripts/lib/global.ts, untyped for now) returns its cards as unknown;
+  // they're Released (the file's entries).
+  const released = Object.entries(result.cards as Record<string, Released>).filter(
     ([id, c]) => c.news_url && cards[id]?.release_gl !== c.release_gl
   );
 
-  const lines = [];
+  const lines: string[] = [];
   for (const { banner, kind, unmatched } of changed) {
     const verb = before.has(banner.id) ? 'Moved' : 'Added';
-    const items = banner.featured.map((i) => `${i.title} ${i.name}`).join(', ');
+    const items = banner.featured.map((i: BannerItem) => `${i.title} ${i.name}`).join(', ');
     lines.push(
       `- ${verb} ${kind === 'cards' ? 'support card' : 'trainee'} banner ${banner.id}: ${when(banner.start)} → ${when(banner.end)} — ${items}`
     );
@@ -114,7 +131,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
       `Global: ${changed.length} banners added or moved, ${released.length} card releases, ${events.length} events added or changed, ${skipped.length} skipped (${day(new Date().toISOString())}).`
     );
   } catch (err) {
-    console.error(`Global update failed: ${err.message}`);
+    console.error(`Global update failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 }

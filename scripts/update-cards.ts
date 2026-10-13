@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Downloads upstream's card lists and card events (scripts/lib/upstream.js) into generated/raw/upstream/,
 // as downloaded, records the commit in generated/sources.json and rebuilds the card data from them
 // (scripts/build-cards.js).
@@ -12,9 +11,9 @@ import { GENERATED_DIR } from './lib/paths.ts';
 import { readSources, writeSources } from './lib/sources.ts';
 import { OUTPUTS, buildCardFiles } from './build-cards.ts';
 
-const sourceKey = (file) => `raw/upstream/${file.local}`;
+const sourceKey = (file: { local: string }): string => `raw/upstream/${file.local}`;
 
-export async function updateCards() {
+export async function updateCards(): Promise<void> {
   const ref = await latestRef();
   console.log(`Fetching card data from ${REPO} @ ${ref.slice(0, 10)}…`);
   const texts = await download(ref, DATA_FILES);
@@ -35,7 +34,7 @@ export async function updateCards() {
 }
 
 // Fetches upstream's card data if this checkout is missing it, and builds the card data if that's missing.
-export async function ensureCards() {
+export async function ensureCards(): Promise<void> {
   const sources = readSources();
   if (DATA_FILES.some((file) => !existsSync(UPSTREAM_RAW + file.local) || !sources[sourceKey(file)])) {
     await updateCards();
@@ -48,7 +47,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     await updateCards();
   } catch (err) {
-    console.error(`Card data update failed: ${err.message}`);
+    console.error(`Card data update failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 }

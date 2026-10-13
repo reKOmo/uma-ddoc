@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Brings JP's own record (data/) up to date with the JP news (data/news/jp/posts.json, from `pnpm news:latest:jp`):
 // the support cards it shows that data/jp_cards.json lacks, augmented from GameTora's list once it has them (else
 // pending in data/jp_cards_pending.json; scripts/lib/jp-cards.js), then the card data rebuilt (so banners and events
@@ -14,6 +13,8 @@
 
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import type { GameEvent } from '../shared/schemas/event.ts';
+import type { GametoraCard } from '../shared/schemas/gametora.ts';
 import { buildEvents, readAnswers, readEvents, writeEvents } from './lib/events.ts';
 import { fillFromGametora, readGametoraEvents } from './lib/gametora-events.ts';
 import { updateJpBanners } from './lib/jp-banners.ts';
@@ -28,12 +29,22 @@ import { applyJpScenarioNews, readScenarios, writeScenarios } from './lib/scenar
 
 const SUMMARY_FILE = `${newsDir('jp')}summary.md`;
 
-export async function updateJp() {
+export type JpUpdate = {
+  cards: ReturnType<typeof updateJpCards>;
+  banners: Awaited<ReturnType<typeof updateJpBanners>>;
+  events: GameEvent[];
+};
+
+export async function updateJp(): Promise<JpUpdate> {
   await ensureCards();
   const posts = [...loadPosts('jp').values()];
 
   // New cards from the news, augmented from GameTora (data/jp_cards.json), then the card data rebuilt.
-  const gametoraCards = existsSync(GAMETORA_CARDS_FILE) ? JSON.parse(readFileSync(GAMETORA_CARDS_FILE, 'utf8')) : null;
+  // TODO(ts): JSON.parse's any: raw/gametora_cards.json is written by scrape-gametora in GametoraCard's shape
+  // (test/schemas.test.ts checks it).
+  const gametoraCards = existsSync(GAMETORA_CARDS_FILE)
+    ? (JSON.parse(readFileSync(GAMETORA_CARDS_FILE, 'utf8')) as GametoraCard[])
+    : null;
   const jpCards = updateJpCards({ posts, gametora: gametoraCards });
   await buildCardFiles();
   const cards = readJson(`${GENERATED_DIR}cards.json`);
@@ -41,31 +52,31 @@ export async function updateJp() {
   const banners = await updateJpBanners({ posts, cards });
 
   // Events and what they give (data/jp_events.json), rebuilt from every post.
-  const old = new Map(readEvents('jp').map((e) => [e.id, JSON.stringify(e)]));
+  const old = new Map<string, string>(readEvents('jp').map((e: GameEvent) => [e.id, JSON.stringify(e)]));
   const fromNews = buildEvents(posts, { cards, answers: readAnswers('jp'), lang: ja });
   // GameTora's story events, Champions Meetings and Legend Races where the news has none (scripts/lib/
   // gametora-events.js). Without GameTora's file (pnpm scrape-gametora), the fills already in data/ are kept.
   const gametora = readGametoraEvents();
-  const kept = readEvents('jp').filter((e) => e.source === 'gametora');
+  const kept = readEvents('jp').filter((e: GameEvent) => e.source === 'gametora');
   const fill = gametora
     ? fillFromGametora(fromNews, gametora, cards)
     : { ...fillFromGametora(fromNews, { story: [], champions_meeting: [], legend_race: [] }, cards), filled: kept };
   if (!gametora)
     console.log('no generated/raw/gametora_events.json (pnpm scrape-gametora): GameTora fills kept as they are');
-  const events = gametora
+  const events: GameEvent[] = gametora
     ? fill.events
     : [...fill.events, ...kept].sort((a, b) => b.start.localeCompare(a.start) || b.id.localeCompare(a.id));
   writeEvents(events, 'jp');
-  const changed = events.filter((e) => old.get(e.id) !== JSON.stringify(e));
+  const changed = events.filter((e: GameEvent) => old.get(e.id) !== JSON.stringify(e));
 
   // Career scenarios: JP's launch posts (育成シナリオ「X」公開！) → links.umapyoi_jp.
   const stored = readScenarios();
   const scenarios = applyJpScenarioNews({ posts, scenarios: stored.scenarios });
   if (stored.scenarios.length) writeScenarios(stored.source, scenarios.scenarios);
 
-  const count = (list) =>
+  const count = (list: GameEvent[]): string =>
     Object.entries(Object.groupBy(list, (e) => e.kind))
-      .map(([kind, l]) => `${l.length} ${kind}`)
+      .map(([kind, l = []]) => `${l.length} ${kind}`)
       .join(', ') || 'none';
   const lines = [
     ...jpCards.lines,
