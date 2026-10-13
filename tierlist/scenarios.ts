@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Scenario weights, training gains and per-server deck presets for the tier
 // list calculation (tierlist-calc.js). Originally from
 // https://github.com/Euophrys/umamusume-tierlist (src/scenarios.js, MIT — see
@@ -9,7 +8,53 @@
 // and certain scenarioLink character names), so there's one bundle per server.
 // availableScenarios is newest first; defaultScenario is the server's current one.
 
-const jp = {
+export type StatWeights = {
+  type: number;
+  stats: number[];
+  cap: number;
+  minimum: number;
+  prioritize?: boolean;
+  onlySummer?: boolean;
+};
+
+export type GeneralWeights = {
+  bondPerDay: number;
+  races: number[];
+  unbondedTrainingGain: number[][];
+  bondedTrainingGain: number[][];
+  summerTrainingGain: number[][];
+  umaBonus: number[];
+  multi: number;
+  bonusSpec: number;
+  motivation: number;
+  scenarioLink: string[];
+  scenarioBonus: number;
+  fanBonus: number;
+};
+
+// A scenario's weights: `general` plus one entry per stat key (speed…friend).
+export type ScenarioWeights = {
+  general: GeneralWeights;
+  speed: StatWeights;
+  stamina: StatWeights;
+  power: StatWeights;
+  guts: StatWeights;
+  wisdom: StatWeights;
+  friend: StatWeights;
+};
+
+export type DeckPreset = { key: string; cards: number[] };
+
+export type ServerConfig = {
+  availableScenarios: string[];
+  defaultScenario: string;
+  defaultPresetCards: number[];
+  deckPresets: DeckPreset[];
+};
+
+export type ServerScenarios = Record<string, ScenarioWeights>;
+
+const jp: ServerScenarios = {
   DYI: {
     general: {
       bondPerDay: 15,
@@ -505,7 +550,7 @@ const jp = {
 
 // Global server scenarios. They share the JP shape but tweak a few constants
 // (notably bondPerDay defaults and a translated URA scenarioLink name).
-const gl = {
+const gl: ServerScenarios = {
   GM: { ...jp.GM, general: { ...jp.GM.general, bondPerDay: 10 } },
   GL: { ...jp.GL, general: { ...jp.GL.general, bondPerDay: 10 } },
   MANT: { ...jp.MANT, general: { ...jp.MANT.general, bondPerDay: 10 } },
@@ -520,9 +565,9 @@ const gl = {
   },
 };
 
-export const SCENARIOS_BY_SERVER = { jp, gl };
+export const SCENARIOS_BY_SERVER: Record<string, ServerScenarios> = { jp, gl };
 
-export const SERVER_CONFIG = {
+export const SERVER_CONFIG: Record<string, ServerConfig> = {
   jp: {
     availableScenarios: ['DYI', 'GM', 'GL', 'MANT', 'Aoharu', 'URA'],
     defaultScenario: 'DYI',
@@ -552,17 +597,17 @@ export const SERVER_CONFIG = {
   },
 };
 
-export function getServerConfig(server) {
+export function getServerConfig(server: string): ServerConfig {
   return SERVER_CONFIG[server] || SERVER_CONFIG.jp;
 }
 
-export function getScenarios(server) {
+export function getScenarios(server: string): ServerScenarios {
   return SCENARIOS_BY_SERVER[server] || SCENARIOS_BY_SERVER.jp;
 }
 
 // A copy, so callers can't modify the shared definitions. An unknown key falls
 // back to the server's default scenario (as upstream does).
-export function getScenario(server, scenarioKey) {
+export function getScenario(server: string, scenarioKey: string): ScenarioWeights {
   const scenarios = getScenarios(server);
   const scenario = scenarios[scenarioKey] || scenarios[getServerConfig(server).defaultScenario];
   return JSON.parse(JSON.stringify(scenario));
