@@ -10,7 +10,7 @@
 import * as z from 'zod/mini';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { rawStorage } from '../settingsStore.ts';
+import { rawStorage } from '../rawStorage.ts';
 import { LANE_GROUPS } from './layout.ts';
 
 const KEY = 'uma-ddoc.timelineOrder';

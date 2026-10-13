@@ -14,7 +14,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { STATS } from '../tierlist/index.ts';
 import type { Stat } from '../tierlist/index.ts';
-import { rawStorage } from './settingsStore.ts';
+import { rawStorage } from './rawStorage.ts';
 
 export type Rarity = 'SSR' | 'SR' | 'R';
 export type Shown = Record<Rarity, number[]>;

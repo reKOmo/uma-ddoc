@@ -4,10 +4,9 @@
 //   getCompact() → boolean
 //   saveCompact(compact)
 
-import * as z from 'zod/mini';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { rawStorage } from '../settingsStore.ts';
+import { rawStorage } from '../rawStorage.ts';
 
 const KEY = 'uma-ddoc.timelineCompact';
 
@@ -22,10 +21,7 @@ export const useCompactStore = create<State>()(
     {
       name: KEY,
       storage: rawStorage<Pick<State, 'compact'>>(
-        (raw) => {
-          const parsed = z.string().safeParse(raw);
-          return parsed.success ? { compact: parsed.data !== 'false' } : null;
-        },
+        (raw) => ({ compact: raw !== 'false' }),
         ({ compact }) => String(compact)
       ),
       partialize: ({ compact }) => ({ compact }),
