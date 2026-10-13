@@ -1,0 +1,26 @@
+/* Copied from src/timeline/timeline.css (`.toolbar button`, `:disabled`, `[aria-pressed="true"]`), for the
+   ToolbarButton component. */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.button:disabled {
+  opacity: 0.4;
+}
+
+/* A toggle (compact mode), on. */
+.button[aria-pressed="true"] {
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent);
+}

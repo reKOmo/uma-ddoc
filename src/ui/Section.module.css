@@ -1,0 +1,18 @@
+/* Copied from src/pages/card.css (`.card-section`, `.origins-heading`), for the Section component. */
+
+.section {
+  display: block;
+}
+
+/* The heading row: the heading, then the action on the right. */
+.head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.title {
+  margin: 24px 0 8px;
+  font-size: 1.05rem;
+}
