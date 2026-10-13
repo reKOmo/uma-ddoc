@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Where a support card comes from: every banner featuring it and every event giving it, as Timeline entries
 // (src/timeline/entries.js), real or predicted, oldest first. Pure.
 //
@@ -7,9 +6,26 @@
 //   rerun  a banner on which the card isn't new
 //   An event giving it inside an event that lists it too (a celebration's gift) counts once, as the part.
 
-export const ORIGIN_KINDS = ['banner', 'paid_banner', 'story', 'gift', 'shop', 'other'];
+import type { CardId } from './tiers.ts';
 
-const EVENT_KINDS = {
+export const ORIGIN_KINDS = ['banner', 'paid_banner', 'story', 'gift', 'shop', 'other'] as const;
+export type OriginKind = (typeof ORIGIN_KINDS)[number];
+
+// The fields of a Timeline entry this reads (src/timeline/entries.ts documents the whole shape; that file is typed by
+// its own task, so this is kept loose).
+export type OriginEntry = {
+  key: string;
+  group: string;
+  kind: string;
+  paid?: boolean;
+  start: string;
+  parent: string | null;
+  featured: { id: number | null; card?: boolean; isNew: boolean }[];
+};
+
+export type Origin = { entry: OriginEntry; server: string; kind: OriginKind; rerun: boolean };
+
+const EVENT_KINDS: Partial<Record<string, OriginKind>> = {
   story: 'story',
   gift: 'gift',
   login_bonus: 'gift',
@@ -18,20 +34,22 @@ const EVENT_KINDS = {
   shop: 'shop',
 };
 
-const originKind = (entry) =>
+const originKind = (entry: OriginEntry): OriginKind =>
   entry.group === 'event' ? (EVENT_KINDS[entry.kind] ?? 'other') : entry.paid ? 'paid_banner' : 'banner';
 
-function serverOrigins(cardId, entries, server) {
+function serverOrigins(cardId: CardId, entries: OriginEntry[], server: string): Origin[] {
   const byKey = new Map(entries.map((entry) => [entry.key, entry]));
-  const giving = new Map();
+  const parentOf = (entry: OriginEntry): OriginEntry | undefined =>
+    entry.parent == null ? undefined : byKey.get(entry.parent);
+  const giving = new Map<string, { entry: OriginEntry; item: OriginEntry['featured'][number] }>();
   for (const entry of entries) {
     const item = entry.start && entry.featured.find((f) => f.card && f.id === cardId);
     if (item) giving.set(entry.key, { entry, item });
   }
   // Events whose part gives the card too: the part is where it comes from.
-  const ancestors = new Set();
+  const ancestors = new Set<string>();
   for (const { entry } of giving.values()) {
-    for (let parent = byKey.get(entry.parent); parent; parent = byKey.get(parent.parent)) ancestors.add(parent.key);
+    for (let parent = parentOf(entry); parent; parent = parentOf(parent)) ancestors.add(parent.key);
   }
   return [...giving.values()]
     .filter(({ entry }) => !ancestors.has(entry.key))
@@ -43,11 +61,11 @@ function serverOrigins(cardId, entries, server) {
     }));
 }
 
-export function cardOrigins(cardId, byServer) {
+export function cardOrigins(cardId: CardId, byServer: Record<string, OriginEntry[]>): Origin[] {
   return Object.entries(byServer)
     .flatMap(([server, entries]) => serverOrigins(cardId, entries, server))
     .sort((a, b) => a.entry.start.localeCompare(b.entry.start));
 }
 
 // The kinds a card comes by, each once, in the order it first came by them.
-export const originKinds = (origins) => [...new Set(origins.map((origin) => origin.kind))];
+export const originKinds = (origins: Origin[]): OriginKind[] => [...new Set(origins.map((origin) => origin.kind))];

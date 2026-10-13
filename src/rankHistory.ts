@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { toTiers } from './tiers.ts';
+import { type CardId, type RankedCard, toTiers } from './tiers.ts';
 
 // A card's place in one stat's tier list over time. Each card's score is
 // independent of the other candidates (it's scored against fixed decks), so
@@ -15,16 +14,33 @@ import { toTiers } from './tiers.ts';
 // where overtakenBy lists the cards released that day that score higher, and
 // predicted says a card released that day only has a predicted date.
 // Returns null if the card isn't ranked or has no release date.
-export function rankHistory(ranking, cardId, lb, releaseOf, isPredicted = () => false) {
+
+export type HistoryPoint = {
+  date: string;
+  position: number;
+  total: number;
+  tier: number;
+  overtakenBy: RankedCard[];
+  predicted: boolean;
+};
+
+export function rankHistory(
+  ranking: RankedCard[],
+  cardId: CardId,
+  lb: number,
+  releaseOf: (id: CardId) => string | null,
+  isPredicted: (id: CardId) => boolean = () => false
+): HistoryPoint[] | null {
   const field = ranking.filter((c) => c.lb === lb && releaseOf(c.id));
   const self = field.find((c) => c.id === cardId);
   if (!self) return null;
   const start = releaseOf(cardId);
-  const later = field.map((c) => releaseOf(c.id)).filter((date) => date > start);
+  if (!start) return null;
+  const later = field.map((c) => releaseOf(c.id)).filter((date): date is string => date != null && date > start);
   const dates = [start, ...[...new Set(later)].sort()];
 
   return dates.map((date) => {
-    const available = field.filter((c) => releaseOf(c.id) <= date);
+    const available = field.filter((c) => (releaseOf(c.id) ?? '') <= date);
     return {
       date,
       position: available.indexOf(self) + 1,

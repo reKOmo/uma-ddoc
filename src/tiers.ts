@@ -1,10 +1,17 @@
-// @ts-nocheck
 // Tier grouping shared by the tier list page and the Timeline's sheet.
+
+import type { CardType, GametoraType } from '../shared/schemas/common.ts';
 
 export const TIER_NAMES = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
+// A support card's id (cards.json's keys are strings, a card's `id` a number).
+export type CardId = number | string;
+
+// One card in a ranking (rankByUsefulness() in tierlist/index.ts): its score and limit break.
+export type RankedCard = { id: CardId; lb: number; score: number };
+
 // Support card types → the tier list's stat tabs (banner files say GameTora's `intelligence`, cards.json `wisdom`).
-export const STAT_OF_TYPE = {
+export const STAT_OF_TYPE: Record<GametoraType | CardType, CardType> = {
   speed: 'speed',
   stamina: 'stamina',
   power: 'power',
@@ -16,12 +23,12 @@ export const STAT_OF_TYPE = {
 };
 
 // Same banding as upstream TierList.jsx: split the score range into 7 steps.
-export function toTiers(ranking) {
+export function toTiers<T extends { score: number }>(ranking: T[]): T[][] {
   if (ranking.length === 0) return [];
   const top = ranking[0].score;
   const step = (top - ranking[ranking.length - 1].score) / 7;
   let boundary = top - step;
-  const tiers = [[]];
+  const tiers: T[][] = [[]];
   for (const card of ranking) {
     while (card.score < boundary - 1) {
       tiers.push([]);
@@ -32,17 +39,19 @@ export function toTiers(ranking) {
   return tiers;
 }
 
+export type Rank = { tier: number; position: number; total: number };
+
 // "id/lb" → { tier, position, total } for one ranking, computed once per ranking.
-const ranksCache = new WeakMap();
-export function cardRanks(ranking) {
-  if (!ranksCache.has(ranking)) {
-    const ranks = new Map();
-    let position = 0;
-    toTiers(ranking).forEach((tier, i) => {
-      for (const card of tier)
-        ranks.set(`${card.id}/${card.lb}`, { tier: i, position: ++position, total: ranking.length });
-    });
-    ranksCache.set(ranking, ranks);
-  }
-  return ranksCache.get(ranking);
+const ranksCache = new WeakMap<RankedCard[], Map<string, Rank>>();
+export function cardRanks(ranking: RankedCard[]): Map<string, Rank> {
+  const cached = ranksCache.get(ranking);
+  if (cached) return cached;
+  const ranks = new Map<string, Rank>();
+  let position = 0;
+  toTiers(ranking).forEach((tier, i) => {
+    for (const card of tier)
+      ranks.set(`${card.id}/${card.lb}`, { tier: i, position: ++position, total: ranking.length });
+  });
+  ranksCache.set(ranking, ranks);
+  return ranks;
 }
