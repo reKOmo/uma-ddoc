@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-// The Settings page: its settings as toggle groups, and its About section (src/pages/SettingsPage.tsx).
 
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';

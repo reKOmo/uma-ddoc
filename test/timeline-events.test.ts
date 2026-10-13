@@ -13,27 +13,22 @@ import type { LaneItem } from '../src/timeline/layout.ts';
 import type { GameEvent, PredictedEventsFile } from '../shared/schemas/event.ts';
 import { fixture } from './helpers.ts';
 
-// The data files as their schemas describe them (JSON imports are typed more loosely; test/schemas.test.ts checks
-// the files).
+// Typed as the schemas describe them (schemas.test.ts checks the files).
 const globalEvents = fixture<GameEvent[]>(globalEventsJson);
 const jpEvents = fixture<GameEvent[]>(jpEventsJson);
 const predicted = fixture<PredictedEventsFile>(predictedJson);
 
-// The Timeline shows each server's events the same way.
 const SERVERS: [string, GameEvent[]][] = [
   ['Global', globalEvents],
   ['JP', jpEvents],
 ];
 
-// Events in their lane groups, as the Timeline draws them.
-// The phases' labels (en.json), by key.
 const PHASE_LABELS: Record<string, string> = en.events.phase;
 
 const eventGroups = (events: GameEvent[]) => laneGroups(eventEntries(events));
 const idsOf = (rows: LaneItem<Entry>[][]) => rows.map((row) => row.map((item) => item.entry.id));
 
 describe('event lanes', () => {
-  // (events with the fields the lanes read)
   const event = (id: string, kind: string, start: string, end: string | null, parent: string | null = null) =>
     fixture<GameEvent>({ id, kind, start, end, parent, cards: [], items: [] });
 
@@ -140,7 +135,6 @@ describe.each(SERVERS)('the event data (%s)', (_, events) => {
 });
 
 describe('withPredicted', () => {
-  // (events with the fields withPredicted() and the lanes read)
   const real = fixture<GameEvent[]>([
     {
       id: '1',
@@ -192,7 +186,7 @@ describe('withPredicted', () => {
   });
 });
 
-// The predicted events `pnpm predict-gl` writes (when it has: the file is optional), in the shape the Timeline reads.
+// `pnpm predict-gl` writes this file; it is optional.
 const PREDICTED_FILE = new URL('../generated/predicted_global_events.json', import.meta.url);
 const predictedFiles: [string, PredictedEventsFile][] = [['the fixture', predicted]];
 if (existsSync(PREDICTED_FILE))

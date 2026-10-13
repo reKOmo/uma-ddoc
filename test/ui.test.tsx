@@ -1,6 +1,4 @@
 // @vitest-environment jsdom
-// The UI primitives in src/ui/: each renders its element, text and attributes, and FoldToggle / SeeMore call
-// their handlers. Queried by role and text, never by class name.
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';

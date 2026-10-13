@@ -1,5 +1,3 @@
-// JP's in-game events from the JP news (scripts/lib/events.js read with the Japanese lexicon, news-lang/ja.js), on the
-// posts sampled in test/fixtures/jp-news-samples.json, and the stored data/jp_events.json.
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CM_PHASES, EVENT_KINDS, buildEvents, eventsFile, postEvents } from '../scripts/lib/events.ts';
@@ -284,7 +282,6 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
   });
 });
 
-// GameTora's JP history filled in where the news has none (scripts/lib/gametora-events.js).
 describe("GameTora's story events, Champions Meetings and Legend Races", () => {
   const unix = (iso: string) => Date.parse(iso) / 1000;
   const raw = {
@@ -349,7 +346,6 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
       source: 'news',
     },
   ];
-  // (a card with the fields the GameTora fills read)
   const cardsJp = fixture<CardsFile>({
     30041: { rarity: 'SSR', title: { jp: '[おもい、ねがう]' }, name: { jp: 'メジロドーベル' } },
   });

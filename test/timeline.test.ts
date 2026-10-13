@@ -1,5 +1,3 @@
-// The Timeline's calendar days, in UTC (default) or the viewer's timezone (Settings), and its lanes.
-
 import { describe, it, expect } from 'vitest';
 import { buildTimeline, laneGroups, visibleRows } from '../src/timeline/layout.ts';
 import type { Entry } from '../src/timeline/entries.ts';
@@ -16,7 +14,6 @@ const banner = fixture<Entry>({
 });
 const now = Date.parse('2026-10-08T12:00:00Z');
 
-// The calendar date an entry starts in, and how far into that day (hours).
 function barStart(timeline: Timeline, entry: Entry = banner) {
   const from = timeline.at(Date.parse(entry.start));
   const day = present(

@@ -1,5 +1,3 @@
-// The Timeline's group order: dragging a group among the shown ones, the default, and groups a saved order lacks.
-
 import { describe, it, expect } from 'vitest';
 import { DEFAULT_ORDER, isDefaultOrder, orderedGroups, reorderGroups } from '../src/timeline/order.ts';
 import { LANE_GROUPS } from '../src/timeline/layout.ts';

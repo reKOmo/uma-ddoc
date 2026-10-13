@@ -1,6 +1,4 @@
 // @vitest-environment jsdom
-// The Timeline's sheet (src/timeline/TimelineSheet.tsx): one layout for every banner and event, only the content
-// changes. Queried by role and text, never by class name.
 
 import type { ReactNode } from 'react';
 import { afterEach, describe, it, expect, vi } from 'vitest';
@@ -128,7 +126,6 @@ function renderSheet(entry: Entry) {
   );
 }
 
-// Asserts the nodes are on the page, each after the one before it.
 function expectInOrder(nodes: (Element | null)[]): void {
   const present = nodes.filter((node): node is Element => node !== null);
   expect(present).toHaveLength(nodes.length);

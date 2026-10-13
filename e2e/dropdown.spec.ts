@@ -1,6 +1,3 @@
-// The app's dropdown (src/Dropdown.tsx, on Radix Select), as the Cards tab's Scenario picker: chosen by pointer (a tap
-// on phones), by keyboard, closed by Escape; disabled options (scenarios the tier list doesn't rank) can't be chosen.
-
 import type { Page } from '@playwright/test';
 import { expect, open, test } from './fixtures.ts';
 

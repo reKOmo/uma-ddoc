@@ -1,8 +1,4 @@
-// Our tier list calculation started as a copy of upstream's and is maintained
-// here now. These tests run upstream's current code (from the clone in
-// upstream/, see scripts/clone-upstream.js) next to ours and fail when they
-// disagree, which is how we hear about upstream changes worth porting.
-//
+// Ours is a copy of upstream's calculation, maintained here now: these fail when upstream changes and ours should follow.
 // Run with `pnpm test:upstream` (not part of `pnpm test`).
 
 import { describe, it, expect } from 'vitest';
@@ -21,7 +17,6 @@ if (!existsSync(`${UPSTREAM_DIR}src/components/tierlist-calc.js`)) {
   throw new Error('No upstream clone in upstream/ — run `pnpm clone-upstream` first');
 }
 
-// Upstream's own modules, imported as-is (Vite resolves their extensionless imports).
 const { processCards } = await import('../../upstream/src/components/tierlist-calc.js');
 const upstreamScenarios = await import('../../upstream/src/scenarios.js');
 const UPSTREAM_CARDS = {
@@ -29,8 +24,7 @@ const UPSTREAM_CARDS = {
   jp: (await import('../../upstream/src/cards/jp.js')).default,
 };
 
-// Upstream's UI glue (Main.jsx merges weights, TierList.jsx filters by type),
-// on upstream's own card lists, scenarios and card events.
+// Upstream's UI glue: merges weights, filters cards by type, as its UI does.
 function upstreamRanking(server: Server, scenario: string, stat: Stat, deckIds: number[]) {
   const cards = UPSTREAM_CARDS[server];
   const preset = upstreamScenarios.getScenario(server, scenario);

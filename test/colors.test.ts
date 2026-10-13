@@ -1,10 +1,8 @@
-// Cover colours (scripts/lib/colors.js): the PNG decoder and the main colour.
-
 import { deflateSync } from 'node:zlib';
 import { describe, it, expect } from 'vitest';
 import { decodePng, mainColor } from '../scripts/lib/colors.ts';
 
-// A PNG from rows of [r, g, b, a] pixels (RGBA, filter 0 / "Sub" alternating to exercise both).
+// Filter 0 and "Sub" alternate, so both row filters are decoded.
 type Pixel = [number, number, number, number];
 function png(rows: Pixel[][]) {
   const chunk = (type: string, data: Buffer) => {

@@ -1,6 +1,4 @@
-// Links into the Timeline: each opens its banner or event's sheet on the right server, and the address keeps the
-// open sheet, so going back to the Timeline (from a card's page) opens it again. (The wouter migration broke all of
-// these once: the router re-read the address after the Timeline had replaced it.)
+// The wouter migration broke these once: the router re-read the address after the Timeline had replaced it.
 
 import { activeTab, expect, open, server, sheet, sheetTitle, test } from './fixtures.ts';
 

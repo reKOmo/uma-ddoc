@@ -1,6 +1,3 @@
-// Career scenario launches: parsing them from the news, GameTora's records, applying the news to
-// Global's (scripts/lib/news.js, scripts/lib/scenarios.js).
-
 import { describe, it, expect } from 'vitest';
 import { scenarioPost } from '../scripts/lib/news.ts';
 import { applyJpScenarioNews, applyScenarioNews, mergeGametora, retag } from '../scripts/lib/scenarios.ts';
@@ -10,7 +7,6 @@ import type { NewsPost } from '../shared/schemas/news.ts';
 import type { StartDate } from '../shared/schemas/scenario.ts';
 import { fixture, present } from './helpers.ts';
 
-// (a post with the fields the scenario parsers read)
 const post = (id: number, posted: string, title: string, lines: string[]) =>
   fixture<NewsPost>({
     announce_id: id,

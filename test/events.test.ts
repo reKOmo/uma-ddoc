@@ -1,6 +1,3 @@
-// Global's events from the news: posts cut into blocks (scripts/lib/event-blocks.js), what they give
-// (scripts/lib/event-rewards.js) and the events they make (scripts/lib/events.js), on HTML trimmed from real posts.
-
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { eventBlocks } from '../scripts/lib/event-blocks.ts';
@@ -17,7 +14,6 @@ const h2 = (text: string) => `<h2 class="heading"> ${text}</h2>\n`;
 const art = (id: number | string) =>
   `<figure><img src="https://example.com/uploads/Header/header_${id}_L1791410400.png?c=1"></figure>\n`;
 const lines = (...list: string[]) => list.map((l) => ` ${l}<br>\n`).join('');
-// (a post with the fields the event parsers read)
 const post = (id: number, title: string, message: string, posted = '2026-10-07 22:00:00') =>
   fixture<NewsPost>({
     announce_id: id,
@@ -27,7 +23,6 @@ const post = (id: number, title: string, message: string, posted = '2026-10-07 2
     image_big: `https://example.com/uploads/Header/banner_${id}.png`,
   });
 
-// (cards with the fields the card lookup reads)
 const CARDS = fixture<CardsFile>({
   30125: { rarity: 'SSR', title: { en: "[Don't Stop Anymore!]" }, name: { en: 'Sakura Laurel' } },
   30145: { rarity: 'SSR', title: { en: '[Welcome to Umayuru]' }, name: { en: 'Tanino Gimlet' } },
@@ -353,7 +348,6 @@ describe('buildEvents', () => {
   });
 
   it("gives Champions Meetings the hand table's range", () => {
-    // (the table's rows with only the columns read)
     const table = fixture<CmRewardsFile>([
       {
         since: '2025-06-26',

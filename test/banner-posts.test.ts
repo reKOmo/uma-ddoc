@@ -28,7 +28,6 @@ const SPOTLIGHT = [
   ' 10:00 p.m., Oct 7–9:59 p.m., Oct 22, 2026 (UTC)<br>\n',
 ].join('');
 
-// (a post with the fields bannerPost() reads)
 const post = (message: string, { id = 1089, posted = '2026-10-07 22:00:00' } = {}) =>
   fixture<NewsPost>({
     announce_id: id,

@@ -1,5 +1,3 @@
-// Whether a scenario has launched on a server (src/scenarioRelease.js), on the real data/scenarios.json.
-
 import { describe, it, expect } from 'vitest';
 import { isReleased } from '../src/scenarioRelease.ts';
 import scenarioData from '../data/scenarios.json' with { type: 'json' };

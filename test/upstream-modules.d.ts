@@ -1,6 +1,4 @@
-// Upstream's plain-JS modules the tests import as they are: its raw card lists (generated/raw/upstream/, as
-// downloaded) and, in test/upstream/, its own calculation and scenarios from the clone. Described with our own
-// types, which rebuild them exactly (test/data.test.ts, test/upstream/parity.test.ts check that).
+// Typed with our own types: test/data.test.ts and test/upstream/parity.test.ts check they rebuild upstream's modules exactly.
 
 declare module '*/raw/upstream/gl.js' {
   const cards: import('../scripts/lib/cards.ts').UpstreamCard[];

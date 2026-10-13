@@ -1,6 +1,4 @@
 // @vitest-environment jsdom
-// The app's dropdown (src/Dropdown.tsx, on Radix Select), opened: groups in order, disabled options, choosing,
-// and the italic / note / badge / icon / pill features.
 
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';

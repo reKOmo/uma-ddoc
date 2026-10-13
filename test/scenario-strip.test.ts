@@ -1,12 +1,9 @@
-// The Career scenario strip on the banner calendar (src/timeline/scenarioStrip.js).
-
 import { describe, it, expect } from 'vitest';
 import { scenarioSegments } from '../src/timeline/scenarioStrip.ts';
 import type { Scenario, StartDate } from '../shared/schemas/scenario.ts';
 import { fixture } from './helpers.ts';
 
 const date = (iso: string, tag: StartDate['tag']) => ({ date: iso, tag });
-// (only the fields the strip reads)
 const SCENARIOS = fixture<Scenario[]>([
   {
     key: 'GL',

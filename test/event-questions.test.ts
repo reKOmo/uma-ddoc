@@ -1,6 +1,3 @@
-// What a model is asked about the fields the rules doubt, and how its answers fill them in
-// (scripts/lib/event-questions.js); the doubts themselves (scripts/lib/events.js, event-rewards.js).
-
 import { describe, expect, it } from 'vitest';
 import { copiesDoubt, itemDoubt } from '../scripts/lib/event-rewards.ts';
 import {
@@ -18,7 +15,6 @@ import type { Question } from '../scripts/lib/ai.ts';
 import type { AiAnswer } from '../shared/schemas/news.ts';
 import { fixture } from './helpers.ts';
 
-// A question's JSON schema properties, as the model is sent them.
 const properties = (q: Question) => q.schema.properties as Record<string, { enum?: string[] }>;
 
 const TEXT = [
@@ -29,7 +25,6 @@ const TEXT = [
   'Trainers will also be gifted with the SSR Support Card "[U & Me] Mihono Bourbon"!',
   'It can be obtained up to two times in the Login Bonus, and up to three times in the Missions, for a maximum of five times!',
 ];
-// An event as events.ts hands it to the questions (its fragment), and its titles.
 type TestEvent = AskedEvent & { titles: string[] };
 const event = (fields: Partial<TestEvent> = {}): TestEvent => ({
   id: '994-1',

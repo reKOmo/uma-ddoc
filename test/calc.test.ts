@@ -1,5 +1,4 @@
-// Regression check on one known score (taken from upstream's own test,
-// src/components/tierlist-calc.test.js).
+// A known score from upstream's own test (src/components/tierlist-calc.test.js).
 
 import { describe, it, expect } from 'vitest';
 import { processCards } from '../tierlist/tierlist-calc.ts';

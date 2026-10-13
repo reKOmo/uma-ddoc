@@ -1,6 +1,3 @@
-// UI strings: every key the code asks for exists, every language has the same
-// keys as English, and i18next fills placeholders, plurals, lists and <Trans>.
-
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -21,8 +18,7 @@ const I18N_DIR = new URL('../src/i18n/', import.meta.url);
 const SRC_DIR = new URL('../src/', import.meta.url);
 const t = i18n.t.bind(i18n);
 
-// Leaf keys as dotted paths, with plural forms (days_one, days_other) folded
-// into the key the code uses (days).
+// Plural forms (days_one, days_other) fold into the key the code uses (days).
 type Catalog = { [key: string]: string | Catalog };
 function leafKeys(node: Catalog, prefix = ''): string[] {
   return Object.entries(node).flatMap(([key, value]): string[] =>
@@ -49,7 +45,7 @@ describe('catalogs', () => {
       ...[...source.matchAll(/\bt\(\s*'([\w.]+)'/g)].map((m) => m[1]),
       ...[...source.matchAll(/i18nKey="([\w.]+)"/g)].map((m) => m[1]),
     ]);
-    // App.jsx keeps tab labels as keys in its route table.
+    // Tab labels are keys in App.tsx's tab table.
     const labels = [...readFileSync(new URL('App.tsx', SRC_DIR), 'utf8').matchAll(/label: '([\w.]+)'/g)].map(
       (m) => m[1]
     );

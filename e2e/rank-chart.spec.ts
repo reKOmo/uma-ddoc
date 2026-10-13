@@ -1,11 +1,7 @@
-// The card page's rank chart (Rank over time): it's shown, scrolls sideways, and hovering a point shows its tooltip
-// (date, rank, tier chip).
-
 import type { Locator, Page } from '@playwright/test';
 import { expect, open, test } from './fixtures.ts';
 
 const chart = (page: Page) => page.getByRole('img', { name: /Tier list position over time/ });
-// The chart's container (the scroller's parent): the tooltip sits in it, beside the scroller.
 const container = (page: Page): Locator => chart(page).locator('xpath=../..');
 
 const scrollLeft = (page: Page) => chart(page).evaluate((el) => (el.parentElement as HTMLElement).scrollLeft);
@@ -36,7 +32,6 @@ test('the rank chart shows, scrolls sideways, and a hovered point shows its tool
   await page.mouse.wheel(-3000, 0);
   await expect.poll(() => scrollLeft(page)).toBeLessThan(before);
 
-  // Hovering a point shows the tooltip: its date, the rank of N, and the tier's chip.
   await page.mouse.move(box.x + box.width / 2, box.y + 60);
   await expect(
     container(page)
@@ -49,7 +44,6 @@ test('the rank chart shows, scrolls sideways, and a hovered point shows its tool
       .first()
   ).toBeVisible();
 
-  // Leaving the chart hides it.
   await page.mouse.move(0, 0);
   await expect(container(page).getByText(/#\d+ of \d+/)).toHaveCount(0);
 });

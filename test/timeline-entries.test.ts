@@ -1,5 +1,3 @@
-// Banners and events as Timeline entries (src/timeline/entries.js): one shape for every server and source.
-
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { bannerEntries, bannerStatus, eventEntries } from '../src/timeline/entries.ts';
@@ -17,8 +15,7 @@ import type { CardsFile } from '../shared/schemas/card.ts';
 import type { GameEvent, PredictedEvent, PredictedEventsFile } from '../shared/schemas/event.ts';
 import { fixture, present } from './helpers.ts';
 
-// The data files as their schemas describe them (JSON imports are typed more loosely; test/schemas.test.ts checks
-// the files).
+// Typed as the schemas describe them: JSON imports are typed more loosely (schemas.test.ts checks the files).
 const cards = fixture<CardsFile>(cardsJson);
 const globalBanners = fixture<BannerFile>(globalBannersJson);
 const jpBanners = fixture<BannerFile>(jpBannersJson);
@@ -33,7 +30,6 @@ const optional = (file: string): BannerFile | null => {
 };
 const predictedBanners = optional('predicted_global_banners.json');
 
-// Each server's calendar, as loadTimeline() builds it.
 function timeline(
   name: 'global' | 'jp',
   banners: BannerFile,
@@ -85,7 +81,6 @@ describe.each(SERVERS)('the calendar (%s)', (_, entries) => {
 
 describe('bannerEntries', () => {
   const featured = { id: 30001, name: 'Special Week', title: '[Title]', type: 'speed', rarity: 3, new: true };
-  // (banners with the fields bannerEntries() reads)
   const file = (cardsList: unknown[]) =>
     withArt(fixture<BannerFile>({ characters: [], cards: cardsList }), 'jp', cards);
 

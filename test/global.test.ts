@@ -1,5 +1,3 @@
-// Global's own banner record (scripts/lib/global.js).
-
 import { describe, it, expect } from 'vitest';
 import { applyNews, englishNames } from '../scripts/lib/global.ts';
 import type { BannerPost } from '../scripts/lib/banner-posts.ts';
@@ -70,7 +68,6 @@ const CARD_DATA = fixture<CardsFile>({
   30126: { charId: 1068, type: 'friend', name: { en: 'Yamanin Zephyr', jp: 'ヤマニンゼファー' } },
 });
 
-// A scout post, as scripts/lib/banner-posts.js reads it.
 const post = (id: number, posted: string, start: string, extra: Partial<BannerPost> = {}): BannerPost => ({
   id,
   url: `https://umamusume.com/news/${id}/`,

@@ -1,6 +1,3 @@
-// The persisted stores keep today's localStorage formats: old data loads, changes write the same shapes, and garbage
-// or a throwing localStorage gives the defaults.
-
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let data: Map<string, string>;

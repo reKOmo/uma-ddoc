@@ -1,7 +1,3 @@
-// Pull advice from Luh's Umamusume Support Card Encyclopedia: parsing a tab's HTML view, its dates,
-// "Pull?" and "Notes" cells, matching entries to banners (scripts/lib/pull-guide.js), and picking the
-// advice shown (src/pullGuide.js).
-
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { PullGuideSchema } from '../shared/schemas/pullGuide.ts';
@@ -204,7 +200,6 @@ describe('cells', () => {
 });
 
 describe('the advice shown', () => {
-  // (banners, advice and guides with the fields the code reads)
   const banner = (id: number, start: string, end: string, isNew: boolean) =>
     fixture<Banner>({ id, start, end, featured: [{ id: 30078, new: isNew }] });
   const banners = [

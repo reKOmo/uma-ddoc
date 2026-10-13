@@ -1,7 +1,5 @@
 {
-  // One project for everything: the scripts and tierlist/ run on Node's type stripping (`node x.ts`, hence `.ts` in
-  // import paths and erasable syntax only), src/ is bundled by Vite (its client types: CSS imports,
-  // import.meta.glob), tests run both. Only type-checks; nothing is emitted.
+  // Scripts and tierlist/ run on Node's type stripping: `.ts` import paths, erasable syntax only.
   "compilerOptions": {
     "target": "esnext",
     "lib": ["esnext", "dom", "dom.iterable"],

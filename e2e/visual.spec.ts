@@ -1,8 +1,5 @@
-// Screens compared pixel by pixel with a baseline (`pnpm test:visual`, the `visual` project only): for restyling
-// that must not change how the app looks (the CSS Modules move). Baselines are made on this machine from a known-good
-// commit (`pnpm test:visual --update-snapshots`) and kept out of git (fonts render differently elsewhere): in
-// .visual-baseline/, or $VISUAL_BASELINE (a worktree can compare against the main checkout's). Remote art is blocked
-// (it loads at its own pace) and the clock fixed, so runs compare.
+// Baselines come from this machine (a known-good commit; .visual-baseline/, not in git: fonts differ elsewhere).
+// Remote art is blocked (it loads at its own pace) and the clock fixed, so runs compare.
 
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures.ts';

@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-// The scenario page (src/pages/ScenarioPage.tsx) and the Scenarios tab, rendered, and isCurrent().
 
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -30,10 +29,8 @@ describe('ScenarioPage', () => {
   it('shows names, both launches, GameTora and the tier list link', () => {
     renderScenario('GL');
     expect(screen.getByRole('heading', { level: 1, name: 'Brighter Together! Our Grand Concert' })).toBeTruthy();
-    // One launch card: Japan on the left, then Global on the right, with the gap between them.
     const launch = screen.getByRole('heading', { name: 'Launch' }).closest('section') as HTMLElement;
     expect(launch.textContent).toMatch(/Japan.*Launched after .*Global/);
-    // GameTora under Links, after the launches.
     const links = screen.getByRole('heading', { name: 'Links' });
     expect(launch.compareDocumentPosition(links) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByRole('link', { name: /gametora\.com/ }).getAttribute('href')).toContain(

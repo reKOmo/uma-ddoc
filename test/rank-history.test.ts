@@ -1,5 +1,3 @@
-// rankHistory replays a ranking as cards are released.
-
 import { describe, it, expect } from 'vitest';
 import { rankHistory } from '../src/rankHistory.ts';
 import { present } from './helpers.ts';

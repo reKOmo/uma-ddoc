@@ -1,5 +1,3 @@
-// Scenario short names (scenarioName() in src/i18n) under the "Scenario names" setting.
-
 import { afterEach, describe, it, expect } from 'vitest';
 import { scenarioName } from '../src/i18n/index.ts';
 import { setSetting } from '../src/settingsStore.ts';

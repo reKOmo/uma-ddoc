@@ -1,6 +1,3 @@
-// JP's new support cards (scripts/lib/jp-cards.js): the cards the JP news shows (scout lists, story events' SSRs,
-// campaign gifts), augmented from GameTora's list, pending until it has them, GameTora-only cards never added.
-
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { GAMETORA_CARDS_FILE } from '../scripts/build-cards.ts';
@@ -75,7 +72,6 @@ describe.skipIf(!posts.length)('newsCards', () => {
   });
 });
 
-// GameTora's support cards (raw/gametora_cards.json's shape) and the history entries they make.
 const gt = (
   support_id: number,
   char_id: number,

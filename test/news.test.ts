@@ -1,5 +1,3 @@
-// Period dates in official news posts (scripts/lib/news-text.js), on strings taken from real posts.
-
 import { describe, it, expect } from 'vitest';
 import { parsePeriod } from '../scripts/lib/news-text.ts';
 

@@ -1,7 +1,3 @@
-// The card data build (scripts/lib/cards.js): upstream's lists + our history of JP's cards (data/jp_cards.json) +
-// GameTora's list (slugs only) + Global's record → cards.json and the per-server stats, and cards.json's shape
-// (shared/schemas/card.ts).
-
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { CardsFileSchema } from '../shared/schemas/card.ts';
@@ -13,7 +9,7 @@ import type { GametoraCard } from '../shared/schemas/gametora.ts';
 import type { JpCard, JpCardsFile } from '../shared/schemas/card.ts';
 import { fixture, present } from './helpers.ts';
 
-// Upstream's card objects for one card, at every limit break (one stat, sb, stands for them all).
+// Upstream's card objects for one card at every limit break.
 const levels = (id: number, type: number, rarity: number, char_name: string, group = false) =>
   fixture<UpstreamCard[]>(
     [0, 1, 2, 3, 4].map((limit_break) => ({ id, type, group, rarity, limit_break, sb: 10 + limit_break, char_name }))

@@ -118,7 +118,6 @@ describe('applyJpNews', () => {
     main: featured[0],
     featured,
   });
-  // (GameTora's history and the card data, with the fields applyJpNews() reads)
   const jp = fixture<BannerFile>({
     source: { site: 'gametora' },
     characters: [

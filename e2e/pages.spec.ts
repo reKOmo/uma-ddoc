@@ -1,5 +1,3 @@
-// Every page renders, highlights the right tab, and loads its data (on both servers where that matters).
-
 import { activeTab, expect, open, server, test } from './fixtures.ts';
 
 const TABS = [

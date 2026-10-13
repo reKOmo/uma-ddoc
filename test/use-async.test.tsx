@@ -3,7 +3,6 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { useAsync } from '../src/useAsync.ts';
 
-// A promise the test settles by hand.
 function deferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (reason: unknown) => void;

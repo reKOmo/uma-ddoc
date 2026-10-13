@@ -1,6 +1,3 @@
-// The zod schemas (shared/schemas/) against the data: every committed data file fits its schema, every generated one
-// that's there too, and schemas/*.json are what `pnpm build-schemas` writes.
-
 import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import type { z } from 'zod';
@@ -9,7 +6,6 @@ import { jsonSchema } from '../scripts/build-schemas.ts';
 
 const read = (file: string): unknown => JSON.parse(readFileSync(file, 'utf8'));
 
-// The first few problems, readable in a failure message.
 function problems(schema: z.ZodType, data: unknown): string {
   const result = schema.safeParse(data);
   return result.success

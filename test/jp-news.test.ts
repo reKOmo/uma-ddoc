@@ -9,7 +9,6 @@ import type { NewsPost } from '../shared/schemas/news.ts';
 import { fixture, present } from './helpers.ts';
 
 type PostOptions = { id?: number; label?: number; message?: string };
-// (a post with the fields categorize() reads)
 const post = (title: string, { id = 3000, label = 1, message = '' }: PostOptions = {}) =>
   fixture<NewsPost>({
     announce_id: id,

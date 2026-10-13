@@ -1,6 +1,3 @@
-// The generated card data must be complete, consistent with upstream's card
-// lists, and usable for every scenario and stat the UI offers.
-
 import { describe, it, expect } from 'vitest';
 import { isDeepStrictEqual } from 'node:util';
 import { cards, loadCards } from '../tierlist/cards.ts';

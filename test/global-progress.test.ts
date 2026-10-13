@@ -1,12 +1,9 @@
-// Where Global is in JP's history (src/timeline/globalProgress.js).
-
 import { describe, it, expect } from 'vitest';
 import { globalProgress } from '../src/timeline/globalProgress.ts';
 import type { Banner, BannerId } from '../shared/schemas/banner.ts';
 import { fixture, present } from './helpers.ts';
 
 const day = (d: string) => Date.parse(`${d}T00:00:00Z`);
-// (banners with the fields globalProgress() reads)
 const banner = (id: BannerId, start: string, end = start) =>
   fixture<Banner>({ id, start: `${start}T00:00:00Z`, end: `${end}T00:00:00Z` });
 

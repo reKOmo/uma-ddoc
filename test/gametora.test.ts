@@ -1,5 +1,3 @@
-// GameTora's URLs, built from ids (src/gametora.js): the data files store none.
-
 import { describe, expect, it } from 'vitest';
 import { bannerArt, cardArt, cardIcon, cardPage, traineeIcon, withArt } from '../src/gametora.ts';
 import type { BannerFile } from '../shared/schemas/banner.ts';

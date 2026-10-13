@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-// The URL builders, and <App> routed from the address (the pages mocked to one div each).
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
