@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import clsx from 'clsx';
 import { Redirect, Route, Router, Switch, useLocation, useRoute } from 'wouter';
 import { ArrowLeft, CalendarRange, Route as RouteIcon, Settings, Trophy } from 'lucide-react';
 import { getServerConfig } from '../tierlist/scenarios.ts';
@@ -14,6 +15,8 @@ import ScenarioPage from './pages/ScenarioPage.tsx';
 import ScenariosPage from './pages/ScenariosPage.tsx';
 import { useTranslation } from 'react-i18next';
 import { ALIAS, PATTERNS, TAB_URLS, isServer, useHashLocation } from './routes.ts';
+import { Segmented } from './ui/Segmented.tsx';
+import styles from './App.module.css';
 
 // The tabs, in order. Settings (src/settings.tsx) come through context, not props.
 const TABS = [
@@ -79,29 +82,29 @@ function Shell() {
 
   const tierListProps = { server, scenario, onScenarioChange: setScenario };
   return (
-    <div className="app">
-      <header className="topbar">
+    <div className={styles.app}>
+      <header className={styles.topbar}>
         {detail ? (
-          <button type="button" className="back-button" onClick={goBack}>
+          <button type="button" className={styles.backButton} onClick={goBack}>
             <ArrowLeft size={18} aria-hidden="true" />
             {t('common.back')}
           </button>
         ) : (
           <h1>{t(TITLES[tab])}</h1>
         )}
-        <fieldset className="segmented server-switch" aria-label={t('common.server')}>
-          {SERVER_KEYS.map((key) => (
-            <button type="button" key={key} aria-pressed={key === server} onClick={() => changeServer(key)}>
-              {serverName(key)}
-            </button>
-          ))}
-        </fieldset>
+        <Segmented
+          label={t('common.server')}
+          options={SERVER_KEYS.map((key) => ({ value: key, label: serverName(key) }))}
+          value={server}
+          onChange={changeServer}
+          className={styles.serverSwitch}
+        />
       </header>
       {/* Keyed by route so each page starts scrolled to the top. */}
       <main
         key={pageKey}
         data-scroll-root
-        className={tab === TAB_URLS.timeline && !detail ? 'app-main full-height' : 'app-main'}
+        className={clsx(styles.appMain, tab === TAB_URLS.timeline && !detail && styles.fullHeight)}
       >
         <Switch>
           <Route path={ALIAS.from}>
@@ -131,10 +134,11 @@ function Shell() {
           </Route>
         </Switch>
       </main>
-      <nav className="tabbar">
+      {/* The literal `tabbar` and `active` classes are what e2e/ and test/ look the current tab up by. */}
+      <nav className={clsx('tabbar', styles.tabbar)}>
         {TABS.map(({ url, label, Icon }) => (
           <a key={url} href={url} className={url === tab ? 'active' : undefined}>
-            <Icon className="tab-icon" size={22} aria-hidden="true" />
+            <Icon className={styles.tabIcon} size={22} aria-hidden="true" />
             {t(label)}
           </a>
         ))}

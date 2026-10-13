@@ -1,8 +1,8 @@
-/* The detail sheet (src/Sheet.jsx): slides up from the bottom on phones, centred on desktop. vaul animates it in and
+/* The detail sheet (src/Sheet.tsx): slides up from the bottom on phones, centred on desktop. vaul animates it in and
    out and moves it while dragged (transforms of its own: nothing here sets one). The sheet itself never scrolls (vaul
    turns off touch scrolling on it and draws a strip below it): its body does. */
 
-.sheet-backdrop {
+.sheetBackdrop {
   position: fixed;
   inset: 0;
   z-index: 10;
@@ -27,7 +27,7 @@
 }
 
 /* Phones: a down arrow across the top, outside the scrolling body: tap it to close, drag it to move the sheet. */
-.sheet-close {
+.sheetClose {
   display: grid;
   flex: none;
   place-items: center;
@@ -41,13 +41,13 @@
   cursor: pointer;
 }
 
-.sheet-close:hover {
+.sheetClose:hover {
   color: var(--text);
 }
 
 /* Phones: room after the content (the bottom of the screen is under the thumb and the home bar), so the last lines
    can be scrolled up to where they're easy to read. */
-.sheet-body {
+.sheetBody {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -98,11 +98,11 @@
   }
 
   /* (A dialog in the middle: nothing to scroll away from.) */
-  .sheet-body {
+  .sheetBody {
     padding-bottom: 16px;
   }
 
-  .sheet-close {
+  .sheetClose {
     align-self: flex-end;
     width: 32px;
     height: 32px;
@@ -111,7 +111,7 @@
     border-radius: 8px;
   }
 
-  .sheet-close:hover {
+  .sheetClose:hover {
     background: var(--border);
   }
 }

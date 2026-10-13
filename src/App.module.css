@@ -1,0 +1,125 @@
+/* The app shell (src/App.tsx): the page area, the top bar (title or back button, server switch) and the tab bar
+   (at the bottom on phones, under the top bar on wide screens). */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.appMain {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Pages that manage their own scrolling (the banner timeline). */
+.appMain.fullHeight {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Top bar: the page title (or a back button on detail pages), server switch on the right. */
+.topbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 52px;
+  padding: env(safe-area-inset-top) 12px 0;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar h1 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px 0 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* The server switch: a Segmented, smaller than the filters' toggles. */
+.serverSwitch {
+  flex-shrink: 0;
+}
+
+.serverSwitch button {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tabbar {
+  display: flex;
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+}
+
+.tabbar a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--tabbar-height);
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The tab's class stays `active` (the tests and e2e find the current tab by it). */
+.tabbar a:global(.active) {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tabIcon {
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .tabbar {
+    order: -1;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    border-top: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Title bar first, then the tabs. */
+  .topbar {
+    order: -2;
+    padding: 0 16px;
+  }
+
+  .tabbar a {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 16px;
+    font-size: 0.95rem;
+  }
+}

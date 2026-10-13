@@ -1,0 +1,162 @@
+/* The app's filter (src/FilterSheet.tsx, the Cards tab's and the Timeline's): a button with a count, and a sheet of
+   toggle chips in sections. Each chip is tinted in its colour (--tone) while on. */
+.filterButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.filterButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.filterButton.active {
+  border-color: var(--accent);
+}
+
+.filterCount {
+  min-width: 20px;
+  padding: 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--accent-text);
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.filterHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.filterTitle {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.filterHead :global(.reset-filters) {
+  flex: none;
+  margin: 0;
+}
+
+/* A note for the whole sheet, under its title. */
+.filterHead + :global(.filter-note) {
+  margin: 6px 0 0;
+}
+
+/* All / None: quiet text buttons. */
+.filterAll {
+  display: flex;
+  gap: 2px;
+}
+
+.filterAll button {
+  min-height: 28px;
+  padding: 0 8px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.filterAll button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.filterAll button:disabled {
+  color: var(--muted);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.filterChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* A toggle: shown, tinted in its colour (--tone, set by the page's classes; grey without) with a filled check; hidden, plain and muted with an empty one. */
+.filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px 0 8px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.1s,
+    border-color 0.1s,
+    color 0.1s;
+}
+
+.filterChip:hover:not(:disabled) {
+  border-color: var(--tone, var(--event-other));
+}
+
+.filterChip[aria-pressed="true"] {
+  color: var(--text);
+  background: color-mix(in srgb, var(--tone, var(--event-other)) 18%, var(--panel));
+  border-color: var(--tone, var(--event-other));
+}
+
+.filterChip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.filterCheck {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  border: 2px solid var(--tone, var(--event-other));
+  border-radius: 50%;
+}
+
+.filterChip[aria-pressed="true"] .filterCheck {
+  background: var(--tone, var(--event-other));
+}
+
+/* Desktop: a dialog only as tall as its content, not the detail sheets' near-square. Vaul's content element (the
+   sheet) is the one with data-vaul-drawer; this rule outranks the sheet's own width and height there. */
+@media (min-width: 768px) {
+  .filterSheet[data-vaul-drawer] {
+    width: min(560px, calc(100vw - 64px));
+    height: fit-content;
+    max-height: calc(100dvh - 64px);
+  }
+
+  .filterChip {
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 14px 0 10px;
+    font-size: 0.85rem;
+  }
+}

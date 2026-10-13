@@ -1,18 +1,19 @@
-// @ts-nocheck
 // A floating "back to top" button, shown once the page has scrolled past one screen. Pages scroll inside
 // App's <main data-scroll-root>, not the window, so it watches the scroll container it sits in.
 
 import { useEffect, useRef, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import clsx from 'clsx';
+import styles from './BackToTop.module.css';
 
 export default function BackToTop() {
   const { t } = useTranslation();
-  const ref = useRef(null);
+  const ref = useRef<HTMLButtonElement>(null);
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
-    const scroller = ref.current?.closest('[data-scroll-root]');
+    const scroller = ref.current?.closest<HTMLElement>('[data-scroll-root]');
     if (!scroller) return;
     const update = () => setShown(scroller.scrollTop > scroller.clientHeight);
     update();
@@ -22,14 +23,14 @@ export default function BackToTop() {
 
   const toTop = () => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    ref.current?.closest('[data-scroll-root]')?.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    ref.current?.closest<HTMLElement>('[data-scroll-root]')?.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
   };
 
   return (
     <button
       ref={ref}
       type="button"
-      className={shown ? 'back-to-top shown' : 'back-to-top'}
+      className={clsx(styles.backToTop, shown && styles.shown)}
       onClick={toTop}
       aria-label={t('common.backToTop')}
       title={t('common.backToTop')}
