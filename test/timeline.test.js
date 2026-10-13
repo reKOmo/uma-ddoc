@@ -1,7 +1,7 @@
 // The Timeline's calendar days, in UTC (default) or the viewer's timezone (Settings), and its lanes.
 
 import { describe, it, expect } from 'vitest';
-import { buildTimeline, laneGroups } from '../src/timeline/layout.js';
+import { buildTimeline, laneGroups, visibleRows } from '../src/timeline/layout.js';
 
 process.env.TZ = 'Europe/Warsaw'; // UTC+2 in October: a 22:00 UTC start is the next local day
 
@@ -54,5 +54,41 @@ describe('laneGroups', () => {
       ['cards', 'timeline.supportCards', [['cards:1'], ['cards:2']]],
       ['events-story', 'events.group.story', [['event:1']]],
     ]);
+  });
+});
+
+describe('visibleRows (compact mode)', () => {
+  const day = (d) => Date.parse(`2026-10-${String(d).padStart(2, '0')}T00:00:00Z`);
+  const entry = (key, from, to, parent = null) => ({
+    key,
+    kind: parent ? 'gift' : 'celebration',
+    parent,
+    start: new Date(day(from)).toISOString(),
+    end: new Date(day(to)).toISOString(),
+  });
+  // Three overlapping celebrations (three rows), then one alone; the first has two overlapping parts (two rows).
+  const entries = [
+    entry('event:a', 1, 10),
+    entry('event:b', 2, 9),
+    entry('event:c', 3, 8),
+    entry('event:d', 20, 25),
+    entry('event:a1', 1, 4, 'event:a'),
+    entry('event:a2', 2, 3, 'event:a'),
+  ];
+  const [group] = laneGroups(entries);
+
+  it('keeps only the rows with something in view', () => {
+    expect(group.rows).toHaveLength(3);
+    expect(visibleRows(group.rows, day(21), day(22))).toEqual(['0']);
+    expect(visibleRows(group.rows, day(12), day(15))).toEqual([]);
+  });
+
+  it("counts an entry's parts only while the entry is in view, by its key", () => {
+    expect(visibleRows(group.rows, day(5), day(6))).toEqual(['0', '1', '2']);
+    expect(visibleRows(group.rows, day(2), day(3))).toEqual(['0', 'event:a/0', 'event:a/1', '1']);
+  });
+
+  it('treats the ends as open: touching is not overlapping', () => {
+    expect(visibleRows(group.rows, day(10), day(20))).toEqual([]);
   });
 });

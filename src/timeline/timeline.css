@@ -35,6 +35,13 @@
   opacity: 0.4;
 }
 
+/* A toggle (compact mode), on. */
+.toolbar button[aria-pressed="true"] {
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 .timeline-page .status {
   padding: 0 12px;
 }
@@ -433,6 +440,36 @@
   z-index: 2;
   height: var(--lane-height);
   margin-bottom: 4px;
+  transition:
+    height 0.2s,
+    margin-bottom 0.2s;
+}
+
+/* Compact mode: a row with nothing in view folds away (and its bars can't be reached till it's back). */
+.lane.hidden,
+.lane.part-lane.hidden {
+  height: 0;
+  margin-bottom: 0;
+  overflow: clip;
+  visibility: hidden;
+  transition:
+    height 0.2s,
+    margin-bottom 0.2s,
+    visibility 0s 0.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lane,
+  .lane.hidden {
+    transition: none;
+  }
+}
+
+/* Compact mode: a group with nothing in view says so beside its name, in its label. */
+.lane-empty {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 /* Each bar is a banner's or event's art behind a darkened label, edged in its colour (--tone). Its label and fold

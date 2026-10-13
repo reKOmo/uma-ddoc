@@ -65,10 +65,20 @@ export function laneGroups(entries, groups = LANE_GROUPS) {
     .filter((group) => group.rows.length);
 }
 
+// Compact mode: the ids of the rows with an item overlapping [from, to) (ms), so the others can fold away. A group's
+// rows are `<index>`; an entry's parts' rows `<entry key>/<index>`, looked at only when the entry is in view.
+export function visibleRows(rows, from, to, prefix = '') {
+  return rows.flatMap((row, i) => {
+    const inView = row.filter((item) => item.start < to && item.end > from);
+    if (!inView.length) return [];
+    return [`${prefix}${i}`, ...inView.flatMap((item) => visibleRows(item.parts, from, to, `${item.entry.key}/`))];
+  });
+}
+
 // How many parts an item has, nested ones included.
 export const partCount = (item) => item.parts.flat().reduce((n, part) => n + 1 + partCount(part), 0);
 
-// The calendar for these entries: everything the axis needs, and `at(ms)` → a position in days.
+// The calendar for these entries: everything the axis needs, `at(ms)` → a position in days and `ms(day)` back.
 export function buildTimeline(entries, { now = Date.now(), utc = true } = {}) {
   const f = utc ? UTC : LOCAL;
   const get = (d, part) => d[`get${f[part]}`]();
@@ -99,5 +109,5 @@ export function buildTimeline(entries, { now = Date.now(), utc = true } = {}) {
     set(cursor, 'month', get(cursor, 'month') + 1);
   }
 
-  return { at: day, days: day(last), today: day(now), dayDates, months };
+  return { at: day, ms: (d) => origin + d * DAY, days: day(last), today: day(now), dayDates, months };
 }

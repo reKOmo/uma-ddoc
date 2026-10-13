@@ -1,4 +1,4 @@
-import { Fragment, memo } from 'react';
+import { Fragment, memo, useMemo } from 'react';
 import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
@@ -10,12 +10,15 @@ const CHIP_WIDTH = 64;
 const MIN_WIDTH = 6;
 
 // A lane group (laneGroups() in ./layout.js): its label, which folds it away (`onToggleGroup(key)`), and its rows of
-// bars. `at(ms)` → px; `unfolded`: the keys of entries whose parts are open. Memoised: a group holds hundreds of bars,
+// bars. `at(ms)` → px; `unfolded`: the keys of entries whose parts are open; `visible`: in compact mode, the ids of
+// the rows in view (visibleRows() in ./layout.js, joined with commas: a string, so it compares by value), else null.
+// Memoised: a group holds hundreds of bars,
 // and re-rendering them all (on opening or closing a sheet) would stall the sheet's animation, so give it stable
 // props (callbacks from useCallback).
 export const LaneGroup = memo(function LaneGroup({
   group,
   collapsed,
+  visible,
   onToggleGroup,
   at,
   format,
@@ -25,6 +28,7 @@ export const LaneGroup = memo(function LaneGroup({
 }) {
   const { t } = useTranslation();
   const label = t(group.label);
+  const shown = useMemo(() => (visible === null ? null : new Set(visible.split(','))), [visible]);
   return (
     <section className="lane-group">
       <button
@@ -36,10 +40,13 @@ export const LaneGroup = memo(function LaneGroup({
       >
         {collapsed ? <ChevronRight size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
         {label}
+        {/* Compact mode, nothing of the group in view: said beside its name. */}
+        {!collapsed && visible === '' && <span className="lane-empty">{t('timeline.nothingInView')}</span>}
       </button>
       {!collapsed && (
         <Rows
           rows={group.rows}
+          shown={shown}
           at={at}
           format={format}
           unfolded={unfolded}
@@ -52,14 +59,14 @@ export const LaneGroup = memo(function LaneGroup({
 });
 
 // Rows of bars; an entry with parts has a fold button (+N), and its parts' rows open under its row, over a band in
-// its colour spanning it.
-function Rows({ rows, at, format, unfolded, onToggleParts, onSelect, depth = 0 }) {
+// its colour spanning it. Rows not `shown` (compact mode; ids as visibleRows() gives them) fold away.
+function Rows({ rows, shown, at, format, unfolded, onToggleParts, onSelect, depth = 0, prefix = '' }) {
   return rows.map((row, i) => {
     const open = row.filter((item) => item.parts.length && unfolded.has(item.entry.key));
     return (
       // biome-ignore lint/suspicious/noArrayIndexKey: lanes have no identity of their own; their order is stable.
       <Fragment key={i}>
-        <div className={clsx('lane', depth && 'part-lane')}>
+        <div className={clsx('lane', depth && 'part-lane', shown && !shown.has(`${prefix}${i}`) && 'hidden')}>
           {row.map((item) => (
             <Bar
               key={item.entry.key}
@@ -80,6 +87,8 @@ function Rows({ rows, at, format, unfolded, onToggleParts, onSelect, depth = 0 }
             />
             <Rows
               rows={item.parts}
+              shown={shown}
+              prefix={`${item.entry.key}/`}
               at={at}
               format={format}
               unfolded={unfolded}

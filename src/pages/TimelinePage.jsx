@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
+import { FoldVertical, Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import scenarioData from '../../data/scenarios.json' with { type: 'json' };
 import { useSettings } from '../settings.jsx';
 import { useDragScroll } from '../useDragScroll.js';
 import { loadTimeline } from '../timeline/data.js';
-import { buildTimeline, laneGroups, spanOf } from '../timeline/layout.js';
+import { buildTimeline, laneGroups, spanOf, visibleRows } from '../timeline/layout.js';
 import { scenarioSegments } from '../timeline/scenarioStrip.js';
 import { getCollapsed, saveCollapsed } from '../timeline/collapsed.js';
+import { getCompact, saveCompact } from '../timeline/compact.js';
 import { dateFormats } from '../timeline/format.js';
 import { CalendarLines, TimelineAxis } from '../timeline/TimelineAxis.jsx';
 import { LaneGroup } from '../timeline/Lanes.jsx';
@@ -17,6 +18,13 @@ import '../timeline/timeline.css';
 const ZOOMS = [4, 8, 16, 32]; // pixels per day
 // A mark's toolbar button icon (marks: loadTimeline() in src/timeline/data.js).
 const MARK_ICONS = { global: Globe };
+// Compact mode looks this far past each side of the screen (in screens), so rows open before their bars scroll in.
+// It updates the rows while scrolling slowly (under COMPACT_SLOW screens a second, at most every COMPACT_EVERY ms),
+// and else once scrolling has stopped this long (ms): a fast fling doesn't open and fold rows all the way.
+const COMPACT_MARGIN = 0.5;
+const COMPACT_SLOW = 1;
+const COMPACT_EVERY = 100;
+const COMPACT_IDLE = 150;
 
 // A copy of a set with `key` added, or removed if it was in it.
 function toggled(set, key) {
@@ -139,6 +147,62 @@ export default function TimelinePage({ server, scenario, linkId }) {
   const toggleParts = useCallback((key) => setUnfolded((old) => toggled(old, key)), []);
   const at = useCallback((ms) => timeline.at(ms) * px, [timeline, px]);
 
+  // Compact mode: rows with nothing in view (or half a screen either side) fold away, so a group is only as tall as
+  // what's on screen needs. `visible`: { groups, rows: { [group key]: its rows in view } } (LaneGroup's `visible`),
+  // worked out when scrolling stops or the zoom changes, and only replaced when a group's rows change (each LaneGroup
+  // is memoised). `groups` is what it was worked out for: another server's (or a reloaded timeline's) isn't used.
+  const [compact, setCompact] = useState(getCompact);
+  const [visible, setVisible] = useState(null);
+  const measure = useCallback(() => {
+    const el = scroller.current;
+    if (!el || !timeline) return;
+    const margin = el.clientWidth * COMPACT_MARGIN;
+    const from = timeline.ms((el.scrollLeft - margin) / px);
+    const to = timeline.ms((el.scrollLeft + el.clientWidth + margin) / px);
+    const rows = Object.fromEntries(groups.map((group) => [group.key, visibleRows(group.rows, from, to).join(',')]));
+    setVisible((old) =>
+      old?.groups === groups && groups.every((group) => old.rows[group.key] === rows[group.key])
+        ? old
+        : { groups, rows }
+    );
+  }, [timeline, groups, px]);
+  // (After the calendar is centred, above: it reads the new scroll position.)
+  useLayoutEffect(() => {
+    if (compact) measure();
+  }, [compact, measure]);
+  useEffect(() => {
+    const el = scroller.current;
+    if (!compact || !el) return;
+    let timer;
+    let last = { x: el.scrollLeft, at: performance.now() };
+    let measured = 0;
+    const later = () => {
+      clearTimeout(timer);
+      timer = setTimeout(measure, COMPACT_IDLE);
+    };
+    const onScroll = () => {
+      later();
+      const now = performance.now();
+      const speed = (Math.abs(el.scrollLeft - last.x) / Math.max(now - last.at, 1)) * 1000; // px a second
+      last = { x: el.scrollLeft, at: now };
+      if (speed < el.clientWidth * COMPACT_SLOW && now - measured >= COMPACT_EVERY) {
+        measured = now;
+        measure();
+      }
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', later);
+    return () => {
+      clearTimeout(timer);
+      el.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', later);
+    };
+  }, [compact, measure]);
+  function toggleCompact() {
+    saveCompact(!compact);
+    setCompact(!compact);
+  }
+
   const entry = selected && byKey.get(selected);
 
   // The address follows the open sheet (see `linkId` above).
@@ -167,6 +231,16 @@ export default function TimelinePage({ server, scenario, linkId }) {
           <button type="button" onClick={() => scrollToDay(timeline.today)} disabled={!timeline}>
             <LocateFixed size={18} aria-hidden="true" />
             {t('timeline.today')}
+          </button>
+          <button
+            type="button"
+            onClick={toggleCompact}
+            disabled={!timeline}
+            aria-pressed={compact}
+            aria-label={t('timeline.compact')}
+            title={t('timeline.compactTitle')}
+          >
+            <FoldVertical size={18} aria-hidden="true" />
           </button>
           <fieldset className="segmented" aria-label={t('timeline.zoom')}>
             <button
@@ -205,6 +279,7 @@ export default function TimelinePage({ server, scenario, linkId }) {
                 key={group.key}
                 group={group}
                 collapsed={collapsed.has(group.key)}
+                visible={compact && visible?.groups === groups ? visible.rows[group.key] : null}
                 onToggleGroup={toggleGroup}
                 at={at}
                 format={format}

@@ -41,7 +41,9 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   (`EVENT_GROUPS`: story & special, Champions Meetings, League of Heroes (JP), Legend Races, celebrations, gifts & login
   bonuses, missions, bonuses, shops & sales, transfers & outings), each group packed on its own. Every group label (the banner sections'
   too) folds its group away (`src/timeline/collapsed.js`: remembered in localStorage, try/catch; rows stay fixed, bars
-  never move). An event with parts (a celebration's sub-events, an event's mission sets) is one bar with a "+N" fold
+  never move). **Compact mode** (the toolbar's fold button, on by default, `src/timeline/compact.js`: remembered in
+  localStorage): rows with nothing in view (± half a screen) fold away while scrolling slowly or once it stops (`visibleRows()` in
+  `layout.js`), so a group is only as tall as what's on screen; rows are never repacked, a bar never changes row. An event with parts (a celebration's sub-events, an event's mission sets) is one bar with a "+N" fold
   button (`.bar-fold`); unfolded, its parts' rows open under its row over a band tinted in its colour
   (`.event-parts-band`), nested parts the same way. Bars: the post's art covering the bar
   (`background-size: cover`, like banners' official art) behind the banners' gradient, edge coloured by kind family; under 64px a bar is a chip
@@ -258,6 +260,7 @@ src/
     timeline.css     calendar styles; an entry's colour is --tone (`.kind-*` / `.type-*`)
     StatusBadge.jsx  a status pill (Live, Upcoming, Predicted…): the sheet and the card page (`.badge`: App.css)
     collapsed.js     which Timeline groups are folded: getCollapsed() / saveCollapsed(), kept in localStorage
+    compact.js       compact mode on/off (default on): getCompact() / saveCompact(), kept in localStorage
     scenarioStrip.js pure: scenario segments (launch → next launch, cover colour + text ink) for the calendar's strip
     globalProgress.js pure: where Global is in JP's history (window between banners + linear estimate)
   tiers.js           toTiers(), cardRanks(), TIER_NAMES, STAT_OF_TYPE
@@ -796,7 +799,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 - `timeline-sheet.test.jsx`: the sheet's sections, in order, for a predicted banner, a paid scout, a celebration and
   its part (the sheet's portal mocked away).
 - `timeline.test.js`: calendar days in UTC vs. the viewer's timezone (TZ pinned to Europe/Warsaw); end-less entries;
-  `laneGroups()` order.
+  `laneGroups()` order; `visibleRows()` (compact mode: rows in view, parts by their entry's key, open ends).
 - `global-progress.test.js`: the Global-in-JP estimate, window ends (known vs. predicted), reruns, paid and `-rerun`
   banners ignored.
 - `scenarios.test.js`: scenario mentions in news (dated vs. not, false positives), `mergeGametora` (JP side only, never Global's dates), `applyScenarioNews`.
