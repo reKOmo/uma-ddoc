@@ -21,22 +21,33 @@ never has to make one. Part 1 is how to run it; part 2 the shared specs; part 3 
 
 ## Branches
 
-All work on `ts-migration` (off `main`). Each worker task: a worktree + branch `ts/<task id>` off the current
-`ts-migration`; the lead merges it back when its checks pass. Tasks in the same wave own disjoint files, so they merge
-without conflicts. Only the lead edits the **lead-owned files**: `package.json`, `pnpm-lock.yaml`, `tsconfig*.json`,
-`biome.json`, `vite.config.ts`, `vitest.config.ts`, `src/i18n/en.json`, `shared/`, `CLAUDE.md`, this file.
+All work on `ts-migration` (off `main`). Each worker task makes **its own worktree from the current `ts-migration`
+commit** as its first step (the Agent tool's `isolation: "worktree"` starts from `main`, and an unchanged one is
+removed, so it isn't used):
+```sh
+git -C /home/bartok/Coding/uma-puller worktree add -b ts/<ID> .claude/worktrees/<ID> <ts-migration commit>
+cd /home/bartok/Coding/uma-puller/.claude/worktrees/<ID>
+pnpm install --frozen-lockfile --prefer-offline && cp -r ../../../generated ./generated   # (+ ln -s ../../../upstream upstream)
+```
+Work only there (absolute paths); never touch the main checkout. The lead cherry-picks each finished branch onto
+`ts-migration`, then fixes the seams between tasks of the same wave (each worker writes a minimal local type for
+anything a parallel task is typing; the lead swaps them for the real ones), and removes the worktrees and branches.
+Tasks in the same wave own disjoint files, so they merge without conflicts. Only the lead edits the **lead-owned
+files**: `package.json`, `pnpm-lock.yaml`, `tsconfig*.json`, `biome.json`, `vite.config.ts`, `vitest.config.ts`,
+`src/i18n/en.json`, `shared/`, `CLAUDE.md`, this file. `.claude/worktrees/` is gitignored (Biome would scan it).
 
 ## Checks (referred to by name in the task cards)
 
 - **CHECK-BASE**: `pnpm lint && pnpm typecheck && pnpm test` all pass.
 - **CHECK-DATA** (any task touching `scripts/` or `tierlist/`): the scripts' output is byte-identical.
   ```sh
-  pnpm build-cards && pnpm update-jp && pnpm update-global && pnpm news:events > /tmp/events-after.txt
+  pnpm build-cards && pnpm update-jp && pnpm update-global && pnpm -s news:events > /tmp/events-after.txt
   git diff --exit-code -- data generated/cards.json ':!data/news/*/summary.md'
   diff /tmp/events-before.txt /tmp/events-after.txt
   git checkout -- data/news   # summary.md gets appended to on every run
   ```
-  (`/tmp/events-before.txt`: the same `news:events` run on `ts-migration` before the task started.)
+  (`/tmp/events-before.txt`: the same `pnpm -s news:events` run on `ts-migration` before the task started; `-s`, or
+  pnpm's header lines differ.)
   For `tierlist/` tasks, also `pnpm test:upstream` (needs `pnpm clone-upstream` once).
 - **CHECK-UI** (any task touching `src/**/*.tsx` or CSS): `pnpm build` passes; the worker lists the screens it touched
   in its report and the lead looks at them (`pnpm dev`, 360 px and desktop widths, light + dark).
@@ -222,7 +233,14 @@ Waves: every task in a wave can run at once; a wave starts once the one before i
 Write the schemas from the shapes CLAUDE.md and the data files document; parse every committed `data/*.json` and
 the generated files with them in a test (`test/schemas.test.ts`) so they're proven right; remove `ajv`.
 
-## Wave 1 — type the pure code (workers, parallel)
+## Wave 1 — type the pure code (workers, parallel) — done 2026-10-13
+
+Merged with the lead's integration commits (one type per shape: `JoinedCard`, scenario weights, `Lexicon`,
+`Entry`, `Ranked`/`Stat`, `ArtBannerFile`). Types to build on: `tierlist/index.ts` (`Stat`, `Ranked`),
+`tierlist/scenarios.ts` (`ScenarioWeights`, `ServerConfig`), `src/timeline/entries.ts` (`Entry` and its parts,
+`EntryStatus`), `src/timeline/layout.ts` (`Timeline`, `LaneGroupRows`), `src/gametora.ts` (`ArtBanner`…),
+`scripts/lib/news-lang/index.ts` (`Lexicon`, `JapaneseLexicon`, `DateRef`, `Block`), `scripts/lib/news-text.ts`
+(`Server`, `Section`).
 
 All: typing recipe; owned files only.
 
