@@ -15,6 +15,7 @@ import ScenarioPicker from '../ScenarioPicker.tsx';
 import BackToTop from '../BackToTop.tsx';
 import { FilterButton, FilterSection, FilterSheet } from '../FilterSheet.tsx';
 import { STAT_ICONS } from '../statIcons.ts';
+import { cardUrl } from '../routes.ts';
 
 const RARITIES = ['SSR', 'SR', 'R'];
 const LIMIT_BREAKS = [0, 1, 2, 3, 4];
@@ -228,7 +229,7 @@ export default function TierListPage({ server, scenario, onScenarioChange }) {
                         <a
                           className="card"
                           key={`${card.id}/${card.lb}`}
-                          href={`#/card/${card.id}`}
+                          href={cardUrl(card.id)}
                           title={card.char_name}
                         >
                           <figure>

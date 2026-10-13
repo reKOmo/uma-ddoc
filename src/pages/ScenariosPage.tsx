@@ -10,6 +10,7 @@ import { DATE_FIELD, SCENARIOS, isCurrent } from '../scenarioRelease.ts';
 import { ink } from '../timeline/scenarioStrip.ts';
 import { timeZoneOptions, useSettings } from '../settings.tsx';
 import './scenarios.css';
+import { scenarioUrl } from '../routes.ts';
 
 const SERVER_ORDER = ['jp', 'gl'];
 
@@ -33,7 +34,7 @@ export default function ScenariosPage({ server }) {
           const current = isCurrent(s.key, server); // highlighted: newest on the selected server
           return (
             <li key={s.key} style={s.color ? { '--scenario-color': s.color } : undefined}>
-              <a href={`#/scenario/${s.key}`} className={current ? 'scenario-item current' : 'scenario-item'}>
+              <a href={scenarioUrl(s.key)} className={current ? 'scenario-item current' : 'scenario-item'}>
                 {s.links.cover ? (
                   <img className="scenario-thumb" src={s.links.cover} alt="" loading="lazy" />
                 ) : (

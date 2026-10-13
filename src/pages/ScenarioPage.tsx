@@ -13,6 +13,7 @@ import { timeZoneOptions, useSettings } from '../settings.tsx';
 import { umapyoiGl, umapyoiJp } from '../umapyoi.ts';
 import './card.css'; // shared: .card-tags, .tag, .card-section
 import './scenario.css';
+import { TAB_URLS, scenarioUrl } from '../routes.ts';
 
 const day = (ms) => new Date(ms).toISOString().slice(0, 10);
 // scenario.links that are pages to visit (the rest, like `cover`, are images), in this order, each with a
@@ -81,7 +82,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }) {
 
   function openTierList() {
     onScenarioChange(scenario.key);
-    window.location.hash = '#/';
+    window.location.hash = TAB_URLS.cards;
   }
 
   return (
@@ -187,7 +188,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }) {
 
       <nav className="scenario-nav" aria-label={t('scenarioPage.others')}>
         {previous ? (
-          <a href={`#/scenario/${previous.key}`}>
+          <a href={scenarioUrl(previous.key)}>
             <ChevronLeft size={18} aria-hidden="true" />
             <span>
               <small>{t('scenarioPage.previous')}</small>
@@ -198,7 +199,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }) {
           <span />
         )}
         {next && (
-          <a href={`#/scenario/${next.key}`} className="next">
+          <a href={scenarioUrl(next.key)} className="next">
             <span>
               <small>{t('scenarioPage.next')}</small>
               {next.full_en ?? next.full_jp}

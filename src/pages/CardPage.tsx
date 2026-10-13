@@ -23,6 +23,7 @@ import clsx from 'clsx';
 import { formatDuration, lbName, scenarioName, serverName, statName } from '../i18n/index.ts';
 import { useSettings } from '../settings.tsx';
 import './card.css';
+import { cardUrl, timelineUrl } from '../routes.ts';
 
 const LIMIT_BREAKS = [0, 1, 2, 3, 4];
 // The language of a server's names and titles in cards.json.
@@ -307,7 +308,7 @@ function Origins({ card, server, origins }) {
               const { entry, server: on, rerun } = origin;
               return (
                 <li key={`${on}:${entry.key}`}>
-                  <a className="origin" href={`#/timeline/${on}/${entry.id}`}>
+                  <a className="origin" href={timelineUrl(on, entry.id)}>
                     <span className="origin-head">
                       <span className={clsx('origin-kind', `origin-${origin.kind}`)}>{originLabel(origin, t)}</span>
                       {on !== server && <span className="tag">{serverName(on)}</span>}
@@ -380,7 +381,7 @@ function PullAdvice({ cardId }) {
                 <div className="pull-head">
                   {label && <span className="pull-label">{label}</span>}
                   {banner && (
-                    <a className="link-button pull-banner-link" href={`#/timeline/gl/${banner.id}`}>
+                    <a className="link-button pull-banner-link" href={timelineUrl('gl', banner.id)}>
                       {t('pullGuide.seeBanner')}
                       <ChevronRight size={16} aria-hidden="true" />
                     </a>
@@ -626,14 +627,14 @@ function RankOverTime({ cardId, server, scenarios, combined, defaultScenario, ra
                           <ul className="passed-cards">
                             {point.overtakenBy.map((c) => (
                               <li key={c.id}>
-                                <a className="passed-card" href={`#/card/${c.id}`}>
+                                <a className="passed-card" href={cardUrl(c.id)}>
                                   <img src={cardIcon(c.id, cards)} alt="" loading="lazy" />
                                   <span>
                                     <strong>{nameOf(c.id, server)}</strong>
                                     {titleOf(c.id, server) && <small>{titleOf(c.id, server)}</small>}
                                   </span>
                                 </a>
-                                <a className="see-more" href={`#/card/${c.id}`}>
+                                <a className="see-more" href={cardUrl(c.id)}>
                                   {t('card.seeCard')}
                                   <ChevronRight size={15} aria-hidden="true" />
                                 </a>

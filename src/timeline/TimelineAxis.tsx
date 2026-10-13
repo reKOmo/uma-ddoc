@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { scenarioName } from '../i18n/index.ts';
 import { dateRange } from './format.ts';
+import { scenarioUrl } from '../routes.ts';
 
 // Label every day when there's room, else every 2nd day, else weekly. Weekly labels stop at the 22nd so they never
 // collide with the next month's 1st.
@@ -36,7 +37,7 @@ export const TimelineAxis = memo(function TimelineAxis({ timeline, scenarios, px
                 dates: dateRange({ start: s.start, end: s.end }, format.long),
               })}
             >
-              <a className="scenario-link" href={`#/scenario/${s.key}`}>
+              <a className="scenario-link" href={scenarioUrl(s.key)}>
                 {/* The arrow: right after the name on desktop (moves with it), at the right edge on phones. */}
                 <span className="scenario-label">
                   <span className="scenario-name">

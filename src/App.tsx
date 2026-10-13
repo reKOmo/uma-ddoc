@@ -1,9 +1,9 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react';
-import { ArrowLeft, CalendarRange, Route, Settings, Trophy } from 'lucide-react';
+import { Redirect, Route, Router, Switch, useLocation, useRoute } from 'wouter';
+import { ArrowLeft, CalendarRange, Route as RouteIcon, Settings, Trophy } from 'lucide-react';
 import { getServerConfig } from '../tierlist/scenarios.ts';
 import { scenarioOptions } from '../tierlist/index.ts';
-import { SERVERS } from './servers.ts';
+import { SERVERS, type Server } from './servers.ts';
 import { serverName } from './i18n/index.ts';
 import TierListPage from './pages/TierListPage.tsx';
 import TimelinePage from './pages/TimelinePage.tsx';
@@ -13,100 +13,84 @@ import { useSettings } from './settings.tsx';
 import ScenarioPage from './pages/ScenarioPage.tsx';
 import ScenariosPage from './pages/ScenariosPage.tsx';
 import { useTranslation } from 'react-i18next';
+import { ALIAS, PATTERNS, TAB_URLS, isServer, useHashLocation } from './routes.ts';
 
-// Hash routes, so GitHub Pages never has to serve a deep link. These are the tabs.
-// Settings (src/settings.jsx) come through context, not props.
-const ROUTES = {
-  '#/': { label: 'nav.tierList', title: 'tierList.title', Icon: Trophy, Page: TierListPage },
-  '#/timeline': {
-    label: 'nav.timeline',
-    title: 'timeline.title',
-    Icon: CalendarRange,
-    Page: TimelinePage,
-    fullHeight: true,
-  },
-  '#/scenarios': { label: 'nav.scenarios', title: 'scenarioList.title', Icon: Route, Page: ScenariosPage },
-  '#/settings': { label: 'nav.settings', title: 'settings.title', Icon: Settings, Page: SettingsPage },
+// The tabs, in order. Settings (src/settings.tsx) come through context, not props.
+const TABS = [
+  { url: TAB_URLS.cards, label: 'nav.tierList', Icon: Trophy },
+  { url: TAB_URLS.timeline, label: 'nav.timeline', Icon: CalendarRange },
+  { url: TAB_URLS.scenarios, label: 'nav.scenarios', Icon: RouteIcon },
+  { url: TAB_URLS.settings, label: 'nav.settings', Icon: Settings },
+];
+// Each tab's top bar title. The detail pages (a card, a scenario) have none: the top bar shows a back button.
+const TITLES: Record<string, string> = {
+  [TAB_URLS.cards]: 'tierList.title',
+  [TAB_URLS.timeline]: 'timeline.title',
+  [TAB_URLS.scenarios]: 'scenarioList.title',
+  [TAB_URLS.settings]: 'settings.title',
 };
-// Detail pages (not tabs, no title; the top bar shows a back button): #/card/<id>, #/scenario/<key>.
-const CARD_ROUTE = /^#\/card\/(\d+)$/;
-const SCENARIO_ROUTE = /^#\/scenario\/([\w-]+)$/;
-// The Timeline on a given server with one entry (a banner or an event, by its id: unique on a server) open, e.g. the
-// card page's "See banner". The Timeline keeps its address so while a sheet is open, so going back to it (from a
-// card's page) opens that sheet again.
-const TIMELINE_ROUTE = /^#\/timeline\/(gl|jp)\/([\w-]+)$/;
-
-// Old addresses that still work.
-const ALIASES = { '#/banners': '#/timeline' };
-
-function parseHash(raw) {
-  const hash = ALIASES[raw] ?? raw;
-  const card = hash.match(CARD_ROUTE);
-  // A card's page keeps the Cards tab highlighted, a scenario's the Scenarios tab.
-  if (card) return { route: '#/card', tab: '#/', Page: CardPage, params: { cardId: Number(card[1]) } };
-  const scenario = hash.match(SCENARIO_ROUTE);
-  if (scenario) return { route: hash, tab: '#/scenarios', Page: ScenarioPage, params: { scenarioKey: scenario[1] } };
-  const link = hash.match(TIMELINE_ROUTE);
-  if (link) {
-    return {
-      route: '#/timeline',
-      ...ROUTES['#/timeline'],
-      params: { linkServer: link[1], linkId: link[2] },
-    };
-  }
-  const route = ROUTES[hash] ? hash : '#/';
-  return { route, ...ROUTES[route], params: {} };
-}
-
-function useHashRoute() {
-  const [hash, setHash] = useState(window.location.hash);
-  useEffect(() => {
-    const onChange = () => setHash(window.location.hash);
-    window.addEventListener('hashchange', onChange);
-    return () => window.removeEventListener('hashchange', onChange);
-  }, []);
-  return { ...parseHash(hash), hash };
-}
 
 function goBack() {
   if (window.history.length > 1) window.history.back();
-  else window.location.hash = '#/';
+  else window.location.hash = TAB_URLS.cards;
 }
 
-export default function App() {
+const SERVER_KEYS = Object.keys(SERVERS) as Server[];
+
+function Shell() {
   const { t } = useTranslation();
-  const { route, tab, Page, title, fullHeight, params, hash } = useHashRoute();
+  const [location] = useLocation();
   // Re-render everything when a setting changes: some readers are plain functions (scenarioName()).
   useSettings();
-  const [server, setServer] = useState('gl');
+  const [server, setServer] = useState<Server>('gl');
   const [scenario, setScenario] = useState(getServerConfig('gl').defaultScenario);
 
   // Servers offer different scenarios; fall back to the new server's default.
-  function changeServer(next) {
+  function changeServer(next: Server) {
     setServer(next);
     if (!scenarioOptions(next).includes(scenario)) setScenario(getServerConfig(next).defaultScenario);
   }
 
+  // Which page: the detail pages (a card's, a scenario's) have no title and a back button; anything unknown is the
+  // Cards tab.
+  const [onCard, cardParams] = useRoute(PATTERNS.card);
+  const [onScenario, scenarioParams] = useRoute(PATTERNS.scenario);
+  const [onTimeline, timelineParams] = useRoute(PATTERNS.timeline);
+  const [onScenarios] = useRoute(PATTERNS.scenarios);
+  const [onSettings] = useRoute(PATTERNS.settings);
+  const cardId = onCard && /^\d+$/.test(cardParams.id) ? Number(cardParams.id) : null;
+  // A card's page keeps the Cards tab highlighted, a scenario's the Scenarios tab.
+  let tab: string = TAB_URLS.cards;
+  if (onTimeline) tab = TAB_URLS.timeline;
+  else if (onScenarios || onScenario) tab = TAB_URLS.scenarios;
+  else if (onSettings) tab = TAB_URLS.settings;
+  const detail = cardId !== null || onScenario;
+  // A card's pages share a key: going from one to the next keeps the scroll position, as before.
+  const pageKey = cardId !== null ? 'card' : onScenario ? `scenario/${scenarioParams.key}` : tab;
+
   // A Timeline link names its server; switch to it (every new link: a banner's or event's counterpart goes there).
-  const { linkServer } = params;
+  // (An address that isn't a server's is just the Timeline.)
+  const linkServer = onTimeline && isServer(timelineParams?.server) ? timelineParams.server : undefined;
+  const linkId = linkServer ? timelineParams?.id : undefined;
   // biome-ignore lint/correctness/useExhaustiveDependencies: only a new link switches; picking a server by hand afterwards stays.
   useEffect(() => {
     if (linkServer && linkServer !== server) changeServer(linkServer);
-  }, [hash]);
+  }, [location]);
 
+  const tierListProps = { server, scenario, onScenarioChange: setScenario };
   return (
     <div className="app">
       <header className="topbar">
-        {title ? (
-          <h1>{t(title)}</h1>
-        ) : (
+        {detail ? (
           <button type="button" className="back-button" onClick={goBack}>
             <ArrowLeft size={18} aria-hidden="true" />
             {t('common.back')}
           </button>
+        ) : (
+          <h1>{t(TITLES[tab])}</h1>
         )}
         <fieldset className="segmented server-switch" aria-label={t('common.server')}>
-          {Object.keys(SERVERS).map((key) => (
+          {SERVER_KEYS.map((key) => (
             <button type="button" key={key} aria-pressed={key === server} onClick={() => changeServer(key)}>
               {serverName(key)}
             </button>
@@ -114,17 +98,52 @@ export default function App() {
         </fieldset>
       </header>
       {/* Keyed by route so each page starts scrolled to the top. */}
-      <main key={route} className={fullHeight ? 'app-main full-height' : 'app-main'}>
-        <Page {...params} server={server} scenario={scenario} onScenarioChange={setScenario} />
+      <main key={pageKey} className={tab === TAB_URLS.timeline && !detail ? 'app-main full-height' : 'app-main'}>
+        <Switch>
+          <Route path={ALIAS.from}>
+            <Redirect to={ALIAS.to} replace />
+          </Route>
+          <Route path={PATTERNS.timeline}>
+            <TimelinePage server={server} scenario={scenario} linkId={linkId} />
+          </Route>
+          <Route path={PATTERNS.scenarios}>
+            <ScenariosPage server={server} />
+          </Route>
+          <Route path={PATTERNS.scenario}>
+            <ScenarioPage scenarioKey={scenarioParams?.key} onScenarioChange={setScenario} />
+          </Route>
+          <Route path={PATTERNS.settings}>
+            <SettingsPage />
+          </Route>
+          <Route path={PATTERNS.card}>
+            {cardId !== null ? (
+              <CardPage cardId={cardId} server={server} scenario={scenario} />
+            ) : (
+              <TierListPage {...tierListProps} />
+            )}
+          </Route>
+          <Route>
+            <TierListPage {...tierListProps} />
+          </Route>
+        </Switch>
       </main>
       <nav className="tabbar">
-        {Object.entries(ROUTES).map(([hash, { label, Icon }]) => (
-          <a key={hash} href={hash} className={hash === (tab ?? route) ? 'active' : undefined}>
+        {TABS.map(({ url, label, Icon }) => (
+          <a key={url} href={url} className={url === tab ? 'active' : undefined}>
             <Icon className="tab-icon" size={22} aria-hidden="true" />
             {t(label)}
           </a>
         ))}
       </nav>
     </div>
+  );
+}
+
+// Hash routing (wouter), so GitHub Pages never has to serve a deep link.
+export default function App() {
+  return (
+    <Router hook={useHashLocation}>
+      <Shell />
+    </Router>
   );
 }

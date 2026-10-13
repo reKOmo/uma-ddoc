@@ -12,6 +12,7 @@ import { itemList } from './events.ts';
 import { barLabel, dateRange, daysOf, entryTitle, kindName } from './format.ts';
 import { useRankings } from './useRankings.ts';
 import './sheet.css';
+import { cardUrl, timelineUrl } from '../routes.ts';
 
 // Trainee icons don't show rarity (card icons do), so it's spelled out.
 const STARS = ['', '★1', '★2', '★3'];
@@ -148,7 +149,7 @@ function FeaturedItem({ item, rankings }) {
           {item.card ? <CardRank id={item.id} rankings={rankings} /> : STARS[item.stars]}
           {item.copies && <span>{t('timeline.copies', { count: item.copies })}</span>}
           {item.card && item.id != null && (
-            <a className="see-more" href={`#/card/${item.id}`}>
+            <a className="see-more" href={cardUrl(item.id)}>
               {t('timeline.seeMore')}
               <ChevronRight size={15} aria-hidden="true" />
             </a>
@@ -265,7 +266,7 @@ function Links({ news, counterpart }) {
   return (
     <p className="sheet-links">
       {counterpart && (
-        <a className="link-button" href={`#/timeline/${counterpart.server}/${counterpart.id}`}>
+        <a className="link-button" href={timelineUrl(counterpart.server, counterpart.id)}>
           <ArrowLeftRight size={15} aria-hidden="true" />
           {t('timeline.counterpart', { server: serverName(counterpart.server) })}
         </a>

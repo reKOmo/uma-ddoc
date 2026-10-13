@@ -27,6 +27,7 @@ import { CalendarLines, TimelineAxis } from '../timeline/TimelineAxis.tsx';
 import { LaneGroup } from '../timeline/Lanes.tsx';
 import TimelineSheet from '../timeline/TimelineSheet.tsx';
 import '../timeline/timeline.css';
+import { timelineUrl } from '../routes.ts';
 
 const ZOOMS = [4, 8, 16, 32]; // pixels per day
 // A mark's toolbar button icon (marks: loadTimeline() in src/timeline/data.js).
@@ -244,7 +245,7 @@ export default function TimelinePage({ server, scenario, linkId }) {
 
   // The address follows the open sheet (see `linkId` above).
   useEffect(() => {
-    const hash = sheetOpen && entry ? `#/timeline/${server}/${entry.id}` : '#/timeline';
+    const hash = sheetOpen && entry ? timelineUrl(server, entry.id) : timelineUrl();
     if (window.location.hash !== hash) window.history.replaceState(window.history.state, '', hash);
   }, [sheetOpen, entry, server]);
   return (
