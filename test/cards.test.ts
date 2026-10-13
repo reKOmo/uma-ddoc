@@ -1,12 +1,11 @@
 // @ts-nocheck
 // The card data build (scripts/lib/cards.js): upstream's lists + our history of JP's cards (data/jp_cards.json) +
 // GameTora's list (slugs only) + Global's record → cards.json and the per-server stats, and cards.json's shape
-// (schemas/cards.schema.json).
+// (shared/schemas/card.ts).
 
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
-import Ajv2020 from 'ajv/dist/2020.js';
-import schema from '../schemas/cards.schema.json' with { type: 'json' };
+import { CardsFileSchema } from '../shared/schemas/card.ts';
 import { buildCards, fromGametora } from '../scripts/lib/cards.ts';
 import { joinCards, withoutEvents } from '../tierlist/join-cards.ts';
 
@@ -120,12 +119,11 @@ describe('the stats', () => {
 });
 
 describe('the schema', () => {
-  const validate = new Ajv2020({ allowUnionTypes: true }).compile(schema);
-  const check = (data) => expect(validate(data), JSON.stringify(validate.errors)).toBe(true);
+  const check = (data) => expect(CardsFileSchema.safeParse(data).error?.issues ?? []).toEqual([]);
 
   it('fits what the build writes', () => {
     check(cards);
-    expect(validate({ 1: { ...cards[30001], extra: 1 } })).toBe(false);
+    expect(CardsFileSchema.safeParse({ 1: { ...cards[30001], extra: 1 } }).success).toBe(false);
   });
 
   it.skipIf(!existsSync('generated/cards.json'))('fits generated/cards.json', () => {

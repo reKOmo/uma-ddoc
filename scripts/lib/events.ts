@@ -44,6 +44,7 @@ import { blockLines, eventBlocks, joinBlocks } from './event-blocks.ts';
 import { cardIndex, cardsIn, copiesDoubt, itemDoubt, itemsIn, missionsIn, norm, titlesIn } from './event-rewards.ts';
 import { SUB_EVENT_KINDS, UNNAMED_KINDS, applyAnswer } from './event-questions.ts';
 import { categorize, plain } from './post-categories.ts';
+import { EVENT_KINDS } from '../../shared/schemas/event.ts';
 
 export const EVENTS_FILE = `${DATA_DIR}global_events.json`;
 // Each server's events: data/global_events.json, data/jp_events.json.
@@ -52,24 +53,7 @@ export const CM_REWARDS_FILE = `${DATA_DIR}champions_meeting_rewards.json`;
 // A model's answers about what the rules doubted (scripts/ai-events.js), by event aiKey.
 export const answersFile = (server = 'gl') => `${newsDir(server)}ai_answers.json`;
 
-export const EVENT_KINDS = [
-  'story',
-  'champions_meeting',
-  'league_of_heroes',
-  'legend_race',
-  'transfer_requests',
-  'uma_outing',
-  'special',
-  'factor_research',
-  'masters_challenge',
-  'celebration',
-  'campaign',
-  'gift',
-  'login_bonus',
-  'missions',
-  'shop',
-  'sale',
-];
+export { EVENT_KINDS };
 
 const GROUP_DAYS = 14;
 // An event announced without dates comes within this many days ("coming in early February", posted Jan 9; a cup's

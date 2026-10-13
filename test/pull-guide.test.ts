@@ -5,8 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
-import Ajv2020 from 'ajv/dist/2020.js';
-import schema from '../schemas/pull_guide.schema.json' with { type: 'json' };
+import { PullGuideSchema } from '../shared/schemas/pullGuide.ts';
 import {
   byBanner,
   findBanner,
@@ -294,15 +293,15 @@ describe('the notes shown', () => {
 });
 
 describe('the schema', () => {
-  const validate = new Ajv2020({ allowUnionTypes: true }).compile(schema);
-  const check = (guide) => expect(validate(guide), JSON.stringify(validate.errors)).toBe(true);
+  const check = (guide) => expect(PullGuideSchema.safeParse(guide).error?.issues ?? []).toEqual([]);
+  const fits = (guide) => PullGuideSchema.safeParse(guide).success;
 
   it('fits what the script writes', () => {
     const banners = [{ id: 30120, start: '2026-03-11T22:00:00Z', featured: [{ id: 30086, new: true }] }];
     const guide = byBanner([{ gid: '557481421', ...parseTab(TAB) }], banners);
     check({ $schema: '../schemas/pull_guide.schema.json', ...guide });
-    expect(validate({ ...guide, extra: 1 })).toBe(false);
-    expect(validate({ banners: {}, noBanner: { 1: { ...guide.banners[30120][30086] } } })).toBe(false);
+    expect(fits({ ...guide, extra: 1 })).toBe(false);
+    expect(fits({ banners: {}, noBanner: { 1: { ...guide.banners[30120][30086] } } })).toBe(false);
   });
 
   it.skipIf(!existsSync('generated/pull_guide.json'))('fits generated/pull_guide.json', () => {

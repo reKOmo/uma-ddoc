@@ -15,6 +15,7 @@
     "test:upstream": "vitest run --project upstream",
     "update-cards": "node scripts/update-cards.ts",
     "build-cards": "node scripts/build-cards.ts",
+    "build-schemas": "node scripts/build-schemas.ts",
     "clone-upstream": "node scripts/clone-upstream.ts",
     "rank": "node tierlist/cli.ts",
     "scrape-gametora": "node scripts/scrape-gametora.ts",
@@ -47,7 +48,8 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-i18next": "17.0.15",
-    "vaul": "1.1.2"
+    "vaul": "1.1.2",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
@@ -55,7 +57,6 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
-    "ajv": "^8.20.0",
     "husky": "9.1.7",
     "typescript": "^7.0.2",
     "vite": "^8.3.2",

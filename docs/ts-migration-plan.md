@@ -109,11 +109,27 @@ For each file of the task:
 
 ## Data schemas (L1)
 
-`shared/schemas/<name>.ts` each exports a zod schema and its type, e.g.
-`export const CardSchema = z.object({ … }); export type Card = z.infer<typeof CardSchema>;`
-Files: `card.ts` (cards.json, card stats), `banner.ts` (global/jp banners, predicted banners), `event.ts`
-(global/jp events, predicted events, event pairs), `scenario.ts`, `pullGuide.ts`, `newsPost.ts`, `knownDates.ts`,
-`sources.ts`, `aiAnswers.ts`. `pnpm build-schemas` writes `schemas/*.json` from them (`z.toJSONSchema()`).
+Done. `shared/schemas/<name>.ts` each export zod schemas (strict objects: an unknown field fails) and their types,
+e.g. `export const CardSchema = z.strictObject({ … }); export type Card = z.infer<typeof CardSchema>;`
+
+| File | Types (what to import) |
+|---|---|
+| `common.ts` | `Rarity`, `CardType` (tier list keys + group), `GametoraType` (intelligence), `CardSource`, `Texts`; `Day`, `Moment`, `IdKey` |
+| `card.ts` | `Card`, `CardsFile` (cards.json), `LbStats`, `CardStats`, `CardStatsFile`, `JpCard`, `JpCardsFile`, `JpPendingCard`, `GlobalCard`, `GlobalCardsFile` |
+| `banner.ts` | `Banner`, `BannerItem`, `BannerId`, `BannerFile` (Global's, JP's and predicted banners: one shape) |
+| `event.ts` | `EVENT_KINDS`, `EventKind`, `GameEvent`, `EventCard`, `EventItem`, `Phase`, `EventsFile`, `PredictedEvent`, `PredictedEventsFile`, `EventPairsFile`, `CmRewardsFile` |
+| `scenario.ts` | `Scenario`, `StartDate`, `ScenariosFile` |
+| `pullGuide.ts` | `PullGuide`, `Advice`, `NoBannerAdvice`, `Release` |
+| `news.ts` | `NewsPost`, `AiAnswer`, `AiAnswersFile` |
+| `predictions.ts` | `KnownDatesFile`, `PredictedCard`, `PredictionsFile` |
+| `sources.ts` | `Source`, `SourcesFile` |
+| `gametora.ts` | `GametoraCard`, `GametoraTrainee`, `GametoraEventsFile` |
+| `files.ts` | `DATA_FILES` / `GENERATED_FILES` (file → schema), `JSON_SCHEMAS` |
+
+`test/schemas.test.ts` parses every data file (generated ones when present) with its schema; `pnpm build-schemas`
+writes `schemas/*.json` from `JSON_SCHEMAS` (`z.toJSONSchema()`, then Biome formats them) and the test fails when
+they're stale. Ajv is gone. A shape change: edit the zod schema, `pnpm build-schemas`. Constants shared by scripts
+and src live here (`EVENT_KINDS`: `scripts/lib/events.ts` re-exports it).
 
 ## `useAsync` (W-L1)
 

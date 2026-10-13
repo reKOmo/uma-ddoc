@@ -2,76 +2,142 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "cards.schema.json",
   "title": "Cards",
-  "description": "Every support card upstream, data/jp_cards.json or GameTora has, with what the site shows (generated/cards.json, built by `pnpm build-cards`, see scripts/lib/cards.js). The tier list calculation's inputs are in generated/card_stats/.",
+  "description": "Every support card upstream or data/jp_cards.json has, with what the site shows (generated/cards.json, built by `pnpm build-cards`, see scripts/lib/cards). The tier list calculation's inputs are in generated/card_stats/.",
   "type": "object",
-  "propertyNames": { "pattern": "^\\d+$" },
+  "propertyNames": {
+    "type": "string",
+    "pattern": "^\\d+$"
+  },
   "additionalProperties": {
     "type": "object",
-    "required": ["id", "charId", "type", "rarity", "name", "title", "release", "source", "links", "images"],
-    "additionalProperties": false,
     "properties": {
-      "id": { "description": "The card id (the same on both servers and on GameTora).", "type": "integer" },
+      "id": {
+        "type": "integer",
+        "minimum": -9007199254740991,
+        "maximum": 9007199254740991,
+        "description": "The card id (the same on both servers and on GameTora)."
+      },
       "charId": {
-        "description": "GameTora's character id (for group cards, one member's; from data/jp_cards.json); null without it.",
-        "type": ["integer", "null"]
+        "anyOf": [
+          {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "GameTora's character id (for group cards, one member's; from data/jp_cards.json); null without it."
       },
       "type": {
-        "description": "The tier list's stat key, or group (ranked with friend cards). Codes: tierlist/join-cards.js TYPE_CODES.",
-        "enum": ["speed", "stamina", "power", "guts", "wisdom", "friend", "group"]
+        "type": "string",
+        "enum": ["speed", "stamina", "power", "guts", "wisdom", "friend", "group"],
+        "description": "The tier list's stat key, or group (ranked with friend cards). Codes: tierlist/join-cards TYPE_CODES."
       },
-      "rarity": { "enum": ["R", "SR", "SSR"] },
+      "rarity": {
+        "type": "string",
+        "enum": ["R", "SR", "SSR"]
+      },
       "name": {
-        "description": "The character's name (a group card's: the group's). en: Global's where it has the character, else GameTora's.",
-        "$ref": "#/$defs/texts"
+        "type": "object",
+        "properties": {
+          "en": {
+            "type": ["string", "null"]
+          },
+          "jp": {
+            "type": ["string", "null"]
+          }
+        },
+        "required": ["en", "jp"],
+        "additionalProperties": false,
+        "description": "The character's name (a group card's: the group's). en: Global's where it has the character, else GameTora's."
       },
       "title": {
-        "description": "The card's title, e.g. \"[Tracen Academy]\". en: Global's (data/global_cards.json), else GameTora's.",
-        "$ref": "#/$defs/texts"
+        "type": "object",
+        "properties": {
+          "en": {
+            "type": ["string", "null"]
+          },
+          "jp": {
+            "type": ["string", "null"]
+          }
+        },
+        "required": ["en", "jp"],
+        "additionalProperties": false,
+        "description": "The card's title, e.g. \"[Tracen Academy]\". en: Global's (data/global_cards.json), else GameTora's."
       },
       "release": {
-        "description": "Release dates per server (gl: data/global_cards.json, jp: data/jp_cards.json, from GameTora), null when not out (or unknown).",
         "type": "object",
+        "properties": {
+          "gl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "jp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
         "required": ["gl", "jp"],
         "additionalProperties": false,
-        "properties": { "gl": { "$ref": "#/$defs/date" }, "jp": { "$ref": "#/$defs/date" } }
+        "description": "Release dates per server (gl: data/global_cards.json, jp: data/jp_cards.json), null when not out (or unknown)."
       },
       "source": {
-        "description": "How the card is obtained (GameTora's `obtained`); empty when unknown.",
         "type": "array",
-        "items": { "enum": ["gacha", "story_event", "promo", "limited_quest", "main_story", "shop"] }
+        "items": {
+          "type": "string",
+          "enum": ["gacha", "story_event", "promo", "limited_quest", "main_story", "shop"]
+        },
+        "description": "How the card is obtained (GameTora's `obtained`); empty when unknown."
       },
       "links": {
         "type": "object",
-        "required": ["gametora"],
-        "additionalProperties": false,
         "properties": {
           "gametora": {
-            "description": "GameTora's page slug (its url_name, e.g. 30321-duramente): the app links https://gametora.com/umamusume/supports/<slug>.",
-            "type": ["string", "null"],
-            "pattern": "^\\d+-[a-z0-9-]+$"
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d+-[a-z0-9-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "GameTora's page slug (its url_name, e.g. 30321-duramente): the app links https://gametora.com/umamusume/supports/<slug>."
           }
-        }
+        },
+        "required": ["gametora"],
+        "additionalProperties": false
       },
       "images": {
         "type": "object",
-        "required": ["icon"],
-        "additionalProperties": false,
         "properties": {
           "icon": {
             "description": "Upstream's square icon (at upstream's commit) where it has the card, else null: the app builds GameTora's from the id, as it does the full art.",
             "type": ["string", "null"]
           }
-        }
+        },
+        "required": ["icon"],
+        "additionalProperties": false
       }
-    }
-  },
-  "$defs": {
-    "texts": {
-      "type": "object",
-      "required": ["en", "jp"],
-      "additionalProperties": false,
-      "properties": { "en": { "type": ["string", "null"] }, "jp": { "type": ["string", "null"] } }
     },
-    "date": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
+    "required": ["id", "charId", "type", "rarity", "name", "title", "release", "source", "links", "images"],
+    "additionalProperties": false,
+    "title": "Card"
   }
 }
