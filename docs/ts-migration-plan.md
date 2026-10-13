@@ -313,7 +313,23 @@ Per the spec. Every hand-built hash becomes a `routes.ts` call. Test the builder
 4. Flag parsing → `parseArgs` (same flags, same defaults).
 Lead adds `pngjs`, `@types/pngjs`, `p-retry`.
 
-## Wave 4 — CSS Modules + primitives
+## Wave 4 — CSS Modules + primitives — done 2026-10-13
+
+`src/styles/global.css` (tokens, resets, tier colours, tones by `data-tone`), `data-dragging`, `data-scroll-root`,
+`data-testid="bar"`; `src/ui/`: LinkButton, SeeMore, FoldToggle, Pill (variants tag / kind / status / verdict / label),
+TierChip, Status, Segmented, Section, SearchInput, ToolbarButton, CardRow — **copies** of today's rules, the old
+global rules still in place: each page task switches its markup and deletes the old rules it no longer uses.
+Dropdown on Radix Select (`position="popper"`, keeps a global `dropdown-button` class for card.css'
+`.history-controls` rule). Visual suite: `pnpm test:visual` (baselines in the main checkout's `.visual-baseline/`).
+Notes for wave 5 (from the workers):
+- `CardRow` puts `meta` inside its link; the card page's passed-by list has a separate "See card" link beside it.
+- `Section` wraps its heading in a row even without an action: check spacing (the visual suite will).
+- `Segmented` is `styles.group` / `styles.option`: the server switch's and card size's overrides of `.segmented`
+  move with their pages (pass `className`).
+- `ToolbarButton`'s icon is 18 px.
+- The sheet's rank (`.rank-tier`: centred, 7 px padding) isn't `TierChip`'s look: keep a className or add a variant.
+- No component yet for `.badge.new`, `.badge.paid`, `.badge-predicted`, the badge on an item icon: add Pill variants
+  or keep them in the page's module.
 
 **L4 · CSS Module groundwork · lead** — Depends: wave 3 · Files: `vite.config.ts`, `biome.json`, `src/App.css` →
 `src/styles/global.css` + what stays app-shell, `src/timeline/entries.ts` (tone stays a key), `useDragScroll.ts`,
