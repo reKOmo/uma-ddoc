@@ -20,12 +20,9 @@ type Callbacks = {
   onSelect: (entry: Entry) => void;
 };
 
-// A lane group (laneGroups() in ./layout.js): its label, which folds it away (`onToggleGroup(key)`), and its rows of
-// bars. `at(ms)` → px; `unfolded`: the keys of entries whose parts are open; `visible`: in compact mode, the ids of
-// the rows in view (visibleRows() in ./layout.js, joined with commas: a string, so it compares by value), else null.
-// Memoised: a group holds hundreds of bars,
-// and re-rendering them all (on opening or closing a sheet) would stall the sheet's animation, so give it stable
-// props (callbacks from useCallback).
+// `visible`: compact mode's rows in view, comma-joined (a string compares by value), else null.
+// Memoised with stable props: a group holds hundreds of bars, and re-rendering them on every sheet open would stall
+// the sheet's animation.
 export const LaneGroup = memo(function LaneGroup({
   group,
   collapsed,
@@ -56,7 +53,6 @@ export const LaneGroup = memo(function LaneGroup({
       >
         {collapsed ? <ChevronRight size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
         {label}
-        {/* Compact mode, nothing of the group in view: said beside its name. */}
         {!collapsed && visible === '' && <span className={styles.laneEmpty}>{t('timeline.nothingInView')}</span>}
       </button>
       {!collapsed && (
@@ -74,8 +70,7 @@ export const LaneGroup = memo(function LaneGroup({
   );
 });
 
-// Rows of bars; an entry with parts has a fold button (+N), and its parts' rows open under its row, over a band in
-// its colour spanning it. Rows not `shown` (compact mode; ids as visibleRows() gives them) fold away.
+// Nested rows' ids are prefixed with their parent's key, as visibleRows() gives them.
 function Rows({
   rows,
   shown,
@@ -140,10 +135,8 @@ const TITLE_KEY: Partial<Record<Entry['status'], string>> = {
   confirmed: 'timeline.confirmedBarTitle',
 };
 
-// One banner or event: its art behind a darkened label, edged in its colour, faded by its status. The whole bar is
-// one button (`.bar-hit`, under the rest); over it, its label sticks to the screen's left edge and its +N fold button
-// to the right while the bar runs off either side, so a long bar on a phone still shows both. Memoised: folding one
-// entry's parts re-renders its bar alone, not every bar on the calendar.
+// The whole bar is one button (`.bar-hit`) under the label and fold button, which stick to the screen's edges while
+// the bar runs off them. Memoised: folding one entry's parts re-renders its bar alone.
 const Bar = memo(function Bar({
   item,
   at,
@@ -191,8 +184,7 @@ const Bar = memo(function Bar({
         </span>
       )}
       {parts > 0 && (
-        // Its track runs from just after the label to the bar's end: the button sticks to the screen's right edge
-        // within it, so it never slides back over the label.
+        // The button sticks to the track's right end, so it never slides back over the label.
         <span className={styles.barFoldTrack}>
           <button
             type="button"
@@ -202,7 +194,6 @@ const Bar = memo(function Bar({
             onClick={() => onToggleParts(entry.key)}
           >
             {`+${parts}`}
-            {/* The arrow says it opens: its parts unfold under the bar, and fold back up. */}
             {open ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
           </button>
         </span>

@@ -17,14 +17,11 @@ const showDayLabel = (date: number, step: number) => (date - 1) % step === 0 && 
 const scenarioStyle = (s: ScenarioSegment): CSSProperties | undefined =>
   s.color ? ({ '--scenario-color': s.color } as CSSProperties) : undefined;
 
-// A server's mark over the calendar (loadTimeline()'s).
 type Mark = Awaited<ReturnType<typeof loadTimeline>>['marks'][number];
 
 type AxisProps = { timeline: Timeline; scenarios: ScenarioSegment[]; px: number; format: DateFormats };
 
-// The calendar's sticky header: which Career scenario runs when (each opens its page), months, days.
-// `timeline`: buildTimeline() (./layout.js); `scenarios`: scenarioSegments() (./scenarioStrip.js); `px`: per day.
-// Memoised, like the lanes: a day label per day.
+// Memoised like the lanes: a label per day.
 export const TimelineAxis = memo(function TimelineAxis({ timeline, scenarios, px, format }: AxisProps) {
   const { t } = useTranslation();
   const step = dayLabelStep(px);
@@ -101,8 +98,6 @@ export const TimelineAxis = memo(function TimelineAxis({ timeline, scenarios, px
   );
 });
 
-// Lines down the whole calendar: where each Career scenario begins, today, and the server's marks (loadTimeline()
-// in ./data.js: a window and a dashed line, e.g. where Global is in JP's history).
 export const CalendarLines = memo(function CalendarLines({
   timeline,
   scenarios,

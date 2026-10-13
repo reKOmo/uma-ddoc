@@ -1,4 +1,3 @@
-// The Timeline's sheet (TimelineSheet.module.css): one layout for every banner and event, only the content changes.
 import { ArrowLeftRight, ChevronRight, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
@@ -37,17 +36,11 @@ export type TimelineSheetProps = {
   scenario: string;
   format: DateFormats;
   open: boolean;
-  // Opens another entry's sheet (a part, a relation).
   onSelect: (entry: Entry) => void;
   onClose: () => void;
-  // Once the sheet has slid away.
   onClosed?: () => void;
 };
 
-// One banner or event (an entry, ./entries.ts), the same sheet for all of them on either server: art, kind and name,
-// status and dates, where its dates come from, how it relates to others, what it features or gives, its schedule,
-// its parts, its post. Sections without content aren't shown. `lookup(key)`: another entry on the calendar;
-// `onSelect(entry)` opens it. `open` false: sliding away, then `onClosed()`.
 export default function TimelineSheet({
   entry,
   lookup,
@@ -83,7 +76,6 @@ export default function TimelineSheet({
   );
 }
 
-// Kind pill, name, status and dates.
 function Header({ entry, format }: { entry: Entry; format: DateFormats }) {
   const { t } = useTranslation();
   const days = daysOf(entry);
@@ -103,8 +95,6 @@ function Header({ entry, format }: { entry: Entry; format: DateFormats }) {
   );
 }
 
-// Where its dates and content come from when it isn't the server's own record: predicted (or confirmed) from JP's,
-// a paid scout.
 function Provenance({ entry, format }: { entry: Entry; format: DateFormats }) {
   const { t } = useTranslation();
   const { prediction } = entry;
@@ -126,7 +116,6 @@ function Provenance({ entry, format }: { entry: Entry; format: DateFormats }) {
   );
 }
 
-// Re-run of / re-held (banners), part of (events): opens the other one; greyed when it isn't on the calendar.
 function Relations({
   entry,
   lookup,
@@ -159,7 +148,6 @@ function Relations({
   });
 }
 
-// A banner's featured trainees or cards, an event's support cards: each card with its tier-list rank.
 function Featured({ entry, rankings }: { entry: Entry; rankings: RankResult | null }) {
   const { t } = useTranslation();
   if (!entry.featured.length) return null;
@@ -209,7 +197,6 @@ function FeaturedItem({ item, rankings }: { item: FeaturedEntry; rankings: RankR
   );
 }
 
-// A card's MLB tier and position in its stat's tier list.
 function CardRank({ id, rankings }: { id: number | null; rankings: RankResult | null }) {
   const { t } = useTranslation();
   if (!rankings) return <span className={clsx(styles.rank, styles.pending)}>{t('common.ranking')}</span>;
@@ -233,8 +220,7 @@ function RankNote({ scenario, server, upcoming }: { scenario: string; server: Se
   );
 }
 
-// An event's other rewards (JP's items go by Global's names where Global has them, to sort alike; shown as JP calls
-// them).
+// JP's items use Global's names where Global has them, so they sort alike; shown as JP calls them.
 function Rewards({ items }: { items: EventItem[] }) {
   const { t } = useTranslation();
   if (!items.length) return null;
@@ -258,7 +244,6 @@ function Rewards({ items }: { items: EventItem[] }) {
   );
 }
 
-// A cup's schedule (Champions Meetings, League of Heroes).
 function Schedule({ phases, format }: { phases: Phase[]; format: DateFormats }) {
   const { t } = useTranslation();
   if (!phases.length) return null;
@@ -282,7 +267,6 @@ function Titles({ titles }: { titles: string[] }) {
   return titles.length > 0 && <p className={styles.titles}>{t('timeline.titles', { titles })}</p>;
 }
 
-// Its parts (a celebration's sub-events, an event's mission sets): each opens its own sheet.
 function Parts({
   entry,
   lookup,
@@ -316,8 +300,7 @@ function Parts({
   );
 }
 
-// The same banner or event on the other server (opens it there, in the Timeline), its post, and umapyoi.net's copy.
-// Its own link markup, not LinkButton: the sheet's icons are 15 px (LinkButton's are 16).
+// Not LinkButton: the sheet's icons are 15 px (LinkButton's are 16).
 function Links({ news, counterpart }: { news: Entry['news']; counterpart: Entry['counterpart'] }) {
   const { t } = useTranslation();
   const { jpNewsLanguage } = useSettings().settings;

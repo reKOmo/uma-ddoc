@@ -1,9 +1,3 @@
-// Which of the Timeline's groups (banner sections, event groups) are collapsed, a zustand store so they survive leaving
-// the page, and in this browser's storage (a JSON array of strings, as it always was) so they survive a reload. Storage
-// can be missing or throw (private windows, blocked site data); then they're only kept until the page is closed.
-//   getCollapsed() → Set of group keys ('characters', 'cards', 'events-story'…)
-//   saveCollapsed(set)
-
 import * as z from 'zod/mini';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';

@@ -1,6 +1,3 @@
-/* The filter's Order tab (GroupOrder.tsx): one row per lane group, its colour, its name and its drag handle. Copied
-   from src/timeline/timeline.css. */
-
 .list {
   display: flex;
   flex-direction: column;
@@ -21,7 +18,6 @@
   border-radius: 8px;
 }
 
-/* The row being dragged: lifted over the others. */
 .dragging {
   position: relative;
   z-index: 1;
@@ -29,7 +25,7 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
-/* The drag handle: a full-height target; touch on it never scrolls (a scroll would cancel the drag). */
+/* A scroll from the handle would cancel the drag: touch-action keeps the page from taking it. */
 .grip {
   display: grid;
   flex: none;

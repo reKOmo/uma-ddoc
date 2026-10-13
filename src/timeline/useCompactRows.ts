@@ -1,15 +1,3 @@
-// Compact mode's measuring (the toolbar's fold button): rows with nothing in view (or half a screen either side) fold
-// away, so a group is only as tall as what's on screen needs.
-//
-// useCompactRows(scroller, timeline, groups, px) → { compact, toggleCompact, visible }
-//   compact         whether the mode is on (src/timeline/compact.ts, remembered in this browser)
-//   visible         { groups, rows: { [group key]: its rows in view } } (LaneGroup's `visible`), worked out when
-//                   scrolling stops or the zoom changes, and only replaced when a group's rows change (each LaneGroup
-//                   is memoised); null before the first measure. `groups` is what it was worked out for: another
-//                   server's (or a reloaded timeline's) isn't used.
-//
-// Call it after useCenterOn: its layout effect reads the scroll position the centring sets.
-
 import { type RefObject, useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { getCompact, saveCompact, useCompactStore } from './compact.ts';
 import { type LaneGroupRows, type Timeline, visibleRows } from './layout.ts';
@@ -24,6 +12,7 @@ const COMPACT_IDLE = 150;
 
 export type VisibleRows = { groups: LaneGroupRows[]; rows: Record<string, string> };
 
+// Call it after useCenterOn: its layout effect reads the scroll position the centring sets.
 export function useCompactRows(
   scroller: RefObject<HTMLElement | null>,
   timeline: Timeline | null,
@@ -61,7 +50,7 @@ export function useCompactRows(
     const onScroll = () => {
       later();
       const now = performance.now();
-      const speed = (Math.abs(el.scrollLeft - last.x) / Math.max(now - last.at, 1)) * 1000; // px a second
+      const speed = (Math.abs(el.scrollLeft - last.x) / Math.max(now - last.at, 1)) * 1000;
       last = { x: el.scrollLeft, at: now };
       if (speed < el.clientWidth * COMPACT_SLOW && now - measured >= COMPACT_EVERY) {
         measured = now;

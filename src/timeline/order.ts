@@ -1,12 +1,3 @@
-// The order of the Timeline's lane groups (its lanes and its filter follow it), as the viewer arranged it: a zustand store, so
-// it survives leaving the page, and in this browser's storage (a JSON array of group keys, as it always was) so it
-// survives a reload (storage can be missing or throw: then only until the page is closed). The same for both servers.
-//   getOrder() → group keys (LANE_GROUPS' keys), in order; saveOrder(keys)
-//   DEFAULT_ORDER, isDefaultOrder(keys)
-//   orderedGroups(keys) → LANE_GROUPS in that order (a group the keys lack, e.g. one added since, at its default place)
-//   reorderGroups(keys, shown, from, to) → the keys with the shown group at index `from` (among `shown`: the groups
-//     the calendar has, in order) dropped at index `to`; the others keep their places
-
 import * as z from 'zod/mini';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -65,7 +56,6 @@ export function reorderGroups(keys: string[], shown: string[], from: number, to:
   if (from === to || !visible[from] || !visible[to]) return keys;
   const [moved] = visible.splice(from, 1) as [string];
   visible.splice(to, 0, moved);
-  // The shown groups' slots, refilled in their new order.
   let i = 0;
   return keys.map((k) => (shown.includes(k) ? (visible[i++] as string) : k));
 }

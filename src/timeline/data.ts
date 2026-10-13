@@ -1,13 +1,4 @@
-// What the Timeline shows for a server, and the banner files the card page reads too. Files are only downloaded when
-// a page asks for them.
-//
-// loadTimeline(server) → { entries, marks }: every banner and event as an entry (./entries.js), each with its
-//   counterpart on the other server (COUNTERPARTS), and the marks drawn over the calendar (MARKS)
-// loadBanners(name) → a server's banners, real then predicted: { characters, cards } (`name`: a banner file name,
-//   src/servers.js)
-// loadEntries(server) → its banners and events as entries alone (no marks or counterparts: the card page)
-// loadRealBanners(name), loadEvents(name)
-
+// Banner files load only when a page asks for them.
 import { cards } from '../../tierlist/cards.ts';
 import { SERVERS } from '../servers.ts';
 import { type ArtBannerFile, withArt } from '../gametora.ts';
@@ -23,33 +14,27 @@ import type {
   PredictedEventsFile,
 } from '../../shared/schemas/event.ts';
 
-// A server's key (src/servers.ts) and its banner file's name.
 type Server = keyof typeof SERVERS;
 type BannerName = 'global' | 'jp';
-// A server's banners, real or merged with predicted (no source: the Timeline doesn't read it).
 type Banners = Pick<ArtBannerFile, 'characters' | 'cards'>;
-// A mark over the calendar (see MARKS).
 type Mark = { key: string; at: number; window: { from: number; to: number; open: boolean } | null };
 
 const BANNERS = {
   global: () => import('../../data/global_banners.json'), // ours: seeded from GameTora, kept up from the news
   jp: () => import('../../data/jp_banners.json'), // ours: GameTora's history + the JP news (scripts/lib/jp-banners.js)
 };
-// Global's future banners, predicted from JP's by `pnpm predict-gl` (ml/). Optional: the glob is
-// empty when the file hasn't been generated, and the page goes without. (Banners announced in the
-// news are real ones in data/, with `announced` + `news_url`.)
+// Optional: an empty glob when the file hasn't been generated.
 const PREDICTED: Partial<Record<BannerName, (() => Promise<BannerFile>)[]>> = {
   global: Object.values(
     import.meta.glob<BannerFile>('../../generated/predicted_global_banners.json', { import: 'default' })
   ),
 };
 
-// A server's real banners alone, with their art and icons (src/gametora.js: the files store no GameTora URLs).
+// The files store no GameTora URLs: withArt() adds the art.
 export const loadRealBanners = (name: BannerName): Promise<ArtBannerFile> =>
   // TODO(ts): a JSON import's type is wider than the schema (strings for enums); test/schemas.test.ts checks the file
   BANNERS[name]().then((m) => withArt(m.default as BannerFile, name, cards));
 
-// A server's predicted banners alone (JP's banners at Global's dates: JP's art), or null without the file.
 const loadPredictedBanners = (name: BannerName): Promise<ArtBannerFile> | null =>
   PREDICTED[name]?.[0]?.().then((file) => withArt(file, 'jp', cards)) ?? null;
 
@@ -62,19 +47,16 @@ export async function loadBanners(name: BannerName): Promise<Banners> {
   };
 }
 
-// Each server's in-game events (scripts/lib/events.js: built from the news by `update-global` / `update-jp`).
 const EVENTS = {
   global: () => import('../../data/global_events.json'),
   jp: () => import('../../data/jp_events.json'),
 };
-// Global's future events, predicted from JP's by `pnpm predict-gl` (ml/): { source, events }. Optional like the
-// predicted banners: without the file, Global has its real events alone.
+// Optional like the predicted banners.
 const PREDICTED_EVENTS: Partial<Record<BannerName, (() => Promise<PredictedEventsFile>)[]>> = {
   global: Object.values(
     import.meta.glob<PredictedEventsFile>('../../generated/predicted_global_events.json', { import: 'default' })
   ),
 };
-// A server's events, real then predicted (see withPredicted()).
 export async function loadEvents(name: BannerName): Promise<EventsFile> {
   const [real, predicted] = await Promise.all([
     // TODO(ts): a JSON import's type is wider than the schema (strings for enums); test/schemas.test.ts checks the file
@@ -84,10 +66,8 @@ export async function loadEvents(name: BannerName): Promise<EventsFile> {
   return predicted.reduce((all, more) => withPredicted(all, more.events), real);
 }
 
-// Marks drawn over a server's calendar, each with a toolbar button that scrolls to it:
-//   { key, at (ms), window: { from, to, open } | null }, `open`: the window's end is only predicted.
+// `open`: the window's end is only predicted.
 // i18n: timeline.mark.<key>.button / .title / .line.
-// JP: where Global is in JP's history (./globalProgress.js), from Global's banners, real and predicted.
 const MARKS: Partial<Record<Server, (jp: Banners) => Promise<Mark[]>>> = {
   jp: async (jp) => {
     const [global, predicted] = await globalBanners();
@@ -103,8 +83,7 @@ let globalBannersPromise: Promise<[ArtBannerFile, ArtBannerFile | null]> | null 
 const globalBanners = (): Promise<[ArtBannerFile, ArtBannerFile | null]> =>
   (globalBannersPromise ??= Promise.all([loadRealBanners('global'), loadPredictedBanners('global')]));
 
-// Global ↔ JP event pairs, by `pnpm predict-gl` (ml/events.py: [{ gl, jp, … }], top-level events). Optional like the
-// predictions: without it, real events have no counterpart.
+// Optional like the predictions: without it, real events have no counterpart.
 const PAIRS = Object.values(
   import.meta.glob<EventPairsFile>('../../generated/event_pairs.json', { import: 'default' })
 );

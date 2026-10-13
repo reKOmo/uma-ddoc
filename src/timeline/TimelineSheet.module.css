@@ -1,7 +1,3 @@
-/* The Timeline's sheet (TimelineSheet.tsx), the same for every banner and event: art, kind pill, name, status and
-   dates, notes, relations, featured items or cards with their ranks, other rewards, schedule, titles, parts, links.
-   The sheet itself: src/Sheet.css. */
-
 /* Room for the art before it loads, so the sheet doesn't jump: GameTora's banner art (512×188, a transparent
    margin round it) or the news' official art (936×228 banners, 936×120 event headers), shown whole. */
 .art {
@@ -54,7 +50,6 @@
   border-top: 1px solid var(--border);
 }
 
-/* Card and character icons are square. */
 .itemIcon {
   position: relative;
   flex-shrink: 0;
@@ -76,8 +71,6 @@
   min-width: 0;
 }
 
-/* Name with the card/outfit title beside it on one line; the title gives way
-   (with an ellipsis) when space runs out. */
 .itemName {
   display: flex;
   align-items: center;
@@ -103,7 +96,6 @@
   color: var(--muted);
 }
 
-/* Wraps "See more" onto its own line on very narrow screens instead of overflowing. */
 .itemMeta {
   display: flex;
   flex-wrap: wrap;
@@ -114,12 +106,10 @@
   color: var(--muted);
 }
 
-/* Sits at the right end of the rank row. */
 .cardLink {
   margin-left: auto;
 }
 
-/* A status or new/paid badge (App.css .badge: copied, the sheet's own). */
 .badge {
   padding: 2px 8px;
   font-size: 0.7rem;
@@ -129,19 +119,16 @@
   background: var(--border);
 }
 
-/* new items (App.css .badge.new). */
 .new {
   color: var(--accent-text);
   background: var(--accent);
 }
 
-/* A paid scout (JP's guaranteed ★3/SSR, step-up… banners) (App.css .badge.paid). */
 .paid {
   color: #fff;
   background: #c2410c;
 }
 
-/* The item's badge sits on its icon's bottom edge. */
 .itemIcon .badge {
   position: absolute;
   bottom: -4px;
@@ -222,7 +209,6 @@
   color: var(--muted);
 }
 
-/* A schedule's exact times are long: they wrap on phones instead of running off the sheet. */
 .schedule small {
   flex: 0 1 auto;
   text-align: right;
@@ -259,7 +245,6 @@
   font-weight: 600;
 }
 
-/* The other one isn't on the calendar (a re-run with its dates alone). */
 .relation:disabled {
   color: var(--muted);
   cursor: default;
@@ -282,7 +267,6 @@
   border-radius: 999px;
 }
 
-/* The official post and umapyoi.net's copy of it: link buttons side by side, wrapping on phones. */
 .links {
   display: flex;
   flex-wrap: wrap;
@@ -290,7 +274,7 @@
   margin: 16px 0 0;
 }
 
-/* A link drawn as an outlined pill, filled while pressed (App.css .link-button, copied: the sheet's icons are 15 px). */
+/* Its own copy of the link pill: the sheet's icons are 15 px. */
 .link {
   display: inline-flex;
   align-items: center;

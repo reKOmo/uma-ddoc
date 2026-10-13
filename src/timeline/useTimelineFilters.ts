@@ -1,20 +1,5 @@
-// What the Timeline's filter and its Order tab decide: which entries leave the lanes, and in what order the lane groups
-// stand.
-//
-// useTimelineFilters(entries) → { hidden, changeHidden, kinds, presentGroups, laneOrder, defaultOrder, verdictsOf,
-//   reorder, resetOrder, groups }
-//   hidden          banner sections and event kinds hidden by the filter ('pull:<verdict>' too), remembered in this
-//                   browser; changeHidden(update) with `update(old)` → the new Set (from the latest one: quick taps
-//                   don't undo each other). Hidden entries leave the lanes (a hidden event's parts of shown kinds stand
-//                   on their own); the calendar's dates and the sheets still have everything.
-//   laneOrder       the lane groups in the viewer's order (the filter's Order tab); reorder(from, to) with indexes among
-//                   `presentGroups`, resetOrder(), defaultOrder: whether the order is the default
-//   kinds           the kinds this calendar has, and presentGroups its groups, in that order
-//   verdictsOf      support card banners by their cards' pull advice (src/pullGuide.ts; optional): a function when the
-//                   guide covers any of this calendar's banners (Global's), else null; a banner stays while one of its
-//                   cards has a verdict not hidden
-//   groups          the lane groups to draw: laneGroups() of what isn't hidden
-
+// Hidden entries leave the lanes (a hidden event's parts of shown kinds stand on their own); the dates and sheets keep
+// everything. A support card banner stays while one of its cards has a shown pull verdict.
 import { useCallback, useMemo } from 'react';
 import { type Verdict, bannerVerdicts, loadPullGuide } from '../pullGuide.ts';
 import { useAsync } from '../useAsync.ts';

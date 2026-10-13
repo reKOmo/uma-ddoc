@@ -1,9 +1,3 @@
-// The Timeline toolbar's filter (src/FilterSheet.tsx): a button (with how many things are hidden) that opens a sheet of
-// toggles, in sections: banner sections, event kinds (in the calendar's groups' order), and pull-advice verdicts,
-// which hide support card banners none of whose cards has a verdict shown ('pull:<verdict>' in `hidden`). Each
-// section has All / None, the title "Show all". A second tab, Order, drags the calendar's groups into order
-// (GroupOrder.tsx; lanes and chips follow), "Reset order" by the title. Every change applies (and is saved) at once.
-
 import { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Eye, ListOrdered, RotateCcw } from 'lucide-react';
@@ -18,28 +12,20 @@ type TabKey = 'show' | 'order';
 const TABS: Record<TabKey, LucideIcon> = { show: Eye, order: ListOrdered };
 
 const BANNERS = ['cards', 'characters'];
-// A banner section's name, as its lane group's label says it (layout.js' LANE_GROUPS).
 const BANNER_LABELS: Record<string, string> = { characters: 'timeline.characters', cards: 'timeline.supportCards' };
 export const pullKey = (verdict: string): string => `pull:${verdict}`;
 
-// A toggle's key: a banner section, an event kind, or a pullKey().
 type FilterKey = string;
-// `onChange(update)`: `update(old)` → the new Set.
 type HiddenUpdate = (old: Set<FilterKey>) => Set<FilterKey>;
 
 export type TimelineFilterProps = {
-  // The banner sections and event kinds to offer.
   kinds: string[];
-  // The pull-advice verdicts to offer (none without pull advice).
   verdicts: readonly Verdict[];
   hidden: Set<FilterKey>;
   onChange: (update: HiddenUpdate) => void;
-  // The calendar's lane groups in their order.
   groups: LaneGroup[];
-  // Indexes in `groups`.
   onReorder: (from: number, to: number) => void;
   onResetOrder: () => void;
-  // Whether the order is the default.
   defaultOrder: boolean;
   disabled?: boolean;
 };
@@ -69,7 +55,6 @@ export default function TimelineFilter({
       if (!next.delete(key)) next.add(key);
       return next;
     });
-  // Show (or hide) every key of a section.
   const setAll = (keys: FilterKey[], shown: boolean) =>
     onChange((old) => {
       const next = new Set(old);

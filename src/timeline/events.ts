@@ -1,19 +1,9 @@
-// Each server's in-game events (data/global_events.json, data/jp_events.json) for the Timeline. Pure. (Their lanes:
-// laneGroups() in ./layout.js, by EVENT_GROUPS.)
-//
-// itemList(items) → an event's items with the common currencies first (carats, monies, shards, tickets, vouchers),
-//   the rest in the post's order.
-// withPredicted(real, predicted) → the real events, then the predicted ones (Global's future events from JP's,
-//   `predicted: true`, ids `jp-…`) Global's own news hasn't overtaken: a predicted event is left out, with its parts,
-//   when a real top-level event of its kind starts at or after it (the prediction is stale or the same event).
-
 import type { EventItem, EventKind, GameEvent, PredictedEvent } from '../../shared/schemas/event.ts';
 
-// (JP items Global has go by Global's names; a JP voucher is an 引換券.)
+// JP items Global has go by Global's names; a JP voucher is 引換券.
 const FIRST = [/^carats$/i, /^monies$/i, /crystal shards/i, /scout tickets?$/i, /voucher|引換券/i];
 
-// The Timeline's event groups, in order, and the kinds in each: what gives cards and pulls first (story events,
-// celebrations, gifts, bonuses, missions), then competitive modes, then the rest.
+// What gives cards and pulls comes first, then competitive modes.
 export type EventGroupKey =
   | 'story'
   | 'celebration'
@@ -50,8 +40,9 @@ export function itemList(items: EventItem[]): EventItem[] {
     .map(({ item }) => item);
 }
 
+// A predicted event (with its parts) is dropped once a real top-level event of its kind starts at or after it.
 export function withPredicted(real: GameEvent[], predicted: PredictedEvent[]): GameEvent[] {
-  const latest = new Map<string, number>(); // kind → the latest start of a real top-level event of it (ms)
+  const latest = new Map<string, number>();
   for (const event of real)
     if (event.start && !event.parent) {
       const start = Date.parse(event.start);

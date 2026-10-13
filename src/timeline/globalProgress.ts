@@ -1,19 +1,8 @@
-// Where Global is in JP's history, for JP's banner calendar. Global reruns JP's banners under JP's
-// ids, so each Global banner pairs a Global start with a JP start. Between the last pair that has
-// started and the next one, Global is somewhere in that stretch of JP's history: that's the window,
-// and the estimate is linear in time between the two.
-//
-// globalProgress({ global, jp, predicted, now }) →
-//   { estimate, from, to, toKnown } (JP times, ms) or null when no Global banner has started
-//   global     data/global_banners.json            jp  data/jp_banners.json (paid scouts and our own re-run entries,
-//              which Global never runs, are left out)
-//   predicted  generated/predicted_global_banners.json (optional): future banners with jp_start,
-//              `confirmed` when their dates are known
-// `toKnown` is false when the window's end comes from a prediction (or there is no next banner,
-// in which case the window is the current JP banner itself).
+// Global reruns JP's banners under JP's ids, so each Global banner pairs a Global start with a JP start. Global is
+// somewhere between the last pair that has started and the next, estimated linearly in time. `toKnown` is false when
+// the window's end is predicted.
 import type { Banner, BannerFile } from '../../shared/schemas/banner.ts';
 
-// The banner lists a calendar reads (a file, or the ones that have them).
 type Banners = Pick<BannerFile, 'characters' | 'cards'>;
 
 export type GlobalProgress = { estimate: number; from: number; to: number; toKnown: boolean };
@@ -22,7 +11,6 @@ const all = (banners: Partial<Banners> | null | undefined): Banner[] => [
   ...(banners?.characters ?? []),
   ...(banners?.cards ?? []),
 ];
-// JP banners Global could run: not paid, not one of our "<id>-rerun" entries.
 const regular = (banners: Partial<Banners> | null | undefined): Banner[] =>
   all(banners).filter((b) => !b.paid && typeof b.id === 'number');
 

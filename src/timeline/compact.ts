@@ -1,9 +1,3 @@
-// Whether the Timeline is compact (rows with nothing in view fold away; on by default), a zustand store so it survives
-// leaving the page, and in this browser's storage so it survives a reload (stored as the string "false" or "true", not
-// JSON; anything but "false" is on). Storage can be missing or throw: then only until the page is closed.
-//   getCompact() → boolean
-//   saveCompact(compact)
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rawStorage } from '../rawStorage.ts';
@@ -21,6 +15,7 @@ export const useCompactStore = create<State>()(
     {
       name: KEY,
       storage: rawStorage<Pick<State, 'compact'>>(
+        // Stored as the string 'false' or 'true', not JSON: anything but 'false' is on.
         (raw) => ({ compact: raw !== 'false' }),
         ({ compact }) => String(compact)
       ),

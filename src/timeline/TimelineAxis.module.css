@@ -14,9 +14,8 @@
   position: relative;
 }
 
-/* Which Career scenario runs when: one segment per scenario in its cover's main colour
-   (--scenario-color), its label kept in view while scrolling. `overflow: clip`, not hidden: hidden
-   would make each segment its own scroll container, and the sticky label would stick to that. */
+/* overflow: clip, not hidden: hidden would make each segment its own scroll container, and the sticky label would
+   stick to that. */
 
 .axisScenarios {
   height: 32px;
@@ -43,8 +42,6 @@
   border-radius: 4px;
 }
 
-/* The one running now: its colour in full. */
-
 .scenario.current {
   font-weight: 600;
   background: var(--scenario-color);
@@ -58,8 +55,6 @@
   color: var(--ink-light);
 }
 
-/* Not launched yet: confirmed is faint, predicted faint and dashed. */
-
 .scenario.tagConfirmed,
 .scenario.tagPredicted {
   background: color-mix(in srgb, var(--scenario-color) 12%, var(--panel));
@@ -68,8 +63,6 @@
 .scenario.tagPredicted {
   border-style: dashed;
 }
-
-/* The whole segment opens the scenario's page. */
 
 .scenarioLink {
   display: flex;
@@ -188,8 +181,6 @@
   border-radius: 4px;
 }
 
-/* A Career scenario begins: a thin line in its colour (dashed while only predicted), under the lanes. */
-
 .scenarioLine {
   --scenario-color: var(--muted);
   position: absolute;
@@ -216,10 +207,8 @@
   pointer-events: none;
 }
 
-/* A server's marks (loadTimeline() in data.js), in --mark-color: a window and a dashed line in it, dashed so it never
-   reads as today; the line's tag sits just under the axis (--axis-height). JP's "global": where Global is in JP's
-   history, the window the stretch it's going through (from the JP banner it's running to its next banner's), the
-   line the estimate within it. */
+/* Dashed so a mark never reads as today. JP's "global" mark: the window is the stretch of JP's history Global is in,
+   the line its estimate within it. */
 
 .mark {
   --mark-color: var(--accent);

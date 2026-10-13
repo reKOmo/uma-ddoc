@@ -1,8 +1,3 @@
-// The filter's Order tab: the calendar's lane groups as a list to drag into order by their handles (dnd-kit's pointer
-// sensor: mouse and touch alike; the keyboard: Space to pick up, arrows, Space to drop). The handle has
-// `touch-action: none`, so a phone never starts scrolling from it (a scroll would cancel the drag) and the rest of the
-// row still scrolls the list; nothing in the list drags the sheet (`data-vaul-no-drag`).
-
 import {
   DndContext,
   KeyboardSensor,
@@ -28,15 +23,11 @@ import styles from './GroupOrder.module.css';
 
 type Accessibility = NonNullable<ComponentProps<typeof DndContext>['accessibility']>;
 
-// A lane group: its key, its label's i18n key and the event kinds it holds.
 export type LaneGroup = { key: string; label: string; kinds: string[] };
 
 export type GroupOrderProps = {
-  // In order.
   groups: LaneGroup[];
-  // The filter's Set: a group whose kinds are all hidden is greyed.
   hidden: Set<string>;
-  // Indexes in `groups`.
   onReorder: (from: number, to: number) => void;
 };
 
@@ -95,6 +86,7 @@ function OrderItem({ group, off }: { group: LaneGroup; off: boolean }) {
   });
   const name = t(group.label);
   return (
+    // Vaul would drag the whole sheet from a row, so the rows opt out.
     <li
       ref={setNodeRef}
       className={clsx(styles.item, off && styles.off, isDragging && styles.dragging)}

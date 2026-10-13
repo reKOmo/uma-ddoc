@@ -1,3 +1,7 @@
+// Computed once the sheet has slid in: a ranking blocks the page for a few hundred ms.
+// The server's own ranking, unless it lacks one of these cards (an announced or predicted Global banner's): then the
+// one that also ranks JP's upcoming cards, as the card page's dashed future does. A card no ranking has (JP's newest,
+// without stats yet) is null.
 import { useEffect, useState } from 'react';
 import { type Stat, rankByUsefulness } from '../../tierlist/index.ts';
 import { STAT_OF_TYPE, cardRanks } from '../tiers.ts';
@@ -6,13 +10,7 @@ import { SHEET_ANIMATION_MS } from '../Sheet.tsx';
 import type { CardsFile } from '../../shared/schemas/card.ts';
 import type { SERVERS } from '../servers.ts';
 
-// Where these support cards (ids) rank at MLB in the server's tier list, computed once the sheet has slid in (a
-// ranking blocks the page for a few hundred ms):
-// { ranks: id → { tier, position, stat } | null, upcoming }, null while computing. The server's own ranking unless
-// it lacks one of them (a card the server doesn't have yet: an announced or predicted banner on Global); then
-// the one that also ranks JP's cards it doesn't have (`upcoming`: the card page's dashed future does the same), the
-// server's own cards scored as before. A card no ranking has (JP's newest, without stats yet) is null.
-// A card's rank at MLB: its tier (0 is S), its position in the ranking, the stat tab it ranks in.
+// Computed once the sheet has slid in: a ranking blocks the page for a few hundred ms.
 export type CardRank = { tier: number; position: number; stat: string };
 export type RankResult = { ranks: Map<number, CardRank | null>; upcoming: boolean };
 

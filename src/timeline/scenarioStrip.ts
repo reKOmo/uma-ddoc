@@ -1,12 +1,4 @@
-// Which Career scenario runs when, for the strip at the top of the banner calendar. Pure.
-//
-// scenarioSegments(scenarios, server, now) → [{ key, name, start, end, tag, current, color, ink }]
-//   scenarios  data/scenarios.json's list (scripts/lib/scenarios.js)
-//   server     'gl' (en_start_date) | 'jp' (jp_start_date)
 // Each scenario runs from its launch to the next one's (end null for the newest); times in ms.
-// tag is the start date's ('out' | 'confirmed' | 'predicted'); current: running at `now`; color: its
-// cover's main colour or null; ink: 'dark' | 'light',
-// the text that reads on it.
 import type { Scenario, StartDate } from '../../shared/schemas/scenario.ts';
 
 const DATE_FIELD = { gl: 'en_start_date', jp: 'jp_start_date' } as const;
@@ -24,8 +16,7 @@ export type ScenarioSegment = {
   ink: Ink | null;
 };
 
-// The text that reads on a scenario colour ("#rrggbb"): 'dark' | 'light' (null without a colour), by
-// its relative luminance (WCAG), dark above ~0.4. Pair with the --ink-dark / --ink-light tokens.
+// WCAG relative luminance: dark text above ~0.4.
 export function ink(color: string | null): Ink | null {
   if (!color) return null;
   const [r, g, b] = [1, 3, 5].map((i) => {

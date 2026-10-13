@@ -1,8 +1,5 @@
-/* The Timeline's filter sheet (TimelineFilter.tsx): the Show / Order tabs and the two tabs' panels. Copied from
-   src/timeline/timeline.css and src/FilterSheet.css; the sheet's own classes (filter-section, filter-note, reset-filters)
-   stay global. */
+/* filter-section, filter-note and reset-filters are global: FilterSheet.tsx shares them. */
 
-/* Show / Order: the sheet's two tabs, full width. */
 .tabs {
   display: flex;
   margin: 12px 0 4px;
@@ -18,7 +15,7 @@
   font-weight: 600;
 }
 
-/* The tabs' panels in one cell: the sheet takes the taller one's height; the inactive one (inert) isn't seen. */
+/* Both panels share one cell (the inactive one is inert), so switching never resizes the sheet. */
 .panels {
   display: grid;
 }
