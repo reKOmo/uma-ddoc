@@ -1,20 +1,5 @@
-// Fetches pull advice from Luh's Umamusume Support Card Encyclopedia (a public Google Sheet, see
-// scripts/lib/pull-guide.js) into generated/pull_guide.json:
-//   { banners: { [banner id]: { [card id]: advice } }, noBanner: { [card id]: advice } }
-// with advice { googleSheetsSrc: { gid, row }, freePulls, shouldPull, comment, advice }: where the entry is in
-// the sheet (src/pullGuide.js links there), the free pulls the banner gives, the pill (yes | no | free |
-// whale | dolphin, plus the advice's "+"s; or null), the line under it, and the notes as one paragraph (see
-// parsePull() in scripts/lib/pull-guide.js). Each entry is matched to one of Global's banners, real
-// (data/) or predicted (generated/, optional: run after `pnpm predict-gl`); cards on no gacha banner
-// (event, story, shop) go in `noBanner`, with `release: { label, date | month + part | dateText }`
-// from the sheet (its future dates are the author's estimates). Its source (the sheet's URL and its
-// "Latest update" date) goes in generated/sources.json.
-//
-// Its shape: schemas/pull_guide.schema.json.
-//
-// One request for the tab list, then one per tab, with short pauses (~15 requests).
-//
-// Usage: pnpm fetch-pull-guide
+// Usage: pnpm fetch-pull-guide   (run after `pnpm predict-gl`, so predicted banners get their cards too)
+// Writes generated/pull_guide.json (its shape: schemas/pull_guide.schema.json) and the sheet's date in sources.json.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -33,7 +18,6 @@ const SCHEMA = '../schemas/pull_guide.schema.json';
 
 const PREDICTED_BANNERS_FILE = `${GENERATED_DIR}predicted_global_banners.json`;
 
-// Global's banners, real then predicted (when `pnpm predict-gl` has run).
 function readBanners(): BannerFile['cards'] {
   // TODO(ts): the banner files are ours, but JSON.parse gives unknown-shaped data: they're read as BannerFile.
   const read = (file: string): BannerFile['cards'] => (JSON.parse(readFileSync(file, 'utf8')) as BannerFile).cards;
@@ -41,7 +25,6 @@ function readBanners(): BannerFile['cards'] {
   return [...read(BANNERS_FILE), ...(existsSync(PREDICTED_BANNERS_FILE) ? read(PREDICTED_BANNERS_FILE) : [])];
 }
 
-// One tab at a time, 1–2 s before each.
 const pace = paced({ pause: [1000, 2000], first: true });
 
 async function getText(url: string): Promise<string> {

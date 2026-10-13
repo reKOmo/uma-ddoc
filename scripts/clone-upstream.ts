@@ -1,8 +1,3 @@
-// Clones upstream main into upstream/ (gitignored), or updates an existing
-// clone to the latest main. Only test/upstream/ needs it.
-//
-// Usage: pnpm clone-upstream
-
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { REPO, UPSTREAM_DIR } from './lib/upstream.ts';

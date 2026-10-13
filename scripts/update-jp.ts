@@ -1,15 +1,5 @@
-// Brings JP's own record (data/) up to date with the JP news (data/news/jp/posts.json, from `pnpm news:latest:jp`):
-// the support cards it shows that data/jp_cards.json lacks, augmented from GameTora's list once it has them (else
-// pending in data/jp_cards_pending.json; scripts/lib/jp-cards.js), then the card data rebuilt (so banners and events
-// find the new cards in the same run); the scout banners its posts announce merged into data/jp_banners.json
-// (scripts/lib/jp-banners.js); and its in-game events with what they give into data/jp_events.json (scripts/lib/events.js with the Japanese lexicon,
-// scripts/lib/news-lang/ja.js), with GameTora's story events, Champions Meetings and Legend Races filled in where the
-// news has none (source 'gametora': the archive is thin before mid-2022; scripts/lib/gametora-events.js).
-// Idempotent: everything made from the news is rebuilt from all posts each time.
-// It also links each Career scenario's JP launch post (data/scenarios.json links.umapyoi_jp: the scenario page links
-// umapyoi.net's copy, in Japanese). Appends what changed to data/news/jp/summary.md.
-//
 // Usage: pnpm update-jp
+// Idempotent: everything made from the news is rebuilt from all posts each time. Appends to data/news/jp/summary.md.
 
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -40,7 +30,7 @@ export async function updateJp(): Promise<JpUpdate> {
   await ensureCards();
   const posts = [...loadPosts('jp').values()];
 
-  // New cards from the news, augmented from GameTora (data/jp_cards.json), then the card data rebuilt.
+  // Rebuilt before the banners and events, so they find the new cards in the same run.
   // TODO(ts): JSON.parse's any: raw/gametora_cards.json is written by scrape-gametora in GametoraCard's shape
   // (test/schemas.test.ts checks it).
   const gametoraCards = existsSync(GAMETORA_CARDS_FILE)
@@ -52,11 +42,9 @@ export async function updateJp(): Promise<JpUpdate> {
 
   const banners = await updateJpBanners({ posts, cards });
 
-  // Events and what they give (data/jp_events.json), rebuilt from every post.
   const old = new Map<string, string>(readEvents('jp').map((e: GameEvent) => [e.id, JSON.stringify(e)]));
   const fromNews = buildEvents(posts, { cards, answers: readAnswers('jp'), lang: ja });
-  // GameTora's story events, Champions Meetings and Legend Races where the news has none (scripts/lib/
-  // gametora-events.js). Without GameTora's file (pnpm scrape-gametora), the fills already in data/ are kept.
+  // Without GameTora's file (never scraped), the fills already in data/ are kept.
   const gametora = readGametoraEvents();
   const kept = readEvents('jp').filter((e: GameEvent) => e.source === 'gametora');
   const fill = gametora
@@ -70,7 +58,6 @@ export async function updateJp(): Promise<JpUpdate> {
   writeEvents(events, 'jp');
   const changed = events.filter((e: GameEvent) => old.get(e.id) !== JSON.stringify(e));
 
-  // Career scenarios: JP's launch posts (育成シナリオ「X」公開！) → links.umapyoi_jp.
   const stored = readScenarios();
   const scenarios = applyJpScenarioNews({ posts, scenarios: stored.scenarios });
   if (stored.scenarios.length) writeScenarios(stored.source, scenarios.scenarios);

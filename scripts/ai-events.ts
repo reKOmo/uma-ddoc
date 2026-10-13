@@ -1,19 +1,5 @@
-// Asks a language model (scripts/lib/ai.js) about what the rules doubt in the news events (scripts/lib/events.js
-// `doubts`), and stores its answers in data/news/<gl|jp>/ai_answers.json (committed; buildEvents() applies them at build time,
-// so builds and deploys never call a model). Only events without an answer for the current text and questions are
-// asked, so a normal day asks about the 0–3 new ones.
-//
-// Usage:
-//   pnpm news:ai [--server gl|jp] [--model M] [--provider ollama|openrouter] [--think] [--limit N]
-//       --server: whose news (gl: Global's English posts, the default; jp: JP's Japanese ones, asked in the Japanese
-//       questions, answers in data/news/jp/ai_answers.json)
-//       ask about every event's doubted or empty fields (askedFields()) that have no answer to the current question
-//       (staleFields(): per-field versions, so a changed question re-asks only its field; saves as it goes)
-//   pnpm news:ai --compare [--sample N | --ids 994-1,902-12] [--model M]
-//       testing: ask N events (default 20: half with doubts, half without), or these, about every field, nothing saved; prints
-//       how the model's answers (through the build's checks) compare with the rules' per field and writes
-//       generated/ai-compare-<model>.json (JP: ai-compare-<model>-jp.json)
-// Environment: see scripts/lib/ai.js (AI_PROVIDER, AI_MODEL, OPENROUTER_API_KEY, OLLAMA_URL).
+// Usage: pnpm news:ai [--server gl|jp] [--model M] [--provider ollama|openrouter] [--think] [--limit N]
+//   or:  pnpm news:ai --compare [--sample N | --ids 994-1,902-12] [--model M]   (saves nothing)
 
 import { parseArgs } from 'node:util';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -27,7 +13,6 @@ import { lexicon } from './lib/news-lang/index.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { AiAnswer } from '../shared/schemas/news.ts';
 
-// What question() takes: the fields to ask about (all of them when comparing), the posts' lexicon.
 type QuestionOptions = { all?: boolean; fields?: Field[] };
 type ModelAnswer = AiAnswer['answer'];
 
@@ -93,7 +78,6 @@ if (!flags.compare) {
   }
   console.log(`done, ${failed} failed`);
 } else {
-  // Half doubted, half not, spread over the archive.
   const n = Number(arg(flags.sample) ?? '20');
   const spread = <T>(list: T[], k: number): T[] =>
     list.filter((_, i) => i % Math.max(1, Math.floor(list.length / k)) === 0).slice(0, k);

@@ -1,6 +1,3 @@
-// Gacha banners: Global's (data/global_banners.json), JP's (data/jp_banners.json) and Global's predicted ones
-// (generated/predicted_global_banners.json). One shape for all three; the fields only some have are optional.
-
 import { z } from 'zod';
 import { GametoraType, Moment } from './common.ts';
 

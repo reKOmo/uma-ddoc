@@ -1,29 +1,16 @@
-// Support card scoring: a candidate card's marginal value when added to a fixed
-// deck. Originally from https://github.com/Euophrys/umamusume-tierlist
+// Originally from https://github.com/Euophrys/umamusume-tierlist
 // (src/components/tierlist-calc.js, MIT — see LICENSE); maintained here now.
 // test/upstream/ checks it still ranks exactly like upstream's.
 
-// ─── Conventions used throughout this file ───────────────────────────────────
-//
-// A card's `type` indexes into the same array as the stats it can give:
-//   0 Speed · 1 Stamina · 2 Power · 3 Guts · 4 Wit · 5 skill points · 6 energy
-// Trainings only exist for 0..4. There's no card type for skill points (5),
-// leaving a gap, and GROUP_TYPE (6, energy) is used for group ("friend") cards
-// that aren't tied to a single training.
-//
-// Stat / gain arrays follow the same layout:
-//   [0..4] the five training stats · [5] skill points · [6] energy
-// Card-event arrays (`card.events`, see join-cards.js) add one more slot: [7] bond.
-//
-// Card field shorthands (defined in the card data files):
-//   sb  starting bond        tb  training bonus       mb  motivation bonus
-//   fs_*  friendship ("rainbow") bonuses, applied only while the card rainbows
-//   stat_bonus[6]  flat per-stat bonus   specialty_rate  specialty priority
+// A card's `type` indexes the stats it can give: 0–4 the five trainings (Speed, Stamina, Power, Guts, Wit), 5 none
+// (skill points), GROUP_TYPE (6, energy) for group ("friend") cards that aren't tied to one training. Stat and gain arrays:
+// [0..4] trainings, [5] skill points, [6] energy; card events (`card.events`) add [7] bond.
+// Card shorthands: sb starting bond, tb training bonus, mb motivation bonus, fs_* friendship bonuses (only while the card
+// rainbows), stat_bonus[6] flat per-stat bonus, specialty_rate specialty priority.
 
 import type { JoinedCard } from './join-cards.ts';
 import type { GeneralWeights, StatWeights } from './scenarios.ts';
 
-// A card as joinCards() builds it (tierlist/join-cards.ts): upstream's card fields, one per limit break, plus `events`.
 export type CalcCard = JoinedCard;
 
 // A card in a deck being scored: the calculation adds these as it goes. `cardType` is set for the fixed deck's cards
@@ -31,10 +18,8 @@ export type CalcCard = JoinedCard;
 type PlayedCard = CalcCard & { index: number; rainbowSpecialty: number; offSpecialty: number; cardType?: number };
 type DeckCard = PlayedCard & { cardType: number };
 
-// A scenario's weights for one stat: tierlist/scenarios.ts' `general` merged with the stat's own entry.
 export type CalcWeights = GeneralWeights & StatWeights;
 
-// One scored candidate.
 export type ProcessedCard = { id: number; lb: number; score: number; char_name: string };
 
 const STAT_COUNT = 6; // five training stats + skill points
@@ -84,9 +69,7 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
   // TODO(ts): the clones get their calculation fields (cardType, index, …) filled in just below
   const selectedCards = deepClone(deck) as DeckCard[];
 
-  // Pre-process the fixed deck (the cards the user already picked): record
-  // which training types are present, group cards by type, and tally the bond
-  // the whole deck needs before anyone can rainbow.
+  // Pre-process the fixed deck: its training types, its cards by type, and the bond it needs before anyone rainbows.
   const presentTypes = [false, false, false, false, false, false, false];
   const cardsPerType: DeckCard[][] = [[], [], [], [], [], [], []];
   let baseBondNeeded = 0;
@@ -108,9 +91,8 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
 
   baseBondNeeded += NORMAL_BOND * (5 - selectedCards.length);
 
-  // Chance that at least one off-type training rainbows on a given turn, used
-  // later to discount a candidate's own rainbow rate (you can only be in one
-  // training per turn). Skips the stat type the weights are optimising for.
+  // Chance that an off-type training rainbows on a given turn; discounts the candidate's own rainbow rate (one
+  // training per turn). The weights' own stat is skipped.
   const preferredRainbowChances = [0, 0, 0, 0, 0];
   for (let type = 0; type < TRAINING_COUNT; type++) {
     if (type === weights.type) continue;
@@ -126,7 +108,6 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
 
   const chanceOfPreferredRainbow = 1 - preferredRainbowChances.reduce((product, chance) => product * (1 - chance), 1);
 
-  // Score each candidate card as if it were added to the fixed deck.
   for (let i = 0; i < cards.length; i++) {
     // TODO(ts): rainbowSpecialty / offSpecialty are set below, before anything reads them
     const card = deepClone(cards[i]) as PlayedCard;
@@ -211,7 +192,6 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
       rainbowOverride = 1 - chanceOfPreferredRainbow * chanceOfSingleRainbow;
     }
 
-    // Distribute bonding-phase and rainbow-phase days across the trainings.
     for (let stat = 0; stat < TRAINING_COUNT; stat++) {
       if (stat === cardType) {
         rainbowTraining = specialtyPercent * rainbowDays * rainbowOverride;
@@ -238,7 +218,6 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
       card.unique_fs_bonus = 1 + total / rainbowTraining / 100;
     }
 
-    // ── Bonding phase: off-specialty trainings, no friendship bonus ──
     for (let training = 0; training < TRAINING_COUNT; training++) {
       const gains = weights.unbondedTrainingGain[training];
       const daysOnThisTraining = daysPerTraining[training];
@@ -260,7 +239,6 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
       }
     }
 
-    // ── Rainbow phase: off-specialty trainings, deck members may rainbow ──
     for (let training = 0; training < TRAINING_COUNT; training++) {
       const gains = weights.bondedTrainingGain[training];
       const daysOnThisTraining = bondedDaysPerTraining[training];
@@ -287,7 +265,6 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
       }
     }
 
-    // ── Rainbow phase: the candidate's own specialty training ──
     if (cardType < GROUP_TYPE) {
       energyGain += rainbowTraining * card.wisdom_recovery;
       const specialtyGains = weights.onlySummer
@@ -310,7 +287,6 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
       }
     }
 
-    // Race rewards, scaled by the card's race bonus.
     for (let raceType = 0; raceType < RACE_REWARDS.length; raceType++) {
       for (let stat = 0; stat < STAT_COUNT; stat++) {
         const gain = RACE_REWARDS[raceType][stat] * (card.race_bonus / 100) * weights.races[raceType];
@@ -337,7 +313,6 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
   return processedCards;
 }
 
-// ─── Combination-bonus reducers ──────────────────────────────────────────────
 // Each folds the bonuses contributed by the *other* cards sharing a training.
 // Training and motivation bonuses add (less their identity of 1); friendship
 // bonuses multiply, and only for cards on their own specialty training.
@@ -389,7 +364,6 @@ function trainingGain(
     trainingBonus += card.fs_training;
   }
 
-  // Case 1: the candidate trains alone.
   const soloGain = [0, 0, 0, 0, 0, 0];
   for (let stat = 0; stat < STAT_COUNT; stat++) {
     if (gains[stat] === 0) continue;
@@ -422,8 +396,6 @@ function trainingGain(
     const withoutCandidate = [0, 0, 0, 0, 0, 0];
     const withCandidate = [0, 0, 0, 0, 0, 0];
 
-    // The candidate's own training bonus, plus its crowd bonus for this many
-    // cards on the training.
     const selfTrainingBonus = trainingBonus + (combination.length + 1) * card.crowd_bonus;
     const combinationTrainingBonus = comboTrainingBonus(combination, typeCount);
     const combinationFriendshipBonus = comboFriendshipBonus(combination, trainingType);
@@ -492,8 +464,6 @@ function crossTrainingGain(
     const withoutCandidate = [0, 0, 0, 0, 0, 0];
     const withCandidate = [0, 0, 0, 0, 0, 0];
 
-    // The candidate's own training bonus, plus its crowd bonus for this many
-    // cards on the training.
     const selfTrainingBonus = trainingBonus + (combination.length + 1) * card.crowd_bonus;
     const combinationTrainingBonus = comboTrainingBonus(combination, typeCount);
     const combinationFriendshipBonus = comboFriendshipBonus(combination, trainingType);
@@ -501,7 +471,6 @@ function crossTrainingGain(
 
     for (let stat = 0; stat < STAT_COUNT; stat++) {
       if (gains[stat] === 0) continue;
-      // Skip unless a rainbowing deck member is actually in this combination.
       if (!combination.some((r) => statCards.indexOf(r) > -1)) continue;
 
       const base = gains[stat] + comboStatBonus(combination, stat);
@@ -543,7 +512,6 @@ function crossTrainingGain(
   return trainingGains;
 }
 
-// Weighted sum of stat gains, each capped at weights.cap.
 function gainsToScore(gains: number[], weights: CalcWeights) {
   let score = 0;
   for (let stat = 0; stat < STAT_COUNT; stat++) {

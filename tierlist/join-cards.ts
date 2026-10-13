@@ -1,8 +1,3 @@
-// Rebuilds upstream-format card objects (one per id × limit break, in upstream's id/LB order) from
-// generated/cards.json (type, rarity) plus one server's generated/card_stats/<server>_card_stats.json
-// (the character's name in that server's language, which scenarioLink relies on, event rewards and
-// the stats per limit break).
-
 import { CARD_TYPES, type CardType, RARITIES, type Rarity } from '../shared/schemas/common.ts';
 import type { CardsFile, CardStatsFile, LbStats } from '../shared/schemas/card.ts';
 
@@ -22,7 +17,6 @@ export const typeOf = (code: number, group: boolean): CardType | undefined =>
   group ? 'group' : CARD_TYPES.find((t) => TYPE_CODES[t] === code);
 export const rarityOf = (code: number): Rarity | undefined => RARITIES.find((r) => RARITY_CODES[r] === code);
 
-// One upstream card object: a limit break's stats (LbStats) plus the card's fields, and `events`.
 export type JoinedCard = LbStats & {
   id: number;
   type: number;
@@ -33,8 +27,8 @@ export type JoinedCard = LbStats & {
   events: number[] | null;
 };
 
-// Upstream's card objects, plus `events` (the card's event rewards or null), which the calculation
-// reads; without it they're exactly upstream's list (see withoutEvents).
+// `events` (the card's event rewards or null) is what the calculation reads beyond upstream's list; withoutEvents()
+// gives that list exactly.
 export function joinCards(cards: CardsFile, stats: CardStatsFile): JoinedCard[] {
   const joined: JoinedCard[] = [];
   // Integer keys iterate in ascending order, so cards come out sorted by id.

@@ -1,15 +1,6 @@
-// Brings Global's own banner + card release record (data/, see scripts/lib/global.js) up to date
-// with the official news (data/news/gl/posts.json, from `pnpm news:latest`): every scout post's
-// banners (scripts/lib/banner-posts.js) become Global banners, their cards Global releases, and the Career scenario launches the
-// posts name go into data/scenarios.json (en_start_date, official names; see scripts/lib/scenarios.js), and the in-game
-// events with the cards and items they give into data/global_events.json (scripts/lib/events.js). Idempotent: the news-made
-// entries are rebuilt from all posts each time, the seeded ones are left alone.
-//
-// Needs JP's banners (data/jp_banners.json, without paid scouts and our own re-run entries) for the banners' items,
-// and our card data (generated/cards.json) for English names. Appends what changed to data/news/gl/summary.md,
-// then rebuilds the card data with the new Global releases (scripts/build-cards.js).
-//
 // Usage: pnpm update-global
+// Needs JP's banners (their items) and generated/cards.json (English names). Idempotent: the news-made entries are
+// rebuilt from every post each time, the seeded ones are left alone.
 
 import { appendFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -40,7 +31,6 @@ const SUMMARY_FILE = `${newsDir('gl')}summary.md`;
 const day = (iso: string): string => iso.slice(0, 10);
 const when = (iso: string): string => `${iso.slice(0, 16).replace('T', ' ')} UTC`;
 
-// A card the news released on Global: its data/global_cards.json entry, with the post it came from.
 type Released = GlobalCard & { news_url?: string };
 
 export type GlobalUpdate = ReturnType<typeof applyNews> & {
@@ -75,7 +65,6 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
     writeScenarios(stored.source, scenarios.scenarios);
   }
 
-  // Events and what they give (data/global_events.json), rebuilt from every post.
   const storedEvents: GameEvent[] = readEvents();
   const oldEvents = new Map(storedEvents.map((e) => [e.id, JSON.stringify(e)]));
   const events = buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers() });

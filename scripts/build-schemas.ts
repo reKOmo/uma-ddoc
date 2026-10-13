@@ -1,6 +1,4 @@
-// `pnpm build-schemas`: schemas/*.json from the zod schemas (shared/schemas/files.ts' JSON_SCHEMAS), so they're never
-// edited by hand (then Biome formats them). test/schemas.test.ts fails when they're out of date.
-//   jsonSchema(schema, name) → the JSON Schema object written for it
+// Usage: pnpm build-schemas   (test/schemas.test.ts fails when schemas/*.json are out of date)
 
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';

@@ -1,6 +1,3 @@
-// Where generated files came from (generated/sources.json): file name → its source. Upstream's files carry the repo
-// and commit; GameTora's and the pull guide's a URL (the guide also the sheet's update day).
-
 import { z } from 'zod';
 import { Day, Moment } from './common.ts';
 

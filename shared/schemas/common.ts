@@ -1,5 +1,3 @@
-// Building blocks shared by the data schemas (shared/schemas/): dates, ids, card types and rarities.
-
 import { z } from 'zod';
 
 // A day, "2026-10-13".

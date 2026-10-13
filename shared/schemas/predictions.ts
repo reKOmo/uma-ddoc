@@ -1,6 +1,3 @@
-// Dates known ahead of time (data/known_dates.json, by hand) and the predicted Global release dates of JP's cards
-// (generated/predicted_gl_releases.json, `pnpm predict-gl`).
-
 import { z } from 'zod';
 import { Day, Moment } from './common.ts';
 

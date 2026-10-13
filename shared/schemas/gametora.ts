@@ -1,5 +1,3 @@
-// GameTora's data, cut to the fields we read (generated/raw/, `pnpm scrape-gametora`).
-
 import { z } from 'zod';
 import { CardSource, Day, GametoraType } from './common.ts';
 

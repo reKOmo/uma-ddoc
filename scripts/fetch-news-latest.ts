@@ -1,15 +1,6 @@
-// New and edited posts from the official news (Global, or JP with --server jp) into data/news/<server>/posts.json,
-// for periodic runs.
-//
-// Pages through the news index (10 posts a page, like the site) and stops at the first page holding a post we
-// already have; fetches the detail of every post that's new or whose update_at changed. A normal day is 1–3
-// requests. Needs posts.json to exist: run `pnpm news:all` once first.
-//
-// Writes what came in to data/news/<server>/summary.md (`pnpm update-global` appends what it changed; news.yml makes the
-// commit message from it). In GitHub Actions it also writes to the job summary and $GITHUB_OUTPUT: `changed`
-// (anything new or edited) and `update` (a banner, event or scenario post among them, so data/ needs rebuilding).
-//
-// Usage: pnpm news:latest [--server jp]   (pnpm news:latest:jp)
+// Usage: pnpm news:latest [--server jp]   (pnpm news:latest:jp). Needs posts.json: run `pnpm news:all` once first.
+// In GitHub Actions also writes the job summary and $GITHUB_OUTPUT: `changed`, and `update` (a banner, event or
+// scenario post came in, so data/ needs rebuilding).
 
 import { appendFileSync, existsSync, writeFileSync } from 'node:fs';
 import { newsDir } from './lib/paths.ts';
@@ -53,7 +44,6 @@ for (const item of fresh) {
 }
 if (fresh.length) savePosts(posts, server);
 
-// Each server's posts read with its own wording (scripts/lib/news-lang/).
 const lang = lexicon(server);
 // Every id here was stored just above.
 const stored = (id: string): NewsPost => {

@@ -1,11 +1,6 @@
-// Scenario weights, training gains and per-server deck presets for the tier
-// list calculation (tierlist-calc.js). Originally from
-// https://github.com/Euophrys/umamusume-tierlist (src/scenarios.js, MIT — see
-// LICENSE); maintained here now. test/upstream/ checks the scenarios, defaults
-// and presets still match upstream's.
-//
-// The JP and Global servers tweak a few constants (most notably bondPerDay
-// and certain scenarioLink character names), so there's one bundle per server.
+// Scenario weights, training gains and per-server deck presets for the tier list calculation. Originally from
+// https://github.com/Euophrys/umamusume-tierlist (src/scenarios.js, MIT — see LICENSE); maintained here now.
+// test/upstream/ checks them against upstream's. JP and Global tweak a few constants, so each server has its own bundle.
 // availableScenarios is newest first; defaultScenario is the server's current one.
 
 export type StatWeights = {
@@ -32,7 +27,6 @@ export type GeneralWeights = {
   fanBonus: number;
 };
 
-// A scenario's weights: `general` plus one entry per stat key (speed…friend).
 export type ScenarioWeights = {
   general: GeneralWeights;
   speed: StatWeights;

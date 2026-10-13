@@ -1,7 +1,4 @@
-// Prints the events the stored news makes (scripts/lib/events.js), newest first, without writing anything: dates,
-// kind, name, then cards (the main thing), items and titles. For checking the parser. No requests.
-//
-// Usage: pnpm news:events
+// Usage: pnpm news:events   (prints the events the stored news makes, writes nothing)
 
 import { existsSync, readFileSync } from 'node:fs';
 import type { CardsFile } from '../shared/schemas/card.ts';

@@ -1,6 +1,3 @@
-// Every data file and the schema it fits (test/schemas.test.ts parses each), and the JSON Schemas written into
-// schemas/ (`pnpm build-schemas`).
-
 import type { z } from 'zod';
 import { BannerFileSchema } from './banner.ts';
 import {

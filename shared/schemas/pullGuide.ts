@@ -1,5 +1,3 @@
-// Pull advice from Luh's Umamusume Support Card Encyclopedia (generated/pull_guide.json, `pnpm fetch-pull-guide`).
-
 import { z } from 'zod';
 import { IdKey } from './common.ts';
 

@@ -1,6 +1,3 @@
-// The official news, stored as the APIs send each post (data/news/<gl|jp>/posts.json), and a model's answers about
-// doubted event fields (data/news/<gl|jp>/ai_answers.json).
-
 import { z } from 'zod';
 import { Moment } from './common.ts';
 

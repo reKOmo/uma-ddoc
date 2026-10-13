@@ -1,16 +1,3 @@
-// Builds the card data from the raw inputs (see scripts/lib/cards.js):
-//   generated/raw/upstream/*.js           upstream's card lists + events (`pnpm update-cards`)
-//   data/jp_cards.json                    our history of JP's cards (JP names, titles, release dates, source, slug…;
-//                                         committed): a frozen record of GameTora's, then the JP news' cards
-//                                         augmented from GameTora (`pnpm update-jp`, scripts/lib/jp-cards.js)
-//   generated/raw/gametora_cards.json     GameTora's support cards (`pnpm scrape-gametora`; optional): slugs only
-//   data/global_cards.json                Global's titles + release dates (`pnpm update-global`)
-// into
-//   generated/cards.json                          every card: names, titles, releases, links… (schemas/cards.schema.json)
-//   generated/card_stats/gl_card_stats.json       the tier list calculation's inputs per server
-//   generated/card_stats/jp_card_stats.json
-// The scripts that update an input run it themselves; `pnpm build-cards` runs it by hand.
-
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { type UpstreamCard, buildCards } from './lib/cards.ts';
@@ -26,13 +13,12 @@ export const GAMETORA_CARDS_FILE = `${GENERATED_DIR}raw/gametora_cards.json`;
 export { JP_CARDS_FILE };
 export const OUTPUTS = ['cards.json', 'card_stats/gl_card_stats.json', 'card_stats/jp_card_stats.json'];
 
-// One card per line, so the files stay readable and diffable.
 const perLine = (object: Record<string, unknown>): string =>
   `{\n${Object.entries(object)
     .map(([id, value]) => `  ${JSON.stringify(id)}: ${JSON.stringify(value)}`)
     .join(',\n')}\n}\n`;
 
-// The upstream modules as written now (the query skips Node's module cache).
+// The query skips Node's module cache, so a rerun in the same process sees the new file.
 // TODO(ts): upstream's modules (generated/raw/upstream/, as downloaded): the caller names what each exports.
 const importFresh = async <T>(path: string): Promise<T> =>
   (await import(`${pathToFileURL(path)}?t=${Date.now()}`)).default;

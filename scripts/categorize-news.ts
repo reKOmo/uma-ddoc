@@ -1,7 +1,4 @@
-// Prints every stored news post (data/news/<server>/posts.json) with its category (scripts/lib/post-categories.js), grouped
-// by category and kind, for checking the parser. No requests.
-//
-// Usage: pnpm news:categories [--server jp]   (--counts: only the number of posts per category / kind)
+// Usage: pnpm news:categories [--server jp] [--counts]   (--counts: only the number of posts per category / kind)
 
 import { parseArgs } from 'node:util';
 import type { NewsPost } from '../shared/schemas/news.ts';

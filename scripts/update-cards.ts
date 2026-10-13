@@ -1,7 +1,3 @@
-// Downloads upstream's card lists and card events (scripts/lib/upstream.js) into generated/raw/upstream/,
-// as downloaded, records the commit in generated/sources.json and rebuilds the card data from them
-// (scripts/build-cards.js).
-//
 // Usage: pnpm update-cards
 
 import { existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';

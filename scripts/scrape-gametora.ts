@@ -1,27 +1,8 @@
-// What we still take from GameTora (https://gametora.com/umamusume), into:
-//   generated/raw/gametora_cards.json    the support card list, cut to the fields we read: ids, names, titles, type,
-//                                        rarity, JP release date ("YYYY-MM-DD"), how it's obtained, the page's URL
-//                                        slug (not derivable from the name). It augments the cards the JP news
-//                                        shows that data/jp_cards.json lacks (id, type, charId, slug, English;
-//                                        `pnpm update-jp`: scripts/lib/jp-cards.js) and gives every card's slug.
-//                                        Then the card data is rebuilt (scripts/build-cards.js).
-//   generated/raw/gametora_trainees.json trainee outfits { id, char_id, name, title } (Japanese): the id of a
-//                                        trainee debuting on a JP banner (the news names it without one;
-//                                        scripts/lib/jp-banners.js)
-//   generated/raw/gametora_events.json   JP's story events, Champions Meetings and Legend Races (update-jp fills
-//                                        them into data/jp_events.json where the JP news has none, and ml/ pairs
-//                                        Global's events with them: scripts/lib/gametora-events.js)
-//   data/scenarios.json                  JP's side only: launch times, links, new scenarios
-//                                        (see scripts/lib/scenarios.js)
-// Banners aren't scraped any more: both servers have their own record in data/ (data/jp_banners.json,
-// data/global_banners.json: GameTora's history seeded them once, the official news keeps them up), and the app builds
-// GameTora's image URLs (card art and icons, trainee icons, banner art) from ids.
-//
-// GameTora's pages are client-rendered, so this reads its versioned JSON files (the manifest maps each name to its
-// current hash) instead of parsing HTML. An internal format: the script fails loudly if it changes.
-//
 // Usage: pnpm scrape-gametora
 //        pnpm scrape-gametora --events   only the event history (the manifest + 3 files)
+// GameTora's pages are client-rendered, so this reads its versioned JSON files (the manifest maps each name to its
+// current hash) instead of parsing HTML. An internal format: the script fails loudly if it changes. Banners aren't
+// scraped any more (data/ has both servers' records).
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
@@ -35,7 +16,6 @@ import { GAMETORA_CARDS_FILE, buildCardFiles } from './build-cards.ts';
 import { readJpCards } from './lib/jp-cards.ts';
 import { GAMETORA_TRAINEES_FILE } from './lib/jp-banners.ts';
 
-// The support card fields raw/gametora_cards.json keeps.
 const CARD_FIELDS = [
   'support_id',
   'char_id',
@@ -53,7 +33,6 @@ const CARD_FIELDS = [
 const SITE = 'https://gametora.com';
 const HEADERS = { 'User-Agent': 'uma-ddoc scraper (Umaddoc, static tier list site)' };
 
-// GameTora's manifest: each data file's name → its current hash.
 type Manifest = Record<string, string>;
 // A row of a GameTora data file (its internal format: the fields read here are cut and written out below).
 type Row = Record<string, unknown>;
@@ -64,7 +43,6 @@ async function getJson(url: string): Promise<unknown> {
   return res.json();
 }
 
-// Data files are versioned: the manifest maps each name to its current hash.
 // TODO(ts): GameTora's manifest (its internal format): dataUrl() fails loudly on a name it doesn't list.
 const getManifest = async (): Promise<Manifest> => (await getJson(`${SITE}/data/manifests/umamusume.json`)) as Manifest;
 function dataUrl(manifest: Manifest, name: string): string {
@@ -72,10 +50,8 @@ function dataUrl(manifest: Manifest, name: string): string {
   return `${SITE}/data/umamusume/${name}.${manifest[name]}.json`;
 }
 
-// One file at a time, 2 s before each.
 const pace = paced({ pause: [2000, 2000], first: true });
 
-// One file at a time, 2 s apart.
 async function loadData(names: string[], manifest: Manifest): Promise<Record<string, unknown>> {
   const files: Record<string, unknown> = {};
   for (const name of names) {
@@ -84,8 +60,6 @@ async function loadData(names: string[], manifest: Manifest): Promise<Record<str
   return files;
 }
 
-// JP's event history (story events, Champions Meetings, Legend Races) → raw/gametora_events.json, cut to the fields
-// update-jp reads (scripts/lib/gametora-events.js). One file at a time, 2 s apart.
 export async function scrapeEvents(manifest: Manifest): Promise<ReturnType<typeof cutEvents>> {
   const files: Record<string, GametoraRecord[]> = {};
   for (const { file } of Object.values(GAMETORA_EVENT_FILES)) {
@@ -109,8 +83,6 @@ export async function scrapeEvents(manifest: Manifest): Promise<ReturnType<typeo
   return events;
 }
 
-// The support card list (raw/gametora_cards.json, then the card data is rebuilt) and the Career scenarios
-// (data/scenarios.json's JP side), then the event history.
 export async function scrapeGametora(): Promise<void> {
   const manifest = await getManifest();
   const data = await loadData(['support-cards', 'character-cards', 'scenarios'], manifest);
@@ -126,8 +98,8 @@ export async function scrapeGametora(): Promise<void> {
   writeSources({
     'raw/gametora_cards.json': { url: `${SITE}/umamusume/supports`, fetched_at: new Date().toISOString() },
   });
-  // Trainee outfits, only for a trainee debuting on a JP banner (the news names it without an id): scripts/lib/
-  // jp-banners.js resolves the rest from our own banners.
+  // Only for a trainee debuting on a JP banner (the news names it without an id); jp-banners.ts resolves the rest from
+  // our own banners.
   // TODO(ts): as above, GameTora's rows (only the trainee fields read here).
   const trainees = (data['character-cards'] as Row[]).map((c) => ({
     id: c.card_id,

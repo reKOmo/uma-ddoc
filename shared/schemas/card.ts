@@ -1,6 +1,3 @@
-// Support cards: what the site shows (generated/cards.json), the calculation's inputs (generated/card_stats/), and our
-// records they're built from (data/jp_cards.json, data/jp_cards_pending.json, data/global_cards.json).
-
 import { z } from 'zod';
 import { CardSource, CardType, Day, IdKey, Rarity, Texts } from './common.ts';
 

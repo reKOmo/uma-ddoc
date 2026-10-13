@@ -1,7 +1,3 @@
-// In-game events: Global's (data/global_events.json), JP's (data/jp_events.json), Global's predicted ones
-// (generated/predicted_global_events.json), the Global ↔ JP pairs (generated/event_pairs.json), and the Champions
-// Meeting reward table (data/champions_meeting_rewards.json).
-
 import { z } from 'zod';
 import { Day, Moment, Rarity } from './common.ts';
 

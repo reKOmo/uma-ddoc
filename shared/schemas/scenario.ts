@@ -1,5 +1,3 @@
-// Career scenarios (data/scenarios.json): one per scenario in JP launch order, both servers' launches.
-
 import { z } from 'zod';
 import { Day, Moment } from './common.ts';
 
