@@ -14,33 +14,23 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import type { Banner, BannerFile, BannerId, BannerItem } from '../../shared/schemas/banner.ts';
-import type { CardsFile, GlobalCard } from '../../shared/schemas/card.ts';
+import type { CardsFile, GlobalCardsFile } from '../../shared/schemas/card.ts';
+import type { BannerPost } from './banner-posts.ts';
 import { DATA_DIR } from './paths.ts';
 import { norm } from './news-text.ts';
 
 export const BANNERS_FILE = `${DATA_DIR}global_banners.json`;
 export const CARDS_FILE = `${DATA_DIR}global_cards.json`;
 
-// A card's record in data/global_cards.json: a news-made release also carries the post that released it, and
-// `title_en` is null where the post gives no title (the schema says string: scripts/lib keeps them as written).
-// TODO(ts): shared/schemas/card.ts' GlobalCardSchema has neither; it's not this task's file.
-type GlobalCardRecord = Omit<GlobalCard, 'title_en'> & { title_en: string | null; news_url?: string };
-type CardRecords = Record<string, GlobalCardRecord>;
+// data/global_cards.json's entries, by id.
+export type CardRecords = GlobalCardsFile;
 type Kind = 'characters' | 'cards';
 // char_id → English name (englishNames()).
 type NameMap = Map<number | null, string>;
 
-// A scout post as bannerPost() (scripts/lib/banner-posts.ts, not typed yet) gives it: the fields read here.
-type ScoutFeatured = { title: string; name: string; rarity?: string; stars?: number };
-type ScoutBanner = {
-  gachaId: number;
-  type: 'character' | 'support' | null;
-  start: string | null;
-  end: string | null;
-  image?: string | null;
-  featured: ScoutFeatured[];
-};
-type ScoutPost = { id: number; url: string; posted: string | null; paid: boolean; banners: ScoutBanner[] };
+// A scout post (bannerPost(), scripts/lib/banner-posts.ts) and its banners.
+type ScoutPost = BannerPost;
+type ScoutBanner = BannerPost['banners'][number];
 
 // A banner applyNews() made from a post, and a post it skipped.
 export type NewsBanner = { banner: Banner; kind: Kind; post: string; unmatched: string[] };
@@ -52,9 +42,9 @@ const BANNER_KINDS: Kind[] = ['characters', 'cards'];
 const RARITY: Partial<Record<string, number>> = { R: 1, SR: 2, SSR: 3 };
 
 // The highest rarity, then the highest rate (our heuristic for `main`, as when the banners were seeded).
-export function pickMain(featured: BannerItem[]): BannerItem | null {
+export function pickMain<T extends Pick<BannerItem, 'rarity' | 'rate'>>(featured: T[]): T | null {
   return (
-    featured.reduce<BannerItem | null>(
+    featured.reduce<T | null>(
       (best, item) =>
         !best || item.rarity > best.rarity || (item.rarity === best.rarity && (item.rate ?? 0) > (best.rate ?? 0))
           ? item
@@ -141,7 +131,10 @@ export function applyNews({
       skipped.push({ id, post: post.url, reason: `the post lists it as a ${a.type} banner, JP as a ${type} one` });
       continue;
     }
-    const entries = a.featured.map((f) => ({ ...f, rarity: kind === 'cards' ? RARITY[f.rarity ?? ''] : f.stars }));
+    const entries = a.featured.map((f) => ({
+      ...f,
+      rarity: kind === 'cards' ? RARITY['rarity' in f ? f.rarity : ''] : 'stars' in f ? f.stars : undefined,
+    }));
     const pairs = pairEnglish(jpBanner.featured, entries, names);
     const featured = pairs.map(({ item, entry }) => ({
       ...item,

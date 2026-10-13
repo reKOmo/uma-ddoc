@@ -41,7 +41,7 @@ const GAMETORA_TYPES: Record<GametoraCard['type'], CardType> = {
 };
 
 // One upstream card object (a limit break's stats and the card's fields; no `events`, which upstream's lists don't have).
-type UpstreamCard = Omit<JoinedCard, 'events'>;
+export type UpstreamCard = Omit<JoinedCard, 'events'>;
 
 // Upstream's per-card fields; the rest of a card object is its stats at that limit break.
 const statsOf = ({ id, limit_break, char_name, type, group, rarity, ...stats }: UpstreamCard): LbStats => stats;

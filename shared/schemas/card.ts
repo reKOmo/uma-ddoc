@@ -130,8 +130,13 @@ export const JpPendingCardSchema = z.strictObject({
 export type JpPendingCard = z.infer<typeof JpPendingCardSchema>;
 export const JpPendingFileSchema = z.array(JpPendingCardSchema);
 
-// data/global_cards.json: Global's card titles and release days, by id.
-export const GlobalCardSchema = z.strictObject({ title_en: z.string(), release_gl: Day });
+// data/global_cards.json: Global's card titles and release days, by id (a news-made release: its post's `news_url`;
+// `title_en` null when the post's list doesn't name it).
+export const GlobalCardSchema = z.strictObject({
+  title_en: z.string().nullable(),
+  release_gl: Day,
+  news_url: z.string().optional(),
+});
 export type GlobalCard = z.infer<typeof GlobalCardSchema>;
 export const GlobalCardsFileSchema = z.record(IdKey, GlobalCardSchema);
 export type GlobalCardsFile = z.infer<typeof GlobalCardsFileSchema>;

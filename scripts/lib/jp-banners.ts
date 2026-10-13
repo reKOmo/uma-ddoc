@@ -50,10 +50,9 @@ const NEWS_KEYS = ['announced', 'news_url', 'news_image', 'rerun', 'rerunOf', 'p
 
 // A featured item while the news is merged in: `new` is set on every item once the banners are (the end of
 // applyJpNews()).
-// (`type` is null on a support card the data doesn't list, where BannerItemSchema has none: see resolver().)
-type Item = Omit<BannerItem, 'new' | 'type'> & { type?: GametoraType | null; new?: boolean };
+type Item = Omit<BannerItem, 'new'> & { new?: boolean };
 // A banner while the news is merged in: its featured items may still lack `new` (see Item).
-type Draft = Omit<Banner, 'featured'> & { featured: Item[] };
+type Draft = Omit<Banner, 'featured' | 'main'> & { featured: Item[]; main: Item | null };
 // A post's banner (bannerPost(post, ja), scripts/lib/banner-posts.ts), as the news merge reads it.
 type ScoutItem = { rarity?: string; stars?: number; title: string; name: string };
 type ScoutBanner = {

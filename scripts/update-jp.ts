@@ -13,6 +13,7 @@
 
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import type { CardsFile } from '../shared/schemas/card.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
 import type { GametoraCard } from '../shared/schemas/gametora.ts';
 import { buildEvents, readAnswers, readEvents, writeEvents } from './lib/events.ts';
@@ -47,7 +48,7 @@ export async function updateJp(): Promise<JpUpdate> {
     : null;
   const jpCards = updateJpCards({ posts, gametora: gametoraCards });
   await buildCardFiles();
-  const cards = readJson(`${GENERATED_DIR}cards.json`);
+  const cards = readJson<CardsFile>(`${GENERATED_DIR}cards.json`);
 
   const banners = await updateJpBanners({ posts, cards });
 

@@ -46,7 +46,7 @@ export type ScenarioDraft = Omit<Scenario, 'full_jp' | 'links' | 'color'> & {
 export type ScenariosRead = { source: ScenariosFile['source'] | null; scenarios: ScenarioDraft[] };
 
 // GameTora's scenario (its `scenarios` data file, external JSON): the fields read here.
-type GametoraScenario = {
+export type GametoraScenario = {
   id: number | string;
   url_name: string;
   name_ja?: string | null;
@@ -279,7 +279,7 @@ export function readScenarios(): ScenariosRead {
 
 // One scenario per line, so commits diff per scenario (the file is excluded from Biome). Known dates
 // are re-tagged on the way out. ml/scenarios.py writes the same format.
-export function writeScenarios(source: ScenariosFile['source'], scenarios: ScenarioDraft[]) {
+export function writeScenarios(source: ScenariosRead['source'], scenarios: ScenarioDraft[]) {
   const lines = retag(scenarios)
     .map((s) => JSON.stringify(s))
     .join(',\n');

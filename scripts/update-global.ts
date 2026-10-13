@@ -13,14 +13,22 @@
 
 import { appendFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import type { BannerItem } from '../shared/schemas/banner.ts';
-import type { GlobalCard } from '../shared/schemas/card.ts';
+import type { BannerFile, BannerItem } from '../shared/schemas/banner.ts';
+import type { CardsFile, GlobalCard } from '../shared/schemas/card.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
 import { GENERATED_DIR, newsDir } from './lib/paths.ts';
 import { bannerPost } from './lib/banner-posts.ts';
 import { loadPosts } from './lib/news-api.ts';
 import { scenarioPost } from './lib/news.ts';
-import { BANNERS_FILE, CARDS_FILE, applyNews, englishNames, readJson, writeGlobal } from './lib/global.ts';
+import {
+  BANNERS_FILE,
+  CARDS_FILE,
+  type CardRecords,
+  applyNews,
+  englishNames,
+  readJson,
+  writeGlobal,
+} from './lib/global.ts';
 import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.ts';
 import { readJpBanners, regularBanners } from './lib/jp-banners.ts';
 import { buildEvents, readAnswers, readCmTable, readEvents, writeEvents } from './lib/events.ts';
@@ -46,14 +54,14 @@ export type GlobalUpdate = ReturnType<typeof applyNews> & {
 export async function updateGlobal(): Promise<GlobalUpdate> {
   if (!existsSync(BANNERS_FILE)) throw new Error('data/ has no Global banners (data/global_banners.json is committed)');
   await ensureCards();
-  const global = readJson(BANNERS_FILE);
-  const cards = readJson(CARDS_FILE);
+  const global = readJson<BannerFile>(BANNERS_FILE);
+  const cards = readJson<CardRecords>(CARDS_FILE);
   const jp = regularBanners(readJpBanners());
-  const cardData = readJson(`${GENERATED_DIR}cards.json`);
+  const cardData = readJson<CardsFile>(`${GENERATED_DIR}cards.json`);
   const raw = [...loadPosts().values()];
   const posts = raw.map(scenarioPost);
 
-  const scouts = raw.map((post) => bannerPost(post)).filter(Boolean);
+  const scouts = raw.map((post) => bannerPost(post)).filter((scout) => scout !== null);
   const result = applyNews({ posts: scouts, global, cards, jp, names: englishNames(global, cardData) });
   writeGlobal(result);
   await buildCardFiles();
@@ -70,8 +78,7 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   // Events and what they give (data/global_events.json), rebuilt from every post.
   const storedEvents: GameEvent[] = readEvents();
   const oldEvents = new Map(storedEvents.map((e) => [e.id, JSON.stringify(e)]));
-  // TODO(ts): buildEvents (scripts/lib/events.ts, untyped for now) infers a looser shape; its output is GameEvent.
-  const events = buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers() }) as GameEvent[];
+  const events = buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers() });
   writeEvents(events);
   const changedEvents = events.filter((e) => oldEvents.get(e.id) !== JSON.stringify(e));
 
@@ -79,18 +86,18 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
     [...global.characters, ...global.cards].filter((b) => b.announced).map((b) => [b.id, `${b.start} ${b.end}`])
   );
   const changed = result.banners.filter(({ banner }) => before.get(banner.id) !== `${banner.start} ${banner.end}`);
-  // TODO(ts): applyNews (scripts/lib/global.ts, untyped for now) returns its cards as unknown;
-  // they're Released (the file's entries).
-  const released = Object.entries(result.cards as Record<string, Released>).filter(
+  const released = Object.entries(result.cards).filter(
     ([id, c]) => c.news_url && cards[id]?.release_gl !== c.release_gl
   );
 
   const lines: string[] = [];
   for (const { banner, kind, unmatched } of changed) {
     const verb = before.has(banner.id) ? 'Moved' : 'Added';
+    // TODO(ts): Global's scouts always end (only JP has open-ended ones)
+    const end = banner.end as string;
     const items = banner.featured.map((i: BannerItem) => `${i.title} ${i.name}`).join(', ');
     lines.push(
-      `- ${verb} ${kind === 'cards' ? 'support card' : 'trainee'} banner ${banner.id}: ${when(banner.start)} → ${when(banner.end)} — ${items}`
+      `- ${verb} ${kind === 'cards' ? 'support card' : 'trainee'} banner ${banner.id}: ${when(banner.start)} → ${when(end)} — ${items}`
     );
     if (unmatched.length) lines.push(`  - No English name in the post for: ${unmatched.join(', ')}`);
   }

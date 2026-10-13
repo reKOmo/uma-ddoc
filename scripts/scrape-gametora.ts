@@ -25,12 +25,10 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import type { GametoraEventsFile } from '../shared/schemas/gametora.ts';
-import type { Scenario } from '../shared/schemas/scenario.ts';
 import { DATA_DIR, GENERATED_DIR } from './lib/paths.ts';
-import { fillColors, mergeGametora, readScenarios, writeScenarios } from './lib/scenarios.ts';
+import { type GametoraScenario, fillColors, mergeGametora, readScenarios, writeScenarios } from './lib/scenarios.ts';
 import { writeSources } from './lib/sources.ts';
-import { GAMETORA_EVENTS_FILE, GAMETORA_EVENT_FILES, cutEvents } from './lib/gametora-events.ts';
+import { GAMETORA_EVENTS_FILE, GAMETORA_EVENT_FILES, type GametoraRecord, cutEvents } from './lib/gametora-events.ts';
 import { GAMETORA_CARDS_FILE, buildCardFiles } from './build-cards.ts';
 import { readJpCards } from './lib/jp-cards.ts';
 import { GAMETORA_TRAINEES_FILE } from './lib/jp-banners.ts';
@@ -87,14 +85,13 @@ async function loadData(names: string[], manifest: Manifest): Promise<Record<str
 // JP's event history (story events, Champions Meetings, Legend Races) → raw/gametora_events.json, cut to the fields
 // update-jp reads (scripts/lib/gametora-events.js). One file at a time, 2 s apart.
 export async function scrapeEvents(manifest: Manifest): Promise<ReturnType<typeof cutEvents>> {
-  const files: Record<string, unknown> = {};
+  const files: Record<string, GametoraRecord[]> = {};
   for (const { file } of Object.values(GAMETORA_EVENT_FILES)) {
     await pause(2000);
-    files[file] = await getJson(dataUrl(manifest, file));
+    // TODO(ts): GameTora's JSON, trusted as a list of records (cutEvents() reads only the fields it knows)
+    files[file] = (await getJson(dataUrl(manifest, file))) as GametoraRecord[];
   }
-  // TODO(ts): cutEvents (scripts/lib/gametora-events.ts, untyped for now) returns its object loosely;
-  // it's GametoraEventsFile.
-  const events = cutEvents(files) as GametoraEventsFile;
+  const events = cutEvents(files);
   mkdirSync(`${GENERATED_DIR}raw`, { recursive: true });
   const lines = Object.entries(events).map(
     ([kind, list]) => `${JSON.stringify(kind)}: [\n${list.map((e) => JSON.stringify(e)).join(',\n')}\n]`
@@ -150,7 +147,8 @@ export async function scrapeGametora(): Promise<void> {
   await buildCardFiles();
 
   mkdirSync(DATA_DIR, { recursive: true });
-  const scenarios: Scenario[] = mergeGametora(readScenarios().scenarios, data.scenarios);
+  // TODO(ts): GameTora's scenario list, trusted as it is (mergeGametora() reads the fields it knows)
+  const scenarios = mergeGametora(readScenarios().scenarios, data.scenarios as GametoraScenario[]);
   // Cover colours: only covers without one are downloaded (once each).
   const colored = await fillColors(scenarios, HEADERS);
   if (colored) console.log(`scenario colours: ${colored} computed from their covers`);

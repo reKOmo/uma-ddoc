@@ -7,10 +7,8 @@ import type { NewsPost } from '../shared/schemas/news.ts';
 import { loadPosts, serverArg } from './lib/news-api.ts';
 import { lexicon } from './lib/news-lang/index.ts';
 import { type Categorized, categorize, plain } from './lib/post-categories.ts';
-import type { Server } from './lib/news-text.ts';
 
-// TODO(ts): serverArg() (scripts/lib/news-api.ts, untyped for now) has checked it is gl or jp.
-const server = serverArg() as Server;
+const server = serverArg();
 const lang = lexicon(server);
 const counts = process.argv.includes('--counts');
 

@@ -13,13 +13,13 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { buildCards } from './lib/cards.ts';
+import { type UpstreamCard, buildCards } from './lib/cards.ts';
 import { CARDS_FILE as GLOBAL_CARDS_FILE } from './lib/global.ts';
 import { JP_CARDS_FILE, readJpCards } from './lib/jp-cards.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { readSources } from './lib/sources.ts';
 import { UPSTREAM_RAW } from './lib/upstream.ts';
-import type { CardStatsFile, CardsFile, GlobalCardsFile } from '../shared/schemas/card.ts';
+import type { GlobalCardsFile } from '../shared/schemas/card.ts';
 import type { GametoraCard } from '../shared/schemas/gametora.ts';
 
 export const GAMETORA_CARDS_FILE = `${GENERATED_DIR}raw/gametora_cards.json`;
@@ -33,7 +33,8 @@ const perLine = (object: Record<string, unknown>): string =>
     .join(',\n')}\n}\n`;
 
 // The upstream modules as written now (the query skips Node's module cache).
-const importFresh = async (path: string): Promise<unknown> =>
+// TODO(ts): upstream's modules (generated/raw/upstream/, as downloaded): the caller names what each exports.
+const importFresh = async <T>(path: string): Promise<T> =>
   (await import(`${pathToFileURL(path)}?t=${Date.now()}`)).default;
 // TODO(ts): JSON.parse's any: the caller names the shape the script wrote the file in
 // (test/schemas.test.ts checks those).
@@ -44,19 +45,17 @@ export async function buildCardFiles(): Promise<void> {
   if (!glSource || !('repo' in glSource))
     throw new Error('generated/sources.json: raw/upstream/gl.js has no repo (pnpm update-cards)');
   const { repo, ref } = glSource;
-  // TODO(ts): cards.ts is untyped for now: buildCards' parameters take their types from its defaults
-  // (gametora = [] reads as never[]) and its result as empty objects. Typed here until cards.ts is.
   const { cards, stats } = buildCards({
     upstream: {
-      gl: await importFresh(`${UPSTREAM_RAW}gl.js`),
-      jp: await importFresh(`${UPSTREAM_RAW}jp.js`),
-      events: await importFresh(`${UPSTREAM_RAW}card-events.js`),
+      gl: await importFresh<UpstreamCard[]>(`${UPSTREAM_RAW}gl.js`),
+      jp: await importFresh<UpstreamCard[]>(`${UPSTREAM_RAW}jp.js`),
+      events: await importFresh<Record<string, number[]>>(`${UPSTREAM_RAW}card-events.js`),
     },
     history: readJpCards(),
     gametora: existsSync(GAMETORA_CARDS_FILE) ? readJson<GametoraCard[]>(GAMETORA_CARDS_FILE) : [],
     globalCards: existsSync(GLOBAL_CARDS_FILE) ? readJson<GlobalCardsFile>(GLOBAL_CARDS_FILE) : {},
     iconBase: `https://raw.githubusercontent.com/${repo}/${ref}/public/cardImages/`,
-  } as Parameters<typeof buildCards>[0]) as { cards: CardsFile; stats: Record<'gl' | 'jp', CardStatsFile> };
+  });
   mkdirSync(`${GENERATED_DIR}card_stats`, { recursive: true });
   writeFileSync(`${GENERATED_DIR}cards.json`, perLine(cards));
   for (const server of ['gl', 'jp'] as const) {

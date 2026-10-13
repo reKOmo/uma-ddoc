@@ -82,11 +82,14 @@ export function newsCards(posts: NewsPost[], lang: JapaneseLexicon = ja): NewsCa
   const seen: Seen[] = []; // { rarity, title, name, start, source, news_url }
   for (const post of posts) {
     const scout = bannerPost(post, lang);
-    const supports = (scout?.banners ?? []).filter((b) => b.type === 'support' && b.start);
+    const supports = (scout?.banners ?? []).filter(
+      (b): b is typeof b & { start: string } => b.type === 'support' && !!b.start
+    );
     if (!scout || !supports.length) continue;
     const add = (f: { rarity: string; title: string; name: string }, start: string) =>
       seen.push({ rarity: asRarity(f.rarity), title: f.title, name: f.name, start, source: 'gacha', url: scout.url });
-    for (const b of supports) for (const f of b.featured) add(f, b.start);
+    // (a support scout lists cards only)
+    for (const b of supports) for (const f of b.featured) if ('rarity' in f) add(f, b.start);
     // A card listed after a banner's own list (a select-pickup scout's new R card, under its own heading after the
     // candidates): from the post's first support scout.
     const listed = new Set(
@@ -99,14 +102,15 @@ export function newsCards(posts: NewsPost[], lang: JapaneseLexicon = ja): NewsCa
     }
   }
   for (const f of eventFragments(posts, {}, lang)) {
-    if (!f.start || f.undated) continue;
+    const start = f.start;
+    if (!start || f.undated) continue;
     const source: Source = f.kind === 'story' ? 'story_event' : 'gift';
     const add = (rarity: string, title: string, name: string) =>
       seen.push({
         rarity: asRarity(rarity),
         title: title.trim(),
         name: name.trim(),
-        start: f.start,
+        start,
         source,
         url: f.news_url,
       });

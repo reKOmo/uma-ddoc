@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { GametoraType, Moment } from './common.ts';
 
 // A featured trainee or card. `id` / `char_id` null: a card or trainee not resolved yet (a JP news card GameTora
-// doesn't list, a debuting trainee). `type`: cards only. `rate` null where the post gives none. `from_news`: an R card
+// doesn't list, a debuting trainee). `type`: cards only (null: a JP news card the data doesn't type yet). `rate` null where the post gives none. `from_news`: an R card
 // the JP post lists that GameTora's banner leaves out.
 export const BannerItemSchema = z.strictObject({
   id: z.int().nullable(),
@@ -13,7 +13,7 @@ export const BannerItemSchema = z.strictObject({
   name: z.string(),
   title: z.string(),
   rarity: z.int(),
-  type: GametoraType.optional(),
+  type: GametoraType.nullable().optional(),
   rate: z.int().nullable(),
   new: z.boolean(),
   from_news: z.boolean().optional(),
@@ -44,7 +44,8 @@ export const BannerSchema = z.strictObject({
   note: z.string().optional(),
   paid: z.boolean().optional(),
   rerunOf: z.int().optional(),
-  rerun: z.strictObject({ id: BannerIdSchema, start: Moment, end: Moment }).optional(),
+  // (end null: an open-ended re-run)
+  rerun: z.strictObject({ id: BannerIdSchema, start: Moment, end: Moment.nullable() }).optional(),
   // Predicted (generated/predicted_global_banners.json): JP's dates it's predicted from, the margin, and `confirmed`
   // when data/known_dates.json gives its Global dates (`confirmed_source`: where from).
   predicted: z.boolean().optional(),

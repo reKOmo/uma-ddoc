@@ -82,8 +82,7 @@ export const fromUmapyoi = (p: UmapyoiPost): NewsPost => {
   return post as NewsPost;
 };
 
-// TODO(ts): loadPosts() (news-api.ts, not typed yet) gives an untyped Map; the file is the stored NewsPost list.
-const posts: Map<string, NewsPost> = loadPosts(server);
+const posts = loadPosts(server);
 
 if (process.argv.includes('--refresh-images')) {
   const todo = [...posts.values()].filter((p) => p.source === 'umapyoi' && !p.image_big?.includes('/Thumbnail/'));

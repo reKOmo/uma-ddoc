@@ -25,7 +25,7 @@ import { norm } from './lib/event-rewards.ts';
 import { lexicon } from './lib/news-lang/index.ts';
 import type { Server } from './lib/news-text.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
-import type { AiAnswer, AiAnswersFile, NewsPost } from '../shared/schemas/news.ts';
+import type { AiAnswer } from '../shared/schemas/news.ts';
 
 // What question() takes: the fields to ask about (all of them when comparing), the posts' lexicon.
 type QuestionOptions = { all?: boolean; fields?: Field[] };
@@ -45,8 +45,7 @@ const cards: CardsFile = existsSync(cardsFile) ? JSON.parse(readFileSync(cardsFi
 // TODO(ts): --server is read as a string here; it's gl or jp (flags move to parseArgs later).
 const server = arg('server', 'gl') as Server;
 const lang = lexicon(server);
-// TODO(ts): loadPosts() (news-api.ts, not typed yet) gives an untyped Map; the file is the stored NewsPost list.
-const posts: NewsPost[] = [...loadPosts(server).values()];
+const posts = [...loadPosts(server).values()];
 const fragments = eventFragments(posts, cards, lang);
 console.log(
   `${server}: ${config.provider} ${config.model}${config.think ? ' (thinking)' : ''}: ${fragments.length} events`
@@ -54,14 +53,13 @@ console.log(
 
 async function timed(event: Fragment, options: QuestionOptions): Promise<{ answer: ModelAnswer; ms: number }> {
   const t = Date.now();
-  // TODO(ts): ask() (ai.ts, not typed yet) gives the model's parsed reply, unchecked: applyAnswer() checks it.
+  // TODO(ts): the model's parsed reply, unchecked (ask() gives unknown): applyAnswer() checks it.
   const answer = (await ask(config, question(event, { ...options, lang }))) as ModelAnswer;
   return { answer, ms: Date.now() - t };
 }
 
 if (!process.argv.includes('--compare')) {
-  // TODO(ts): readAnswers() (events.ts, not typed yet) gives the stored file, as written by writeAnswers().
-  const answers: AiAnswersFile = readAnswers(server);
+  const answers = readAnswers(server);
   const todo = fragments.filter((f) => staleFields(f, answers[f.aiKey]).length);
   const limit = Number(arg('limit', String(todo.length)));
   console.log(

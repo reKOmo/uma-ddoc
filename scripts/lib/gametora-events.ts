@@ -38,7 +38,7 @@ export const GAMETORA_EVENT_FILES = {
 };
 const RACE_FIELDS = ['card_id', 'start', 'end'];
 // One record of a GameTora data file (external JSON: its fields are picked by name).
-type GametoraRecord = Record<string, unknown>;
+export type GametoraRecord = Record<string, unknown>;
 
 const SAME_EVENT_DAYS = 45;
 // GameTora's events are only filled in before this (where the news archive is thin); later ones only date a news event.

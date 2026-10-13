@@ -28,15 +28,13 @@ if (!existsSync(postsFile(server))) {
   process.exit(1);
 }
 
-// TODO(ts): loadPosts() (news-api.ts, not typed yet) gives an untyped Map; the file is the stored NewsPost list.
-const posts: Map<string, NewsPost> = loadPosts(server);
+const posts = loadPosts(server);
 // An index entry: the fields this script reads.
 type IndexItem = { announce_id: number; update_at: string | null };
 const fresh: IndexItem[] = [];
 let reachedKnown = false;
 for (let page = 1; page <= MAX_PAGES && !reachedKnown; page++) {
-  // TODO(ts): the index's items are the API's, unchecked: indexPage() (news-api.ts) only checks they're a list.
-  const { items, more }: { items: IndexItem[]; more: boolean } = await indexPage(page, server);
+  const { items, more } = await indexPage(page, server);
   for (const item of items) {
     const old = posts.get(String(item.announce_id));
     if (old) reachedKnown = true;

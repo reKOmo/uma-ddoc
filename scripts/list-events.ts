@@ -5,7 +5,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import type { CardsFile } from '../shared/schemas/card.ts';
-import type { EventItem, GameEvent } from '../shared/schemas/event.ts';
+import type { EventItem } from '../shared/schemas/event.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { loadPosts } from './lib/news-api.ts';
 import { buildEvents, readAnswers, readCmTable } from './lib/events.ts';
@@ -14,12 +14,11 @@ const cardsFile = `${GENERATED_DIR}cards.json`;
 // TODO(ts): JSON.parse's any: cards.json is written by build-cards in CardsFile's shape
 // (test/schemas.test.ts checks it).
 const cards = existsSync(cardsFile) ? (JSON.parse(readFileSync(cardsFile, 'utf8')) as CardsFile) : {};
-// TODO(ts): buildEvents (scripts/lib/events.ts, untyped for now) infers a looser shape; its output is GameEvent.
 const events = buildEvents([...loadPosts().values()], {
   cmTable: readCmTable(),
   cards,
   answers: readAnswers(),
-}) as GameEvent[];
+});
 
 const day = (iso: string | null): string => (iso ? iso.slice(0, 16).replace('T', ' ') : '…');
 const count = (c: EventItem['count']): string =>
