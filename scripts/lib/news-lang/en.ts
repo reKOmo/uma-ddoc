@@ -1,9 +1,9 @@
-// @ts-nocheck
 // The English news' wording (Global, umamusume.com): every pattern the news parsers read a post with. The parsers
 // (post-categories.js, banner-posts.js, event-blocks.js, event-rewards.js, events.js) are shared by both servers and
 // take a lexicon like this one (news-lang/index.js: one per server). Keep the wording here and the structure there.
 
 import { parsePeriod } from '../news-text.ts';
+import type { Lexicon } from './index.ts';
 
 // --- titles (post-categories.js) ----------------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ const PHASE_WORDS =
 
 // A celebration's or campaign's name: the title without its phase, a leading "A special" or tagline ("Up to 100 free scouts! …"),
 // a trailing "event" or "!".
-const campaignName = (title) =>
+const campaignName = (title: string) =>
   title
     .replace(PHASE_WORDS, '')
     .replace(/^.*!\s+(?=\S)/, '')
@@ -20,7 +20,7 @@ const campaignName = (title) =>
     .replace(/\s+event$|!$/i, '')
     .replace(/^"(.*)"$/, '$1');
 
-export const en = {
+export const en: Lexicon = {
   server: 'gl',
   // The field of generated/cards.json' names and titles the posts use.
   cardLang: 'en',

@@ -1,8 +1,26 @@
-// @ts-nocheck
 // The Japanese scout posts' wording (banner-posts.js), part of news-lang/ja.js. What they look like:
 // docs/jp-news-findings.md, "Scouts".
 
-export const jaBanners = {
+import type { Lexicon } from './index.ts';
+
+export const jaBanners: Pick<
+  Lexicon,
+  | 'bannerArt'
+  | 'bannerArtSrc'
+  | 'bannerCard'
+  | 'bannerTrainee'
+  | 'bannerType'
+  | 'bannerPeriod'
+  | 'scoutPeriod'
+  | 'paidPost'
+  | 'paidBanner'
+  | 'firstList'
+  | 'listPlaceholder'
+  | 'periodLabel'
+  | 'rerunPeriod'
+  | 'bannerName'
+  | 'bannerNote'
+> = {
   // gacha_banner_<id>.png, also …_new / _new2 / _2.
   bannerArt: /(<img[^>]*\ssrc="[^"]*gacha_banner_\d+(?:_[^"./]*)?\.png[^"]*"[^>]*>)/,
   bannerArtSrc: /src="([^"]*gacha_banner_(\d+)(?:_[^"./]*)?\.png[^"]*)"/,

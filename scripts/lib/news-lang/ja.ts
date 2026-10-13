@@ -1,23 +1,23 @@
-// @ts-nocheck
 // The Japanese news' wording (JP, umamusume.jp and umapyoi.net's mirror of it): the same entries as news-lang/en.js,
 // read by the same parsers. What the posts look like: docs/jp-news-findings.md.
 
 import { norm, parsePeriodJa } from '../news-text.ts';
 import { jaBanners } from './ja-banners.ts';
+import type { Block, JapaneseLexicon, PostLike } from './index.ts';
 
 // --- titles (post-categories.js) ----------------------------------------------------------------------------------
 
 // Marks that aren't part of a name: 【予告】, 【重要】, 【修正済み】, 【9/30 11:00公開】.
-const unmarked = (title) => title.replace(/^(?:【[^】]*】\s*)+|\s*【[^】]*】$/g, '').trim();
+const unmarked = (title: string) => title.replace(/^(?:【[^】]*】\s*)+|\s*【[^】]*】$/g, '').trim();
 const PHASE_END =
   /\s*(?:の?(?:特別)?開催(?:決定|予告|予定|中)?|参加リーグ選択開始|チーム編成期間開始|終了(?:予告|迫る)?|追加|公開|実施中|配信中|登場)?\s*[！!]?$/;
 
 // The outermost 「…」 or 『…』 when the title is just that and its phase ("「「ウマ娘」×「Number」コラボキャンペーン」開催！"),
 // else the title without its phase ("『うまゆる ふるげ～と！』配信記念キャンペーン開催中！"): a campaign's or event's name.
-function jaName(title) {
+function jaName(title: string) {
   const t = unmarked(title);
   const open = t[0];
-  const close = { '「': '」', '『': '』' }[open];
+  const close = ({ '「': '」', '『': '』' } as Record<string, string>)[open];
   if (close) {
     let depth = 0;
     for (let i = 0; i < t.length; i++) {
@@ -30,21 +30,21 @@ function jaName(title) {
   }
   return t.replace(PHASE_END, '').trim() || t;
 }
-const named = (m) => jaName(m.input);
+const named = (m: { input: string }) => jaName(m.input);
 
 // Block art (celebration parts): header_…, banner_…, announce_banner_… (a link to a scout post), also bare <img>s;
 // not scout art (gacha_banner_), inline pictures (banner_detail_) or hero images (….jpg without such a name).
 const PART_ART =
   /(?:<figure>\s*)?<img[^>]*\ssrc="([^"]*\/(?:header|banner|announce_banner)_(?:(?:CP|EV)_\d{8}_\d+|\d{4,10})(?:_[^"/.]+)?\.(?:png|jpg)[^"]*)"[^>]*>(?:\s*<\/figure>)?/gi;
-const partArts = (post) => (post.message ?? '').match(PART_ART)?.length ?? 0;
+const partArts = (post: PostLike) => (post.message ?? '').match(PART_ART)?.length ?? 0;
 // A campaign post showing several parts' art is a celebration (G1 campaigns, anniversaries' 第N弾, ゆく年くる年…).
-const campaignKind = (post) => (partArts(post) >= 2 ? 'celebration' : 'campaign');
+const campaignKind = (post: PostLike) => (partArts(post) >= 2 ? 'celebration' : 'campaign');
 
 const TILDE = '[～〜~]';
 
 // An item's name as the post writes it: no 「」, no trailing amount.
 const ITEM_QUOTES = /^[「『]|[」』]$|[」』](?=\s*$)/g;
-const jaItem = (name) =>
+const jaItem = (name: string) =>
   name
     .trim()
     .replace(ITEM_QUOTES, '')
@@ -59,7 +59,7 @@ const SCOUT_BLOCK = /ガチャ[」』]?(?:を|が)開催|ガチャ[」』]?と[�
 const FEATURE_BLOCK =
   /追加(?:いた)?しました|追加いたします|公開中です|公開しました|できるようになりました|改修|変更しました|更新しました/;
 const SUMMARY_BLOCK = /[」』]で最大\d+枚/;
-function blockRole(block) {
+function blockRole(block: Block) {
   const opening = block.intro.join(' ');
   if (/\/announce_banner_/.test(block.art ?? '')) return 'scout';
   if (SCOUT_BLOCK.test(block.intro[0] ?? '') && !/無料/.test(opening)) return 'scout';
@@ -72,9 +72,9 @@ function blockRole(block) {
 // A sub-event's name in its opening sentence: of the names it quotes (「…」 / 『…』, nested ones kept), with what follows
 // them up to a particle ("「育成報酬」ピース追加キャンペーン"), the first one the sentence says is on, given or added ("「X」を
 // 開催中です", "[ミッション]に「X」が登場", "「X」をトレーナーの皆さまにお贈りいたします"), else the first; null without any.
-const OPEN = { '「': '」', '『': '』' };
+const OPEN: Record<string, string> = { '「': '」', '『': '』' };
 const NAME_VERB = /^(?:を|が)[^「」『』。]{0,25}?(?:開催|お贈り|お送り|プレゼント|販売|公開|実施|登場|開始)/;
-function subName(sentence) {
+function subName(sentence: string) {
   const names = [];
   let depth = 0;
   let from = 0;
@@ -89,7 +89,7 @@ function subName(sentence) {
       stack.pop();
       if (--depth) continue;
       const inner = sentence.slice(from + 1, i).trim();
-      const suffix = sentence.slice(i + 1).match(/^[^\s、。！？!?「」『』をがにはでとのやもへ]*/)[0];
+      const suffix = sentence.slice(i + 1).match(/^[^\s、。！？!?「」『』をがにはでとのやもへ]*/)?.[0] ?? '';
       const after = sentence.slice(i + 1 + suffix.length);
       names.push({ name: suffix ? sentence.slice(from, i + 1) + suffix : inner, on: NAME_VERB.test(after) });
     }
@@ -100,7 +100,7 @@ function subName(sentence) {
 
 // How many copies of a card one part of a celebration gives, from the post's summary of them ("「…ログインボーナス」で
 // 最大2枚、「…ミッション第2弾」で最大3枚", "・…ログインボーナス：最大2枚獲得可能"), or null.
-function partCopies(lines, part) {
+function partCopies(lines: string[], part: string | null) {
   const key = norm(part);
   if (!key) return null;
   for (const line of lines) {
@@ -112,7 +112,7 @@ function partCopies(lines, part) {
   return null;
 }
 
-export const ja = {
+export const ja: JapaneseLexicon = {
   server: 'jp',
   cardLang: 'jp',
   // Dates: JST, years mostly left out (the one nearest the post).
