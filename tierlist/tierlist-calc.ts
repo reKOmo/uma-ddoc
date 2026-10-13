@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Support card scoring: a candidate card's marginal value when added to a fixed
 // deck. Originally from https://github.com/Euophrys/umamusume-tierlist
 // (src/components/tierlist-calc.js, MIT — see LICENSE); maintained here now.
@@ -20,6 +19,50 @@
 //   sb  starting bond        tb  training bonus       mb  motivation bonus
 //   fs_*  friendship ("rainbow") bonuses, applied only while the card rainbows
 //   stat_bonus[6]  flat per-stat bonus   specialty_rate  specialty priority
+
+import type { LbStats } from '../shared/schemas/card.ts';
+
+// A card as joinCards() builds it (tierlist/join-cards.ts): upstream's card fields, one per limit break, plus `events`.
+export type CalcCard = LbStats & {
+  id: number;
+  type: number; // upstream's code: 0..4 the stats, 6 friend / group
+  group: boolean;
+  rarity: number; // 1 R, 2 SR, 3 SSR
+  limit_break: number;
+  char_name: string;
+  events: number[] | null; // [0..6] gains, [7] bond; null without event data
+};
+
+// A card in a deck being scored: the calculation adds these as it goes. `cardType` is set for the fixed deck's cards
+// only (the candidate never gets one).
+type PlayedCard = CalcCard & { index: number; rainbowSpecialty: number; offSpecialty: number; cardType?: number };
+type DeckCard = PlayedCard & { cardType: number };
+
+// A scenario's weights for one stat (tierlist/scenarios.ts' `general` merged with the stat's own entry); only the
+// fields read here.
+export type CalcWeights = {
+  bondPerDay: number;
+  races: number[];
+  unbondedTrainingGain: number[][];
+  bondedTrainingGain: number[][];
+  summerTrainingGain: number[][];
+  umaBonus: number[];
+  multi: number;
+  bonusSpec: number;
+  motivation: number;
+  scenarioLink: string[];
+  scenarioBonus: number;
+  fanBonus: number;
+  type: number;
+  stats: number[];
+  cap: number;
+  minimum: number;
+  prioritize: boolean;
+  onlySummer: boolean;
+};
+
+// One scored candidate.
+export type ProcessedCard = { id: number; lb: number; score: number; char_name: string };
 
 const STAT_COUNT = 6; // five training stats + skill points
 const TRAINING_COUNT = 5;
@@ -53,7 +96,7 @@ const RACE_REWARDS = [
 
 // Probability that this card lands on its specialty training (onSpecialty) vs.
 // any single off-specialty training (offSpecialty).
-function specialtyChances(card, weights) {
+function specialtyChances(card: CalcCard, weights: CalcWeights) {
   const specialty = (BASE_WEIGHT + card.specialty_rate + weights.bonusSpec) * card.unique_specialty * card.fs_specialty;
   return {
     onSpecialty: specialty / (OTHER_SLOTS_WEIGHT + specialty),
@@ -61,17 +104,18 @@ function specialtyChances(card, weights) {
   };
 }
 
-const deepClone = (value) => JSON.parse(JSON.stringify(value));
+const deepClone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
-export function processCards(cards, weights, selectedCards) {
-  const processedCards = [];
-  selectedCards = deepClone(selectedCards);
+export function processCards(cards: CalcCard[], weights: CalcWeights, deck: CalcCard[]): ProcessedCard[] {
+  const processedCards: ProcessedCard[] = [];
+  // TODO(ts): the clones get their calculation fields (cardType, index, …) filled in just below
+  const selectedCards = deepClone(deck) as DeckCard[];
 
   // Pre-process the fixed deck (the cards the user already picked): record
   // which training types are present, group cards by type, and tally the bond
   // the whole deck needs before anyone can rainbow.
   const presentTypes = [false, false, false, false, false, false, false];
-  const cardsPerType = [[], [], [], [], [], [], []];
+  const cardsPerType: DeckCard[][] = [[], [], [], [], [], [], []];
   let baseBondNeeded = 0;
   for (let i = 0; i < selectedCards.length; i++) {
     const selectedCard = selectedCards[i];
@@ -111,7 +155,8 @@ export function processCards(cards, weights, selectedCards) {
 
   // Score each candidate card as if it were added to the fixed deck.
   for (let i = 0; i < cards.length; i++) {
-    const card = deepClone(cards[i]);
+    // TODO(ts): rainbowSpecialty / offSpecialty are set below, before anything reads them
+    const card = deepClone(cards[i]) as PlayedCard;
     const cardType = card.type;
     card.index = 6; // distinct from the selected cards' indices (0..5)
 
@@ -183,7 +228,7 @@ export function processCards(cards, weights, selectedCards) {
     if (cardType !== GROUP_TYPE) {
       card.rainbowSpecialty = specialtyPercent;
       card.offSpecialty = otherPercent;
-      const cardsOfThisType = cardsPerType[cardType].slice();
+      const cardsOfThisType: PlayedCard[] = cardsPerType[cardType].slice();
       cardsOfThisType.push(card);
 
       let chanceOfSingleRainbow = 0;
@@ -324,7 +369,7 @@ export function processCards(cards, weights, selectedCards) {
 // Training and motivation bonuses add (less their identity of 1); friendship
 // bonuses multiply, and only for cards on their own specialty training.
 
-function comboTrainingBonus(combination, typeCount) {
+function comboTrainingBonus(combination: DeckCard[], typeCount: number) {
   return combination.reduce((total, c) => {
     let training = total + (c.tb - 1) + combination.length * c.crowd_bonus;
     if (typeCount >= c.highlander_threshold) training += c.highlander_training;
@@ -332,24 +377,33 @@ function comboTrainingBonus(combination, typeCount) {
   }, 1);
 }
 
-function comboFriendshipBonus(combination, trainingType) {
+function comboFriendshipBonus(combination: DeckCard[], trainingType: number) {
   return combination.reduce(
     (total, c) => (c.cardType === trainingType ? total * c.fs_bonus * c.unique_fs_bonus : total),
     1
   );
 }
 
-function comboMotivationBonus(combination) {
+function comboMotivationBonus(combination: DeckCard[]) {
   return combination.reduce((total, c) => total + c.mb - 1, 1);
 }
 
-function comboStatBonus(combination, stat) {
+function comboStatBonus(combination: DeckCard[], stat: number) {
   return combination.reduce((total, c) => total + c.stat_bonus[stat], 0);
 }
 
 // Gain from the candidate training on its own specialty. Sums over every way
 // the deck members could join it that turn, weighted by how likely each is.
-function trainingGain(gains, weights, card, otherCards, trainingType, days, rainbow, typeCount) {
+function trainingGain(
+  gains: number[],
+  weights: CalcWeights,
+  card: PlayedCard,
+  otherCards: DeckCard[],
+  trainingType: number,
+  days: number,
+  rainbow: boolean,
+  typeCount: number
+) {
   const trainingGains = [0, 0, 0, 0, 0, 0, 0];
 
   let trainingBonus = card.tb + card.fan_bonus * weights.fanBonus;
@@ -440,7 +494,16 @@ function trainingGain(gains, weights, card, otherCards, trainingType, days, rain
 // Gain from the candidate training off its specialty. Only the deck members
 // on *their* specialty (statCards) can rainbow here, so the candidate's
 // contribution counts only for combinations that include such a card.
-function crossTrainingGain(gains, weights, card, otherCards, trainingType, days, typeCount, bonded) {
+function crossTrainingGain(
+  gains: number[],
+  weights: CalcWeights,
+  card: PlayedCard,
+  otherCards: DeckCard[],
+  trainingType: number,
+  days: number,
+  typeCount: number,
+  bonded: boolean
+) {
   const trainingGains = [0, 0, 0, 0, 0, 0, 0];
   const statCards = otherCards.filter((c) => c.cardType === trainingType);
   let trainingBonus = card.tb + card.fan_bonus * weights.fanBonus;
@@ -508,7 +571,7 @@ function crossTrainingGain(gains, weights, card, otherCards, trainingType, days,
 }
 
 // Weighted sum of stat gains, each capped at weights.cap.
-function gainsToScore(gains, weights) {
+function gainsToScore(gains: number[], weights: CalcWeights) {
   let score = 0;
   for (let stat = 0; stat < STAT_COUNT; stat++) {
     score += Math.min(gains[stat], weights.cap) * weights.stats[stat];
@@ -518,12 +581,12 @@ function gainsToScore(gains, weights) {
 
 // Every subset of `cards` with at least `minLength` members (built by treating
 // the bits of each number 0..2^n-1 as a membership mask).
-function subsets(cards, minLength = 1) {
-  const combinations = [];
+function subsets<T>(cards: T[], minLength = 1): T[][] {
+  const combinations: T[][] = [];
   const count = 2 ** cards.length;
 
   for (let mask = 0; mask < count; mask++) {
-    const subset = [];
+    const subset: T[] = [];
     for (let j = 0; j < cards.length; j++) {
       if (mask & (2 ** j)) subset.push(cards[j]);
     }
@@ -535,8 +598,8 @@ function subsets(cards, minLength = 1) {
 
 // Probability that exactly `combination` lands on `trainingType` this turn:
 // the combination members do, and (when `cards` is given) none of the rest do.
-function combinationChance(combination, cards, trainingType) {
-  const landsOn = (card) => (card.cardType === trainingType ? card.rainbowSpecialty : card.offSpecialty);
+function combinationChance(combination: PlayedCard[], cards: PlayedCard[] | undefined, trainingType: number) {
+  const landsOn = (card: PlayedCard) => (card.cardType === trainingType ? card.rainbowSpecialty : card.offSpecialty);
 
   let chance = combination.reduce((current, card) => current * landsOn(card), 1);
 
