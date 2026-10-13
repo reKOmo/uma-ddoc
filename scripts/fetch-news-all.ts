@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Every post of the official news (Global, or JP with --server jp) into data/news/<server>/posts.json, back to the
 // first one the site serves.
 //
@@ -13,31 +12,37 @@
 // Usage: pnpm news:all [--server jp]   (pnpm news:all:jp)
 
 import { fetchPost, indexPage, loadPosts, olderId, requests, savePosts, serverArg, setPause } from './lib/news-api.ts';
+import type { Server } from './lib/news-text.ts';
+import type { NewsPost } from '../shared/schemas/news.ts';
 
 setPause(1000, 2000);
-const server = serverArg();
+// TODO(ts): serverArg() (news-api.ts, not typed yet) returns a string; it throws unless it's gl or jp.
+const server = serverArg() as Server;
 
-const posts = loadPosts(server);
+// TODO(ts): loadPosts() (news-api.ts, not typed yet) gives an untyped Map; the file is the stored NewsPost list.
+const posts: Map<string, NewsPost> = loadPosts(server);
 const before = posts.size;
 // Several posts often share a post time, so the index's first post needn't be the chain's first: walk from each post
 // on the first page, or on JP every page (a walk stops where an earlier one has been, so that costs nothing extra).
 const starts = [];
 for (let page = 1; ; page++) {
-  const { items, more } = await indexPage(page, server);
+  // TODO(ts): the index's items are the API's, unchecked: indexPage() (news-api.ts) only checks they're a list.
+  const { items, more }: { items: { announce_id: number }[]; more: boolean } = await indexPage(page, server);
   starts.push(...items.map((item) => String(item.announce_id)));
   if (server === 'gl' || !more) break;
 }
 console.log(`${starts.length} posts in the index`);
 
 let fetched = 0;
-const seen = new Set();
+const seen = new Set<string>();
 for (const start of starts) {
-  let id = start;
+  let id: string | null = start;
   while (id && !seen.has(id)) {
     seen.add(id);
     let post = posts.get(id);
     if (!post) {
-      post = await fetchPost(id, server);
+      // TODO(ts): fetchPost() (news-api.ts, not typed yet) returns the post as the API sends it, unchecked.
+      post = (await fetchPost(id, server)) as NewsPost;
       posts.set(id, post);
       fetched++;
       console.log(`${post.post_at}  ${id}  ${post.title}`);

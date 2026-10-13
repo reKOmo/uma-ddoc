@@ -1,4 +1,3 @@
-// @ts-nocheck
 // New and edited posts from the official news (Global, or JP with --server jp) into data/news/<server>/posts.json,
 // for periodic runs.
 //
@@ -17,21 +16,28 @@ import { newsDir } from './lib/paths.ts';
 import { fetchPost, indexPage, loadPosts, postsFile, requests, savePosts, serverArg } from './lib/news-api.ts';
 import { categorize, plain } from './lib/post-categories.ts';
 import { lexicon } from './lib/news-lang/index.ts';
-import { newsUrl } from './lib/news-text.ts';
+import { newsUrl, type Server } from './lib/news-text.ts';
+import type { NewsPost } from '../shared/schemas/news.ts';
+import type { Categorized } from './lib/post-categories.ts';
 
 const MAX_PAGES = 5; // more than that and something's off
-const server = serverArg();
+// TODO(ts): serverArg() (news-api.ts, not typed yet) returns a string; it throws unless it's gl or jp.
+const server = serverArg() as Server;
 
 if (!existsSync(postsFile(server))) {
   console.error(`No ${postsFile(server)} yet: run \`pnpm news:all --server ${server}\` first.`);
   process.exit(1);
 }
 
-const posts = loadPosts(server);
-const fresh = [];
+// TODO(ts): loadPosts() (news-api.ts, not typed yet) gives an untyped Map; the file is the stored NewsPost list.
+const posts: Map<string, NewsPost> = loadPosts(server);
+// An index entry: the fields this script reads.
+type IndexItem = { announce_id: number; update_at: string | null };
+const fresh: IndexItem[] = [];
 let reachedKnown = false;
 for (let page = 1; page <= MAX_PAGES && !reachedKnown; page++) {
-  const { items, more } = await indexPage(page, server);
+  // TODO(ts): the index's items are the API's, unchecked: indexPage() (news-api.ts) only checks they're a list.
+  const { items, more }: { items: IndexItem[]; more: boolean } = await indexPage(page, server);
   for (const item of items) {
     const old = posts.get(String(item.announce_id));
     if (old) reachedKnown = true;
@@ -41,8 +47,8 @@ for (let page = 1; page <= MAX_PAGES && !reachedKnown; page++) {
 }
 if (!reachedKnown) console.warn(`Stopped after ${MAX_PAGES} pages without reaching a known post.`);
 
-const added = [];
-const edited = [];
+const added: string[] = [];
+const edited: string[] = [];
 for (const item of fresh) {
   const id = String(item.announce_id);
   (posts.has(id) ? edited : added).push(id);
@@ -52,11 +58,18 @@ if (fresh.length) savePosts(posts, server);
 
 // Each server's posts read with its own wording (scripts/lib/news-lang/).
 const lang = lexicon(server);
-const categories = new Map([...added, ...edited].map((id) => [id, categorize(posts.get(id), lang)]));
-// "- [Title](url) — event / story, started"
-const describe = (id) => {
+// Every id here was stored just above.
+const stored = (id: string): NewsPost => {
   const post = posts.get(id);
+  if (!post) throw new Error(`${id} is not stored`);
+  return post;
+};
+const categories = new Map<string, Categorized>([...added, ...edited].map((id) => [id, categorize(stored(id), lang)]));
+// "- [Title](url) — event / story, started"
+const describe = (id: string): string => {
+  const post = stored(id);
   const c = categories.get(id);
+  if (!c) throw new Error(`${id} is not categorized`);
   const link = `[${plain(post.title)}](${newsUrl(id, server)})`;
   const what = [c.category, c.kind].filter(Boolean).join(' / ');
   return `- ${link} — ${what}${c.phase ? `, ${c.phase}` : ''}`;

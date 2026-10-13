@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Asks a language model (scripts/lib/ai.js) about what the rules doubt in the news events (scripts/lib/events.js
 // `doubts`), and stores its answers in data/news/<gl|jp>/ai_answers.json (committed; buildEvents() applies them at build time,
 // so builds and deploys never call a model). Only events without an answer for the current text and questions are
@@ -24,8 +23,18 @@ import { applyAnswer, mergeAnswer, question, staleFields } from './lib/event-que
 import { eventFragments, readAnswers, writeAnswers } from './lib/events.ts';
 import { norm } from './lib/event-rewards.ts';
 import { lexicon } from './lib/news-lang/index.ts';
+import type { Server } from './lib/news-text.ts';
+import type { CardsFile } from '../shared/schemas/card.ts';
+import type { GameEvent } from '../shared/schemas/event.ts';
+import type { AiAnswer, AiAnswersFile, NewsPost } from '../shared/schemas/news.ts';
 
-const arg = (name, fallback) => {
+// An event fragment (events.ts' eventFragments()): an event with its doubts, text and aiKey.
+type Fragment = GameEvent & { doubts: Record<string, string>; text: string; aiKey: string };
+// What question() takes: the fields to ask about (all of them when comparing), the posts' lexicon.
+type QuestionOptions = { all?: boolean; fields?: string[] };
+type ModelAnswer = AiAnswer['answer'];
+
+const arg = (name: string, fallback?: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
   return i > 0 ? process.argv[i + 1] : fallback;
 };
@@ -35,24 +44,30 @@ const config = aiConfig(process.env, {
   ...(process.argv.includes('--think') && { think: true }),
 });
 const cardsFile = `${GENERATED_DIR}cards.json`;
-const cards = existsSync(cardsFile) ? JSON.parse(readFileSync(cardsFile, 'utf8')) : {};
-const server = arg('server', 'gl');
+const cards: CardsFile = existsSync(cardsFile) ? JSON.parse(readFileSync(cardsFile, 'utf8')) : {};
+// TODO(ts): --server is read as a string here; it's gl or jp (flags move to parseArgs later).
+const server = arg('server', 'gl') as Server;
 const lang = lexicon(server);
-const fragments = eventFragments([...loadPosts(server).values()], cards, lang);
+// TODO(ts): loadPosts() (news-api.ts, not typed yet) gives an untyped Map; the file is the stored NewsPost list.
+const posts: NewsPost[] = [...loadPosts(server).values()];
+// TODO(ts): eventFragments() (events.ts, not typed yet) returns the fragments untyped; they're Fragment.
+const fragments: Fragment[] = eventFragments(posts, cards, lang);
 console.log(
   `${server}: ${config.provider} ${config.model}${config.think ? ' (thinking)' : ''}: ${fragments.length} events`
 );
 
-async function timed(event, options) {
+async function timed(event: Fragment, options: QuestionOptions): Promise<{ answer: ModelAnswer; ms: number }> {
   const t = Date.now();
-  const answer = await ask(config, question(event, { ...options, lang }));
+  // TODO(ts): ask() (ai.ts, not typed yet) gives the model's parsed reply, unchecked: applyAnswer() checks it.
+  const answer = (await ask(config, question(event, { ...options, lang }))) as ModelAnswer;
   return { answer, ms: Date.now() - t };
 }
 
 if (!process.argv.includes('--compare')) {
-  const answers = readAnswers(server);
+  // TODO(ts): readAnswers() (events.ts, not typed yet) gives the stored file, as written by writeAnswers().
+  const answers: AiAnswersFile = readAnswers(server);
   const todo = fragments.filter((f) => staleFields(f, answers[f.aiKey]).length);
-  const limit = Number(arg('limit', todo.length));
+  const limit = Number(arg('limit', String(todo.length)));
   console.log(
     `${todo.length} events with doubted or empty fields and no answer; asking ${Math.min(limit, todo.length)}`
   );
@@ -66,14 +81,15 @@ if (!process.argv.includes('--compare')) {
       console.log(`  ${f.id} (${fields.join(', ')}) ${(ms / 1000).toFixed(1)} s`);
     } catch (err) {
       failed++;
-      console.warn(`  ${f.id}: ${err.message}`);
+      console.warn(`  ${f.id}: ${err instanceof Error ? err.message : err}`);
     }
   }
   console.log(`done, ${failed} failed`);
 } else {
   // Half doubted, half not, spread over the archive.
-  const n = Number(arg('sample', 20));
-  const spread = (list, k) => list.filter((_, i) => i % Math.max(1, Math.floor(list.length / k)) === 0).slice(0, k);
+  const n = Number(arg('sample', '20'));
+  const spread = <T>(list: T[], k: number): T[] =>
+    list.filter((_, i) => i % Math.max(1, Math.floor(list.length / k)) === 0).slice(0, k);
   const doubted = fragments.filter((f) => Object.keys(f.doubts).length);
   const sure = fragments.filter((f) => !Object.keys(f.doubts).length);
   const ids = arg('ids')?.split(',');
@@ -81,14 +97,14 @@ if (!process.argv.includes('--compare')) {
     ? fragments.filter((f) => ids.includes(f.id))
     : [...spread(doubted, Math.ceil(n / 2)), ...spread(sure, Math.floor(n / 2))];
 
-  const counts = (items) => Object.fromEntries(items.map((i) => [norm(i.name), i.count]));
-  const rows = [];
-  const tally = {};
-  const mark = (field, verdict) => {
+  const counts = (items: Fragment['items']) => Object.fromEntries(items.map((i) => [norm(i.name), i.count]));
+  const rows: Record<string, unknown>[] = [];
+  const tally: Record<string, Record<string, number>> = {};
+  const mark = (field: string, verdict: string) => {
     tally[field] ??= { same: 0, different: 0, 'model only': 0, 'rules only': 0, 'both empty': 0 };
     tally[field][verdict]++;
   };
-  const verdict = (rules, model) =>
+  const verdict = (rules: unknown, model: unknown): string =>
     rules == null && model == null
       ? 'both empty'
       : rules == null
@@ -114,7 +130,7 @@ if (!process.argv.includes('--compare')) {
         verdict: verdict(r[k], m[k]),
       }));
       for (const i of items) mark('items', i.verdict);
-      const minute = (iso) => iso?.slice(0, 16).replace('T', ' ') ?? null;
+      const minute = (iso: string | null | undefined) => iso?.slice(0, 16).replace('T', ' ') ?? null;
       const fields = {
         name: [f.name, used.name],
         ...('kind' in answer && { kind: [f.kind, used.kind] }),
@@ -143,8 +159,8 @@ if (!process.argv.includes('--compare')) {
       );
       for (const o of off) console.log(`      ${o}`);
     } catch (err) {
-      console.warn(`  ${f.id}: ${err.message}`);
-      rows.push({ id: f.id, error: err.message });
+      console.warn(`  ${f.id}: ${err instanceof Error ? err.message : err}`);
+      rows.push({ id: f.id, error: err instanceof Error ? err.message : String(err) });
     }
   }
   console.log(
