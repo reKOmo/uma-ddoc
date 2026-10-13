@@ -100,7 +100,7 @@ function bannerEntry(banner, group, byId, now) {
 }
 
 export function bannerEntries(file, { now = Date.now() } = {}) {
-  return ['characters', 'cards'].flatMap((group) => {
+  return ['cards', 'characters'].flatMap((group) => {
     const byId = new Map(file[group].map((b) => [b.id, b]));
     return file[group].map((banner) => bannerEntry(banner, group, byId, now));
   });

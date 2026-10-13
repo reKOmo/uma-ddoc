@@ -13,6 +13,8 @@ import { CM_PHASES, EVENT_KINDS } from '../scripts/lib/events.js';
 import { ja } from '../scripts/lib/news-lang/ja.js';
 import { EVENT_GROUPS } from '../src/timeline/events.js';
 import { LANE_GROUPS } from '../src/timeline/layout.js';
+import { ORIGIN_KINDS } from '../src/cardOrigins.js';
+import { cards } from '../tierlist/cards.js';
 
 const I18N_DIR = new URL('../src/i18n/', import.meta.url);
 const SRC_DIR = new URL('../src/', import.meta.url);
@@ -79,6 +81,9 @@ describe('catalogs', () => {
       ...EVENT_GROUPS.map(([k]) => `events.group.${k}`),
       ...CM_PHASES.map(([k]) => `events.phase.${k}`),
       ...ja.schedules.league_of_heroes.map(([k]) => `events.phase.${k}`),
+      ...['show', 'order'].map((k) => `timeline.filter.tab.${k}`),
+      ...ORIGIN_KINDS.filter((k) => k !== 'other').map((k) => `card.origins.kind.${k}`),
+      ...new Set(Object.values(cards).flatMap((card) => card.source.map((s) => `card.origins.source.${s}`))),
     ];
     expect(dynamic.filter((key) => !keys.has(key))).toEqual([]);
   });

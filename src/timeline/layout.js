@@ -33,11 +33,12 @@ export function spanOf(entry) {
   return { start, end: entry.end ? Date.parse(entry.end) : start + DAY };
 }
 
-// The Timeline's lane groups, in order: the banner sections, then the event groups (EVENT_GROUPS). `key` is also
-// what folding a group remembers (src/timeline/collapsed.js), `label` an i18n key.
+// The Timeline's lane groups, in order: the banner sections (support cards first, then trainees), then the event groups
+// (EVENT_GROUPS). The one order everything on the Timeline follows (its filter too). `key` is also what folding a
+// group remembers (src/timeline/collapsed.js), `label` an i18n key.
 export const LANE_GROUPS = [
-  { key: 'characters', label: 'timeline.characters', kinds: ['characters'] },
   { key: 'cards', label: 'timeline.supportCards', kinds: ['cards'] },
+  { key: 'characters', label: 'timeline.characters', kinds: ['characters'] },
   ...EVENT_GROUPS.map(([key, kinds]) => ({ key: `events-${key}`, label: `events.group.${key}`, kinds })),
 ];
 

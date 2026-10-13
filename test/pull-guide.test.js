@@ -17,7 +17,7 @@ import {
   parseTab,
   parseUpdated,
 } from '../scripts/lib/pull-guide.js';
-import { currentAdvice, latestAdvice, sheetLink, upcomingBanner } from '../src/pullGuide.js';
+import { bannerVerdicts, currentAdvice, latestAdvice, sheetLink, upcomingBanner, verdictOf } from '../src/pullGuide.js';
 
 const link = (url) => `<a href="https://www.google.com/url?q=${url}&amp;sa=D&amp;usg=x">`;
 let rowIndex = 0;
@@ -229,6 +229,22 @@ describe('the advice shown', () => {
   it("links to the entry's row in the sheet", () => {
     expect(sheetLink({ googleSheetsSrc: { gid: '5', row: 12 } }, 'https://s')).toBe('https://s/edit#gid=5&range=B12');
     expect(sheetLink(null, 'https://s')).toBe('https://s');
+  });
+});
+
+describe('verdicts (the Timeline filter)', () => {
+  it("reads an advice's pill without its +s, else none", () => {
+    expect(verdictOf({ shouldPull: 'whale++' })).toBe('whale');
+    expect(verdictOf({ shouldPull: 'yes' })).toBe('yes');
+    expect(verdictOf({ shouldPull: null })).toBe('none');
+    expect(verdictOf(undefined)).toBe('none');
+  });
+
+  it("gives a banner's cards' verdicts, none for cards or banners without advice", () => {
+    const guide = { banners: { 30001: { 1: { shouldPull: 'yes' }, 2: { shouldPull: 'dolphin+' } } }, noBanner: {} };
+    expect([...bannerVerdicts(guide, 30001, [1, 2, 3])]).toEqual(['yes', 'dolphin', 'none']);
+    expect([...bannerVerdicts(guide, 30002, [1])]).toEqual(['none']);
+    expect([...bannerVerdicts(guide, 30001, [])]).toEqual(['none']);
   });
 });
 

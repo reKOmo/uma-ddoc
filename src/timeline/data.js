@@ -5,6 +5,7 @@
 //   counterpart on the other server (COUNTERPARTS), and the marks drawn over the calendar (MARKS)
 // loadBanners(name) → a server's banners, real then predicted: { characters, cards } (`name`: a banner file name,
 //   src/servers.js)
+// loadEntries(server) → its banners and events as entries alone (no marks or counterparts: the card page)
 // loadRealBanners(name), loadEvents(name)
 
 import { cards } from '../../tierlist/cards.js';
@@ -114,14 +115,27 @@ const COUNTERPARTS = {
 };
 const OTHER = { gl: 'jp', jp: 'gl' };
 
-export async function loadTimeline(server, now = Date.now()) {
+const loadFiles = (server) => {
   const name = SERVERS[server].banners;
-  const [banners, events] = await Promise.all([loadBanners(name), loadEvents(name)]);
+  return Promise.all([loadBanners(name), loadEvents(name)]);
+};
+const toEntries = (banners, events, now) => [
+  ...bannerEntries(banners, { now }),
+  ...eventEntries(events, { cards, now }),
+];
+
+export async function loadEntries(server, now = Date.now()) {
+  const [banners, events] = await loadFiles(server);
+  return toEntries(banners, events, now);
+}
+
+export async function loadTimeline(server, now = Date.now()) {
+  const [banners, events] = await loadFiles(server);
   const [marks, counterparts] = await Promise.all([
     MARKS[server]?.(banners) ?? [],
     COUNTERPARTS[server](banners, events),
   ]);
-  const entries = [...bannerEntries(banners, { now }), ...eventEntries(events, { cards, now })];
+  const entries = toEntries(banners, events, now);
   for (const entry of entries) {
     const id = counterparts.get(String(entry.id));
     if (id) entry.counterpart = { server: OTHER[server], id };

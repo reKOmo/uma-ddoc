@@ -10,16 +10,17 @@
 // (JP items Global has go by Global's names; a JP voucher is an 引換券.)
 const FIRST = [/^carats$/i, /^monies$/i, /crystal shards/i, /scout tickets?$/i, /voucher|引換券/i];
 
-// The Timeline's event groups, in order, and the kinds in each.
+// The Timeline's event groups, in order, and the kinds in each: what gives cards and pulls first (story events,
+// celebrations, gifts, bonuses, missions), then competitive modes, then the rest.
 export const EVENT_GROUPS = [
   ['story', ['story', 'special', 'factor_research', 'masters_challenge']],
+  ['celebration', ['celebration']],
+  ['gifts', ['gift', 'login_bonus']],
+  ['bonuses', ['campaign']],
+  ['missions', ['missions']],
   ['champions_meeting', ['champions_meeting']],
   ['league_of_heroes', ['league_of_heroes']],
   ['legend_race', ['legend_race']],
-  ['celebration', ['celebration']],
-  ['gifts', ['gift', 'login_bonus']],
-  ['missions', ['missions']],
-  ['bonuses', ['campaign']],
   ['shops', ['shop', 'sale']],
   ['transfers', ['transfer_requests', 'uma_outing']],
 ];

@@ -50,8 +50,8 @@ describe('laneGroups', () => {
       entry('characters:1', 'characters', '2026-10-01T00:00:00Z', '2026-10-08T00:00:00Z'),
     ]);
     expect(groups.map((g) => [g.key, g.label, g.rows.map((row) => row.map((item) => item.entry.key))])).toEqual([
-      ['characters', 'timeline.characters', [['characters:1']]],
       ['cards', 'timeline.supportCards', [['cards:1'], ['cards:2']]],
+      ['characters', 'timeline.characters', [['characters:1']]],
       ['events-story', 'events.group.story', [['event:1']]],
     ]);
   });

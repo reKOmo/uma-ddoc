@@ -38,10 +38,24 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   Events under the banners on both servers (`data/global_events.json` / `data/jp_events.json`, loaded per server by
   `loadEvents()` in `src/timeline/data.js`; JP's names as the posts give them, items by their Japanese `local` name;
   `src/timeline/events.js`) in labelled groups by type
-  (`EVENT_GROUPS`: story & special, Champions Meetings, League of Heroes (JP), Legend Races, celebrations, gifts & login
-  bonuses, missions, bonuses, shops & sales, transfers & outings), each group packed on its own. Every group label (the banner sections'
+  (`EVENT_GROUPS`, after the support card then trainee banners: story & special, celebrations, gifts & login bonuses,
+  bonuses, missions, Champions Meetings, League of Heroes (JP), Legend Races, shops & sales, transfers & outings: what
+  gives cards and pulls first, competitive modes next), each group packed on its own. Every group label (the banner sections'
   too) folds its group away (`src/timeline/collapsed.js`: remembered in localStorage, try/catch; rows stay fixed, bars
-  never move). **Compact mode** (the toolbar's fold button, on by default, `src/timeline/compact.js`: remembered in
+  never move). **Filter** (the toolbar's button, with a count of what's hidden, opens a sheet, `TimelineFilter.jsx`: sections
+  Banners / Events / Pull advice, each with All / None, "Show all" by the title; a second tab, Order, drags the
+  calendar's lane groups into order (`GroupOrder.jsx`, dnd-kit's pointer sensor, by a handle with `touch-action: none`:
+  phones drag at once and the rest of a row still scrolls; keyboard too; tabs with icons; "Reset order" by
+  the title (on the Order tab, where "Show all" is on the Show tab); both tabs share one grid cell (the other
+  invisible + `inert`), so switching never resizes the sheet; `src/timeline/order.js`: remembered in localStorage,
+  the lanes and the chips both follow it); every change applies and is saved at once, no Done; `src/timeline/hidden.js`: remembered in
+  localStorage, try/catch, the same for both servers): a toggle per banner section (trainee, support card) and event
+  kind the calendar has, in its groups' order; when the pull guide covers any of the calendar's banners (Global's), a
+  toggle per pull-advice verdict (Yes / No / Free / If Whale / If Dolphin / No advice: a support card banner stays
+  while one of its cards has a verdict shown; `VERDICTS`, `bannerVerdicts()` in `src/pullGuide.js`; greyed out while
+  support card banners are hidden).
+  Hidden bars leave the lanes (a hidden event's parts of shown kinds stand on their own; the calendar's dates and the
+  sheets keep everything). **Compact mode** (the toolbar's fold button, on by default, `src/timeline/compact.js`: remembered in
   localStorage): rows with nothing in view (± half a screen) fold away while scrolling slowly or once it stops (`visibleRows()` in
   `layout.js`), so a group is only as tall as what's on screen; rows are never repacked, a bar never changes row. An event with parts (a celebration's sub-events, an event's mission sets) is one bar with a "+N" fold
   button (`.bar-fold`); unfolded, its parts' rows open under its row over a band tinted in its colour
@@ -95,9 +109,18 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
     24 characters (shorter, e.g. "With Kitasan", it leads the notes instead; `parsePull`), free pulls, then the notes as one paragraph (`notesParagraph()` at build time: a full stop added where a sentence has none).
   - The box's footer (under both halves): a centred "See more on Luh's encyclopedia" (the card's row in the sheet). The guide's disclaimer (with a link
     to the sheet) is in About, not on the card page.
+  - "Available on" (`Origins`, `src/cardOrigins.js`): every banner featuring the card and event giving it on the
+    selected server (a card not on Global yet: Global's predicted ones and JP's, JP's tagged), oldest first (a toggle
+    reverses it), the first shown and the rest folded; a kind pill (Banner / Paid banner / Story event / Gift: gifts,
+    login bonuses, missions, campaigns / Shop; else the event's own kind) in one colour per kind (not the Timeline's: a banner there takes its main card's type), Re-run when the card
+    isn't new on it, status + dates, and a link to it on the Timeline (`#/timeline/<server>/<id>`). A part giving it
+    counts, not the celebration listing it too. A card on none (the scout pool's R/SR, main story, promo) shows
+    cards.json's `source` instead. Paid banners never list cards yet (JP's paid scouts have no featured list). Under
+    the card's name, the first origin's kind pill, "+N" for the other kinds it has come by since (all in the tooltip).
+  The tier list's floating "Back to top" button too.
   Opened from tier-list cards and the Timeline sheet's "See more"; it isn't a tab, but keeps the Cards tab highlighted.
 
-Stack: React 19 + Vite 8, i18next + react-i18next, Vitest, Biome + husky, `lucide-react` icons, `vaul` (sheets, on Radix's dialog), `clsx`, pnpm (never npm). No
+Stack: React 19 + Vite 8, i18next + react-i18next, Vitest, Biome + husky, `lucide-react` icons, `vaul` (sheets, on Radix's dialog), `@dnd-kit` (drag to reorder), `clsx`, pnpm (never npm). No
 backend: all data is generated at build time.
 
 ## Commands
@@ -233,6 +256,7 @@ src/
   pages/RankChart.jsx                  SVG step chart of rank over time: fixed rank axis, sideways-scrolling
                                        plot (20px/month, quarters + years labelled), crosshair tooltip
   rankHistory.js     pure: a card's position at each release date (marks predicted ones)
+  cardOrigins.js     pure: cardOrigins() (a card's banners and events, as Timeline entries, oldest first), originKinds()
   predictions.js     optional loader for generated/predicted_gl_releases.json
   pullGuide.js       optional loader for generated/pull_guide.json (card page's "Pull advice"), upcomingBanner(),
                      currentAdvice(), latestAdvice(), sheetLink()
@@ -245,11 +269,11 @@ src/
   ScenarioPicker.jsx scenario dropdown on top of it (italic + note when unreleased);
                      scenarioRelease.js: SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
   timeline/          the Timeline, the same for both servers:
-    data.js          loadTimeline(server) → { entries, marks } (MARKS: per-server overlays + toolbar buttons, JP's
+    data.js          loadTimeline(server) → { entries, marks }, loadEntries(server) (entries alone: the card page) (MARKS: per-server overlays + toolbar buttons, JP's
                      "Global now"); banner / event file loaders (real + optional predicted), shared with the card page
     entries.js       pure: bannerEntries(), eventEntries() → entries (one shape, documented there), bannerStatus()
     layout.js        pure: buildTimeline(entries) (months, days, `at(ms)` → position), laneGroups() (LANE_GROUPS:
-                     banner sections, then EVENT_GROUPS; rows packed, parts nested under their parent), partCount()
+                     the one order of the Timeline and its filter: support cards, trainees, then EVENT_GROUPS; rows packed, parts nested under their parent), partCount()
     events.js        pure: EVENT_GROUPS, items with currencies first (itemList()), withPredicted()
     format.js        dateFormats(timeZone), dateRange(), kindName(), barLabel(), entryTitle()
     useRankings.js   MLB ranks of a sheet's cards (server's own tier list, else looking ahead)
@@ -260,6 +284,11 @@ src/
     timeline.css     calendar styles; an entry's colour is --tone (`.kind-*` / `.type-*`)
     StatusBadge.jsx  a status pill (Live, Upcoming, Predicted…): the sheet and the card page (`.badge`: App.css)
     collapsed.js     which Timeline groups are folded: getCollapsed() / saveCollapsed(), kept in localStorage
+    order.js         the lane groups' order (the filter's Order tab): getOrder() / saveOrder(), orderedGroups(),
+                     reorderGroups(), kept in localStorage
+    GroupOrder.jsx   the Order tab's draggable list (dnd-kit, by handles; rows `data-vaul-no-drag`: they don't drag the sheet)
+    hidden.js        banner sections + event kinds the filter hides: getHidden() / saveHidden(), kept in localStorage
+    TimelineFilter.jsx  the toolbar's filter button + sheet (toggles per banner section / event kind / pull verdict)
     compact.js       compact mode on/off (default on): getCompact() / saveCompact(), kept in localStorage
     scenarioStrip.js pure: scenario segments (launch → next launch, cover colour + text ink) for the calendar's strip
     globalProgress.js pure: where Global is in JP's history (window between banners + linear estimate)
@@ -753,7 +782,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 - `pull-guide.test.js`: the script's output and `generated/pull_guide.json` (when present) fit
   `schemas/pull_guide.schema.json` (ajv); a tab's HTML view → entries (card id from the link, label, dates, Pull?, notes), mapped to banners
   (`byBanner`, `findBanner`), the tab list and update date; `upcomingBanner` / `currentAdvice` (running / next banner,
-  cards on no banner), `latestAdvice`, `sheetLink`.
+  cards on no banner), `latestAdvice`, `sheetLink`, `verdictOf` / `bannerVerdicts` (the Timeline filter).
 - `news.test.js`: the first parser (periods, kinds, banner ids + art, featured).
 - `post-categories.test.js`: categories, event kinds, phases and names from real titles; community posts never events.
 - `jp-news.test.js`: `parsePeriodJa` (JST, year nearest the post, open ends), JP `categorize()` (kinds, names, phases,
@@ -793,11 +822,13 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   score 0–1000.
 - `calc.test.js`: one known score (Kitasan Black ≈ 372, from upstream's own test).
 - `rank-history.test.js`: `rankHistory()` on a small synthetic ranking.
+- `card-origins.test.js`: `cardOrigins()` (kinds, re-runs, oldest first, `originKinds()`, parts over their event, both servers).
 - `timeline-entries.test.js`: both servers' calendars (real + predicted) as entries: the same fields everywhere, unique
   keys, known statuses, relations / parents / parts pointing at entries, art on every banner; re-runs both ways,
   predicted / paid banners, predicted events' card names and JP links, one-day events, `bannerStatus()`.
 - `timeline-sheet.test.jsx`: the sheet's sections, in order, for a predicted banner, a paid scout, a celebration and
   its part (the sheet's portal mocked away).
+- `timeline-order.test.js`: the lane groups' order (default, dropping among shown groups, groups a saved order lacks).
 - `timeline.test.js`: calendar days in UTC vs. the viewer's timezone (TZ pinned to Europe/Warsaw); end-less entries;
   `laneGroups()` order; `visibleRows()` (compact mode: rows in view, parts by their entry's key, open ends).
 - `global-progress.test.js`: the Global-in-JP estimate, window ends (known vs. predicted), reruns, paid and `-rerun`

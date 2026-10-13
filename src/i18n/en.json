@@ -108,7 +108,7 @@
     "compactTitle": "Compact: hide rows with nothing in view",
     "nothingInView": "Nothing here at this time",
     "loading": "Loading timeline…",
-    "characters": "Characters",
+    "characters": "Trainees",
     "supportCards": "Support cards",
     "barLabel": "{{name}} +{{count}}",
     "status": {
@@ -168,7 +168,36 @@
     "schedule": "Schedule",
     "showParts_one": "Show {{count}} part of {{name}}",
     "showParts_other": "Show {{count}} parts of {{name}}",
-    "hideParts": "Hide the parts of {{name}}"
+    "hideParts": "Hide the parts of {{name}}",
+    "filter": {
+      "button": "Filter",
+      "hiddenCount_one": "{{count}} hidden",
+      "hiddenCount_other": "{{count}} hidden",
+      "title": "Calendar",
+      "banners": "Banners",
+      "events": "Events",
+      "pullHeading": "Pull advice",
+      "pullNote": "Support card banners stay when one of their cards has a ticked verdict.",
+      "pullOff": "Support card banners are hidden.",
+      "noAdvice": "No advice",
+      "all": "All",
+      "none": "None",
+      "showAll": "Show all",
+      "tabs": "Filter or order",
+      "tab": {
+        "show": "Show",
+        "order": "Order"
+      },
+      "orderNote": "Drag a group by its handle to change the order on the calendar.",
+      "defaultOrder": "Reset order",
+      "hiddenGroup": "hidden",
+      "dragInstructions": "To pick up a group, press Space or Enter. Move it with the arrow keys, press Space or Enter again to drop it, or Escape to cancel.",
+      "dragStart": "Picked up {{name}}.",
+      "dragOver": "{{name}} is now at position {{position}}.",
+      "dragEnd": "{{name}} dropped at position {{position}}.",
+      "dragCancel": "Cancelled; {{name}} is back where it was.",
+      "dragHandle": "Move {{name}}"
+    }
   },
   "events": {
     "kind": {
@@ -251,7 +280,31 @@
     "passedAfter": "{{duration}} after release",
     "passedLater": "{{duration}} later",
     "releasedOn": "Released {{date}}",
-    "arrivesOn": "Predicted to arrive {{date}}"
+    "arrivesOn": "Predicted to arrive {{date}}",
+    "origins": {
+      "heading": "Available on",
+      "kind": {
+        "banner": "Banner",
+        "paid_banner": "Paid banner",
+        "story": "Story event",
+        "gift": "Gift",
+        "shop": "Shop"
+      },
+      "rerun": "Re-run",
+      "more_one": "See {{count}} more",
+      "more_other": "See {{count}} more",
+      "source": {
+        "gacha": "In the scout pool",
+        "story_event": "Story event",
+        "promo": "Promotion",
+        "limited_quest": "Limited quest",
+        "main_story": "Main story",
+        "shop": "Shop"
+      },
+      "oldestFirst": "Oldest first",
+      "newestFirst": "Newest first",
+      "moreKinds": "+{{count}}"
+    }
   },
   "pullGuide": {
     "upcomingBanner": "Upcoming banner",

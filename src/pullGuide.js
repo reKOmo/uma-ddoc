@@ -51,6 +51,17 @@ export function latestAdvice(guide, cardId) {
   return guide.noBanner[cardId] ?? onBanners.at(-1) ?? null;
 }
 
+// The pills an advice can have, then 'none' for advice without one (or no advice).
+export const VERDICTS = ['yes', 'no', 'free', 'whale', 'dolphin', 'none'];
+
+// An advice's pill without its "+"s ("whale++" → 'whale'), or 'none'.
+export const verdictOf = (advice) => advice?.shouldPull?.match(/^[a-z]+/)[0] ?? 'none';
+
+// The verdicts the guide gives a banner's cards (`cardIds`), each once: 'none' for a card it has no advice on (and a
+// banner without known cards).
+export const bannerVerdicts = (guide, bannerId, cardIds) =>
+  cardIds.length ? new Set(cardIds.map((id) => verdictOf(guide.banners[bannerId]?.[id]))) : new Set(['none']);
+
 // A link to an entry's row in the sheet (its tab, at least), or to the sheet.
 export function sheetLink(entry, url = SHEET_URL) {
   const { gid, row } = entry?.googleSheetsSrc ?? {};

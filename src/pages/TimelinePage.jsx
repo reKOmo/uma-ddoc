@@ -6,9 +6,13 @@ import { useSettings } from '../settings.jsx';
 import { useDragScroll } from '../useDragScroll.js';
 import { loadTimeline } from '../timeline/data.js';
 import { buildTimeline, laneGroups, spanOf, visibleRows } from '../timeline/layout.js';
+import { DEFAULT_ORDER, getOrder, isDefaultOrder, orderedGroups, reorderGroups, saveOrder } from '../timeline/order.js';
 import { scenarioSegments } from '../timeline/scenarioStrip.js';
 import { getCollapsed, saveCollapsed } from '../timeline/collapsed.js';
 import { getCompact, saveCompact } from '../timeline/compact.js';
+import { getHidden, saveHidden } from '../timeline/hidden.js';
+import TimelineFilter, { pullKey } from '../timeline/TimelineFilter.jsx';
+import { VERDICTS, bannerVerdicts, loadPullGuide } from '../pullGuide.js';
 import { dateFormats } from '../timeline/format.js';
 import { CalendarLines, TimelineAxis } from '../timeline/TimelineAxis.jsx';
 import { LaneGroup } from '../timeline/Lanes.jsx';
@@ -77,7 +81,65 @@ export default function TimelinePage({ server, scenario, linkId }) {
     () => current && buildTimeline(current.entries, { utc: timeZone === 'utc' }),
     [current, timeZone]
   );
-  const groups = useMemo(() => (current ? laneGroups(current.entries) : []), [current]);
+  // Banner sections and event kinds hidden by the filter, remembered in this browser. Hidden entries leave the lanes (a hidden event's
+  // parts of shown kinds stand on their own); the calendar's dates and the sheets still have everything.
+  const [hidden, setHidden] = useState(getHidden);
+  // `update(old)` → the new Set (from the latest one: quick taps don't undo each other).
+  const changeHidden = useCallback(
+    (update) =>
+      setHidden((old) => {
+        const next = update(old);
+        saveHidden(next);
+        return next;
+      }),
+    []
+  );
+  // The lane groups' order (the filter's Order tab), remembered in this browser.
+  const [order, setOrder] = useState(getOrder);
+  const changeOrder = (keys) => {
+    saveOrder(keys);
+    setOrder(keys);
+  };
+  const laneOrder = useMemo(() => orderedGroups(order), [order]);
+  // The kinds this calendar has, and its groups, in that order.
+  const present = useMemo(() => new Set(current?.entries.map((e) => e.kind)), [current]);
+  const kinds = useMemo(
+    () => laneOrder.flatMap((group) => group.kinds).filter((kind) => present.has(kind)),
+    [laneOrder, present]
+  );
+  const presentGroups = useMemo(
+    () => laneOrder.filter((group) => group.kinds.some((kind) => present.has(kind))),
+    [laneOrder, present]
+  );
+  // Support card banners by their cards' pull advice (src/pullGuide.js; optional): offered when the guide covers any
+  // of this calendar's banners (Global's), and a banner stays while one of its cards has a verdict not hidden
+  // ('pull:<verdict>' in `hidden`).
+  const [guide, setGuide] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    loadPullGuide().then((g) => !cancelled && setGuide(g));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const verdictsOf = useMemo(() => {
+    if (!guide || !current?.entries.some((e) => e.group === 'cards' && guide.banners[e.id])) return null;
+    return (entry) =>
+      bannerVerdicts(
+        guide,
+        entry.id,
+        entry.featured.filter((item) => item.card && item.id != null).map((item) => item.id)
+      );
+  }, [guide, current]);
+  const groups = useMemo(() => {
+    if (!current) return [];
+    const pullShown = (entry) =>
+      entry.group !== 'cards' || !verdictsOf || [...verdictsOf(entry)].some((v) => !hidden.has(pullKey(v)));
+    return laneGroups(
+      current.entries.filter((e) => !hidden.has(e.kind) && pullShown(e)),
+      laneOrder
+    );
+  }, [current, hidden, verdictsOf, laneOrder]);
   const scenarios = useMemo(() => scenarioSegments(scenarioData.scenarios, server), [server]);
   const px = ZOOMS[zoom];
   // The scroller only exists once the timeline has loaded.
@@ -228,6 +290,26 @@ export default function TimelinePage({ server, scenario, linkId }) {
               </button>
             );
           })}
+          <TimelineFilter
+            kinds={kinds}
+            verdicts={verdictsOf ? VERDICTS : []}
+            hidden={hidden}
+            onChange={changeHidden}
+            groups={presentGroups}
+            onReorder={(from, to) =>
+              changeOrder(
+                reorderGroups(
+                  laneOrder.map((group) => group.key),
+                  presentGroups.map((group) => group.key),
+                  from,
+                  to
+                )
+              )
+            }
+            onResetOrder={() => changeOrder(DEFAULT_ORDER)}
+            defaultOrder={isDefaultOrder(laneOrder.map((group) => group.key))}
+            disabled={!timeline}
+          />
           <button type="button" onClick={() => scrollToDay(timeline.today)} disabled={!timeline}>
             <LocateFixed size={18} aria-hidden="true" />
             {t('timeline.today')}

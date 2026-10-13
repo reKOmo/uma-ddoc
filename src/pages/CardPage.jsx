@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronUp, ExternalLink } from 'lucide-react';
+import { ArrowDown, ArrowDownUp, ArrowUp, ChevronDown, ChevronRight, ChevronUp, ExternalLink } from 'lucide-react';
 import { COMBINED, rankByUsefulness, scenarioOptions, scenariosOf } from '../../tierlist/index.js';
 import { cards, loadCards } from '../../tierlist/cards.js';
 import { getServerConfig } from '../../tierlist/scenarios.js';
@@ -7,14 +7,17 @@ import { TIER_NAMES, cardRanks } from '../tiers.js';
 import { rankHistory } from '../rankHistory.js';
 import { loadPredictions } from '../predictions.js';
 import { currentAdvice, latestAdvice, loadPullGuide, sheetLink, upcomingBanner } from '../pullGuide.js';
-import { loadBanners } from '../timeline/data.js';
+import { loadBanners, loadEntries } from '../timeline/data.js';
 import { bannerStatus } from '../timeline/entries.js';
-import { dateFormats, dateRange } from '../timeline/format.js';
+import { dateFormats, dateRange, entryTitle, kindName } from '../timeline/format.js';
+import { cardOrigins, originKinds } from '../cardOrigins.js';
 import { cardArt, cardIcon, cardPage } from '../gametora.js';
 import StatusBadge from '../timeline/StatusBadge.jsx';
 import ScenarioPicker from '../ScenarioPicker.jsx';
+import BackToTop from '../BackToTop.jsx';
 import RankChart, { formatDay } from './RankChart.jsx';
 import { Trans, useTranslation } from 'react-i18next';
+import clsx from 'clsx';
 import { formatDuration, lbName, scenarioName, serverName, statName } from '../i18n/index.js';
 import { useSettings } from '../settings.jsx';
 import './card.css';
@@ -106,6 +109,7 @@ export default function CardPage({ cardId, server, scenario }) {
     };
   }, [server, cardId]);
 
+  const origins = useOrigins(cardId, server);
   const stat = card && statOf(card.type);
   const rankings = useScenarioRankings(server, stat, !!stat && released === true);
   const predictions = usePredictions(server);
@@ -144,6 +148,7 @@ export default function CardPage({ cardId, server, scenario }) {
           <h1>{name}</h1>
           {title && <p className="card-title">{title}</p>}
           <p className="card-tags">
+            {origins?.list.length > 0 && <OriginPill origins={origins.list} />}
             <span className="tag">{t(`rarity.${card.rarity}`)}</span>
             {stat && <span className="tag">{statName(stat)}</span>}
             {card.type === 'group' && <span className="tag">{t('card.group')}</span>}
@@ -158,6 +163,8 @@ export default function CardPage({ cardId, server, scenario }) {
       </div>
 
       <PullAdvice cardId={cardId} />
+
+      <Origins card={card} server={server} origins={origins} />
 
       <h2 className="card-section">{t('card.tierByScenario')}</h2>
       {released === null ? (
@@ -227,7 +234,134 @@ export default function CardPage({ cardId, server, scenario }) {
           {rankOverTime}
         </>
       )}
+      <BackToTop />
     </div>
+  );
+}
+
+// The servers whose banners and events say where a card comes from: the selected one, and JP's too for a card not on
+// Global yet.
+const originServers = (card, server) => (server === 'gl' && !card?.release.gl ? ['gl', 'jp'] : [server]);
+
+// Where the card comes from (cardOrigins(), oldest first) on originServers(): { servers, list }, null while loading.
+function useOrigins(cardId, server) {
+  const [origins, setOrigins] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    setOrigins(null);
+    const servers = originServers(cards[cardId], server);
+    Promise.all(servers.map((s) => loadEntries(s))).then((lists) => {
+      const byServer = Object.fromEntries(servers.map((s, i) => [s, lists[i]]));
+      if (!cancelled) setOrigins({ servers, list: cardOrigins(cardId, byServer) });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [cardId, server]);
+  return origins;
+}
+
+// An origin kind as its pill says it ('other': the event's own kind).
+const originLabel = (origin, t) =>
+  origin.kind === 'other' ? kindName(origin.entry) : t(`card.origins.kind.${origin.kind}`);
+
+// Under the card's name: how it first came out, "+N" for the other ways it has since (all of them in the tooltip).
+function OriginPill({ origins }) {
+  const { t } = useTranslation();
+  const kinds = originKinds(origins);
+  const labels = kinds.map((kind) =>
+    originLabel(
+      origins.find((origin) => origin.kind === kind),
+      t
+    )
+  );
+  const first = origins[0];
+  return (
+    <span className={clsx('origin-kind', 'origin-pill', `origin-${first.kind}`)} title={labels.join(', ')}>
+      {labels[0]}
+      {kinds.length > 1 && ` ${t('card.origins.moreKinds', { count: kinds.length - 1 })}`}
+    </span>
+  );
+}
+
+// Every banner and event the card is on, oldest first (a toggle reverses it): the first, the rest folded. Each opens
+// on the Timeline. A card on none says how it's obtained (cards.json's `source`).
+function Origins({ card, server, origins }) {
+  const { t } = useTranslation();
+  const { timeZone } = useSettings().settings;
+  const [newestFirst, setNewestFirst] = useState(false);
+  const [unfolded, setUnfolded] = useState(false);
+  const list = origins && (newestFirst ? origins.list.toReversed() : origins.list);
+  const shown = list && (unfolded ? list : list.slice(0, 1));
+  const format = dateFormats(timeZone).long;
+
+  return (
+    <section>
+      <div className="origins-heading">
+        <h2 className="card-section">{t('card.origins.heading')}</h2>
+        {list?.length > 1 && (
+          <button
+            type="button"
+            className="see-more origins-order"
+            aria-pressed={newestFirst}
+            onClick={() => setNewestFirst(!newestFirst)}
+          >
+            <ArrowDownUp size={15} aria-hidden="true" />
+            {t(newestFirst ? 'card.origins.newestFirst' : 'card.origins.oldestFirst')}
+          </button>
+        )}
+      </div>
+      {!list ? (
+        <p className="status">{t('common.loading')}</p>
+      ) : list.length === 0 ? (
+        origins.servers.some((s) => card.release[s]) && (
+          <p className="card-tags">
+            {card.source.map((source) => (
+              <span key={source} className="tag">
+                {t(`card.origins.source.${source}`)}
+              </span>
+            ))}
+          </p>
+        )
+      ) : (
+        <>
+          <ol className="origin-list">
+            {shown.map((origin) => {
+              const { entry, server: on, rerun } = origin;
+              return (
+                <li key={`${on}:${entry.key}`}>
+                  <a className="origin" href={`#/timeline/${on}/${entry.id}`}>
+                    <span className="origin-head">
+                      <span className={clsx('origin-kind', `origin-${origin.kind}`)}>{originLabel(origin, t)}</span>
+                      {on !== server && <span className="tag">{serverName(on)}</span>}
+                      {rerun && <span className="tag">{t('card.origins.rerun')}</span>}
+                    </span>
+                    <span className="origin-name">{entryTitle(entry)}</span>
+                    <span className="origin-when">
+                      <StatusBadge status={entry.status} />
+                      {dateRange(entry, format)}
+                    </span>
+                    <ChevronRight className="origin-open" size={18} aria-hidden="true" />
+                  </a>
+                </li>
+              );
+            })}
+          </ol>
+          {list.length > 1 &&
+            (unfolded ? (
+              <button type="button" className="see-more origins-fold" onClick={() => setUnfolded(false)}>
+                {t('card.showLess')}
+                <ChevronUp size={15} aria-hidden="true" />
+              </button>
+            ) : (
+              <button type="button" className="see-more origins-fold" onClick={() => setUnfolded(true)}>
+                {t('card.origins.more', { count: list.length - 1 })}
+                <ChevronDown size={15} aria-hidden="true" />
+              </button>
+            ))}
+        </>
+      )}
+    </section>
   );
 }
 
