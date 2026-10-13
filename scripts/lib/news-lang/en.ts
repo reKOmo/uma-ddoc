@@ -25,7 +25,8 @@ export const en: Lexicon = {
   // The field of generated/cards.json' names and titles the posts use.
   cardLang: 'en',
   // Dates: parsePeriod(text, dateRef(posted)) (the post's UTC year fills a missing one).
-  parsePeriod,
+  // (dateRef gives a year here; Number() only tells the type checker.)
+  parsePeriod: (text, ref) => parsePeriod(text, Number(ref)),
   dateRef: (posted) => new Date(posted).getUTCFullYear(),
   // A post's HTML before any parser reads it (nothing to fix in English posts).
   clean: (html) => html,

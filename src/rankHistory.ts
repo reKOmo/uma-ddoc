@@ -1,4 +1,4 @@
-import { type CardId, type RankedCard, toTiers } from './tiers.ts';
+import { type RankedCard, toTiers } from './tiers.ts';
 
 // A card's place in one stat's tier list over time. Each card's score is
 // independent of the other candidates (it's scored against fixed decks), so
@@ -26,10 +26,10 @@ export type HistoryPoint = {
 
 export function rankHistory(
   ranking: RankedCard[],
-  cardId: CardId,
+  cardId: number,
   lb: number,
-  releaseOf: (id: CardId) => string | null,
-  isPredicted: (id: CardId) => boolean = () => false
+  releaseOf: (id: number) => string | null,
+  isPredicted: (id: number) => boolean = () => false
 ): HistoryPoint[] | null {
   const field = ranking.filter((c) => c.lb === lb && releaseOf(c.id));
   const self = field.find((c) => c.id === cardId);

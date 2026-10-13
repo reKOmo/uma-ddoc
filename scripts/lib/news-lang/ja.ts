@@ -116,7 +116,8 @@ export const ja: JapaneseLexicon = {
   server: 'jp',
   cardLang: 'jp',
   // Dates: JST, years mostly left out (the one nearest the post).
-  parsePeriod: parsePeriodJa,
+  // (dateRef gives the post's time here; String() only tells the type checker.)
+  parsePeriod: (text, ref) => parsePeriodJa(text, String(ref)),
   dateRef: (posted) => posted,
   // Zero-width spaces out, full-width digits and spaces half-width, unquoted attributes quoted (some mirrored posts),
   // and a line break at every heading, so a date and the heading after it don't run together.
@@ -356,7 +357,7 @@ export const ja: JapaneseLexicon = {
   // ゲームを開始したトレーナーの皆さま"), ISO, or null.
   deadline: (block, posted) => {
     const line = block.sections.find((s) => /^対象のトレーナー$/.test(s.heading))?.lines.find((l) => /まで/.test(l));
-    return line ? parsePeriodJa(line, posted).start : null;
+    return line ? parsePeriodJa(line, String(posted)).start : null;
   },
   // (Anywhere in the sentence: "日々の感謝の気持ちを込めまして、8/24 12:00から「…」を開催しております！")
   opening: (line) => /\d{1,2}\/\d{1,2}\s*\d{1,2}:\d{2}\s*(?:から|より|に)/.test(line),

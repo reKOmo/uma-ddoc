@@ -11,6 +11,7 @@ import { processCards } from './tierlist-calc.ts';
 import { getScenario, getScenarios, getServerConfig } from './scenarios.ts';
 import { type Server, loadCards, loadCardsWithUpcoming } from './cards.ts';
 import type { JoinedCard } from './join-cards.ts';
+import type { CalcWeights } from './tierlist-calc.ts';
 
 // The stat tabs every scenario defines (display names live in src/i18n).
 export const STATS = ['speed', 'stamina', 'power', 'guts', 'wisdom', 'friend'] as const;
@@ -18,9 +19,6 @@ export type Stat = (typeof STATS)[number];
 
 // A ranked card: processCards' output, sorted by score.
 export type Ranked = { id: number; lb: number; char_name: string; score: number };
-
-// A scenario's weights (scenarios.ts' per-stat and general weights, merged).
-type Weights = Record<string, unknown>;
 
 // Rankings that average several scenarios, offered next to the real ones.
 // availableScenarios lists scenarios newest first and defaultScenario is the
@@ -65,10 +63,10 @@ async function setup(
   scenario: string,
   stat: Stat,
   upcoming?: boolean
-): Promise<{ weights: Weights; candidates: JoinedCard[]; toDeck: (ids: number[]) => JoinedCard[] }> {
+): Promise<{ weights: CalcWeights; candidates: JoinedCard[]; toDeck: (ids: number[]) => JoinedCard[] }> {
   const cards = await (upcoming ? loadCardsWithUpcoming(server) : loadCards(server));
   const preset = getScenario(server, scenario);
-  const weights: Weights = { ...preset[stat], ...preset.general };
+  const weights: CalcWeights = { ...preset[stat], ...preset.general };
   const candidates = cards.filter((c) => c.type === weights.type);
   // TODO(ts): a preset deck's card is always in the server's cards (the calculation fails on a missing one, as before).
   const toDeck = (ids: number[]) =>

@@ -1,7 +1,6 @@
 // GameTora's URLs, built from ids (the data files store none: GameTora's images are hotlinked, its card pages linked).
 import type { BannerFile, BannerId, BannerItem, Banner } from '../shared/schemas/banner.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
-import type { CardId } from './tiers.ts';
 
 const SITE = 'https://gametora.com';
 const IMAGES = `${SITE}/images/umamusume/`;
@@ -10,12 +9,12 @@ const IMAGES = `${SITE}/images/umamusume/`;
 export const cardPage = (slug: string | null | undefined): string | null =>
   slug ? `${SITE}/umamusume/supports/${slug}` : null;
 // A support card's full art (3:4 portrait).
-export const cardArt = (id: CardId): string => `${IMAGES}supports/tex_support_card_${id}.png`;
+export const cardArt = (id: number): string => `${IMAGES}supports/tex_support_card_${id}.png`;
 // A support card's square icon: upstream's where cards.json has one, else GameTora's.
-export const cardIcon = (id: CardId, cards?: CardsFile): string =>
+export const cardIcon = (id: number, cards?: CardsFile): string =>
   cards?.[id]?.images?.icon ?? `${IMAGES}supports/support_card_s_${id}.png`;
 // A trainee outfit's icon (its 6-digit id and its character's id).
-export const traineeIcon = (charId: number, id: CardId): string =>
+export const traineeIcon = (charId: number, id: number): string =>
   `${IMAGES}characters/thumb/chara_stand_${charId}_${id}.png`;
 
 // A banner's art on GameTora: Global's under en/. Our own re-run entries ("<id>-rerun") show their original's.
@@ -26,7 +25,7 @@ export const bannerArt = (id: BannerId, art: 'global' | 'jp'): string =>
 // A banner's featured item or main item with its icon.
 export type ArtItem = BannerItem & { icon: string | null };
 // A banner with what the app shows filled in (see withArt()).
-export type ArtBanner = Banner & {
+export type ArtBanner = Omit<Banner, 'main' | 'featured'> & {
   image: string;
   officialArt: boolean;
   main: ArtItem | null;

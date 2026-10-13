@@ -20,19 +20,11 @@
 //   fs_*  friendship ("rainbow") bonuses, applied only while the card rainbows
 //   stat_bonus[6]  flat per-stat bonus   specialty_rate  specialty priority
 
-import type { LbStats } from '../shared/schemas/card.ts';
+import type { JoinedCard } from './join-cards.ts';
 import type { GeneralWeights, StatWeights } from './scenarios.ts';
 
 // A card as joinCards() builds it (tierlist/join-cards.ts): upstream's card fields, one per limit break, plus `events`.
-export type CalcCard = LbStats & {
-  id: number;
-  type: number; // upstream's code: 0..4 the stats, 6 friend / group
-  group: boolean;
-  rarity: number; // 1 R, 2 SR, 3 SSR
-  limit_break: number;
-  char_name: string;
-  events: number[] | null; // [0..6] gains, [7] bond; null without event data
-};
+export type CalcCard = JoinedCard;
 
 // A card in a deck being scored: the calculation adds these as it goes. `cardType` is set for the fixed deck's cards
 // only (the candidate never gets one).

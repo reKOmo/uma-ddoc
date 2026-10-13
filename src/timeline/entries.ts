@@ -30,20 +30,14 @@
 //              support cards (`card`: a support card, ranked; `stars`: a trainee's rarity)
 //   items, phases, titles  an event's other rewards, schedule and titles (empty for a banner)
 
-import type { Banner, BannerId, BannerItem } from '../../shared/schemas/banner.ts';
+import type { Banner, BannerId } from '../../shared/schemas/banner.ts';
 import type { CardsFile } from '../../shared/schemas/card.ts';
 import type { EventItem, EventKind, GameEvent, Phase, PredictedEvent } from '../../shared/schemas/event.ts';
-import { cardIcon } from '../gametora.ts';
+import { type ArtBanner, type ArtBannerFile, type ArtItem, cardIcon } from '../gametora.ts';
 import { DAY } from './layout.ts';
 
 // What withArt() (src/gametora.ts) adds to a banner file: each item's `icon`, the banner's `officialArt` flag.
-export type ArtItem = BannerItem & { icon?: string | null };
-export type ArtBanner = Omit<Banner, 'featured' | 'main'> & {
-  featured: ArtItem[];
-  main: ArtItem | null;
-  officialArt?: boolean;
-};
-export type ArtBannerFile = { characters: ArtBanner[]; cards: ArtBanner[] };
+export type { ArtBanner, ArtBannerFile, ArtItem };
 
 export type EntryGroup = 'characters' | 'cards' | 'event';
 export type EntryKind = 'characters' | 'cards' | EventKind;

@@ -23,19 +23,8 @@
 import type { NewsPost } from '../../shared/schemas/news.ts';
 import { bannerPost } from './banner-posts.ts';
 import { en } from './news-lang/en.ts';
+import type { Lexicon } from './news-lang/index.ts';
 import { decodeEntities } from './news-text.ts';
-
-// The lexicon fields this file reads (scripts/lib/news-lang/). TODO(ts): replace with `Lexicon` from news-lang once it's typed.
-type Lexicon = {
-  community: (post: NewsPost) => boolean;
-  phases: [RegExp, string][];
-  rules: [
-    RegExp,
-    'event' | 'other',
-    string | ((post: NewsPost) => string),
-    (number | ((m: RegExpMatchArray) => string | null))?,
-  ][];
-};
 
 export type Categorized = {
   id: number;
@@ -54,22 +43,18 @@ export function plain(html: string): string {
 }
 
 // `lang`: the posts' wording (scripts/lib/news-lang/), English by default.
-// TODO(ts): en is untyped until news-lang is (its rules infer as plain arrays); remove the cast then.
-export function categorize(post: NewsPost, lang: Lexicon = en as unknown as Lexicon): Categorized {
+export function categorize(post: NewsPost, lang: Lexicon = en): Categorized {
   const id = Number(post.announce_id);
   const title = plain(post.title);
   const phase = lang.phases.find(([re]) => re.test(title))?.[1] ?? null;
   const result: Categorized = { id, category: 'other', kind: 'misc', phase, name: null, banners: [] };
 
   if (lang.community(post)) return { ...result, kind: 'community' };
-  // TODO(ts): bannerPost is untyped (its lexicon default is the untyped en); cast away until it's typed.
-  const banners = bannerPost(post, lang as unknown as Parameters<typeof bannerPost>[1])?.banners.map(
-    ({ gachaId, type }) => ({ gachaId, type })
-  );
+  const banners = bannerPost(post, lang)?.banners.map(({ gachaId, type }) => ({ gachaId, type }));
   if (banners?.length) return { ...result, category: 'banner', kind: null, banners };
 
   for (const [re, category, kind, name] of lang.rules) {
-    const m = title.match(re);
+    const m = re.exec(title);
     if (!m) continue;
     const named = typeof name === 'function' ? name(m) : name ? m[name] : null;
     // A kind can depend on the post (JP: a campaign showing several parts' art is a celebration).

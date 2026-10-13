@@ -6,22 +6,14 @@
 //   rerun  a banner on which the card isn't new
 //   An event giving it inside an event that lists it too (a celebration's gift) counts once, as the part.
 
-import type { CardId } from './tiers.ts';
+import type { Entry } from './timeline/entries.ts';
 
 export const ORIGIN_KINDS = ['banner', 'paid_banner', 'story', 'gift', 'shop', 'other'] as const;
 export type OriginKind = (typeof ORIGIN_KINDS)[number];
 
 // The fields of a Timeline entry this reads (src/timeline/entries.ts documents the whole shape; that file is typed by
 // its own task, so this is kept loose).
-export type OriginEntry = {
-  key: string;
-  group: string;
-  kind: string;
-  paid?: boolean;
-  start: string;
-  parent: string | null;
-  featured: { id: number | null; card?: boolean; isNew: boolean }[];
-};
+export type OriginEntry = Pick<Entry, 'key' | 'group' | 'kind' | 'paid' | 'start' | 'parent' | 'featured'>;
 
 export type Origin = { entry: OriginEntry; server: string; kind: OriginKind; rerun: boolean };
 
@@ -37,7 +29,7 @@ const EVENT_KINDS: Partial<Record<string, OriginKind>> = {
 const originKind = (entry: OriginEntry): OriginKind =>
   entry.group === 'event' ? (EVENT_KINDS[entry.kind] ?? 'other') : entry.paid ? 'paid_banner' : 'banner';
 
-function serverOrigins(cardId: CardId, entries: OriginEntry[], server: string): Origin[] {
+function serverOrigins(cardId: number, entries: OriginEntry[], server: string): Origin[] {
   const byKey = new Map(entries.map((entry) => [entry.key, entry]));
   const parentOf = (entry: OriginEntry): OriginEntry | undefined =>
     entry.parent == null ? undefined : byKey.get(entry.parent);
@@ -61,7 +53,7 @@ function serverOrigins(cardId: CardId, entries: OriginEntry[], server: string): 
     }));
 }
 
-export function cardOrigins(cardId: CardId, byServer: Record<string, OriginEntry[]>): Origin[] {
+export function cardOrigins(cardId: number, byServer: Record<string, OriginEntry[]>): Origin[] {
   return Object.entries(byServer)
     .flatMap(([server, entries]) => serverOrigins(cardId, entries, server))
     .sort((a, b) => a.entry.start.localeCompare(b.entry.start));

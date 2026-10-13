@@ -4,7 +4,6 @@
 import type { Banner } from '../shared/schemas/banner.ts';
 import type { SourcesFile } from '../shared/schemas/sources.ts';
 import type { Advice, NoBannerAdvice, PullGuide, Release } from '../shared/schemas/pullGuide.ts';
-import type { CardId } from './tiers.ts';
 import sourcesJson from '../generated/sources.json' with { type: 'json' };
 
 const sources: SourcesFile = sourcesJson;
@@ -22,7 +21,7 @@ export function loadPullGuide(): Promise<PullGuide | null> {
 
 // The card's next Global banner, real or predicted: the first featuring it that hasn't ended at `now`
 // (ms), or null.
-export function upcomingBanner(banners: Banner[], cardId: CardId, now: number): Banner | null {
+export function upcomingBanner(banners: Banner[], cardId: number, now: number): Banner | null {
   return (
     banners
       .filter(
@@ -50,7 +49,7 @@ export function releaseAhead(release: Release, today: string): boolean {
 // on no banner, while its release is ahead. Null if none.
 export function currentAdvice(
   guide: PullGuide,
-  cardId: CardId,
+  cardId: number,
   banner: Banner | null,
   today: string
 ): Advice | NoBannerAdvice | null {
@@ -61,7 +60,7 @@ export function currentAdvice(
 
 // The card's latest advice in the guide (by banner id, roughly by date), or null when the guide doesn't
 // cover the card.
-export function latestAdvice(guide: PullGuide, cardId: CardId): Advice | NoBannerAdvice | null {
+export function latestAdvice(guide: PullGuide, cardId: number): Advice | NoBannerAdvice | null {
   const onBanners = Object.values(guide.banners)
     .map((cards) => cards[cardId])
     .filter(Boolean);
@@ -79,7 +78,7 @@ export const verdictOf = (advice: Advice | NoBannerAdvice | null | undefined): V
 
 // The verdicts the guide gives a banner's cards (`cardIds`), each once: 'none' for a card it has no advice on (and a
 // banner without known cards).
-export const bannerVerdicts = (guide: PullGuide, bannerId: Banner['id'], cardIds: CardId[]): Set<Verdict> =>
+export const bannerVerdicts = (guide: PullGuide, bannerId: Banner['id'], cardIds: number[]): Set<Verdict> =>
   cardIds.length ? new Set(cardIds.map((id) => verdictOf(guide.banners[bannerId]?.[id]))) : new Set<Verdict>(['none']);
 
 // A link to an entry's row in the sheet (its tab, at least), or to the sheet.
