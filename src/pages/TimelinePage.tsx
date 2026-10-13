@@ -6,6 +6,7 @@ import scenarioData from '../../data/scenarios.json' with { type: 'json' };
 import { useSettings } from '../settings.tsx';
 import { useDragScroll } from '../useDragScroll.ts';
 import { loadTimeline } from '../timeline/data.ts';
+import { useAsync } from '../useAsync.ts';
 import { buildTimeline, laneGroups, spanOf, visibleRows } from '../timeline/layout.ts';
 import { DEFAULT_ORDER, getOrder, isDefaultOrder, orderedGroups, reorderGroups, saveOrder } from '../timeline/order.ts';
 import { scenarioSegments } from '../timeline/scenarioStrip.ts';
@@ -51,7 +52,6 @@ const middleOf = (entry) => {
 // here (from a card's page) opens it again.
 export default function TimelinePage({ server, scenario, linkId }) {
   const { t } = useTranslation();
-  const [data, setData] = useState(null); // { server, entries, marks }
   const [zoom, setZoom] = useState(2);
   // The sheet's entry (its key) and whether it's open: it stays after closing until it has slid away.
   const [selected, setSelected] = useState(null);
@@ -67,15 +67,11 @@ export default function TimelinePage({ server, scenario, linkId }) {
   // Day to centre on after the next render (initial load, zoom, "Today", an entry opened from another's sheet).
   const centerOn = useRef(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    loadTimeline(server).then((loaded) => !cancelled && setData({ server, ...loaded }));
-    return () => {
-      cancelled = true;
-    };
-  }, [server]);
-  // (Another server's data is still the old one's until it loads.)
-  const current = data?.server === server ? data : null;
+  const loaded = useAsync(() => loadTimeline(server).then((l) => ({ server, ...l })), [server]).data;
+  // (Another server's data is still the old one's until it loads: the last loaded one is kept.)
+  const [kept, setKept] = useState(null); // { server, entries, marks }
+  if (loaded && loaded !== kept) setKept(loaded);
+  const current = kept?.server === server ? kept : null;
 
   const byKey = useMemo(() => new Map(current?.entries.map((entry) => [entry.key, entry])), [current]);
   const timeline = useMemo(
@@ -115,14 +111,7 @@ export default function TimelinePage({ server, scenario, linkId }) {
   // Support card banners by their cards' pull advice (src/pullGuide.js; optional): offered when the guide covers any
   // of this calendar's banners (Global's), and a banner stays while one of its cards has a verdict not hidden
   // ('pull:<verdict>' in `hidden`).
-  const [guide, setGuide] = useState(null);
-  useEffect(() => {
-    let cancelled = false;
-    loadPullGuide().then((g) => !cancelled && setGuide(g));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const guide = useAsync(loadPullGuide, []).data ?? null;
   const verdictsOf = useMemo(() => {
     if (!guide || !current?.entries.some((e) => e.group === 'cards' && guide.banners[e.id])) return null;
     return (entry) =>

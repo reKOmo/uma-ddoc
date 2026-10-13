@@ -7,6 +7,7 @@ import { getServerConfig } from '../../tierlist/scenarios.ts';
 import { TIER_NAMES, cardRanks } from '../tiers.ts';
 import { rankHistory } from '../rankHistory.ts';
 import { loadPredictions } from '../predictions.ts';
+import { useAsync } from '../useAsync.ts';
 import { currentAdvice, latestAdvice, loadPullGuide, sheetLink, upcomingBanner } from '../pullGuide.ts';
 import { loadBanners, loadEntries } from '../timeline/data.ts';
 import { bannerStatus } from '../timeline/entries.ts';
@@ -31,19 +32,8 @@ const titleOf = (id, server) => cards[id]?.title[LANGUAGE[server]] ?? cards[id]?
 
 // The server's predicted release dates (only Global has them), or null without any.
 function usePredictions(server) {
-  const [predictions, setPredictions] = useState(undefined);
-  useEffect(() => {
-    if (server !== 'gl') {
-      setPredictions(null);
-      return;
-    }
-    let cancelled = false;
-    loadPredictions().then((p) => !cancelled && setPredictions(p));
-    return () => {
-      cancelled = true;
-    };
-  }, [server]);
-  return predictions;
+  const { data, pending } = useAsync(() => (server === 'gl' ? loadPredictions() : Promise.resolve(null)), [server]);
+  return pending ? undefined : data;
 }
 
 // The ranking with the server's upcoming cards in it, computed after the page has painted.
@@ -97,18 +87,11 @@ export default function CardPage({ cardId, server, scenario }) {
   const { t } = useTranslation();
   const card = cards[cardId];
   // null while loading, then whether the selected server has this card.
-  const [released, setReleased] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setReleased(null);
-    loadCards(server).then((cards) => {
-      if (!cancelled) setReleased(cards.some((c) => c.id === cardId));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [server, cardId]);
+  const releasedLoad = useAsync(
+    () => loadCards(server).then((cards) => cards.some((c) => c.id === cardId)),
+    [server, cardId]
+  );
+  const released = releasedLoad.pending ? null : releasedLoad.data;
 
   const origins = useOrigins(cardId, server);
   const stat = card && statOf(card.type);
@@ -246,20 +229,13 @@ const originServers = (card, server) => (server === 'gl' && !card?.release.gl ? 
 
 // Where the card comes from (cardOrigins(), oldest first) on originServers(): { servers, list }, null while loading.
 function useOrigins(cardId, server) {
-  const [origins, setOrigins] = useState(null);
-  useEffect(() => {
-    let cancelled = false;
-    setOrigins(null);
+  const { data, pending } = useAsync(async () => {
     const servers = originServers(cards[cardId], server);
-    Promise.all(servers.map((s) => loadEntries(s))).then((lists) => {
-      const byServer = Object.fromEntries(servers.map((s, i) => [s, lists[i]]));
-      if (!cancelled) setOrigins({ servers, list: cardOrigins(cardId, byServer) });
-    });
-    return () => {
-      cancelled = true;
-    };
+    const lists = await Promise.all(servers.map((s) => loadEntries(s)));
+    const byServer = Object.fromEntries(servers.map((s, i) => [s, lists[i]]));
+    return { servers, list: cardOrigins(cardId, byServer) };
   }, [cardId, server]);
-  return origins;
+  return pending ? null : data;
 }
 
 // An origin kind as its pill says it ('other': the event's own kind).
@@ -373,16 +349,8 @@ function Origins({ card, server, origins }) {
 function PullAdvice({ cardId }) {
   const { t } = useTranslation();
   const { timeZone } = useSettings().settings;
-  const [guide, setGuide] = useState(null);
-  const [banners, setBanners] = useState(null);
-  useEffect(() => {
-    let cancelled = false;
-    loadPullGuide().then((g) => !cancelled && setGuide(g));
-    loadBanners('global').then((b) => !cancelled && setBanners(b.cards));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const guide = useAsync(loadPullGuide, []).data;
+  const banners = useAsync(() => loadBanners('global').then((b) => b.cards), []).data;
   const latest = guide && latestAdvice(guide, cardId);
   if (!latest || !banners) return null;
   const now = Date.now();
