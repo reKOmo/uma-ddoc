@@ -14,9 +14,13 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 15_000 },
   use: { baseURL: `http://localhost:${PORT}/`, trace: 'retain-on-failure' },
+  // Pixel comparisons (e2e/visual.spec.ts) only in the `visual` projects (`pnpm test:visual`); baselines outside git.
+  snapshotPathTemplate: `${process.env.VISUAL_BASELINE ?? '.visual-baseline'}/{projectName}/{arg}{ext}`,
   projects: [
-    { name: 'phone', use: { ...devices['Pixel 7'] } },
-    { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
+    { name: 'phone', use: { ...devices['Pixel 7'] }, testIgnore: 'visual.spec.ts' },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'] }, testIgnore: 'visual.spec.ts' },
+    { name: 'visual-phone', use: { ...devices['Pixel 7'] }, testMatch: 'visual.spec.ts' },
+    { name: 'visual-desktop', use: { ...devices['Desktop Chrome'] }, testMatch: 'visual.spec.ts' },
   ],
   webServer: {
     command: `pnpm dev --port ${PORT} --strictPort`,

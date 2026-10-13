@@ -34,6 +34,8 @@ __pycache__/
 # Playwright's results and reports (pnpm test:e2e)
 test-results/
 playwright-report/
+# pnpm test:visual's baselines (made on this machine)
+.visual-baseline/
 
 # Logs, test coverage, OS files
 *.log
