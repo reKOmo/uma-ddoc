@@ -1,198 +1,148 @@
-// @ts-nocheck
-// The app's dropdown: a custom listbox instead of a <select>, so options can be styled everywhere
+// The app's dropdown: a styled listbox instead of a <select>, so options can be styled everywhere
 // (phones' native pickers ignore <option> styling) and look the same on every device. Every dropdown
-// in the app uses it; ScenarioPicker.jsx is the scenario one.
+// in the app uses it; ScenarioPicker.tsx is the scenario one. Built on Radix Select (keyboard, type-ahead,
+// ARIA, touch, focus and the popup's portal come from it); the look is Dropdown.module.css.
 //
 // options: [{ value, label, icon?, pill?, group?, note?, badge?, italic?, disabled? }] — ungrouped options first,
 // then each group (by its label, in order of first appearance) under a heading; `icon` an image's URL shown before
 // the label (in the list and on the button); `pill` { color, ink: 'dark' | 'light' } sets the label as a pill in that
 // colour (e.g. a scenario's), its text dark or light (the --ink-* tokens); `note` is a small
-// hint on the right, `badge` a small accent pill there (e.g. "Current"), `italic` sets the label in
-// italics (on the button too while it's selected), `disabled` shows the option greyed out and
-// can't be chosen.
+// hint on the right (also the button's tooltip while selected), `badge` a small accent pill there (e.g. "Current"),
+// `italic` sets the label in italics (on the button too while it's selected), `disabled` shows the option greyed
+// out and can't be chosen (the keyboard skips it).
 //
-// WAI-ARIA "select-only combobox" pattern: a button opens a listbox that takes focus and tracks the
-// active option with aria-activedescendant; ↑/↓, Home/End, Enter/Space, Esc, Tab, and typing a
-// letter jumps to the next option starting with it. Disabled options are skipped.
+// The popup is positioned "popper"-style under the button (as wide as it at least, 60vh at most), not
+// item-aligned over it, and opens scrolled so the selected option is centred in view.
 
-import { useEffect, useId, useRef, useState } from 'react';
+import * as Select from '@radix-ui/react-select';
+import clsx from 'clsx';
 import { Check, ChevronDown } from 'lucide-react';
-import './Dropdown.css';
+import { type CSSProperties, useId, useRef } from 'react';
+import styles from './Dropdown.module.css';
 
-export default function Dropdown({ label, value, options, onChange }) {
+export type DropdownOption = {
+  value: string;
+  label: string;
+  icon?: string;
+  pill?: { color: string; ink?: 'dark' | 'light' };
+  group?: string;
+  note?: string;
+  badge?: string;
+  italic?: boolean;
+  disabled?: boolean;
+};
+
+type DropdownProps = {
+  label: string;
+  value: string;
+  options: DropdownOption[];
+  onChange: (value: string) => void;
+};
+
+export default function Dropdown({ label, value, options, onChange }: DropdownProps) {
   const id = useId();
-  const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(0);
-  const root = useRef(null);
-  const list = useRef(null);
-  const button = useRef(null);
+  const viewport = useRef<HTMLDivElement>(null);
 
-  // Display order: ungrouped, then each group. `active` indexes this list.
-  const groups = [...new Set(options.filter((o) => o.group).map((o) => o.group))];
-  const ordered = [...options.filter((o) => !o.group), ...groups.flatMap((g) => options.filter((o) => o.group === g))];
-  const selected = ordered.find((o) => o.value === value) ?? ordered[0];
-  const optionId = (i) => `${id}-option-${i}`;
+  // Display order: ungrouped, then each group.
+  const groups = [...new Set(options.filter((o) => o.group).map((o) => o.group as string))];
+  const ungrouped = options.filter((o) => !o.group);
+  const selected = options.find((o) => o.value === value) ?? ungrouped[0] ?? options[0];
 
-  // Close on a tap / click outside.
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e) => root.current && !root.current.contains(e.target) && setOpen(false);
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [open]);
-
-  // On opening, the list scrolls to the selected option, centred; after that it keeps the active one in view.
-  // Only the list scrolls (scrollIntoView would move the page too).
-  const justOpened = useRef(false);
-  useEffect(() => {
-    if (!open) return;
-    const box = list.current;
-    const item = document.getElementById(optionId(active));
-    box?.focus({ preventScroll: true });
+  // On opening, the list scrolls to the selected option, centred (only the list, never the page).
+  function centreSelected(node: HTMLElement | null) {
+    const box = viewport.current;
+    const item = node?.querySelector<HTMLElement>('[role="option"][data-state="checked"]');
     if (!box || !item) return;
-    const top = item.offsetTop;
-    const bottom = top + item.offsetHeight;
-    if (justOpened.current) {
-      justOpened.current = false;
-      box.scrollTop = top - (box.clientHeight - item.offsetHeight) / 2;
-    } else if (top < box.scrollTop) {
-      box.scrollTop = top;
-    } else if (bottom > box.scrollTop + box.clientHeight) {
-      box.scrollTop = bottom - box.clientHeight;
-    }
-  });
-
-  function show() {
-    setActive(Math.max(0, ordered.indexOf(selected)));
-    justOpened.current = true;
-    setOpen(true);
+    const top = item.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
+    box.scrollTop = top - (box.clientHeight - item.offsetHeight) / 2;
   }
-
-  function hide() {
-    setOpen(false);
-    button.current?.focus();
-  }
-
-  function choose(i) {
-    if (ordered[i]?.disabled) return;
-    onChange(ordered[i].value);
-    hide();
-  }
-
-  // The nearest enabled option from `from` going `step` (±1), or `from` if there's none.
-  const enabled = (i) => i >= 0 && i < ordered.length && !ordered[i].disabled;
-  function seek(from, step) {
-    for (let i = from + step; i >= 0 && i < ordered.length; i += step) if (enabled(i)) return i;
-    return from;
-  }
-
-  function onButtonKeyDown(e) {
-    if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
-      e.preventDefault();
-      show();
-    }
-  }
-
-  function onListKeyDown(e) {
-    const actions = {
-      ArrowDown: () => setActive((i) => seek(i, 1)),
-      ArrowUp: () => setActive((i) => seek(i, -1)),
-      Home: () => setActive((i) => (enabled(0) ? 0 : seek(0, 1) || i)),
-      End: () =>
-        setActive((i) => (enabled(ordered.length - 1) ? ordered.length - 1 : seek(ordered.length - 1, -1) || i)),
-      Enter: () => choose(active),
-      ' ': () => choose(active),
-      Escape: hide,
-    };
-    if (e.key === 'Tab') {
-      setOpen(false);
-    } else if (actions[e.key]) {
-      e.preventDefault();
-      actions[e.key]();
-    } else if (e.key.length === 1) {
-      // Type-ahead: the next option starting with that letter (wrapping round).
-      const letter = e.key.toLowerCase();
-      const starts = (o) => !o.disabled && String(o.label).toLowerCase().startsWith(letter);
-      const next = ordered.findIndex((o, i) => i > active && starts(o));
-      const first = ordered.findIndex(starts);
-      if (next >= 0 || first >= 0) setActive(next >= 0 ? next : first);
-    }
-  }
-
-  const option = (o) => {
-    const i = ordered.indexOf(o);
-    return (
-      // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/useFocusableInteractive: options aren't focusable in the aria-activedescendant pattern; the listbox has focus and handles the keyboard.
-      <div
-        key={o.value}
-        id={optionId(i)}
-        role="option"
-        aria-selected={o.value === value}
-        aria-disabled={o.disabled || undefined}
-        className={`dropdown-option${i === active ? ' active' : ''}${o.italic ? ' italic' : ''}${o.disabled ? ' disabled' : ''}`}
-        onClick={() => choose(i)}
-        onPointerMove={() => !o.disabled && setActive(i)}
-      >
-        <Check className="dropdown-check" size={16} aria-hidden="true" />
-        {o.icon && <img className="dropdown-icon" src={o.icon} alt="" />}
-        <Label option={o} />
-        {o.badge && <span className="dropdown-badge">{o.badge}</span>}
-        {o.note && <span className="dropdown-note">{o.note}</span>}
-      </div>
-    );
-  };
 
   return (
-    <div className="dropdown" ref={root}>
+    <div className={styles.dropdown}>
       <span id={`${id}-label`}>{label}</span>
-      <button
-        ref={button}
-        id={`${id}-button`}
-        type="button"
-        className={`dropdown-button${selected?.italic ? ' italic' : ''}`}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-labelledby={`${id}-label ${id}-button`}
-        title={selected?.note}
-        onClick={() => (open ? setOpen(false) : show())}
-        onKeyDown={onButtonKeyDown}
-      >
-        {selected?.icon && <img className="dropdown-icon" src={selected.icon} alt="" />}
-        <Label option={selected} />
-        <ChevronDown className="dropdown-chevron" size={16} aria-hidden="true" />
-      </button>
-      {open && (
-        <div
-          ref={list}
-          className="dropdown-list"
-          role="listbox"
-          tabIndex={-1}
-          aria-labelledby={`${id}-label`}
-          aria-activedescendant={optionId(active)}
-          onKeyDown={onListKeyDown}
+      <Select.Root value={selected?.value} onValueChange={onChange}>
+        <Select.Trigger
+          id={`${id}-button`}
+          className={clsx(styles.button, 'dropdown-button', selected?.italic && styles.italic)}
+          aria-labelledby={`${id}-label ${id}-button`}
+          title={selected?.note}
         >
-          {ordered.filter((o) => !o.group).map(option)}
-          {groups.map((group, g) => (
-            // biome-ignore lint/a11y/useSemanticElements: a listbox groups options with role="group"; a <fieldset> isn't allowed in one.
-            <div key={group} role="group" aria-labelledby={`${id}-group-${g}`}>
-              <div id={`${id}-group-${g}`} className="dropdown-group">
-                {group}
-              </div>
-              {ordered.filter((o) => o.group === group).map(option)}
-            </div>
-          ))}
-        </div>
-      )}
+          {/* (Radix's Value span takes no className or style: the flex box is its child, .button > :first-child sizes it.) */}
+          <Select.Value>
+            <span className={styles.value}>
+              {selected?.icon && <img className={styles.icon} src={selected.icon} alt="" />}
+              <Label option={selected} />
+            </span>
+          </Select.Value>
+          <Select.Icon asChild>
+            <ChevronDown className={styles.chevron} size={16} aria-hidden="true" />
+          </Select.Icon>
+        </Select.Trigger>
+        <Select.Portal>
+          <Select.Content
+            className={styles.list}
+            position="popper"
+            side="bottom"
+            align="start"
+            sideOffset={4}
+            collisionPadding={8}
+            ref={(node) => {
+              // Radix mounts the items after this ref runs: centre on the next frame.
+              if (node) requestAnimationFrame(() => centreSelected(node));
+            }}
+          >
+            <Select.Viewport ref={viewport} className={styles.viewport}>
+              {ungrouped.map((o) => (
+                <Option key={o.value} option={o} />
+              ))}
+              {groups.map((group) => (
+                <Select.Group key={group}>
+                  <Select.Label className={styles.group}>{group}</Select.Label>
+                  {options
+                    .filter((o) => o.group === group)
+                    .map((o) => (
+                      <Option key={o.value} option={o} />
+                    ))}
+                </Select.Group>
+              ))}
+            </Select.Viewport>
+          </Select.Content>
+        </Select.Portal>
+      </Select.Root>
     </div>
   );
 }
 
-// An option's label: plain, or a pill in its colour.
-function Label({ option }) {
-  if (!option?.pill) return <span className="dropdown-label">{option?.label}</span>;
+function Option({ option }: { option: DropdownOption }) {
   return (
-    <span className="dropdown-label">
-      <span className={`dropdown-pill ink-${option.pill.ink ?? 'none'}`} style={{ '--pill-color': option.pill.color }}>
+    <Select.Item
+      value={option.value}
+      textValue={option.label}
+      disabled={option.disabled}
+      className={clsx(styles.option, option.italic && styles.italic)}
+    >
+      <span className={styles.check}>
+        <Select.ItemIndicator>
+          <Check size={16} aria-hidden="true" />
+        </Select.ItemIndicator>
+      </span>
+      {option.icon && <img className={styles.icon} src={option.icon} alt="" />}
+      <Select.ItemText>
+        <Label option={option} />
+      </Select.ItemText>
+      {option.badge && <span className={styles.badge}>{option.badge}</span>}
+      {option.note && <span className={styles.note}>{option.note}</span>}
+    </Select.Item>
+  );
+}
+
+// An option's label: plain, or a pill in its colour.
+function Label({ option }: { option?: DropdownOption }) {
+  if (!option?.pill) return <span className={styles.label}>{option?.label}</span>;
+  const ink = option.pill.ink === 'dark' ? styles.inkDark : option.pill.ink === 'light' ? styles.inkLight : undefined;
+  return (
+    <span className={styles.label}>
+      <span className={clsx(styles.pill, ink)} style={{ '--pill-color': option.pill.color } as CSSProperties}>
         {option.label}
       </span>
     </span>

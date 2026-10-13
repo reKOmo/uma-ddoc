@@ -1,4 +1,3 @@
-// @ts-nocheck
 // The scenario dropdown (tier list, card page): the real scenarios, then the averaged ones in their own
 // group. Scenarios not launched on the selected server yet are in italics with a "Not released yet"
 // note (isReleased, from data/scenarios.json); the one running now on it has a "Current" badge.
@@ -6,20 +5,24 @@
 // listed too, disabled, where they fall in launch order (newest first, like the tier list's). Every scenario's name is
 // a pill in its cover's colour (data/scenarios.json `color`), as on the scenario pages.
 
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import Dropdown from './Dropdown.tsx';
+import Dropdown, { type DropdownOption } from './Dropdown.tsx';
 import { scenarioName } from './i18n/index.ts';
 import { SCENARIOS, isCurrent, isReleased, scenarioByKey } from './scenarioRelease.ts';
+import type { Server } from './servers.ts';
 import { ink } from './timeline/scenarioStrip.ts';
 
 // A scenario's pill colour (none for a key data/scenarios.json lacks).
-const pillOf = (key) => {
+const pillOf = (key: string): DropdownOption['pill'] => {
   const color = scenarioByKey(key)?.color;
-  return color ? { color, ink: ink(color) } : undefined;
+  return color ? { color, ink: ink(color) ?? undefined } : undefined;
 };
 
 // The Dropdown's options for a server's scenarios (keys) and averaged rankings (keys). `t` translates.
-export function scenarioPickerOptions({ scenarios, combined, server, t }) {
+type PickerArgs = { scenarios: string[]; combined: string[]; server: Server; t: TFunction };
+
+export function scenarioPickerOptions({ scenarios, combined, server, t }: PickerArgs): DropdownOption[] {
   // Every scenario newest first (data/scenarios.json is in JP launch order); ranked keys the data
   // doesn't know go at the end, in their own order.
   const known = SCENARIOS.map((s) => s.key).reverse();
@@ -43,7 +46,9 @@ export function scenarioPickerOptions({ scenarios, combined, server, t }) {
   ];
 }
 
-export default function ScenarioPicker({ label, value, scenarios, combined, server, onChange }) {
+type ScenarioPickerProps = Omit<PickerArgs, 't'> & { label: string; value: string; onChange: (key: string) => void };
+
+export default function ScenarioPicker({ label, value, scenarios, combined, server, onChange }: ScenarioPickerProps) {
   const { t } = useTranslation();
   const options = scenarioPickerOptions({ scenarios, combined, server, t });
   return <Dropdown label={label} value={value} options={options} onChange={onChange} />;

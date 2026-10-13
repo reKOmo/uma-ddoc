@@ -1,9 +1,9 @@
-// @ts-nocheck
-// The app's dropdown (src/Dropdown.jsx) and the scenario one built on it (src/ScenarioPicker.jsx),
-// closed, rendered to markup. (No DOM in the test setup, so opening and the keyboard aren't covered.)
+// @vitest-environment jsdom
+// The app's dropdown (src/Dropdown.tsx) and the scenario one built on it (src/ScenarioPicker.tsx),
+// closed (opening and choosing: dropdown.test.tsx).
 
-import { describe, it, expect } from 'vitest';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { afterEach, describe, expect, it } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
 import '../src/i18n/index.ts';
 import Dropdown from '../src/Dropdown.tsx';
 import ScenarioPicker, { scenarioPickerOptions } from '../src/ScenarioPicker.tsx';
@@ -11,9 +11,11 @@ import i18n from '../src/i18n/index.ts';
 import { isCurrent } from '../src/scenarioRelease.ts';
 import { isReleased } from '../src/scenarioRelease.ts';
 
+afterEach(cleanup);
+
 describe('Dropdown', () => {
-  it('is a labelled listbox button showing the selected option', () => {
-    const html = renderToStaticMarkup(
+  it('is a labelled combobox showing the selected option', () => {
+    render(
       <Dropdown
         label="Stat"
         value="power"
@@ -24,15 +26,15 @@ describe('Dropdown', () => {
         onChange={() => {}}
       />
     );
-    expect(html).toContain('aria-haspopup="listbox"');
-    expect(html).toContain('aria-expanded="false"');
-    expect(html).toMatch(/class="dropdown-button"[^>]*>.*Power/);
+    const button = screen.getByRole('combobox', { name: /Stat/ });
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(button.textContent).toContain('Power');
   });
 });
 
 describe('ScenarioPicker', () => {
-  const render = (value, server) =>
-    renderToStaticMarkup(
+  const show = (value: string, server: 'gl' | 'jp') =>
+    render(
       <ScenarioPicker
         label="Scenario"
         value={value}
@@ -45,24 +47,26 @@ describe('ScenarioPicker', () => {
 
   it('sets a scenario the server hasn\'t launched in italics, with a "Not released yet" hint', () => {
     // Whatever the data says today: GM is out on JP, and on Global once it launches there.
-    for (const server of ['gl', 'jp']) {
-      const html = render('GM', server);
+    for (const server of ['gl', 'jp'] as const) {
+      const { unmount } = show('GM', server);
+      const button = screen.getByRole('combobox', { name: /Scenario/ });
       if (isReleased('GM', server)) {
-        expect(html).toContain('class="dropdown-button"');
+        expect(button.hasAttribute('title')).toBe(false);
       } else {
-        expect(html).toContain('class="dropdown-button italic"');
-        expect(html).toContain('title="Not released yet"');
+        expect(button.getAttribute('title')).toBe('Not released yet');
       }
+      unmount();
     }
     expect(isReleased('GM', 'jp')).toBe(true);
-    expect(render('GL', 'gl')).toContain('class="dropdown-button"');
+    show('GL', 'gl');
+    expect(screen.getByRole('combobox').hasAttribute('title')).toBe(false);
   });
 });
 
 describe('scenarioPickerOptions', () => {
   it('badges the scenario running now on the server, and only it', () => {
     const scenarios = ['DYI', 'GM', 'GL', 'MANT', 'Aoharu', 'URA'];
-    for (const server of ['gl', 'jp']) {
+    for (const server of ['gl', 'jp'] as const) {
       const options = scenarioPickerOptions({ scenarios, combined: ['overall'], server, t: i18n.t });
       const badged = options.filter((o) => o.badge === 'Current').map((o) => o.value);
       expect(badged).toEqual(scenarios.filter((key) => isCurrent(key, server)));

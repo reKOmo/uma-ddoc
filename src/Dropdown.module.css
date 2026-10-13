@@ -1,4 +1,4 @@
-/* The app's dropdown (Dropdown.jsx): a field with its label, a button, and a listbox popup under it. */
+/* The app's dropdown (Dropdown.tsx, on Radix Select): a field with its label, a trigger button, and a listbox popup under it. */
 .dropdown {
   position: relative;
   display: flex;
@@ -9,7 +9,7 @@
   color: var(--muted);
 }
 
-.dropdown-button {
+.button {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -27,33 +27,48 @@
     background-color 0.15s;
 }
 
-.dropdown-button:hover {
+.button:hover {
   background: color-mix(in srgb, var(--accent) 6%, var(--panel));
   border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
 }
 
-.dropdown-button[aria-expanded="true"] {
+.button[data-state="open"] {
   border-color: var(--accent);
 }
 
-.dropdown-chevron {
+/* The selected option on the button: Radix's Value span (the button's first child, no class of its own) around
+   .value, which lays the icon and label out. */
+.button > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.value {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.chevron {
   flex: none;
   transition: transform 0.15s;
 }
 
-.dropdown-button[aria-expanded="true"] .dropdown-chevron {
+.button[data-state="open"] .chevron {
   transform: rotate(180deg);
 }
 
-.dropdown-button .dropdown-label {
+.button .label {
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 /* An option's icon (e.g. a stat's), before its label. */
-.dropdown-icon {
+.icon {
   flex: none;
   width: 22px;
   height: 22px;
@@ -61,7 +76,7 @@
 }
 
 /* A label as a pill in its option's colour (--pill-color), the text dark or light to read on it. */
-.dropdown-pill {
+.pill {
   display: inline-block;
   max-width: 100%;
   padding: 1px 10px;
@@ -75,29 +90,26 @@
   border-radius: 999px;
 }
 
-.dropdown-pill.ink-dark {
+.inkDark {
   color: var(--ink-dark);
 }
 
-.dropdown-pill.ink-light {
+.inkLight {
   color: var(--ink-light);
 }
 
 /* e.g. scenarios not launched on the selected server yet: in the list, and on the button. */
-.italic .dropdown-label {
+.italic .label {
   font-style: italic;
 }
 
-.dropdown-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 20;
-  min-width: 100%;
-  max-height: 60vh;
-  margin: 4px 0 0;
-  padding: 4px;
-  overflow-y: auto;
+/* The popup, in a portal so no scroll container clips it; as wide as the button at least. */
+.list {
+  z-index: 60;
+  box-sizing: border-box;
+  min-width: var(--radix-select-trigger-width);
+  max-height: min(60vh, var(--radix-select-content-available-height));
+  overflow: hidden;
   font-size: 0.9rem;
   background: var(--panel);
   border: 1px solid var(--border);
@@ -105,11 +117,12 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
 }
 
-.dropdown-list:focus {
-  outline: none;
+.viewport {
+  box-sizing: border-box;
+  padding: 4px;
 }
 
-.dropdown-group {
+.group {
   margin-top: 4px;
   padding: 8px 10px 4px;
   font-size: 0.75rem;
@@ -118,7 +131,7 @@
   border-top: 1px solid var(--border);
 }
 
-.dropdown-option {
+.option {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -126,33 +139,32 @@
   padding: 6px 10px;
   color: var(--text);
   white-space: nowrap;
+  outline: none;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.1s;
+  user-select: none;
 }
 
-/* Hover and the keyboard's active option look the same (pointer movement sets the active one). */
-.dropdown-option:hover,
-.dropdown-option.active {
+/* Hover and the keyboard's highlighted option look the same (Radix highlights on pointer move). */
+.option[data-highlighted] {
   background: color-mix(in srgb, var(--accent) 12%, var(--panel));
 }
 
-.dropdown-option[aria-selected="true"] {
+.option[data-state="checked"] {
   font-weight: 600;
 }
 
-/* The tick only shows on the selected option; it keeps its space so labels line up. */
-.dropdown-check {
+/* The tick only shows on the selected option; its slot keeps the space so labels line up. */
+.check {
+  display: inline-flex;
   flex: none;
-  visibility: hidden;
+  width: 16px;
+  height: 16px;
   color: var(--accent);
 }
 
-.dropdown-option[aria-selected="true"] .dropdown-check {
-  visibility: visible;
-}
-
-.dropdown-note {
+.note {
   margin-left: auto;
   padding-left: 12px;
   font-size: 0.75rem;
@@ -160,8 +172,8 @@
   color: var(--muted);
 }
 
-/* Right-aligned like .dropdown-note (an option has one or the other). */
-.dropdown-badge {
+/* Right-aligned like .note (an option has one or the other). */
+.badge {
   margin-left: auto;
   padding: 0 8px;
   font-size: 0.72rem;
@@ -172,12 +184,12 @@
 }
 
 /* Can't be chosen (e.g. scenarios the tier list doesn't rank yet): greyed out, no highlight. */
-.dropdown-option.disabled {
+.option[data-disabled] {
   color: var(--muted);
   cursor: default;
   opacity: 0.6;
 }
 
-.dropdown-option.disabled:hover {
+.option[data-disabled][data-highlighted] {
   background: none;
 }
