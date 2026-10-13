@@ -1,4 +1,3 @@
-// @ts-nocheck
 // What a news post (data/news/gl/posts.json, as the API sends it) is about: a scout banner, an in-game event (and which
 // kind), or something else. Pure; reads the title, the id series and, for banners, the body.
 //
@@ -21,26 +20,52 @@
 // posts (X giveaways, letters, guidelines), never in-game events. The title rules are the lexicon's
 // (scripts/lib/news-lang/).
 
+import type { NewsPost } from '../../shared/schemas/news.ts';
 import { bannerPost } from './banner-posts.ts';
 import { en } from './news-lang/en.ts';
 import { decodeEntities } from './news-text.ts';
 
+// The lexicon fields this file reads (scripts/lib/news-lang/). TODO(ts): replace with `Lexicon` from news-lang once it's typed.
+type Lexicon = {
+  community: (post: NewsPost) => boolean;
+  phases: [RegExp, string][];
+  rules: [
+    RegExp,
+    'event' | 'other',
+    string | ((post: NewsPost) => string),
+    (number | ((m: RegExpMatchArray) => string | null))?,
+  ][];
+};
+
+export type Categorized = {
+  id: number;
+  category: 'banner' | 'event' | 'other';
+  kind: string | null;
+  phase: string | null;
+  name: string | null;
+  banners: { gachaId: number; type: 'character' | 'support' | null }[];
+};
+
 // Plain text: tags dropped, entities decoded, whitespace collapsed.
-export function plain(html) {
+export function plain(html: string): string {
   return decodeEntities(html.replace(/<[^>]*>/g, ' '))
     .replace(/\s+/g, ' ')
     .trim();
 }
 
 // `lang`: the posts' wording (scripts/lib/news-lang/), English by default.
-export function categorize(post, lang = en) {
+// TODO(ts): en is untyped until news-lang is (its rules infer as plain arrays); remove the cast then.
+export function categorize(post: NewsPost, lang: Lexicon = en as unknown as Lexicon): Categorized {
   const id = Number(post.announce_id);
   const title = plain(post.title);
   const phase = lang.phases.find(([re]) => re.test(title))?.[1] ?? null;
-  const result = { id, category: 'other', kind: 'misc', phase, name: null, banners: [] };
+  const result: Categorized = { id, category: 'other', kind: 'misc', phase, name: null, banners: [] };
 
   if (lang.community(post)) return { ...result, kind: 'community' };
-  const banners = bannerPost(post, lang)?.banners.map(({ gachaId, type }) => ({ gachaId, type }));
+  // TODO(ts): bannerPost is untyped (its lexicon default is the untyped en); cast away until it's typed.
+  const banners = bannerPost(post, lang as unknown as Parameters<typeof bannerPost>[1])?.banners.map(
+    ({ gachaId, type }) => ({ gachaId, type })
+  );
   if (banners?.length) return { ...result, category: 'banner', kind: null, banners };
 
   for (const [re, category, kind, name] of lang.rules) {

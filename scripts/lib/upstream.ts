@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Everything that knows about the upstream repo
 // (https://github.com/Euophrys/umamusume-tierlist).
 //
@@ -9,21 +8,23 @@
 //   tests  test/upstream/ compares our calculation with upstream's, run from a
 //          clone in upstream/ (scripts/clone-upstream.js).
 
-export const REPO = 'Euophrys/umamusume-tierlist';
+export const REPO: string = 'Euophrys/umamusume-tierlist';
 import { GENERATED_DIR, ROOT } from './paths.ts';
 
-export const UPSTREAM_DIR = `${ROOT}upstream/`;
+export const UPSTREAM_DIR: string = `${ROOT}upstream/`;
 // Where the data files go, as downloaded.
-export const UPSTREAM_RAW = `${GENERATED_DIR}raw/upstream/`;
+export const UPSTREAM_RAW: string = `${GENERATED_DIR}raw/upstream/`;
+
+type DataFile = { upstream: string; local: string };
 
 // `local` is relative to UPSTREAM_RAW.
-export const DATA_FILES = [
+export const DATA_FILES: DataFile[] = [
   { upstream: 'src/cards/gl.js', local: 'gl.js' },
   { upstream: 'src/cards/jp.js', local: 'jp.js' },
   { upstream: 'src/card-events.js', local: 'card-events.js' },
 ];
 
-export async function latestRef() {
+export async function latestRef(): Promise<string> {
   const res = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {
     headers: { Accept: 'application/vnd.github.sha' },
   });
@@ -32,7 +33,7 @@ export async function latestRef() {
 }
 
 // Downloads each file at `ref`. Returns { upstreamPath: text }.
-export async function download(ref, files) {
+export async function download(ref: string, files: DataFile[]): Promise<Record<string, string>> {
   const texts = await Promise.all(
     files.map(async (file) => {
       const url = `https://raw.githubusercontent.com/${REPO}/${ref}/${file.upstream}`;
