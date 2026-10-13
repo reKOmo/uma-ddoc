@@ -1,0 +1,148 @@
+/* The rank chart (RankChart.tsx): a fixed rank axis, a sideways-scrolling plot, and a crosshair tooltip. Hand-written
+   SVG: colour tokens for marks and text, hairline gridlines. The tooltip's tier chip is <TierChip>. */
+
+/* Fixed rank axis on the left, scrolling plot on the right. */
+.rankChart {
+  position: relative;
+  display: flex;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.rankAxis {
+  flex: none;
+  border-right: 1px solid var(--border);
+}
+
+.rankScroller {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  /* Mouse drag-to-pan (src/useDragScroll.ts); touch screens ignore cursors. */
+  cursor: grab;
+}
+
+.rankScroller[data-dragging] {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.rankChart svg {
+  display: block;
+  outline: none;
+}
+
+.rankChart svg:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+.grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.axisLabel {
+  font-size: 11px;
+  fill: var(--muted);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.yearLabel {
+  font-weight: 700;
+  fill: var(--text);
+}
+
+.monthTick {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+/* Year boundaries run the full plot height, a step darker than the rank gridlines. */
+.grid.year {
+  stroke: var(--muted);
+  stroke-opacity: 0.35;
+}
+
+.todayLine {
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-opacity: 0.5;
+}
+
+.endLabel {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--text);
+}
+
+.rankLine {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Predicted: dashed line, hollow dots. */
+.rankLine.predicted {
+  stroke-dasharray: 6 5;
+}
+
+/* Surface ring keeps dots legible where they sit on the line. */
+.rankDot {
+  fill: var(--accent);
+  stroke: var(--panel);
+  stroke-width: 2;
+}
+
+.rankDot.predicted {
+  fill: var(--panel);
+  stroke: var(--accent);
+}
+
+.endLabel.predicted {
+  fill: var(--muted);
+}
+
+.crosshair line {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 180px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  pointer-events: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translate(-50%, -100%);
+}
+
+.tooltipDate {
+  color: var(--muted);
+}
+
+.tooltipRank {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.tooltipNote {
+  color: var(--muted);
+}
