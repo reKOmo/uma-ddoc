@@ -1,10 +1,10 @@
-/* The Timeline's sheet (TimelineSheet.jsx), the same for every banner and event: art, kind pill, name, status and
+/* The Timeline's sheet (TimelineSheet.tsx), the same for every banner and event: art, kind pill, name, status and
    dates, notes, relations, featured items or cards with their ranks, other rewards, schedule, titles, parts, links.
    The sheet itself: src/Sheet.css. */
 
 /* Room for the art before it loads, so the sheet doesn't jump: GameTora's banner art (512×188, a transparent
    margin round it) or the news' official art (936×228 banners, 936×120 event headers), shown whole. */
-.sheet-art {
+.art {
   display: block;
   width: 100%;
   aspect-ratio: 512 / 188;
@@ -13,26 +13,16 @@
   border-radius: 10px;
 }
 
-.sheet-art.official {
+.official {
   aspect-ratio: 936 / 228;
 }
 
-.entry-kind {
-  display: inline-block;
-  padding: 2px 10px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  background: color-mix(in srgb, var(--tone) 25%, var(--panel));
-  border: 1px solid var(--tone);
-  border-radius: 999px;
-}
-
-.sheet-title {
+.title {
   margin: 8px 0 0;
   font-size: 1.2rem;
 }
 
-.sheet-dates {
+.dates {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -41,7 +31,7 @@
   font-size: 0.9rem;
 }
 
-.sheet-heading {
+.heading {
   margin: 16px 0 4px;
   font-size: 0.8rem;
   font-weight: 700;
@@ -65,28 +55,20 @@
 }
 
 /* Card and character icons are square. */
-.item-icon {
+.itemIcon {
   position: relative;
   flex-shrink: 0;
   width: 68px;
   height: 68px;
 }
 
-.item-icon img {
+.itemIcon img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-.item-icon .badge {
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  box-shadow: 0 0 0 2px var(--panel);
-}
-
-.item-info {
+.itemInfo {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -96,14 +78,14 @@
 
 /* Name with the card/outfit title beside it on one line; the title gives way
    (with an ellipsis) when space runs out. */
-.item-name {
+.itemName {
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
 }
 
-.item-name strong {
+.itemName strong {
   flex-shrink: 0;
   font-size: 1.05rem;
   max-width: 100%;
@@ -112,7 +94,7 @@
   text-overflow: ellipsis;
 }
 
-.item-title {
+.itemTitle {
   min-width: 0;
   overflow: hidden;
   font-size: 0.85rem;
@@ -122,7 +104,7 @@
 }
 
 /* Wraps "See more" onto its own line on very narrow screens instead of overflowing. */
-.item-meta {
+.itemMeta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -130,6 +112,42 @@
   margin-top: 4px;
   font-size: 0.95rem;
   color: var(--muted);
+}
+
+/* Sits at the right end of the rank row. */
+.cardLink {
+  margin-left: auto;
+}
+
+/* A status or new/paid badge (App.css .badge: copied, the sheet's own). */
+.badge {
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+/* new items (App.css .badge.new). */
+.new {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+/* A paid scout (JP's guaranteed ★3/SSR, step-up… banners) (App.css .badge.paid). */
+.paid {
+  color: #fff;
+  background: #c2410c;
+}
+
+/* The item's badge sits on its icon's bottom edge. */
+.itemIcon .badge {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 0 2px var(--panel);
 }
 
 .rank {
@@ -141,13 +159,8 @@
   white-space: nowrap;
 }
 
-/* Sits at the right end of the rank row. */
-.item-meta .see-more {
-  margin-left: auto;
-}
-
 /* line-height = height, so the letter sits in the middle of the chip. */
-.rank-tier {
+.rankTier {
   display: inline-block;
   min-width: 26px;
   height: 26px;
@@ -165,37 +178,37 @@
   color: var(--muted);
 }
 
-.sheet-note {
+.note {
   margin: -4px 0 12px;
   font-size: 0.8rem;
   color: var(--muted);
 }
 
-.rank-note {
+.rankNote {
   margin: 8px 0 0;
   font-size: 0.75rem;
   color: var(--muted);
 }
 
-.sheet-rewards {
+.rewards {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.sheet-rewards li {
+.rewards li {
   padding: 8px 0;
   font-weight: 600;
   border-top: 1px solid var(--border);
 }
 
-.sheet-list {
+.list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.sheet-list li {
+.list li {
   display: flex;
   justify-content: space-between;
   gap: 8px;
@@ -204,29 +217,29 @@
   border-top: 1px solid var(--border);
 }
 
-.sheet-list small {
+.list small {
   flex: none;
   color: var(--muted);
 }
 
 /* A schedule's exact times are long: they wrap on phones instead of running off the sheet. */
-.sheet-schedule small {
+.schedule small {
   flex: 0 1 auto;
   text-align: right;
 }
 
-.sheet-titles,
-.sheet-empty {
+.titles,
+.empty {
   margin: 12px 0;
   font-size: 0.9rem;
 }
 
-.sheet-empty {
+.empty {
   color: var(--muted);
 }
 
-.sheet-relation,
-.sheet-part {
+.relation,
+.part {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -240,19 +253,19 @@
 }
 
 /* One per line (a banner can be both a re-run and re-held). */
-.sheet-relation {
+.relation {
   display: flex;
   margin-bottom: 4px;
   font-weight: 600;
 }
 
 /* The other one isn't on the calendar (a re-run with its dates alone). */
-.sheet-relation:disabled {
+.relation:disabled {
   color: var(--muted);
   cursor: default;
 }
 
-.entry-dot {
+.dot {
   flex: none;
   width: 8px;
   height: 8px;
@@ -260,7 +273,7 @@
   border-radius: 50%;
 }
 
-.has-cards {
+.hasCards {
   padding: 0 6px;
   font-size: 0.7rem;
   font-weight: 700;
@@ -269,10 +282,32 @@
   border-radius: 999px;
 }
 
-/* The official post and umapyoi.net's copy of it: buttons (.link-button, App.css) side by side, wrapping on phones. */
-.sheet-links {
+/* The official post and umapyoi.net's copy of it: link buttons side by side, wrapping on phones. */
+.links {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin: 16px 0 0;
+}
+
+/* A link drawn as an outlined pill, filled while pressed (App.css .link-button, copied: the sheet's icons are 15 px). */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.link:active {
+  color: var(--accent-text);
+  background: var(--accent);
 }

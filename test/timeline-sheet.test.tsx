@@ -1,26 +1,54 @@
-// @ts-nocheck
-// The Timeline's sheet (src/timeline/TimelineSheet.jsx): one layout for every banner and event, only the content
-// changes.
+// @vitest-environment jsdom
+// The Timeline's sheet (src/timeline/TimelineSheet.tsx): one layout for every banner and event, only the content
+// changes. Queried by role and text, never by class name.
 
-import { describe, it, expect, vi } from 'vitest';
-import { renderToStaticMarkup } from 'react-dom/server';
-import '../src/i18n/index.ts';
-import { bannerEntries, eventEntries } from '../src/timeline/entries.ts';
-import { dateFormats } from '../src/timeline/format.ts';
-import { withArt } from '../src/gametora.ts';
-import cards from '../generated/cards.json' with { type: 'json' };
+import type { ReactNode } from 'react';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import i18n, { scenarioName } from '../src/i18n/index.ts';
+import type { Banner, BannerItem } from '../shared/schemas/banner.ts';
+import type { CardsFile } from '../shared/schemas/card.ts';
+import type { GameEvent } from '../shared/schemas/event.ts';
+import { type Entry, bannerEntries, eventEntries } from '../src/timeline/entries.ts';
+import { dateFormats, entryTitle, kindName } from '../src/timeline/format.ts';
+import { type ArtBannerFile, withArt } from '../src/gametora.ts';
+import cardsJson from '../generated/cards.json' with { type: 'json' };
 
-// The sheet (vaul's drawer) renders into a portal, which a static render leaves out: the sheet's content inline instead.
+// The sheet (vaul's drawer) renders into a portal: the sheet's content inline instead.
 vi.mock('../src/Sheet.tsx', () => ({
-  default: ({ children }) => <div className="sheet">{children}</div>,
-  SheetTitle: ({ className, children }) => <h2 className={className}>{children}</h2>,
+  default: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  SheetTitle: ({ className, children }: { className?: string; children: ReactNode }) => (
+    <h2 className={className}>{children}</h2>
+  ),
+  SHEET_ANIMATION_MS: 500,
 }));
 const { default: TimelineSheet } = await import('../src/timeline/TimelineSheet.tsx');
 
+afterEach(cleanup);
+
+const cards = cardsJson as CardsFile;
 const now = Date.parse('2026-10-13T00:00:00Z');
-const card = (id) => ({ id, name: cards[id].name.en, title: cards[id].title.en, type: 'speed', rarity: 3, new: true });
 const ids = Object.keys(cards).map(Number);
-const file = (list) => withArt({ characters: [], cards: list }, 'jp', cards);
+const card = (id: number): BannerItem => ({
+  id,
+  char_id: null,
+  name: cards[id].name.en ?? '',
+  title: cards[id].title.en ?? '',
+  rarity: 3,
+  type: 'speed',
+  rate: null,
+  new: true,
+});
+const file = (list: Banner[]): ArtBannerFile =>
+  withArt(
+    {
+      source: { site: 'umamusume.jp', server: 'jp', scraped_at: '2026-10-01T00:00:00Z' },
+      characters: [],
+      cards: list,
+    },
+    'jp',
+    cards
+  );
 const [predicted, paid] = bannerEntries(
   file([
     {
@@ -57,11 +85,13 @@ const events = eventEntries(
       parent: null,
       start: '2026-10-01T00:00:00Z',
       end: '2026-10-20T00:00:00Z',
-      news_url: 'https://umamusume.com/news/10',
-      image: 'art.png',
       cards: [],
       items: [{ name: 'Carats', count: 3000 }],
       titles: ['Champion'],
+      news_url: 'https://umamusume.com/news/10',
+      image: 'art.png',
+      phases: undefined,
+      source: 'news',
     },
     {
       id: '10-1',
@@ -73,105 +103,101 @@ const events = eventEntries(
       cards: [{ id: ids[1], rarity: 'SSR', title: 'T', name: 'N', copies: 2 }],
       items: [],
       titles: [],
+      news_url: null,
+      image: null,
+      source: 'news',
     },
-  ],
+  ] satisfies GameEvent[],
   { cards, now }
 );
 const all = new Map([predicted, paid, ...events].map((e) => [e.key, e]));
+const format = dateFormats('utc');
 
-const render = (entry) =>
-  renderToStaticMarkup(
+function renderSheet(entry: Entry) {
+  return render(
     <TimelineSheet
       entry={entry}
       lookup={(key) => all.get(key)}
       server="gl"
       scenario="GL"
-      format={dateFormats('utc')}
+      format={format}
+      open
       onSelect={() => {}}
       onClose={() => {}}
     />
   );
-// The sheet's sections, in order, by class.
-const SECTIONS = [
-  'sheet-art',
-  'entry-kind',
-  'sheet-title',
-  'sheet-dates',
-  'sheet-note',
-  'sheet-relation',
-  'featured',
-  'sheet-rewards',
-  'sheet-titles',
-  'sheet-empty',
-  'sheet-list',
-  'rank-note',
-  'sheet-links',
-];
-const sections = (html) =>
-  SECTIONS.filter((c) => new RegExp(`class="${c}[" ]`).test(html)).sort(
-    (a, b) => html.search(new RegExp(`class="${a}[" ]`)) - html.search(new RegExp(`class="${b}[" ]`))
-  );
+}
+
+// Asserts the nodes are on the page, each after the one before it.
+function expectInOrder(nodes: (Element | null)[]): void {
+  const present = nodes.filter((node): node is Element => node !== null);
+  expect(present).toHaveLength(nodes.length);
+  present.slice(1).forEach((node, i) => {
+    expect(present[i].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+}
+
+// The art: the only picture without `loading` (the item icons are lazy).
+const art = (container: HTMLElement) => container.querySelector('img:not([loading])');
 
 describe('TimelineSheet', () => {
   it('shows a predicted banner: art, kind, status, where its dates come from, its cards ranked', () => {
-    const html = render(predicted);
-    expect(sections(html)).toEqual([
-      'sheet-art',
-      'entry-kind',
-      'sheet-title',
-      'sheet-dates',
-      'sheet-note',
-      'featured',
-      'rank-note',
+    const { container } = renderSheet(predicted);
+    expectInOrder([
+      art(container),
+      screen.getByText(kindName(predicted)),
+      screen.getByRole('heading', { level: 2, name: entryTitle(predicted) }),
+      screen.getByText(i18n.t('timeline.status.predicted')),
+      screen.getByText(/^Predicted from JP's dates \(May 1, 2025 - May 8, 2025\); could be 4 days earlier/),
+      screen.getByRole('heading', { level: 3, name: i18n.t('timeline.featuredCards') }),
+      screen.getByText(i18n.t('common.ranking')),
+      screen.getByText(i18n.t('timeline.rankNote', { scenario: scenarioName('GL') })),
     ]);
-    expect(html).toContain('Support card scout');
-    expect(html).toContain('Predicted from JP&#x27;s dates (May 1, 2025 - May 8, 2025); could be 4 days earlier');
-    expect(html).toContain('Ranking…');
   });
 
   it('shows a paid scout: its name, since when, its note in place of items, and its post', () => {
-    const html = render(paid);
-    expect(sections(html)).toEqual([
-      'sheet-art',
-      'entry-kind',
-      'sheet-title',
-      'sheet-dates',
-      'sheet-note',
-      'sheet-empty',
-      'sheet-links',
+    const { container } = renderSheet(paid);
+    expectInOrder([
+      art(container),
+      screen.getByText(kindName(paid)),
+      screen.getByRole('heading', { level: 2, name: 'Paid scout' }),
+      screen.getByText(i18n.t('timeline.paid')),
+      screen.getByText('Any ★3'),
+      screen.getByRole('link', { name: i18n.t('timeline.news', { site: 'umamusume.jp' }) }),
+      screen.getByRole('link', { name: i18n.t('timeline.umapyoi') }),
     ]);
-    expect(html).toContain('>Paid scout</h2>');
-    expect(html).toContain('from Jan 1, 2026');
-    expect(html).toContain('Any ★3');
-    expect(html).toContain('https://umapyoi.net/news/3400?lang=jp');
+    expect(screen.getByText(/from Jan 1, 2026/)).toBeTruthy();
+    expect(screen.getByRole('link', { name: i18n.t('timeline.umapyoi') }).getAttribute('href')).toBe(
+      'https://umapyoi.net/news/3400?lang=jp'
+    );
   });
 
   it('shows an event the same way: rewards, titles, its parts', () => {
-    const html = render(events[0]);
-    expect(sections(html)).toEqual([
-      'sheet-art',
-      'entry-kind',
-      'sheet-title',
-      'sheet-dates',
-      'sheet-rewards',
-      'sheet-titles',
-      'sheet-list',
-      'sheet-links',
+    const { container } = renderSheet(events[0]);
+    expectInOrder([
+      art(container),
+      screen.getByText(kindName(events[0])),
+      screen.getByRole('heading', { level: 2, name: entryTitle(events[0]) }),
+      screen.getByRole('heading', { level: 3, name: i18n.t('timeline.items') }),
+      screen.getByText('Carats × 3,000'),
+      screen.getByText(i18n.t('timeline.titles', { titles: ['Champion'] })),
+      screen.getByRole('heading', { level: 3, name: i18n.t('timeline.includes') }),
+      screen.getByRole('button', { name: new RegExp(kindName(events[1])) }),
+      screen.getByRole('link', { name: i18n.t('timeline.news', { site: 'umamusume.com' }) }),
     ]);
-    expect(html).toContain('Carats × 3,000');
   });
 
   it("shows a part with its parent and its cards, ranked like a banner's", () => {
-    const html = render(events[1]);
-    expect(sections(html)).toEqual([
-      'entry-kind',
-      'sheet-title',
-      'sheet-dates',
-      'sheet-relation',
-      'featured',
-      'rank-note',
+    renderSheet(events[1]);
+    // The kind pill and the title are both "Gift": the pill comes first.
+    expectInOrder([
+      screen.getAllByText(kindName(events[1]))[0],
+      screen.getByRole('heading', { level: 2, name: entryTitle(events[1]) }),
+      screen.getByRole('button', { name: i18n.t('timeline.relation.partOf', { dates: '', name: 'Anniversary' }) }),
+      screen.getByRole('heading', { level: 3, name: i18n.t('timeline.supportCards') }),
+      screen.getByText(i18n.t('timeline.rankNote', { scenario: scenarioName('GL') })),
     ]);
-    expect(html).toContain('Part of Anniversary');
-    expect(html).toContain('2 copies');
+    expect(screen.getByText(/Part of Anniversary/)).toBeTruthy();
+    expect(screen.getByText('2 copies')).toBeTruthy();
   });
 });
