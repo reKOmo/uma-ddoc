@@ -1,28 +1,28 @@
-// @ts-nocheck
-import { useEffect } from 'react';
+import { type RefObject, useEffect } from 'react';
 
 // Lets a mouse pan a scroll container by dragging. Touch and pens are left to
 // native scrolling. A press only becomes a drag after moving a few pixels, so
 // plain clicks still reach the content; the click that ends a drag is eaten.
 const THRESHOLD = 4;
 
-export function useDragScroll(ref, enabled = true) {
+export function useDragScroll(ref: RefObject<HTMLElement | null>, enabled = true): void {
   useEffect(() => {
     const el = ref.current;
     if (!el || !enabled) return;
 
-    let start = null;
+    let start: { x: number; y: number; left: number; top: number } | null = null;
     let dragged = false;
 
-    function onPointerDown(e) {
+    const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType !== 'mouse' || e.button !== 0) return;
       start = { x: e.clientX, y: e.clientY, left: el.scrollLeft, top: el.scrollTop };
       dragged = false;
       window.addEventListener('pointermove', onPointerMove);
       window.addEventListener('pointerup', onPointerUp);
-    }
+    };
 
-    function onPointerMove(e) {
+    const onPointerMove = (e: PointerEvent) => {
+      if (!start) return; // set on pointerdown, before this listener is added
       const dx = e.clientX - start.x;
       const dy = e.clientY - start.y;
       if (!dragged && Math.hypot(dx, dy) < THRESHOLD) return;
@@ -30,22 +30,22 @@ export function useDragScroll(ref, enabled = true) {
       el.classList.add('dragging');
       el.scrollLeft = start.left - dx;
       el.scrollTop = start.top - dy;
-    }
+    };
 
-    function onPointerUp() {
+    const onPointerUp = () => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       el.classList.remove('dragging');
       start = null;
-    }
+    };
 
     // Runs before the bars' own handlers, so a drag ending on a bar doesn't open it.
-    function onClickCapture(e) {
+    const onClickCapture = (e: MouseEvent) => {
       if (!dragged) return;
       e.stopPropagation();
       e.preventDefault();
       dragged = false;
-    }
+    };
 
     el.addEventListener('pointerdown', onPointerDown);
     el.addEventListener('click', onClickCapture, true);

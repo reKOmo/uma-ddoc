@@ -1,4 +1,3 @@
-// @ts-nocheck
 // UI strings, via i18next + react-i18next. Each language is a JSON catalog in
 // this folder with the same keys as en.json (test/i18n.test.jsx checks that),
 // registered in RESOURCES. Catalogs use i18next's format: {{placeholders}},
@@ -39,36 +38,38 @@ i18n
 export default i18n;
 
 // The detected locale (e.g. "en-GB"), for Intl formatting.
-const locale = () => i18n.language || 'en';
+const locale = (): string => i18n.language || 'en';
 
 // Display names for keys that live in code.
-export const statName = (stat) => i18n.t(`stat.${stat}`);
-export const serverName = (server) => i18n.t(`server.${server}`);
+export const statName = (stat: string): string => i18n.t(`stat.${stat}`);
+export const serverName = (server: string): string => i18n.t(`server.${server}`);
 // A scenario's short name: the averaged ones have names; real ones go by the "Scenario names" setting —
 // Global's short name (Unity, TB, GC…), JP's where Global has none yet — or JP's (Aoharu, MANT, GL…),
 // from data/scenarios.json; the key if it isn't there.
-export function scenarioName(key) {
+export function scenarioName(key: string): string {
   if (key in COMBINED) return i18n.t(`scenario.${key}`);
   const short = scenarioByKey(key)?.short;
   if (!short) return key;
   return (getSetting('scenarioNames') === 'global' && short.en) || short.jp;
 }
 // A limit break's label: LB0–LB3, and MLB (max limit break) for LB4.
-export const lbName = (lb) => (lb === 4 ? i18n.t('lb.max') : i18n.t('lb.level', { lb }));
+export const lbName = (lb: number): string => (lb === 4 ? i18n.t('lb.max') : i18n.t('lb.level', { lb }));
 
 // Dates in the UI's locale. Takes anything Date accepts.
-export const formatDate = (date, options) => new Date(date).toLocaleDateString(locale(), options);
-export const formatDateTime = (date, options) => new Date(date).toLocaleString(locale(), options);
+export const formatDate = (date: Date | string | number, options?: Intl.DateTimeFormatOptions): string =>
+  new Date(date).toLocaleDateString(locale(), options);
+export const formatDateTime = (date: Date | string | number, options?: Intl.DateTimeFormatOptions): string =>
+  new Date(date).toLocaleString(locale(), options);
 // Numbers in the UI's locale ("50,000").
-export const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value);
+export const formatNumber = (value: number): string => new Intl.NumberFormat(locale()).format(value);
 
 // How long from one "YYYY-MM-DD" date to a later one, in the UI's locale: "1 year, 2 months",
 // "5 months", or days when it's under a month.
-export function formatDuration(from, to) {
+export function formatDuration(from: string, to: string): string {
   const [y1, m1, d1] = from.split('-').map(Number);
   const [y2, m2, d2] = to.split('-').map(Number);
   const months = (y2 - y1) * 12 + (m2 - m1) - (d2 < d1 ? 1 : 0);
-  const unit = (value, name) =>
+  const unit = (value: number, name: string): string =>
     new Intl.NumberFormat(locale(), { style: 'unit', unit: name, unitDisplay: 'long' }).format(value);
   if (months < 1) return unit(Math.round((Date.parse(to) - Date.parse(from)) / 86400000), 'day');
   const parts = [];
