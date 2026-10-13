@@ -21,6 +21,7 @@
 //   stat_bonus[6]  flat per-stat bonus   specialty_rate  specialty priority
 
 import type { LbStats } from '../shared/schemas/card.ts';
+import type { GeneralWeights, StatWeights } from './scenarios.ts';
 
 // A card as joinCards() builds it (tierlist/join-cards.ts): upstream's card fields, one per limit break, plus `events`.
 export type CalcCard = LbStats & {
@@ -38,28 +39,8 @@ export type CalcCard = LbStats & {
 type PlayedCard = CalcCard & { index: number; rainbowSpecialty: number; offSpecialty: number; cardType?: number };
 type DeckCard = PlayedCard & { cardType: number };
 
-// A scenario's weights for one stat (tierlist/scenarios.ts' `general` merged with the stat's own entry); only the
-// fields read here.
-export type CalcWeights = {
-  bondPerDay: number;
-  races: number[];
-  unbondedTrainingGain: number[][];
-  bondedTrainingGain: number[][];
-  summerTrainingGain: number[][];
-  umaBonus: number[];
-  multi: number;
-  bonusSpec: number;
-  motivation: number;
-  scenarioLink: string[];
-  scenarioBonus: number;
-  fanBonus: number;
-  type: number;
-  stats: number[];
-  cap: number;
-  minimum: number;
-  prioritize: boolean;
-  onlySummer: boolean;
-};
+// A scenario's weights for one stat: tierlist/scenarios.ts' `general` merged with the stat's own entry.
+export type CalcWeights = GeneralWeights & StatWeights;
 
 // One scored candidate.
 export type ProcessedCard = { id: number; lb: number; score: number; char_name: string };

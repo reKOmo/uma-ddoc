@@ -28,6 +28,9 @@ __pycache__/
 .env
 .env.*
 
+# Agents' git worktrees (one per task while the TypeScript migration runs in parallel)
+.claude/worktrees/
+
 # Logs, test coverage, OS files
 *.log
 coverage/
