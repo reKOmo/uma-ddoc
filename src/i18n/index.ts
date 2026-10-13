@@ -46,10 +46,19 @@ export function scenarioName(key: string): string {
 // A limit break's label: LB0–LB3, and MLB (max limit break) for LB4.
 export const lbName = (lb: number): string => (lb === 4 ? i18n.t('lb.max') : i18n.t('lb.level', { lb }));
 
-export const formatDate = (date: Date | string | number, options?: Intl.DateTimeFormatOptions): string =>
-  new Date(date).toLocaleDateString(locale(), options);
-export const formatDateTime = (date: Date | string | number, options?: Intl.DateTimeFormatOptions): string =>
-  new Date(date).toLocaleString(locale(), options);
+// Kept: making a formatter is slow (toLocaleDateString makes one per call), and the Timeline formats thousands of dates.
+const formatters = new Map<string, Intl.DateTimeFormat>();
+function dateTimeFormat(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const key = `${locale()} ${JSON.stringify(options)}`;
+  const formatter = formatters.get(key) ?? new Intl.DateTimeFormat(locale(), options);
+  formatters.set(key, formatter);
+  return formatter;
+}
+
+export const formatDate = (date: Date | string | number, options: Intl.DateTimeFormatOptions = {}): string =>
+  dateTimeFormat(options).format(new Date(date));
+export const formatDateTime = (date: Date | string | number, options: Intl.DateTimeFormatOptions): string =>
+  dateTimeFormat(options).format(new Date(date));
 export const formatNumber = (value: number): string => new Intl.NumberFormat(locale()).format(value);
 
 // How long from one "YYYY-MM-DD" date to a later one, in the UI's locale: "1 year, 2 months",

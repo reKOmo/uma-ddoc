@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { SCENARIOS } from '../scenarioRelease.ts';
 import { useSettings } from '../settings.tsx';
 import { useDragScroll } from '../useDragScroll.ts';
-import { loadTimeline } from '../timeline/data.ts';
+import { type Mark, loadTimeline } from '../timeline/data.ts';
 import { useAsync } from '../useAsync.ts';
 import { buildTimeline } from '../timeline/layout.ts';
 import { scenarioSegments } from '../timeline/scenarioStrip.ts';
@@ -19,6 +19,7 @@ import TimelineSheet from '../timeline/TimelineSheet.tsx';
 import type { Entry } from '../timeline/entries.ts';
 import { middleOf, useCenterOn } from '../timeline/useCenterOn.ts';
 import { useCompactRows } from '../timeline/useCompactRows.ts';
+import { useRenderWindow } from '../timeline/useRenderWindow.ts';
 import { useTimelineFilters } from '../timeline/useTimelineFilters.ts';
 import Status from '../ui/Status.tsx';
 import { ToolbarButton } from '../ui/ToolbarButton.tsx';
@@ -28,6 +29,7 @@ import styles from './TimelinePage.module.css';
 
 const ZOOMS = [4, 8, 16, 32]; // pixels per day
 const MARK_ICONS: Record<string, LucideIcon> = { global: Globe };
+const NO_MARKS: Mark[] = [];
 
 function toggled<T>(set: Set<T>, key: T): Set<T> {
   const next = new Set(set);
@@ -64,8 +66,21 @@ export default function TimelinePage({
   const loaded = useAsync(() => loadTimeline(server).then((l) => ({ server, ...l })), [server]).data;
   // (Right after a server change, until the hook resets, its data is still the old server's.)
   const current = loaded?.server === server ? loaded : null;
+  // Loaded after the calendar is drawn; only the sheet's entries get their counterpart (the bars don't show it).
+  const loadedOthers = useAsync(async () => current && { of: current, ...(await current.others()) }, [current]).data;
+  const others = loadedOthers?.of === current ? loadedOthers : null;
+  const marks = others?.marks ?? NO_MARKS;
 
-  const byKey = useMemo(() => new Map(current?.entries.map((entry) => [entry.key, entry])), [current]);
+  const byKey = useMemo(
+    () =>
+      new Map(
+        current?.entries.map((entry) => {
+          const counterpart = others?.counterparts.get(String(entry.id));
+          return [entry.key, counterpart ? { ...entry, counterpart } : entry];
+        })
+      ),
+    [current, others]
+  );
   const timeline = useMemo(
     () => current && buildTimeline(current.entries, { utc: timeZone === 'utc' }),
     [current, timeZone]
@@ -96,6 +111,7 @@ export default function TimelinePage({
   }, [linked]);
 
   const { centerOn, centerOnMiddle, scrollToDay } = useCenterOn(scroller, timeline, px, linked);
+  const range = useRenderWindow(scroller, timeline, px);
 
   function changeZoom(next: number) {
     centerOnMiddle();
@@ -126,7 +142,7 @@ export default function TimelinePage({
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.toolbar}>
-          {current?.marks.map((mark) => (
+          {marks.map((mark) => (
             <ToolbarButton
               key={mark.key}
               icon={MARK_ICONS[mark.key]}
@@ -193,13 +209,14 @@ export default function TimelinePage({
             style={{ width: `calc(${timeline.days * px}px + 50vw)`, '--day': `${px}px` } as CSSProperties}
           >
             <TimelineAxis timeline={timeline} scenarios={scenarios} px={px} format={format} />
-            <CalendarLines timeline={timeline} scenarios={scenarios} marks={current.marks} px={px} format={format} />
+            <CalendarLines timeline={timeline} scenarios={scenarios} marks={marks} px={px} format={format} />
             {groups.map((group) => (
               <LaneGroup
                 key={group.key}
                 group={group}
                 collapsed={collapsed.has(group.key)}
                 visible={compact && visible?.groups === groups ? (visible.rows[group.key] ?? null) : null}
+                range={range}
                 onToggleGroup={toggleGroup}
                 at={at}
                 format={format}

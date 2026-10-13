@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import type { Entry } from './entries.ts';
 import { type LaneGroupRows, type LaneItem, partCount } from './layout.ts';
 import type { DateFormats } from './format.ts';
+import type { RenderWindow } from './useRenderWindow.ts';
 import styles from './Lanes.module.css';
 import { barLabel, dateRange, kindName } from './format.ts';
 
@@ -20,13 +21,15 @@ type Callbacks = {
   onSelect: (entry: Entry) => void;
 };
 
-// `visible`: compact mode's rows in view, comma-joined (a string compares by value), else null.
+// `visible`: compact mode's rows in view, comma-joined (a string compares by value), else null. `range`: the time range
+// whose bars are drawn (useRenderWindow), none while null.
 // Memoised with stable props: a group holds hundreds of bars, and re-rendering them on every sheet open would stall
 // the sheet's animation.
 export const LaneGroup = memo(function LaneGroup({
   group,
   collapsed,
   visible,
+  range,
   onToggleGroup,
   at,
   format,
@@ -37,6 +40,7 @@ export const LaneGroup = memo(function LaneGroup({
   group: LaneGroupRows<Entry>;
   collapsed: boolean;
   visible: string | null;
+  range: RenderWindow | null;
   onToggleGroup: (key: string) => void;
 }) {
   const { t } = useTranslation();
@@ -59,6 +63,7 @@ export const LaneGroup = memo(function LaneGroup({
         <Rows
           rows={group.rows}
           shown={shown}
+          range={range}
           at={at}
           format={format}
           unfolded={unfolded}
@@ -74,6 +79,7 @@ export const LaneGroup = memo(function LaneGroup({
 function Rows({
   rows,
   shown,
+  range,
   at,
   format,
   unfolded,
@@ -81,7 +87,13 @@ function Rows({
   onSelect,
   depth = 0,
   prefix = '',
-}: Callbacks & { rows: LaneItem<Entry>[][]; shown: Set<string> | null; depth?: number; prefix?: string }) {
+}: Callbacks & {
+  rows: LaneItem<Entry>[][];
+  shown: Set<string> | null;
+  range: RenderWindow | null;
+  depth?: number;
+  prefix?: string;
+}) {
   return rows.map((row, i) => {
     const open = row.filter((item) => item.parts.length && unfolded.has(item.entry.key));
     return (
@@ -94,17 +106,19 @@ function Rows({
             shown && !shown.has(`${prefix}${i}`) && styles.hidden
           )}
         >
-          {row.map((item) => (
-            <Bar
-              key={item.entry.key}
-              item={item}
-              at={at}
-              format={format}
-              open={unfolded.has(item.entry.key)}
-              onToggleParts={onToggleParts}
-              onSelect={onSelect}
-            />
-          ))}
+          {row
+            .filter((item) => range && item.start < range.to && item.end > range.from)
+            .map((item) => (
+              <Bar
+                key={item.entry.key}
+                item={item}
+                at={at}
+                format={format}
+                open={unfolded.has(item.entry.key)}
+                onToggleParts={onToggleParts}
+                onSelect={onSelect}
+              />
+            ))}
         </div>
         {open.map((item) => (
           <div key={item.entry.key} className={styles.partRows} data-tone={item.entry.tone}>
@@ -115,6 +129,7 @@ function Rows({
             <Rows
               rows={item.parts}
               shown={shown}
+              range={range}
               prefix={`${item.entry.key}/`}
               at={at}
               format={format}

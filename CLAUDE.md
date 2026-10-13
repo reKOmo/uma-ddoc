@@ -316,7 +316,8 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   ScenarioPicker.tsx scenario dropdown on top of it (italic + note when unreleased);
                      scenarioRelease.ts: SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
   timeline/          the Timeline, the same for both servers:
-    data.ts          loadTimeline(server) → { entries, marks }, loadEntries(server) (entries alone: the card page)
+    data.ts          loadTimeline(server) → { entries, others() } (others: marks + counterparts, from the other
+                     server's files, loaded after the calendar is drawn), loadEntries(server) (entries alone: the card page)
                      (MARKS: per-server overlays + toolbar buttons, JP's "Global now"); banner / event file loaders
                      (real + optional predicted), shared with the card page
     entries.ts       pure: bannerEntries(), eventEntries() → entries (`Entry`: one shape, documented there),
@@ -327,8 +328,9 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     events.ts        pure: EVENT_GROUPS, items with currencies first (itemList()), withPredicted()
     format.ts        dateFormats(timeZone), dateRange(), kindName(), barLabel(), entryTitle()
     useRankings.ts   MLB ranks of a sheet's cards (server's own tier list, else looking ahead)
-    useCenterOn.ts, useCompactRows.ts, useTimelineFilters.ts  the Timeline page's centring (linked entry / today,
-                     zoom), compact mode's measuring, and its hidden / order / verdict filtering
+    useCenterOn.ts, useCompactRows.ts, useRenderWindow.ts, useTimelineFilters.ts  the Timeline page's centring
+                     (linked entry / today, zoom), compact mode's measuring, the time range whose bars are drawn (1.5
+                     screens each side; the rest of history isn't rendered), and its hidden / order / verdict filtering
     TimelineSheet.tsx  the one sheet for every entry, in sections (Header, Provenance, Relations, Featured,
                      Rewards, Schedule, Titles, Parts, RankNote, Links)
     TimelineAxis.tsx scenario strip + months + days; CalendarLines (scenario starts, today, marks)

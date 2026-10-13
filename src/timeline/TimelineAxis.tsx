@@ -6,7 +6,7 @@ import { scenarioName } from '../i18n/index.ts';
 import { type DateFormats, dateRange } from './format.ts';
 import type { Timeline } from './layout.ts';
 import type { ScenarioSegment } from './scenarioStrip.ts';
-import type { loadTimeline } from './data.ts';
+import type { Mark } from './data.ts';
 import styles from './TimelineAxis.module.css';
 import { scenarioUrl } from '../routes.ts';
 
@@ -16,8 +16,6 @@ const dayLabelStep = (px: number) => (px >= 16 ? 1 : px >= 8 ? 2 : 7);
 const showDayLabel = (date: number, step: number) => (date - 1) % step === 0 && (step < 7 || date <= 22);
 const scenarioStyle = (s: ScenarioSegment): CSSProperties | undefined =>
   s.color ? ({ '--scenario-color': s.color } as CSSProperties) : undefined;
-
-type Mark = Awaited<ReturnType<typeof loadTimeline>>['marks'][number];
 
 type AxisProps = { timeline: Timeline; scenarios: ScenarioSegment[]; px: number; format: DateFormats };
 

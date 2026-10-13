@@ -3,7 +3,7 @@ import { cards } from '../../tierlist/cards.ts';
 import { SERVERS } from '../servers.ts';
 import { type ArtBannerFile, withArt } from '../gametora.ts';
 import { withPredicted } from './events.ts';
-import { type Entry, bannerEntries, eventEntries } from './entries.ts';
+import { type Counterpart, type Entry, bannerEntries, eventEntries } from './entries.ts';
 import { globalProgress } from './globalProgress.ts';
 import type { BannerFile } from '../../shared/schemas/banner.ts';
 import type {
@@ -17,7 +17,7 @@ import type {
 type Server = keyof typeof SERVERS;
 type BannerName = 'global' | 'jp';
 type Banners = Pick<ArtBannerFile, 'characters' | 'cards'>;
-type Mark = { key: string; at: number; window: { from: number; to: number; open: boolean } | null };
+export type Mark = { key: string; at: number; window: { from: number; to: number; open: boolean } | null };
 
 const BANNERS = {
   global: () => import('../../data/global_banners.json'), // ours: seeded from GameTora, kept up from the news
@@ -136,16 +136,20 @@ export async function loadEntries(server: Server, now = Date.now()): Promise<Ent
   return toEntries(banners, events, now);
 }
 
-export async function loadTimeline(server: Server, now = Date.now()): Promise<{ entries: Entry[]; marks: Mark[] }> {
+// The calendar draws from `entries`; `others()` loads what needs the other server's files (large, and needed only
+// by the marks and the sheet's link to the other server), after it's drawn. `counterparts`: by entry id.
+export type Others = { marks: Mark[]; counterparts: Map<string, Counterpart> };
+export async function loadTimeline(
+  server: Server,
+  now = Date.now()
+): Promise<{ entries: Entry[]; others: () => Promise<Others> }> {
   const [banners, events] = await loadFiles(server);
-  const [marks, counterparts] = await Promise.all([
-    MARKS[server]?.(banners) ?? [],
-    COUNTERPARTS[server](banners, events),
-  ]);
-  const entries = toEntries(banners, events, now);
-  for (const entry of entries) {
-    const id = counterparts.get(String(entry.id));
-    if (id) entry.counterpart = { server: OTHER[server], id };
-  }
-  return { entries, marks };
+  return {
+    entries: toEntries(banners, events, now),
+    others: async () => {
+      const [marks, ids] = await Promise.all([MARKS[server]?.(banners) ?? [], COUNTERPARTS[server](banners, events)]);
+      const counterparts = new Map([...ids].map(([own, id]) => [own, { server: OTHER[server], id }]));
+      return { marks, counterparts };
+    },
+  };
 }

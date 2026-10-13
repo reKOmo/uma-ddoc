@@ -53,7 +53,7 @@ export type Entry = {
   paid: boolean;
   prediction: Prediction | null;
   news: NewsLink | null;
-  // the same banner or event on the other server (filled by loadTimeline()), or null
+  // the same banner or event on the other server (filled by the Timeline page from loadTimeline()'s `others`), or null
   counterpart: Counterpart | null;
   relations: Relation[];
   parent: string | null;
