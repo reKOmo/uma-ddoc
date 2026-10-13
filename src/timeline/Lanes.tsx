@@ -1,14 +1,27 @@
-// @ts-nocheck
 import { Fragment, memo, useMemo } from 'react';
 import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { partCount } from './layout.ts';
+import type { Entry } from './entries.ts';
+import { type LaneGroupRows, type LaneItem, partCount } from './layout.ts';
+import type { DateFormats } from './format.ts';
+import styles from './Lanes.module.css';
 import { barLabel, dateRange, kindName } from './format.ts';
 
 // Bars too short for a label are chips: no label, no art (name in the tooltip and sheet).
 const CHIP_WIDTH = 64;
 const MIN_WIDTH = 6;
+
+// A lane's items are an Entry's span (layout.ts reads only a few of its fields); the calendar lays out Entries.
+const entryOf = (item: LaneItem): Entry => item.entry as Entry;
+
+type Callbacks = {
+  at: (ms: number) => number;
+  format: DateFormats;
+  unfolded: Set<string>;
+  onToggleParts: (key: string) => void;
+  onSelect: (entry: Entry) => void;
+};
 
 // A lane group (laneGroups() in ./layout.js): its label, which folds it away (`onToggleGroup(key)`), and its rows of
 // bars. `at(ms)` → px; `unfolded`: the keys of entries whose parts are open; `visible`: in compact mode, the ids of
@@ -26,15 +39,20 @@ export const LaneGroup = memo(function LaneGroup({
   unfolded,
   onToggleParts,
   onSelect,
+}: Callbacks & {
+  group: LaneGroupRows;
+  collapsed: boolean;
+  visible: string | null;
+  onToggleGroup: (key: string) => void;
 }) {
   const { t } = useTranslation();
   const label = t(group.label);
   const shown = useMemo(() => (visible === null ? null : new Set(visible.split(','))), [visible]);
   return (
-    <section className="lane-group">
+    <section className={styles.laneGroup}>
       <button
         type="button"
-        className={clsx('lane-label', collapsed && 'collapsed')}
+        className={clsx(styles.laneLabel, collapsed && styles.collapsed)}
         aria-expanded={!collapsed}
         title={t(collapsed ? 'timeline.showGroup' : 'timeline.hideGroup', { name: label })}
         onClick={() => onToggleGroup(group.key)}
@@ -42,7 +60,7 @@ export const LaneGroup = memo(function LaneGroup({
         {collapsed ? <ChevronRight size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
         {label}
         {/* Compact mode, nothing of the group in view: said beside its name. */}
-        {!collapsed && visible === '' && <span className="lane-empty">{t('timeline.nothingInView')}</span>}
+        {!collapsed && visible === '' && <span className={styles.laneEmpty}>{t('timeline.nothingInView')}</span>}
       </button>
       {!collapsed && (
         <Rows
@@ -61,13 +79,29 @@ export const LaneGroup = memo(function LaneGroup({
 
 // Rows of bars; an entry with parts has a fold button (+N), and its parts' rows open under its row, over a band in
 // its colour spanning it. Rows not `shown` (compact mode; ids as visibleRows() gives them) fold away.
-function Rows({ rows, shown, at, format, unfolded, onToggleParts, onSelect, depth = 0, prefix = '' }) {
+function Rows({
+  rows,
+  shown,
+  at,
+  format,
+  unfolded,
+  onToggleParts,
+  onSelect,
+  depth = 0,
+  prefix = '',
+}: Callbacks & { rows: LaneItem[][]; shown: Set<string> | null; depth?: number; prefix?: string }) {
   return rows.map((row, i) => {
     const open = row.filter((item) => item.parts.length && unfolded.has(item.entry.key));
     return (
       // biome-ignore lint/suspicious/noArrayIndexKey: lanes have no identity of their own; their order is stable.
       <Fragment key={i}>
-        <div className={clsx('lane', depth && 'part-lane', shown && !shown.has(`${prefix}${i}`) && 'hidden')}>
+        <div
+          className={clsx(
+            styles.lane,
+            depth > 0 && styles.partLane,
+            shown && !shown.has(`${prefix}${i}`) && styles.hidden
+          )}
+        >
           {row.map((item) => (
             <Bar
               key={item.entry.key}
@@ -81,9 +115,9 @@ function Rows({ rows, shown, at, format, unfolded, onToggleParts, onSelect, dept
           ))}
         </div>
         {open.map((item) => (
-          <div key={item.entry.key} className="part-rows" data-tone={item.entry.tone}>
+          <div key={item.entry.key} className={styles.partRows} data-tone={entryOf(item).tone}>
             <div
-              className="part-band"
+              className={styles.partBand}
               style={{ left: at(item.start), width: Math.max(at(item.end) - at(item.start), MIN_WIDTH) }}
             />
             <Rows
@@ -104,15 +138,25 @@ function Rows({ rows, shown, at, format, unfolded, onToggleParts, onSelect, dept
   });
 }
 
-const TITLE_KEY = { predicted: 'timeline.predictedBarTitle', confirmed: 'timeline.confirmedBarTitle' };
+const TITLE_KEY: Partial<Record<Entry['status'], string>> = {
+  predicted: 'timeline.predictedBarTitle',
+  confirmed: 'timeline.confirmedBarTitle',
+};
 
 // One banner or event: its art behind a darkened label, edged in its colour, faded by its status. The whole bar is
 // one button (`.bar-hit`, under the rest); over it, its label sticks to the screen's left edge and its +N fold button
 // to the right while the bar runs off either side, so a long bar on a phone still shows both. Memoised: folding one
 // entry's parts re-renders its bar alone, not every bar on the calendar.
-const Bar = memo(function Bar({ item, at, format, open, onToggleParts, onSelect }) {
+const Bar = memo(function Bar({
+  item,
+  at,
+  format,
+  open,
+  onToggleParts,
+  onSelect,
+}: Omit<Callbacks, 'unfolded'> & { item: LaneItem; open: boolean }) {
   const { t } = useTranslation();
-  const { entry } = item;
+  const entry = entryOf(item);
   const left = at(item.start);
   const width = Math.max(at(item.end) - left, MIN_WIDTH);
   const chip = width < CHIP_WIDTH;
@@ -126,23 +170,25 @@ const Bar = memo(function Bar({ item, at, format, open, onToggleParts, onSelect 
   return (
     <div
       data-tone={entry.tone}
-      className={clsx('bar', entry.status, {
-        chip,
-        'official-art': entry.art?.official,
-        'has-parts': parts > 0,
-      })}
+      className={clsx(
+        styles.bar,
+        styles[entry.status],
+        chip && styles.chip,
+        entry.art?.official && styles.officialArt,
+        parts > 0 && styles.hasParts
+      )}
       style={{ left, width, ...(entry.art && !chip && { backgroundImage: `url(${entry.art.src})` }) }}
     >
       <button
         type="button"
-        className="bar-hit"
+        className={styles.barHit}
         data-testid="bar"
         title={title}
         aria-label={title}
         onClick={() => onSelect(entry)}
       />
       {!chip && (
-        <span className="bar-label" aria-hidden="true">
+        <span className={styles.barLabel} aria-hidden="true">
           <strong>{label}</strong>
           <small>{dateRange(entry, format.short)}</small>
         </span>
@@ -150,10 +196,10 @@ const Bar = memo(function Bar({ item, at, format, open, onToggleParts, onSelect 
       {parts > 0 && (
         // Its track runs from just after the label to the bar's end: the button sticks to the screen's right edge
         // within it, so it never slides back over the label.
-        <span className="bar-fold-track">
+        <span className={styles.barFoldTrack}>
           <button
             type="button"
-            className={clsx('bar-fold', open && 'open')}
+            className={clsx(styles.barFold, open && styles.open)}
             aria-expanded={open}
             aria-label={t(open ? 'timeline.hideParts' : 'timeline.showParts', { count: parts, name: label })}
             onClick={() => onToggleParts(entry.key)}

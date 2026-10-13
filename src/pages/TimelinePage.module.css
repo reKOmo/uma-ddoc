@@ -1,0 +1,106 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.header {
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* The filter's button (src/FilterSheet.tsx, global) is as wide as the toolbar's other buttons (ToolbarButton). */
+.toolbar :global(.filter-button) {
+  min-width: 44px;
+}
+
+/* The zoom buttons: a segmented pair with the toolbar buttons' size. */
+.zoom {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.zoom button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.zoom button + button {
+  border-left: 0;
+}
+
+.zoom button:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.zoom button:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.zoom button:disabled {
+  opacity: 0.4;
+}
+
+.status {
+  padding: 0 12px;
+}
+
+/* ── Timeline: one scroll area; the axis sticks to the top, labels to the left ── */
+
+.timeline {
+  --lane-height: 52px;
+  /* A bar's label is never wider than the visible calendar (100cqw: this element's width). */
+  container-type: inline-size;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* Mouse drag-to-pan (src/useDragScroll.ts); touch screens ignore cursors. */
+  cursor: grab;
+}
+
+.timeline[data-dragging] {
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* --day (pixels per day) is set inline; it spaces the faint day gridlines. */
+.canvas {
+  /* Rows: scenarios (32) + months (24) + days (22) + 1px border; marks below the axis use this. */
+  --axis-height: 79px;
+  position: relative;
+  min-height: 100%;
+  padding-bottom: 16px;
+  background-image: repeating-linear-gradient(90deg, var(--gridline) 0 1px, transparent 1px var(--day));
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding: 16px 16px 12px;
+  }
+
+  .timeline {
+    --lane-height: 60px;
+  }
+}

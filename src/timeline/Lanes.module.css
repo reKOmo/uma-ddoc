@@ -1,0 +1,314 @@
+.laneGroup {
+  padding-top: 4px;
+}
+
+.laneLabel {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+  /* Big enough to tap (folding the group away). */
+  min-height: 28px;
+  margin: 8px 0 5px;
+  padding: 3px 11px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 0;
+  border-radius: 0 999px 999px 0;
+}
+
+/* A folded group: just its label, dimmed. */
+
+.laneLabel.collapsed {
+  color: var(--muted);
+}
+
+.lane {
+  position: relative;
+  z-index: 2;
+  height: var(--lane-height);
+  margin-bottom: 4px;
+  transition:
+    height 0.2s,
+    margin-bottom 0.2s;
+}
+
+/* Compact mode: a row with nothing in view folds away (and its bars can't be reached till it's back). */
+
+.lane.hidden,
+.lane.partLane.hidden {
+  height: 0;
+  margin-bottom: 0;
+  overflow: clip;
+  visibility: hidden;
+  transition:
+    height 0.2s,
+    margin-bottom 0.2s,
+    visibility 0s 0.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lane,
+  .lane.hidden {
+    transition: none;
+  }
+}
+
+/* Compact mode: a group with nothing in view says so beside its name, in its label. */
+
+.laneEmpty {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* Each bar is a banner's or event's art behind a darkened label, edged in its colour (--tone). Its label and fold
+   button stick to the screen's edges while the bar runs off them (Lanes.jsx): `overflow: clip`, not hidden, which
+   would make the bar its own scroll container, and they'd stick to that. */
+
+.bar {
+  /* The fold button's room at the label's right end: its width and right margin, and a gap before it. */
+  --fold-room: 62px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  overflow: clip;
+  color: #fff;
+  background-color: #444b55;
+  /* GameTora's banner PNGs (512×188) have a transparent margin round the banner itself
+     (x 21–490, y 30–157; take 3px more for its rounded corners: 464×122). Size the image so
+     that panel alone covers the bar: at least the bar's width, and at least the lane's height. */
+  background-position: center;
+  background-size: max(110.4%, calc(var(--lane-height) * 512 / 122)) auto;
+  background-repeat: no-repeat;
+  border-left: 4px solid var(--tone);
+  border-radius: 6px;
+}
+
+/* The whole bar is its button, under the label and the fold button. */
+
+.barHit {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.barLabel {
+  position: sticky;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100cqw;
+  padding: 0 8px;
+  pointer-events: none;
+}
+
+/* With a fold button: the label keeps its room free (a margin, which a stuck label never slides into), and the button
+   sits back in that room (a negative margin), so the two never overlap: side by side, stuck to the screen's edges,
+   or the label stuck against the bar's right end. */
+
+.bar.hasParts .barLabel {
+  max-width: calc(100cqw - var(--fold-room));
+  margin-right: var(--fold-room);
+}
+
+.bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.45));
+}
+
+.bar strong,
+.bar small {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.bar strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.bar small {
+  font-size: 0.72rem;
+  opacity: 0.9;
+}
+
+.bar.ended {
+  opacity: 0.75;
+}
+
+.bar.live {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* Official art from the news (banners' 936×228, events' header art; no margin): just cover the bar. */
+
+.bar.officialArt {
+  background-size: cover;
+}
+
+/* Confirmed Global dates for a JP banner or event (JP art): nearly solid. */
+
+.bar.confirmed {
+  opacity: 0.85;
+}
+
+/* Predicted from JP (JP art): see-through, solid again on hover / focus. */
+
+.bar.predicted {
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.bar.predicted:hover,
+.bar.predicted:focus-within {
+  opacity: 0.85;
+}
+
+.barHit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Below the .bar rules: Biome wants rules in ascending specificity. */
+
+[data-dragging] .barHit {
+  cursor: grabbing;
+}
+
+@media (min-width: 768px) {
+  /* The group labels (Characters, Champions Meetings…) would get lost among the bars at this size. */
+  .laneLabel {
+    gap: 6px;
+    margin: 12px 0 6px;
+    padding: 5px 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+
+  .laneLabel svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .bar strong {
+    font-size: 1rem;
+  }
+
+  .bar small {
+    font-size: 0.78rem;
+  }
+}
+
+/* Too short for a label: a chip in the kind's colour (its name in the tooltip and sheet). */
+
+.bar.chip {
+  overflow: visible;
+  background-color: color-mix(in srgb, var(--tone) 70%, #222);
+  border-left-width: 0;
+}
+
+.bar.chip::before {
+  display: none;
+}
+
+/* Its parts' fold button (+N and an arrow): at the bar's right end, kept in view while the bar runs off the screen's
+   right edge; just after a chip. A sticky box never leaves its parent, so the button's track starts a gap after the
+   label (back into the label's reserved room: a negative margin) and runs to the bar's end: the button sticks to the
+   screen's right edge but never slides back over the label, staying just after it when the label runs off screen. */
+
+.barFoldTrack {
+  display: flex;
+  flex: 1 0 54px;
+  align-self: stretch;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: calc(8px - var(--fold-room));
+  pointer-events: none;
+}
+
+.barFold {
+  position: sticky;
+  right: 4px;
+  display: inline-flex;
+  flex: none;
+  margin-right: 4px;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  /* 50px + its 4px right margin: --fold-room's 54. */
+  min-width: 50px;
+  height: 26px;
+  padding: 0 4px 0 6px;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.bar.chip .barFold {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 2px);
+  margin: 0;
+  transform: translateY(-50%);
+}
+
+.barFold.open {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* An entry's parts, opened: their rows over a band in its colour, spanning it. */
+
+.partRows {
+  position: relative;
+  /* Keeps its last row's bottom margin inside (else it collapses out), so the band covers every row of parts. */
+  display: flow-root;
+}
+
+.partBand {
+  position: absolute;
+  top: -2px;
+  bottom: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  border-left: 2px solid var(--tone);
+  border-radius: 0 0 6px 6px;
+}
+
+.lane.partLane {
+  height: calc(var(--lane-height) * 0.8);
+}
+
+.partLane .bar strong {
+  font-size: 0.8rem;
+}

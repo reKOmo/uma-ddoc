@@ -1,0 +1,272 @@
+/* Stacking: scenario / today / mark lines (1) < lanes (2) < section labels (3) < axis (4). */
+
+.axis {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.axisScenarios,
+.axisMonths,
+.axisDays {
+  position: relative;
+}
+
+/* Which Career scenario runs when: one segment per scenario in its cover's main colour
+   (--scenario-color), its label kept in view while scrolling. `overflow: clip`, not hidden: hidden
+   would make each segment its own scroll container, and the sticky label would stick to that. */
+
+.axisScenarios {
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: clip;
+  border-bottom: 1px solid var(--border);
+}
+
+.scenario {
+  --scenario-color: var(--muted);
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  display: flex;
+  align-items: center;
+  overflow: clip;
+  font-size: 0.8rem;
+  color: var(--text);
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--scenario-color) 35%, var(--panel));
+  border: 1px solid var(--scenario-color);
+  border-radius: 4px;
+}
+
+/* The one running now: its colour in full. */
+
+.scenario.current {
+  font-weight: 600;
+  background: var(--scenario-color);
+}
+
+.scenario.current.inkDark {
+  color: var(--ink-dark);
+}
+
+.scenario.current.inkLight {
+  color: var(--ink-light);
+}
+
+/* Not launched yet: confirmed is faint, predicted faint and dashed. */
+
+.scenario.tagConfirmed,
+.scenario.tagPredicted {
+  background: color-mix(in srgb, var(--scenario-color) 12%, var(--panel));
+}
+
+.scenario.tagPredicted {
+  border-style: dashed;
+}
+
+/* The whole segment opens the scenario's page. */
+
+.scenarioLink {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.scenario:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 0 1px var(--scenario-color);
+}
+
+.scenarioLink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+/* The arrow says "opens a page". Phones: at the right edge, sticky like the label. Desktop (below):
+   right after the name, inside the sticky label, so it moves with it. */
+
+.scenarioArrow {
+  flex: none;
+  opacity: 0.7;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+
+.scenario:hover .scenarioArrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.scenarioArrow.edge {
+  position: sticky;
+  right: 4px;
+  margin-left: auto;
+}
+
+.scenarioArrow.inline {
+  display: none;
+}
+
+.scenarioLabel {
+  position: sticky;
+  left: 0;
+  max-width: 100%;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.scenarioName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 768px) {
+  .scenarioArrow.inline {
+    display: block;
+  }
+
+  .scenarioArrow.edge {
+    display: none;
+  }
+}
+
+.axisMonths {
+  height: 24px;
+}
+
+.axisDays {
+  height: 22px;
+}
+
+.tick {
+  position: absolute;
+  top: 0;
+  bottom: -22px;
+  padding: 5px 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border-left: 1px solid var(--muted);
+}
+
+.tick.year {
+  font-weight: 800;
+  color: var(--accent);
+  border-left: 2px solid var(--accent);
+}
+
+.day {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 32px;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.day.today {
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+/* A Career scenario begins: a thin line in its colour (dashed while only predicted), under the lanes. */
+
+.scenarioLine {
+  --scenario-color: var(--muted);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 0;
+  border-left: 2px solid color-mix(in srgb, var(--scenario-color) 70%, transparent);
+  pointer-events: none;
+}
+
+.scenarioLine.tagPredicted {
+  border-left-style: dashed;
+}
+
+.todayLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+/* A server's marks (loadTimeline() in data.js), in --mark-color: a window and a dashed line in it, dashed so it never
+   reads as today; the line's tag sits just under the axis (--axis-height). JP's "global": where Global is in JP's
+   history, the window the stretch it's going through (from the JP banner it's running to its next banner's), the
+   line the estimate within it. */
+
+.mark {
+  --mark-color: var(--accent);
+}
+
+.markGlobal {
+  --mark-color: var(--global-line);
+}
+
+.markWindow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--mark-color) 12%, transparent);
+  border-inline: 1px solid color-mix(in srgb, var(--mark-color) 45%, transparent);
+  pointer-events: none;
+}
+
+/* Its end is a prediction, not a known date: fade it out instead of a hard edge. */
+
+.markWindow.openEnd {
+  background: linear-gradient(to right, color-mix(in srgb, var(--mark-color) 12%, transparent) 60%, transparent);
+  border-right: 0;
+}
+
+.markLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 0;
+  margin-left: -1px;
+  border-left: 2px dashed var(--mark-color);
+  pointer-events: none;
+}
+
+.markLine::before {
+  content: attr(data-label);
+  position: absolute;
+  top: calc(var(--axis-height) + 4px);
+  left: 2px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--mark-color);
+  border-radius: 0 4px 4px 0;
+}
