@@ -1,0 +1,220 @@
+/* Rank over time (from card.css; the chart's own rules stay in card.css). */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.controls button {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 6px;
+  font-size: 0.85rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.summary {
+  margin: 8px 0;
+  font-size: 0.9rem;
+}
+
+.note {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.passedHeading {
+  margin: 20px 0 8px;
+  font-size: 0.95rem;
+}
+
+/* A vertical timeline: a dot per date, joined by a line labelled with the time between them. */
+.list {
+  --rail: 15px;
+  /* The dot's centre: the middle of the first line (date) of each entry. */
+  --head: 22px;
+  --dot-y: calc(4px + var(--head) / 2);
+  /* Space between a dot's edge and the line. */
+  --dot-gap: 10px;
+  margin: 0;
+  padding: 8px 10px 8px 0;
+  list-style: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.list > li {
+  position: relative;
+}
+
+.entry {
+  position: relative;
+  padding: 4px 0 4px calc(var(--rail) * 2);
+}
+
+/* One line per row, from just below its dot to just above the next row's dot, so each
+   stretch is a single solid or dashed piece. The next dot sits --dot-y below this row's bottom. */
+.list > li.hasNext::after {
+  position: absolute;
+  top: calc(var(--dot-y) + var(--dot-gap));
+  bottom: calc(var(--dot-gap) - var(--dot-y));
+  left: calc(var(--rail) - 1px);
+  width: 2px;
+  content: "";
+  background: var(--accent);
+}
+
+/* Into a predicted date. */
+.list > li.nextPredicted::after {
+  background: repeating-linear-gradient(to bottom, var(--accent) 0 5px, transparent 5px 9px);
+}
+
+/* Dots sit next to their entry's date. */
+.dot {
+  position: absolute;
+  top: var(--dot-y);
+  left: calc(var(--rail) - 6px);
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+/* The release: hollow. */
+.list > li:first-child .dot {
+  background: var(--panel);
+  border: 2px solid var(--accent);
+}
+
+.list > li.predicted .dot {
+  background: var(--panel);
+  border: 2px dashed var(--accent);
+}
+
+/* How long it took to get from one date to the next. */
+.gap {
+  display: flex;
+  align-items: center;
+  /* As tall as a card row (its icon), so the time between dates gets as much room as a card. */
+  min-height: 52px;
+  padding: 4px 0 4px calc(var(--rail) * 2);
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* The first hidden entry, fading out under the "See more" button. */
+.list > li.fade {
+  max-height: 140px;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 10%, transparent);
+}
+
+/* Holds the list and, over its faded bottom, the "See more" button. */
+.box {
+  position: relative;
+}
+
+/* These sit over the list, so they need a background. */
+button.more {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  z-index: 2;
+  cursor: pointer;
+  background: var(--panel);
+  transform: translateX(-50%);
+}
+
+button.less {
+  display: flex;
+  width: fit-content;
+  margin: 8px auto 0;
+  cursor: pointer;
+  background: var(--panel);
+}
+
+.head {
+  display: flex;
+  min-height: var(--head);
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.date {
+  color: var(--muted);
+}
+
+.body {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* The new rank, left of the cards that pushed it there. */
+.rank {
+  display: inline-flex;
+  flex: 0 0 52px;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.rank.up svg {
+  color: var(--rank-up);
+}
+
+.rank.down svg {
+  color: var(--rank-down);
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 16px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cards li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.list li.predicted .cardRow {
+  opacity: 0.7;
+}
+
+.badgePredicted {
+  padding: 1px 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px dashed var(--muted);
+  border-radius: 999px;
+}

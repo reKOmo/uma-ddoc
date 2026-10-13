@@ -1,0 +1,154 @@
+/* Pull advice (from card.css). */
+
+.entry {
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* The See banner button stays on the right, also without a label. */
+a.bannerLink {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* The upcoming banner, on its art like the Timeline's bars: GameTora's 512×188 PNGs have a transparent
+   margin round the banner (464×122 inside it), so the image is sized for that panel alone to cover the box
+   (at least its width, at least --banner-height tall); the news' official art has none and just covers. */
+.banner {
+  --banner-height: 116px;
+  position: relative;
+  min-height: var(--banner-height);
+  padding: 12px 14px;
+}
+
+.banner.hasArt {
+  isolation: isolate;
+  color: #fff;
+  background-color: #444b55;
+  background-position: center;
+  background-size: max(110.4%, calc(var(--banner-height) * 512 / 122)) auto;
+  background-repeat: no-repeat;
+}
+
+.banner.hasArt.officialArt {
+  background-size: cover;
+}
+
+.banner.hasArt::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.45));
+}
+
+.when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.guide {
+  margin-top: 24px;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+/* The second half of the box, under a rule. */
+.should {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.status {
+  margin: 0;
+}
+
+.advice {
+  margin: 4px 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.free {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* The box's footer: the link to the guide, under both halves. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.note {
+  margin: 8px 0 0;
+  font-size: 1.1rem;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+/* Text on the upcoming banner's art. */
+.hasArt .heading,
+.hasArt .dates {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.hasArt a.bannerLink {
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.hasArt a.bannerLink:active {
+  filter: brightness(0.9);
+}
+
+/* Desktop: the upcoming banner and the advice side by side, the footer under both. The banner half gets taller than its
+   phone size, so GameTora's art is sized by height instead (its 122px panel of 188 fills the box);
+   the box is never wide enough for its width to fall short. */
+@media (min-width: 768px) {
+  .entry {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  /* Full width: the footer, and the banner half when there's no advice beside it. */
+  .actions,
+  .banner:not(:has(+ .should)) {
+    grid-column: 1 / -1;
+  }
+
+  .should {
+    border-top: 0;
+    border-left: 1px solid var(--border);
+  }
+
+  .banner.hasArt:not(.officialArt) {
+    background-size: auto calc(100% * 188 / 122);
+  }
+}

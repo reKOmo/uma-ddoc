@@ -1,0 +1,62 @@
+/* The card page's own layout (from card.css). */
+
+/* ── Art and facts: stacked on phones, side by side on desktop ── */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Full card art is 3:4 portrait. */
+.art {
+  display: block;
+  width: min(100%, 300px);
+  aspect-ratio: 3 / 4;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.facts h1 {
+  margin: 0;
+}
+
+.title {
+  margin: 0;
+  color: var(--muted);
+}
+
+.tags {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+}
+
+.section {
+  margin: 24px 0 8px;
+  font-size: 1.05rem;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .facts {
+    align-items: flex-start;
+    padding-top: 8px;
+    text-align: left;
+  }
+}
