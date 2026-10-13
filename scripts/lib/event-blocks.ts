@@ -1,4 +1,3 @@
-// @ts-nocheck
 // A news post (data/news/gl/posts.json, as the API sends it) cut into blocks, one per event it describes. Pure.
 //
 // A post can describe several events: a celebration post has a login bonus, a present, a gift, extra race tickets…
@@ -14,10 +13,12 @@
 //   intro     the block's lines before its first heading
 //   sections  [{ heading, lines }]: every <h2>/<h3>/<h4> heading in order with the lines under it
 
+import type { NewsPost } from '../../shared/schemas/news.ts';
 import { en } from './news-lang/en.ts';
+import type { Block, Lexicon } from './news-lang/index.ts';
 import { decodeEntities, sections, toLines } from './news-text.ts';
 
-function block(html, art, lang) {
+function block(html: string, art: string | null, lang: Lexicon): Block {
   const [{ lines: intro }, ...rest] = sections(html, '234');
   const url = art ? decodeEntities(art) : null;
   return {
@@ -29,7 +30,7 @@ function block(html, art, lang) {
 }
 
 // `lang`: the posts' wording (scripts/lib/news-lang/: which art starts a block), English by default.
-export function eventBlocks(post, lang = en) {
+export function eventBlocks(post: NewsPost, lang: Lexicon = en): Block[] {
   const html = lang.clean(post.message ?? '');
   const arts = [...html.matchAll(lang.blockArt)].filter((m) => !lang.notBlockArt.test(m[1]));
   if (!arts.length) return [block(html, null, lang)];
@@ -51,15 +52,18 @@ export function eventBlocks(post, lang = en) {
 
 // A block's text as one list of lines, headings included (some lists hang off a heading: "Main Rewards",
 // "■ Event-Exclusive Titles").
-export const blockLines = (block) => [...block.intro, ...block.sections.flatMap((s) => [s.heading, ...s.lines])];
+export const blockLines = (block: Block): string[] => [
+  ...block.intro,
+  ...block.sections.flatMap((s) => [s.heading, ...s.lines]),
+];
 
 // A post's blocks as one (for a post about one event): text after a picture still belongs under the heading before it
 // (a Legend Race post shows its second race's art between the race periods).
-export function joinBlocks(blocks) {
-  const sections = [];
-  let intro = [];
+export function joinBlocks(blocks: Block[]): Block {
+  const sections: Block['sections'] = [];
+  let intro: string[] = [];
   for (const block of blocks) {
-    if (sections.length) sections.at(-1).lines.push(...block.intro);
+    if (sections.length) sections.at(-1)?.lines.push(...block.intro);
     else intro = [...intro, ...block.intro];
     sections.push(...block.sections.map((s) => ({ ...s, lines: [...s.lines] })));
   }

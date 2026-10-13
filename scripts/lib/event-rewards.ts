@@ -1,4 +1,3 @@
-// @ts-nocheck
 // What an event gives, from the lines of its news post (scripts/lib/event-blocks.js). Pure.
 //
 // Support cards come first: what the site is for is telling whether an event gives a card. The rest (carats, monies,
@@ -16,41 +15,52 @@
 //   titlesIn(lines)         player titles: "Event-Exclusive Title: X", or the bullets under "Event-Exclusive Titles".
 //   missionsIn(lines, year) limited-time mission sets: a line "X Missions" followed by its period.
 
+import type { CardsFile } from '../../shared/schemas/card.ts';
+import type { EventCard, EventItem } from '../../shared/schemas/event.ts';
+import type { Rarity } from '../../shared/schemas/common.ts';
 import { en } from './news-lang/en.ts';
+import type { DateRef, Lexicon } from './news-lang/index.ts';
 import { norm } from './news-text.ts';
+
+// A card in cardIndex(): what cardsIn() reads of it (its id, rarity, and the title and name the post spells).
+export type IndexedCard = { id: number; rarity: Rarity; title: string; name: string };
+// The index cardIndex() builds: normalised title → the cards with that title.
+export type CardIndex = Map<string, IndexedCard[]>;
+// A mission set (missionsIn()): its name, its period.
+export type MissionSet = { name: string; start: string; end: string | null };
 
 export { norm };
 
 // Every reader below takes `lang`, the posts' wording (scripts/lib/news-lang/), English by default.
 
 export const NUMBERS = en.numbers;
-const number = (s, lang = en) => lang.numbers[s.toLowerCase()] ?? Number(s.replace(/,/g, ''));
-export const numberWord = (n) => Object.keys(NUMBERS).find((word) => NUMBERS[word] === n);
+const number = (s: string, lang: Lexicon = en): number => lang.numbers[s.toLowerCase()] ?? Number(s.replace(/,/g, ''));
+export const numberWord = (n: number): string | undefined => Object.keys(NUMBERS).find((word) => NUMBERS[word] === n);
 
 // An item's name as we show it, from the rules' lines or a model's answer: no leading amount, the usual spelling of an
 // alias (lang.aliases), capitalised; null for what isn't an item name.
-export function itemName(raw, lang = en) {
+export function itemName(raw: string, lang: Lexicon = en): string | null {
   const name = raw.trim().replace(lang.itemAmountPrefix, '');
   if (!lang.itemNameChar.test(name) || name.length > 60) return null;
   return lang.aliases[lang.aliasKey(norm(name))] ?? lang.showItem(name);
 }
 
 // title (normalised) → our cards with that title (in the posts' language: cards.json's title / name `lang.cardLang`).
-export function cardIndex(cards, lang = en) {
-  const index = new Map();
+export function cardIndex(cards: CardsFile, lang: Lexicon = en): CardIndex {
+  const index: CardIndex = new Map();
   for (const [id, card] of Object.entries(cards)) {
     const title = card.title?.[lang.cardLang]?.replace(/^\[|\]$/g, '');
     const name = card.name?.[lang.cardLang];
     if (!title || !name) continue;
     const key = norm(title);
     if (!index.has(key)) index.set(key, []);
-    index.get(key).push({ id: Number(id), rarity: card.rarity ?? null, title, name });
+    index.get(key)?.push({ id: Number(id), rarity: card.rarity, title, name });
   }
   return index;
 }
 
 // The one card whose title starts with a mention's (cut short) title, with the mention's name, or null.
-function byPrefix(index, [, title, name]) {
+function byPrefix(index: CardIndex, [, title, name]: RegExpMatchArray): IndexedCard | null {
   const key = norm(title);
   if (key.length < 4) return null;
   const found = [...index]
@@ -59,8 +69,8 @@ function byPrefix(index, [, title, name]) {
   return found.length === 1 ? found[0] : null;
 }
 
-export function cardsIn(lines, index, lang = en) {
-  const found = new Map();
+export function cardsIn(lines: string[], index: CardIndex, lang: Lexicon = en): EventCard[] {
+  const found = new Map<number, EventCard>();
   let list = false; // (JP: in a list of cards not given, `lang.notGivenList`)
   lines.forEach((line, i) => {
     if (lang.notGivenList) {
@@ -83,21 +93,21 @@ export function cardsIn(lines, index, lang = en) {
   return [...found.values()];
 }
 
-export function itemsIn(lines, lang = en) {
-  const counts = new Map();
-  const add = (name, count) => {
+export function itemsIn(lines: string[], lang: Lexicon = en): EventItem[] {
+  const counts = new Map<string, { name: string; count: number | null; local?: string }>();
+  const add = (name: string, count: number | null) => {
     const shown = itemName(name, lang);
     if (!shown || lang.notReward.test(shown)) return;
     const key = norm(shown);
     const old = counts.get(key);
     // (JP: an item Global has too goes by Global's name, its Japanese one kept as `local`.)
     const local = lang.localName?.(name, shown);
-    const item = (n) => (local ? { name: shown, count: n, local } : { name: shown, count: n });
+    const item = (n: number | null) => (local ? { name: shown, count: n, local } : { name: shown, count: n });
     if (count == null) {
       if (!old) counts.set(key, item(null));
     } else counts.set(key, item((old?.count ?? 0) + count));
   };
-  const prose = []; // amounts from sentences: only when the block's lists don't give that item
+  const prose: number[] = []; // amounts from sentences: only when the block's lists don't give that item
   let mainRewards = false;
   for (const raw of lang.splitItems ? lines.flatMap(lang.splitItems) : lines) {
     let line = raw;
@@ -129,13 +139,13 @@ export function itemsIn(lines, lang = en) {
         if (m) add(name ?? lang.mentionedName(m[0]), null);
       }
   }
-  if (prose.length && !(counts.get(norm(itemName(lang.proseName, lang)))?.count > 0))
+  if (prose.length && !((counts.get(norm(itemName(lang.proseName, lang)))?.count ?? 0) > 0))
     add(lang.proseName, Math.max(...prose));
   return [...counts.values()];
 }
 
-export function titlesIn(lines, lang = en) {
-  const titles = [];
+export function titlesIn(lines: string[], lang: Lexicon = en): string[] {
+  const titles: string[] = [];
   let list = false;
   for (const line of lines) {
     const one = line.match(lang.title);
@@ -144,11 +154,12 @@ export function titlesIn(lines, lang = en) {
     else if (list && lang.bullet.test(line)) titles.push(line.replace(lang.bullet, '').trim());
     else if (list) list = false;
   }
-  return [...new Set(lang.notTitle ? titles.filter((t) => !lang.notTitle.test(t)) : titles)];
+  const notTitle = lang.notTitle;
+  return [...new Set(notTitle ? titles.filter((t) => !notTitle.test(t)) : titles)];
 }
 
-export function missionsIn(lines, year, lang = en) {
-  const sets = [];
+export function missionsIn(lines: string[], year: DateRef, lang: Lexicon = en): MissionSet[] {
+  const sets: MissionSet[] = [];
   lines.forEach((line, i) => {
     const name = line.replace(lang.missionBullet, '');
     if (!lang.missionSet(name)) return;
@@ -160,11 +171,11 @@ export function missionsIn(lines, year, lang = en) {
 
 // --- doubts: where the rules may have read a reward wrong (scripts/lib/events.js asks a model about these) ----------
 
-const listLine = (line, lang) => lang.item.test(line.replace(lang.login, '').replace(lang.dated, ''));
+const listLine = (line: string, lang: Lexicon) => lang.item.test(line.replace(lang.login, '').replace(lang.dated, ''));
 
 // Why the items the rules read from `lines` may be wrong, or null: an amount in a sentence they didn't read, or one
 // given per day / per window (the total is then a multiple).
-export function itemDoubt(lines, items, lang = en) {
+export function itemDoubt(lines: string[], items: EventItem[], lang: Lexicon = en): string | null {
   for (const line of lines) {
     if (listLine(line, lang) || lang.notReward.test(line)) continue;
     const m = line.match(lang.amount);
@@ -179,7 +190,7 @@ export function itemDoubt(lines, items, lang = en) {
 
 // Why the card copies the rules read may be wrong, or null: a card without a count where the text talks of copies or
 // times, or a card given in several amounts.
-export function copiesDoubt(lines, cards, lang = en) {
+export function copiesDoubt(lines: string[], cards: EventCard[], lang: Lexicon = en): string | null {
   if (!cards.length) return null;
   const counted = lines.filter((line) => lang.copies.test(line)).length;
   const several = lines.some((line) => (line.match(lang.copiesCount) ?? []).length > 1);
