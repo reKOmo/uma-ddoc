@@ -5,11 +5,19 @@
 //   stat    a key of STATS
 //   shown   { [rarity]: [limit breaks] }, rarity SSR / SR / R (as in cards.json)
 //   query   the search box's text
+//   size    the cards' display size, 1–4 (SIZES; 3 the default): a display preference, not a filter, so isDefault()
+//           and "Reset filters" leave it alone
 
 import { STATS } from '../tierlist/index.js';
 
 // MLB for all, plus LB0 and LB3 for SSR and SR.
-export const DEFAULTS = { stat: 'speed', shown: { SSR: [0, 3, 4], SR: [0, 3, 4], R: [4] }, query: '' };
+export const DEFAULTS = {
+  stat: 'speed',
+  shown: { SSR: [0, 3, 4], SR: [0, 3, 4], R: [4] },
+  query: '',
+  size: 3,
+};
+export const SIZES = [1, 2, 3, 4];
 const KEY = 'uma-ddoc.tierListFilters';
 
 const validShown = (shown) =>
@@ -25,6 +33,7 @@ function load() {
       stat: STATS.includes(saved.stat) ? saved.stat : DEFAULTS.stat,
       shown: validShown(saved.shown) ? saved.shown : DEFAULTS.shown,
       query: typeof saved.query === 'string' ? saved.query : DEFAULTS.query,
+      size: SIZES.includes(saved.size) ? saved.size : DEFAULTS.size,
     };
   } catch {
     return DEFAULTS;

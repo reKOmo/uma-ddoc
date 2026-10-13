@@ -1,14 +1,13 @@
-// The Timeline toolbar's filter: a button (with how many things are hidden) that opens a sheet (src/Sheet.jsx) of
+// The Timeline toolbar's filter (src/FilterSheet.jsx): a button (with how many things are hidden) that opens a sheet of
 // toggles, in sections: banner sections, event kinds (in the calendar's groups' order), and pull-advice verdicts,
 // which hide support card banners none of whose cards has a verdict shown ('pull:<verdict>' in `hidden`). Each
 // section has All / None, the title "Show all". A second tab, Order, drags the calendar's groups into order
 // (GroupOrder.jsx; lanes and chips follow), "Reset order" by the title. Every change applies (and is saved) at once.
 
 import { useState } from 'react';
-import { Check, Eye, ListOrdered, RotateCcw, SlidersHorizontal } from 'lucide-react';
+import { Eye, ListOrdered, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import clsx from 'clsx';
-import Sheet, { SheetTitle } from '../Sheet.jsx';
+import { FilterButton, FilterSection, FilterSheet } from '../FilterSheet.jsx';
 import GroupOrder from './GroupOrder.jsx';
 
 const TABS = { show: Eye, order: ListOrdered };
@@ -64,73 +63,30 @@ export default function TimelineFilter({
         : t(`events.kind.${key}`);
   const tone = (key) => (key.startsWith('pull:') ? `filter-pull-${key.slice(5)}` : `kind-${key}`);
 
-  const section = (heading, keys, { note, off } = {}) =>
-    keys.length > 0 && (
-      <section className={clsx('filter-section', off && 'off')}>
-        <div className="filter-section-head">
-          <h3>{heading}</h3>
-          <div className="filter-all">
-            <button
-              type="button"
-              onClick={() => setAll(keys, true)}
-              disabled={off || keys.every((k) => !hidden.has(k))}
-            >
-              {t('timeline.filter.all')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAll(keys, false)}
-              disabled={off || keys.every((k) => hidden.has(k))}
-            >
-              {t('timeline.filter.none')}
-            </button>
-          </div>
-        </div>
-        {note && <p className="filter-note">{note}</p>}
-        <div className="filter-chips">
-          {keys.map((key) => {
-            const shown = !hidden.has(key);
-            return (
-              <button
-                type="button"
-                key={key}
-                className={clsx('filter-chip', tone(key))}
-                aria-pressed={shown}
-                disabled={off}
-                onClick={() => toggle(key)}
-              >
-                <span className="filter-check" aria-hidden="true">
-                  {shown && <Check size={12} strokeWidth={3} />}
-                </span>
-                {label(key)}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-    );
+  const section = (heading, keys, props) => (
+    <FilterSection
+      heading={heading}
+      chips={keys.map((key) => ({ key, label: label(key), shown: !hidden.has(key), tone: tone(key) }))}
+      onToggle={toggle}
+      onAll={(shown) => setAll(keys, shown)}
+      {...props}
+    />
+  );
 
   return (
     <>
-      <button
-        type="button"
-        className={clsx('filter-button', hiddenCount > 0 && 'active')}
+      <FilterButton
+        count={hiddenCount}
+        countTitle={t('timeline.filter.hiddenCount', { count: hiddenCount })}
         onClick={() => setOpen(true)}
         disabled={disabled}
-        aria-haspopup="dialog"
-      >
-        <SlidersHorizontal size={18} aria-hidden="true" />
-        {t('timeline.filter.button')}
-        {hiddenCount > 0 && (
-          <span className="filter-count" title={t('timeline.filter.hiddenCount', { count: hiddenCount })}>
-            {hiddenCount}
-          </span>
-        )}
-      </button>
-      <Sheet open={open} onClose={() => setOpen(false)} className="filter-sheet">
-        <div className="filter-head">
-          <SheetTitle className="filter-title">{t('timeline.filter.title')}</SheetTitle>
-          {tab === 'show' ? (
+      />
+      <FilterSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title={t('timeline.filter.title')}
+        action={
+          tab === 'show' ? (
             <button
               type="button"
               className="reset-filters"
@@ -145,8 +101,9 @@ export default function TimelineFilter({
               <RotateCcw size={14} aria-hidden="true" />
               {t('timeline.filter.defaultOrder')}
             </button>
-          )}
-        </div>
+          )
+        }
+      >
         <fieldset className="segmented filter-tabs" aria-label={t('timeline.filter.tabs')}>
           {Object.entries(TABS).map(([key, Icon]) => (
             <button type="button" key={key} aria-pressed={tab === key} onClick={() => setTab(key)}>
@@ -173,7 +130,7 @@ export default function TimelineFilter({
             </section>
           </div>
         </div>
-      </Sheet>
+      </FilterSheet>
     </>
   );
 }

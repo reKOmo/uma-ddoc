@@ -8,7 +8,7 @@
   "common": {
     "server": "Server",
     "scenario": "Scenario",
-    "stat": "Stat",
+    "stat": "Type",
     "averaged": "Averaged",
     "notReleased": "Not released yet",
     "notRanked": "Not in the tier list yet",
@@ -22,6 +22,11 @@
     "dateRange": "{{start}} - {{end}}",
     "current": "Current",
     "backToTop": "Back to top"
+  },
+  "filter": {
+    "button": "Options",
+    "all": "All",
+    "none": "None"
   },
   "stat": {
     "speed": "Speed",
@@ -82,13 +87,28 @@
   },
   "tierList": {
     "title": "Support Card Tier List",
-    "filter": "Filter",
-    "noneShown": "No cards match the filter. Pick a limit break above.",
+    "noneShown": "No cards match the filter: pick a limit break to show.",
     "search": "Search cards",
     "searchPlaceholder": "Search by name or character",
     "clearSearch": "Clear search",
     "reset": "Reset filters",
-    "noMatches": "No cards match “{{query}}” with this filter."
+    "noMatches": "No cards match “{{query}}” with this filter.",
+    "filterTitle": "Cards shown",
+    "filterNote": "The limit breaks shown for each rarity. Tiers come from the full ranking, so filtering never moves a card to another tier.",
+    "changedCount_one": "{{count}} limit break changed from the default",
+    "changedCount_other": "{{count}} limit breaks changed from the default",
+    "size": {
+      "heading": "Card size",
+      "1": "Small",
+      "2": "Medium",
+      "3": "Large",
+      "4": "Huge"
+    },
+    "toggleTier": "Show or hide the {{tier}} tier",
+    "foldedCount_one": "{{count}} card hidden · Show",
+    "foldedCount_other": "{{count}} cards hidden · Show",
+    "showAllTiers_one": "Show the hidden tier",
+    "showAllTiers_other": "Show all {{count}} hidden tiers"
   },
   "timeline": {
     "title": "Timeline",
@@ -170,7 +190,6 @@
     "showParts_other": "Show {{count}} parts of {{name}}",
     "hideParts": "Hide the parts of {{name}}",
     "filter": {
-      "button": "Filter",
       "hiddenCount_one": "{{count}} hidden",
       "hiddenCount_other": "{{count}} hidden",
       "title": "Calendar",
@@ -180,8 +199,6 @@
       "pullNote": "Support card banners stay when one of their cards has a ticked verdict.",
       "pullOff": "Support card banners are hidden.",
       "noAdvice": "No advice",
-      "all": "All",
-      "none": "None",
       "showAll": "Show all",
       "tabs": "Filter or order",
       "tab": {

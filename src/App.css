@@ -339,37 +339,21 @@ h1 {
   color: var(--ink-light);
 }
 
-/* Collapsible: a row of limit-break toggles per rarity (a .segmented fieldset), then "Reset filters". */
-.lb-filter {
-  margin-bottom: 16px;
-}
-
-.lb-filter summary,
+/* A filter sheet's reset (src/FilterSheet.jsx: "Reset filters", "Show all", "Reset order"). */
 .reset-filters {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-height: 32px;
   padding: 0 10px;
+  font: inherit;
   font-size: 0.85rem;
   color: var(--muted);
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
-  list-style: none;
   user-select: none;
-}
-
-.lb-filter summary::-webkit-details-marker {
-  display: none;
-}
-
-.reset-filters {
-  display: flex;
-  margin: 8px auto 0;
-  font: inherit;
-  font-size: 0.85rem;
 }
 
 .reset-filters:disabled {
@@ -377,64 +361,51 @@ h1 {
   cursor: default;
 }
 
-.lb-filter summary:hover,
 .reset-filters:not(:disabled):hover {
   color: var(--text);
   border-color: var(--muted);
 }
 
-.lb-filter .chevron {
-  transition: transform 0.15s;
-}
-
-.lb-filter[open] .chevron {
-  transform: rotate(180deg);
-}
-
-.lb-rows {
+/* The Cards tab: the search box and the filter button on one line; scenario and stat half the width each (desktop
+   too). */
+.search-row {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.lb-filter .rarity-label {
-  flex: 0 0 36px;
-  align-self: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--muted);
+.search-row .search {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
 }
 
-.lb-filter .segmented button {
-  min-width: 44px;
-  min-height: 28px;
-  padding: 0 8px;
-  font-size: 0.75rem;
+.tier-sidebar .controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* The filter's Card size: four buttons across the sheet. */
+.size-picker {
+  display: flex;
+}
+
+.segmented.size-picker button {
+  flex: 1;
+  min-height: 34px;
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-  cursor: pointer;
-  transition:
-    background 0.1s,
-    border-color 0.1s;
 }
 
-.lb-filter .segmented button:hover {
-  border-color: var(--accent);
+/* Limit-break chips in their rarity's colour. */
+.filter-rarity-SSR {
+  --tone: var(--event-champions);
 }
 
-.lb-filter .segmented button:active {
-  box-shadow: none;
-  transform: translateY(1px);
+.filter-rarity-SR {
+  --tone: var(--event-special);
 }
 
-/* The label isn't a button, so round the first button's corners by position. */
-.lb-filter .segmented button:nth-child(2) {
-  border-radius: 6px 0 0 6px;
-}
-
-.lb-filter .segmented button:last-child {
-  border-radius: 0 6px 6px 0;
+.filter-rarity-R {
+  --tone: var(--event-other);
 }
 
 .tier {
@@ -447,13 +418,60 @@ h1 {
 }
 
 .tier-label {
+  position: relative;
   flex: 0 0 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 40px;
+  padding: 0;
+  font: inherit;
   font-size: 1.3rem;
   font-weight: 700;
   color: #1c1f24;
+  border: 0;
+  cursor: pointer;
+}
+
+/* The label folds its tier away: a ⌃ pinned to the top of the strip says so; a little darker under the pointer. */
+.tier-fold-cue {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  translate: -50% 0;
+  opacity: 0.6;
+}
+
+.tier-label:hover {
+  filter: brightness(0.92);
+}
+
+.tier-label:hover .tier-fold-cue {
+  opacity: 1;
+}
+
+/* While any tier is folded: "Show all hidden tiers", above the list. */
+.reset-filters.show-tiers {
+  margin-bottom: 8px;
+}
+
+.tier-folded {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.tier-folded:hover {
+  color: var(--text);
 }
 
 .tier-0 {
@@ -481,9 +499,39 @@ h1 {
   background: #7fbfff;
 }
 
+/* Card sizes (the filter's Card size, 1–4; 3 the default): the narrowest a card gets on phones (columns fill the
+   row), its width on desktop, and its caption's and LB badge's text. */
+.tier-list {
+  --card-min: 68px;
+  --card-width: 84px;
+  --card-caption: 0.7rem;
+  --card-lb: 0.65rem;
+}
+
+.tier-list.size-1 {
+  --card-min: 44px;
+  --card-width: 56px;
+  --card-caption: 0.6rem;
+  --card-lb: 0.55rem;
+}
+
+.tier-list.size-2 {
+  --card-min: 56px;
+  --card-width: 70px;
+  --card-caption: 0.65rem;
+  --card-lb: 0.6rem;
+}
+
+.tier-list.size-4 {
+  --card-min: 96px;
+  --card-width: 120px;
+  --card-caption: 0.8rem;
+  --card-lb: 0.75rem;
+}
+
 .tier-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min), 1fr));
   gap: 6px;
   flex: 1;
   padding: 6px;
@@ -515,7 +563,7 @@ h1 {
   top: 3px;
   right: 3px;
   padding: 1px 4px;
-  font-size: 0.65rem;
+  font-size: var(--card-lb);
   font-weight: 600;
   color: #fff;
   background: rgba(0, 0, 0, 0.65);
@@ -525,7 +573,7 @@ h1 {
 .card figcaption {
   display: flex;
   flex-direction: column;
-  font-size: 0.7rem;
+  font-size: var(--card-caption);
   line-height: 1.25;
 }
 
@@ -573,24 +621,16 @@ h1 {
     width: 260px;
   }
 
-  .tier-sidebar .lb-filter .segmented button {
-    flex: 1;
-    min-width: 0;
+  /* The sidebar is narrow: the search box gets the whole line, the filter button one of its own below it. */
+  .tier-sidebar .search-row {
+    flex-direction: column;
   }
 
-  /* Scenario and stat on one line; scenario names are the longer ones. */
+  /* Scenario and stat on one line, half the width each (as on phones). */
   .tier-sidebar .controls {
     display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
-  }
-
-  .tier-sidebar .lb-filter summary {
-    display: flex;
-  }
-
-  .tier-sidebar .lb-filter .chevron {
-    margin-left: auto;
   }
 
   .tier-label {
@@ -599,7 +639,7 @@ h1 {
   }
 
   .tier-cards {
-    grid-template-columns: repeat(auto-fill, 84px);
+    grid-template-columns: repeat(auto-fill, var(--card-width));
     gap: 8px;
     padding: 8px;
   }

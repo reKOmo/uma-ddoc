@@ -2,12 +2,20 @@
 // group. Scenarios not launched on the selected server yet are in italics with a "Not released yet"
 // note (isReleased, from data/scenarios.json); the one running now on it has a "Current" badge.
 // Scenarios the tier list doesn't rank yet (in data/scenarios.json, not in the server's list) are
-// listed too, disabled, where they fall in launch order (newest first, like the tier list's).
+// listed too, disabled, where they fall in launch order (newest first, like the tier list's). Every scenario's name is
+// a pill in its cover's colour (data/scenarios.json `color`), as on the scenario pages.
 
 import { useTranslation } from 'react-i18next';
 import Dropdown from './Dropdown.jsx';
 import { scenarioName } from './i18n/index.js';
-import { SCENARIOS, isCurrent, isReleased } from './scenarioRelease.js';
+import { SCENARIOS, isCurrent, isReleased, scenarioByKey } from './scenarioRelease.js';
+import { ink } from './timeline/scenarioStrip.js';
+
+// A scenario's pill colour (none for a key data/scenarios.json lacks).
+const pillOf = (key) => {
+  const color = scenarioByKey(key)?.color;
+  return color ? { color, ink: ink(color) } : undefined;
+};
 
 // The Dropdown's options for a server's scenarios (keys) and averaged rankings (keys). `t` translates.
 export function scenarioPickerOptions({ scenarios, combined, server, t }) {
@@ -18,12 +26,13 @@ export function scenarioPickerOptions({ scenarios, combined, server, t }) {
   return [
     ...keys.map((key) => {
       if (!scenarios.includes(key)) {
-        return { value: key, label: scenarioName(key), disabled: true, note: t('common.notRanked') };
+        return { value: key, label: scenarioName(key), pill: pillOf(key), disabled: true, note: t('common.notRanked') };
       }
       const released = isReleased(key, server);
       return {
         value: key,
         label: scenarioName(key),
+        pill: pillOf(key),
         italic: !released,
         badge: isCurrent(key, server) ? t('common.current') : undefined,
         note: released ? undefined : t('common.notReleased'),

@@ -5,15 +5,20 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
 - **Tier list** (the "Cards" tab, `#/`) — ranks support cards per server, scenario and stat. The calculation
   started as a copy of [Euophrys/umamusume-tierlist](https://github.com/Euophrys/umamusume-tierlist)'s
   (MIT, see `tierlist/LICENSE`) and is maintained here now; tests compare it with upstream.
-  A collapsible rarity × LB filter picks which copies are shown (default: MLB of everything, plus
+  A rarity × LB filter (the Filter button beside the search box, a sheet like the Timeline's: `src/FilterSheet.jsx`, a
+  section of LB chips per rarity with All / None, a count on the button of LBs changed from the defaults; at its bottom
+  "Card size": Small / Medium / Large (the default) / Huge, a display preference "Reset filters" keeps) picks which
+  copies are shown (default: MLB of everything, plus
   LB0 and LB3 of SSR and SR); tiers are banded on the full ranking, so filtering doesn't move cards between tiers.
   A search box filters by character name and card title (English + Japanese, from `generated/cards.json`; every
   word must match, accents/punctuation ignored); like the LB filter, it doesn't move cards between tiers.
-  Stat, LB filter and search are remembered (`src/tierListFilters.js`: kept across pages and in localStorage); the
-  scenario is App's (kept across pages, not reloads). "Reset filters" (inside the Filter dropdown; disabled at the defaults) restores all four,
+  Stat, LB filter, search and card size are remembered (`src/tierListFilters.js`: kept across pages and in localStorage); the
+  scenario is App's (kept across pages, not reloads). "Reset filters" (by the filter sheet's title; disabled at the defaults) restores all four,
   scenario = the server's default.
+  A tier's label (S, A…; a ⌃ pinned to the top of the strip says so) folds it to a slim row ("› N cards hidden · Show"), to compare the tiers around it; while any
+  is folded, "Show all hidden tiers" sits above the list. Not remembered: every tier is open on each visit.
   A floating "Back to top" button shows once scrolled past a screen.
-  On desktop the tiers are a bit right of centre (left column 1.25× the right), the pickers and filter in a sticky column to their left (`.tier-sidebar`); on phones, above the tiers.
+  Scenario and stat pickers half the width each. On desktop the tiers are a bit right of centre (left column 1.25× the right), the pickers and filter in a sticky column to their left (`.tier-sidebar`); on phones, above the tiers.
 - **Timeline** (`#/timeline`, a tab; `#/banners` still works) — a horizontal, scrollable/draggable calendar of past and current
   gacha banners (Global: our own record in `data/`, kept up from the official news; JP: our own record too, GameTora's
   history seeded once and the JP news merged over it, R cards, paid scouts and re-runs included).
@@ -239,7 +244,8 @@ src/
                      server switch), tab bar, shared server + scenario state
   settingsStore.js   user settings as a plain store (getSetting / setSetting / subscribe), kept in localStorage
                      (try/catch; defaults without it): timeZone 'utc' | 'local', scenarioNames 'global' | 'jp'
-  tierListFilters.js the Cards tab's stat / LB filter / search: getFilters(), saveFilters(), DEFAULTS, isDefault()
+  tierListFilters.js the Cards tab's stat / LB filter / search / card size: getFilters(), saveFilters(), DEFAULTS,
+                     SIZES, isDefault()
   settings.jsx       useSettings() (useSyncExternalStore over the store); App calls it so plain readers like
                      scenarioName() refresh on change
   pages/SettingsPage.jsx, settings.css  the Settings tab
@@ -263,6 +269,10 @@ src/
   umapyoi.js         umapyoiUrl(news_url): umapyoi.net's copy of an official post (JP's in Japanese)
   BackToTop.jsx      floating "back to top" button (the tier list), watches the .app-main scroll container
   Dropdown.jsx, .css the app's dropdown (custom listbox; every dropdown uses it)
+  statIcons.js       STAT_ICONS: the game's stat type icons by stat key (src/icons/stats/<stat>.png, committed: 70×70,
+                     from upstream's src/icons/utx_ico_obtain_00–05), bundled; the Cards tab's Stat picker shows them
+  FilterSheet.jsx, .css  the app's filter (Cards tab, Timeline): FilterButton (count), FilterSheet (on Sheet.jsx: title +
+                     a reset), FilterSection (toggle chips coloured by --tone, All / None); changes apply at once
   Sheet.jsx, .css    the app's detail sheet on vaul's drawer: phones, a bottom sheet dragged down to close (down arrow);
                      desktop (useMediaQuery.js' DESKTOP), a centred near-square dialog, fading, × button, no drag
                      (`handleOnly`); focus, Escape, click outside, scroll lock; its heading is a <SheetTitle>
@@ -915,11 +925,11 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   rankings start after `SHEET_ANIMATION_MS`. Class names are built with
   `clsx`.
 - **Dropdowns are `src/Dropdown.jsx`**, never a native `<select>` (phones' native pickers ignore `<option>` styling,
-  and it looks the same everywhere): options `{ value, label, group?, note?, badge?, italic?, disabled? }` (disabled: greyed, can't be
+  and it looks the same everywhere): options `{ value, label, icon?, group?, note?, badge?, italic?, disabled? }` (icon: an image URL before the label, in the list and on the button; pill: `{ color, ink }`, the label as a pill in that colour) (disabled: greyed, can't be
   chosen, skipped by the keyboard), groups under headings, hover +
   keyboard-active highlight; opening scrolls the list (not the page) to the selected option, centred. WAI-ARIA select-only combobox pattern (aria-activedescendant; ↑/↓, Home/End,
   Enter/Space, Esc, type-ahead). Scenario pickers are `src/ScenarioPicker.jsx` on top of it: the real scenarios,
-  then the `COMBINED` ones in an "Averaged" group; display names via `scenarioName()` (short names per the setting; never show a raw key). Scenarios not launched on the
+  then the `COMBINED` ones in an "Averaged" group; display names via `scenarioName()` (short names per the setting; never show a raw key), each a pill in its cover's colour (`color`, text by `ink()`) as on the scenario pages. Scenarios not launched on the
   selected server (`isReleased()`, `src/scenarioRelease.js`, from `data/scenarios.json`) are in italics with a
   "Not released yet" note, on the button too; the one running now on it (`isCurrent()`) has a "Current" badge
   (none on JP while its newest scenario isn't one the tier list ranks). Every scenario in `data/scenarios.json` is

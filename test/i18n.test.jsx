@@ -82,6 +82,7 @@ describe('catalogs', () => {
       ...CM_PHASES.map(([k]) => `events.phase.${k}`),
       ...ja.schedules.league_of_heroes.map(([k]) => `events.phase.${k}`),
       ...['show', 'order'].map((k) => `timeline.filter.tab.${k}`),
+      ...[1, 2, 3, 4].map((n) => `tierList.size.${n}`),
       ...ORIGIN_KINDS.filter((k) => k !== 'other').map((k) => `card.origins.kind.${k}`),
       ...new Set(Object.values(cards).flatMap((card) => card.source.map((s) => `card.origins.source.${s}`))),
     ];

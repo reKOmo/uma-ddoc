@@ -45,11 +45,13 @@
   color: var(--text);
 }
 
+/* Phones: room after the content (the bottom of the screen is under the thumb and the home bar), so the last lines
+   can be scrolled up to where they're easy to read. */
 .sheet-body {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0 16px calc(16px + env(safe-area-inset-bottom));
+  padding: 0 16px calc(96px + env(safe-area-inset-bottom));
 }
 
 /* A dialog in the middle, nearly square, its × at the top right; centred without a transform (vaul's drag would set
@@ -93,6 +95,11 @@
     to {
       opacity: 0;
     }
+  }
+
+  /* (A dialog in the middle: nothing to scroll away from.) */
+  .sheet-body {
+    padding-bottom: 16px;
   }
 
   .sheet-close {

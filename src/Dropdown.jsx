@@ -2,8 +2,10 @@
 // (phones' native pickers ignore <option> styling) and look the same on every device. Every dropdown
 // in the app uses it; ScenarioPicker.jsx is the scenario one.
 //
-// options: [{ value, label, group?, note?, badge?, italic?, disabled? }] — ungrouped options first,
-// then each group (by its label, in order of first appearance) under a heading; `note` is a small
+// options: [{ value, label, icon?, pill?, group?, note?, badge?, italic?, disabled? }] — ungrouped options first,
+// then each group (by its label, in order of first appearance) under a heading; `icon` an image's URL shown before
+// the label (in the list and on the button); `pill` { color, ink: 'dark' | 'light' } sets the label as a pill in that
+// colour (e.g. a scenario's), its text dark or light (the --ink-* tokens); `note` is a small
 // hint on the right, `badge` a small accent pill there (e.g. "Current"), `italic` sets the label in
 // italics (on the button too while it's selected), `disabled` shows the option greyed out and
 // can't be chosen.
@@ -131,7 +133,8 @@ export default function Dropdown({ label, value, options, onChange }) {
         onPointerMove={() => !o.disabled && setActive(i)}
       >
         <Check className="dropdown-check" size={16} aria-hidden="true" />
-        <span className="dropdown-label">{o.label}</span>
+        {o.icon && <img className="dropdown-icon" src={o.icon} alt="" />}
+        <Label option={o} />
         {o.badge && <span className="dropdown-badge">{o.badge}</span>}
         {o.note && <span className="dropdown-note">{o.note}</span>}
       </div>
@@ -153,7 +156,8 @@ export default function Dropdown({ label, value, options, onChange }) {
         onClick={() => (open ? setOpen(false) : show())}
         onKeyDown={onButtonKeyDown}
       >
-        <span className="dropdown-label">{selected?.label}</span>
+        {selected?.icon && <img className="dropdown-icon" src={selected.icon} alt="" />}
+        <Label option={selected} />
         <ChevronDown className="dropdown-chevron" size={16} aria-hidden="true" />
       </button>
       {open && (
@@ -179,5 +183,17 @@ export default function Dropdown({ label, value, options, onChange }) {
         </div>
       )}
     </div>
+  );
+}
+
+// An option's label: plain, or a pill in its colour.
+function Label({ option }) {
+  if (!option?.pill) return <span className="dropdown-label">{option?.label}</span>;
+  return (
+    <span className="dropdown-label">
+      <span className={`dropdown-pill ink-${option.pill.ink ?? 'none'}`} style={{ '--pill-color': option.pill.color }}>
+        {option.label}
+      </span>
+    </span>
   );
 }
