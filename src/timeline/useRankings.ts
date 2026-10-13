@@ -13,7 +13,7 @@ import type { SERVERS } from '../servers.ts';
 // the one that also ranks JP's cards it doesn't have (`upcoming`: the card page's dashed future does the same), the
 // server's own cards scored as before. A card no ranking has (JP's newest, without stats yet) is null.
 // A card's rank at MLB: its tier (0 is S), its position in the ranking, the stat tab it ranks in.
-type CardRank = { tier: number; position: number; stat: string };
+export type CardRank = { tier: number; position: number; stat: string };
 export type RankResult = { ranks: Map<number, CardRank | null>; upcoming: boolean };
 
 // TODO(ts): cards.json's type (a JSON import) is wider than the schema (strings for enums); test/schemas.test.ts checks it

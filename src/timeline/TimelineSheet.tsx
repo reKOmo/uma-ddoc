@@ -12,7 +12,7 @@ import { umapyoiUrl } from '../umapyoi.ts';
 import { useSettings } from '../settings.tsx';
 import { itemList } from './events.ts';
 import { type DateFormats, barLabel, dateRange, daysOf, entryTitle, kindName } from './format.ts';
-import { type RankResult, useRankings } from './useRankings.ts';
+import { type CardRank as CardRankValue, type RankResult, useRankings } from './useRankings.ts';
 import type { Entry, EntryGroup } from './entries.ts';
 import type { EventItem, Phase } from '../../shared/schemas/event.ts';
 import { cardUrl, timelineUrl } from '../routes.ts';
@@ -21,7 +21,6 @@ import styles from './TimelineSheet.module.css';
 
 type ServerKey = keyof typeof SERVERS;
 type Lookup = (key: string) => Entry | undefined;
-type RankEntry = NonNullable<ReturnType<RankResult['ranks']['get']>>;
 
 // Trainee icons don't show rarity (card icons do), so it's spelled out.
 const STARS = ['', '★1', '★2', '★3'];
@@ -65,8 +64,7 @@ export default function TimelineSheet({
   const rankings = useRankings(server, scenario, cardIds);
   const nothing = !entry.featured.length && !entry.items.length && !entry.titles.length && !entry.phases.length;
   return (
-    // Sheet.tsx isn't typed yet: its props read as required, `className` (only FilterSheet's) included.
-    <Sheet open={open} onClose={onClose} onClosed={onClosed} className={undefined}>
+    <Sheet open={open} onClose={onClose} onClosed={onClosed}>
       {entry.art && (
         <img className={clsx(styles.art, entry.art.official && styles.official)} src={entry.art.src} alt="" />
       )}
@@ -215,7 +213,7 @@ function FeaturedItem({ item, rankings }: { item: FeaturedEntry; rankings: RankR
 function CardRank({ id, rankings }: { id: number | null; rankings: RankResult | null }) {
   const { t } = useTranslation();
   if (!rankings) return <span className={clsx(styles.rank, styles.pending)}>{t('common.ranking')}</span>;
-  const rank: RankEntry | null | undefined = id == null ? undefined : rankings.ranks.get(id);
+  const rank: CardRankValue | null | undefined = id == null ? undefined : rankings.ranks.get(id);
   if (!rank) return <span className={clsx(styles.rank, styles.missing)}>{t('timeline.notRanked')}</span>;
   return (
     <span className={styles.rank}>
