@@ -19,7 +19,6 @@
 // Usage: pnpm news:umapyoi [--server jp] [--refresh-images]   (pnpm news:umapyoi:jp)
 
 import { loadPosts, savePosts, serverArg } from './lib/news-api.ts';
-import type { Server } from './lib/news-text.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 
 // umapyoi.net's post as its API sends it (its fields are read as they come; see fromUmapyoi()).
@@ -35,8 +34,7 @@ type UmapyoiPost = {
   post_platform_flag: number | string | null;
 };
 
-// TODO(ts): serverArg() (news-api.ts, not typed yet) returns a string; it throws unless it's gl or jp.
-const server = serverArg() as Server;
+const server = serverArg();
 const API = server === 'jp' ? 'https://umapyoi.net/api/v1/news' : 'https://umapyoi.net/api/v1/en/news';
 const OFFSET = server === 'jp' ? 9 * 3600 : 0; // the official API's times: UTC on Global, JST on JP
 const HEADERS = { 'User-Agent': 'uma-ddoc scraper (Umaddoc, static tier list site)' };

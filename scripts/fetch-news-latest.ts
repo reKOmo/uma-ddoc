@@ -16,13 +16,12 @@ import { newsDir } from './lib/paths.ts';
 import { fetchPost, indexPage, loadPosts, postsFile, requests, savePosts, serverArg } from './lib/news-api.ts';
 import { categorize, plain } from './lib/post-categories.ts';
 import { lexicon } from './lib/news-lang/index.ts';
-import { newsUrl, type Server } from './lib/news-text.ts';
+import { newsUrl } from './lib/news-text.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import type { Categorized } from './lib/post-categories.ts';
 
 const MAX_PAGES = 5; // more than that and something's off
-// TODO(ts): serverArg() (news-api.ts, not typed yet) returns a string; it throws unless it's gl or jp.
-const server = serverArg() as Server;
+const server = serverArg();
 
 if (!existsSync(postsFile(server))) {
   console.error(`No ${postsFile(server)} yet: run \`pnpm news:all --server ${server}\` first.`);

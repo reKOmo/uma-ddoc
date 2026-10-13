@@ -12,12 +12,10 @@
 // Usage: pnpm news:all [--server jp]   (pnpm news:all:jp)
 
 import { fetchPost, indexPage, loadPosts, olderId, requests, savePosts, serverArg, setPause } from './lib/news-api.ts';
-import type { Server } from './lib/news-text.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 
 setPause(1000, 2000);
-// TODO(ts): serverArg() (news-api.ts, not typed yet) returns a string; it throws unless it's gl or jp.
-const server = serverArg() as Server;
+const server = serverArg();
 
 // TODO(ts): loadPosts() (news-api.ts, not typed yet) gives an untyped Map; the file is the stored NewsPost list.
 const posts: Map<string, NewsPost> = loadPosts(server);

@@ -63,9 +63,7 @@ export async function fetchPullGuide() {
   const names: string[] = [...new Set(pages.flatMap(({ html }) => parseTab(html).entries.map((e) => e.name)))];
   const tabs: (ReturnType<typeof parseTab> & { name: string; gid: string })[] = [];
   for (const { name, gid, html } of pages) {
-    // TODO(ts): parseTab() (pull-guide.ts, not typed yet) types its `names` default as never[]; with
-    // string[] there, this cast goes.
-    const tab = parseTab(html, names as never[]);
+    const tab = parseTab(html, names);
     if (tab.entries.length === 0) continue;
     tabs.push({ name, gid, ...tab });
     console.log(`${name}: ${tab.entries.length} cards`);
