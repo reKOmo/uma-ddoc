@@ -1,4 +1,4 @@
-import { ChevronRight, ExternalLink } from 'lucide-react';
+import { ArrowLeftRight, ChevronRight, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import Sheet, { SheetTitle } from '../Sheet.jsx';
@@ -6,6 +6,7 @@ import StatusBadge from './StatusBadge.jsx';
 import { TIER_NAMES } from '../tiers.js';
 import { formatNumber, scenarioName, serverName, statName } from '../i18n/index.js';
 import { umapyoiUrl } from '../umapyoi.js';
+import { useSettings } from '../settings.jsx';
 import { itemList } from './events.js';
 import { barLabel, dateRange, daysOf, entryTitle, kindName } from './format.js';
 import { useRankings } from './useRankings.js';
@@ -41,7 +42,7 @@ export default function TimelineSheet({ entry, lookup, server, scenario, format,
       {nothing && <p className="sheet-empty">{entry.note ?? t('timeline.nothingListed')}</p>}
       <Parts entry={entry} lookup={lookup} format={format} onSelect={onSelect} />
       {cardIds.length > 0 && <RankNote scenario={scenario} server={server} upcoming={rankings?.upcoming} />}
-      <Links news={entry.news} />
+      <Links news={entry.news} counterpart={entry.counterpart} />
     </Sheet>
   );
 }
@@ -254,17 +255,26 @@ function Parts({ entry, lookup, format, onSelect }) {
   );
 }
 
-// Its post, and umapyoi.net's copy of it.
-function Links({ news }) {
+// The same banner or event on the other server (opens it there, in the Timeline), its post, and umapyoi.net's copy.
+function Links({ news, counterpart }) {
   const { t } = useTranslation();
-  if (!news) return null;
-  const umapyoi = umapyoiUrl(news.url);
+  const { jpNewsLanguage } = useSettings().settings;
+  if (!news && !counterpart) return null;
+  const umapyoi = news && umapyoiUrl(news.url, jpNewsLanguage);
   return (
     <p className="sheet-links">
-      <a className="link-button" href={news.url} target="_blank" rel="noreferrer">
-        {t('timeline.news', { site: news.site })}
-        <ExternalLink size={15} aria-hidden="true" />
-      </a>
+      {counterpart && (
+        <a className="link-button" href={`#/timeline/${counterpart.server}/${counterpart.id}`}>
+          <ArrowLeftRight size={15} aria-hidden="true" />
+          {t('timeline.counterpart', { server: serverName(counterpart.server) })}
+        </a>
+      )}
+      {news && (
+        <a className="link-button" href={news.url} target="_blank" rel="noreferrer">
+          {t('timeline.news', { site: news.site })}
+          <ExternalLink size={15} aria-hidden="true" />
+        </a>
+      )}
       {umapyoi && (
         <a className="link-button" href={umapyoi} target="_blank" rel="noreferrer">
           {t('timeline.umapyoi')}

@@ -59,6 +59,13 @@ export default function SettingsPage() {
           labels={{ global: t('settings.scenarioNamesGlobal'), jp: t('settings.scenarioNamesJp') }}
           details={{ global: t('settings.scenarioNamesGlobalDetail'), jp: t('settings.scenarioNamesJpDetail') }}
         />
+        <Setting
+          name="jpNewsLanguage"
+          title={t('settings.jpNewsLanguage')}
+          hint={t('settings.jpNewsLanguageHint')}
+          labels={{ jp: t('settings.jpNewsLanguageJp'), en: t('settings.jpNewsLanguageEn') }}
+          details={{ jp: t('settings.jpNewsLanguageJpDetail'), en: t('settings.jpNewsLanguageEnDetail') }}
+        />
       </div>
 
       <section className="about">

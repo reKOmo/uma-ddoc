@@ -9,16 +9,18 @@ import { formatDate, formatDateTime, formatDuration, scenarioName, serverName } 
 import { DATE_FIELD, SCENARIOS, isCurrent, scenarioByKey } from '../scenarioRelease.js';
 import { ink } from '../timeline/scenarioStrip.js';
 import { timeZoneOptions, useSettings } from '../settings.jsx';
+import { umapyoiGl, umapyoiJp } from '../umapyoi.js';
 import './card.css'; // shared: .card-tags, .tag, .card-section
 import './scenario.css';
 
 const day = (ms) => new Date(ms).toISOString().slice(0, 10);
 // scenario.links that are pages to visit (the rest, like `cover`, are images), in this order, each with a
-// scenarioPage.link.<key> name: GameTora's page, and the launch post on umapyoi.net (JP's in Japanese, Global's).
+// scenarioPage.link.<key> name: GameTora's page, and the launch post on umapyoi.net (JP's in the language the JP news
+// setting picks, Global's).
 const LINKS = {
   gametora: (url) => url,
-  umapyoi_jp: (id) => `https://umapyoi.net/news/${id}?lang=jp`,
-  umapyoi_gl: (id) => `https://umapyoi.net/en/news/${id}`,
+  umapyoi_jp: (id, settings) => umapyoiJp(id, settings.jpNewsLanguage),
+  umapyoi_gl: umapyoiGl,
 };
 
 // Server-agnostic: both servers' launches side by side, "Newest on …" for each server it's the latest on.
@@ -26,7 +28,8 @@ const SERVER_ORDER = ['jp', 'gl'];
 
 export default function ScenarioPage({ scenarioKey, onScenarioChange }) {
   const { t } = useTranslation();
-  const { timeZone } = useSettings().settings;
+  const { settings } = useSettings();
+  const { timeZone } = settings;
   const scenario = scenarioByKey(scenarioKey);
 
   if (!scenario) {
@@ -73,7 +76,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }) {
   // External pages about the scenario (links other than images), in this order.
   const links = Object.entries(LINKS)
     .filter(([key]) => scenario.links[key])
-    .map(([key, url]) => [key, url(scenario.links[key])]);
+    .map(([key, url]) => [key, url(scenario.links[key], settings)]);
 
   function openTierList() {
     onScenarioChange(scenario.key);

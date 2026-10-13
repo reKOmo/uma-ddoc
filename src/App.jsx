@@ -30,8 +30,10 @@ const ROUTES = {
 // Detail pages (not tabs, no title; the top bar shows a back button): #/card/<id>, #/scenario/<key>.
 const CARD_ROUTE = /^#\/card\/(\d+)$/;
 const SCENARIO_ROUTE = /^#\/scenario\/([\w-]+)$/;
-// The Timeline with one card banner open, on a given server (the card page's "See banner").
-const BANNER_ROUTE = /^#\/timeline\/(gl|jp)\/(\d+)$/;
+// The Timeline on a given server with one entry (a banner or an event, by its id: unique on a server) open, e.g. the
+// card page's "See banner". The Timeline keeps its address so while a sheet is open, so going back to it (from a
+// card's page) opens that sheet again.
+const TIMELINE_ROUTE = /^#\/timeline\/(gl|jp)\/([\w-]+)$/;
 
 // Old addresses that still work.
 const ALIASES = { '#/banners': '#/timeline' };
@@ -43,12 +45,12 @@ function parseHash(raw) {
   if (card) return { route: '#/card', tab: '#/', Page: CardPage, params: { cardId: Number(card[1]) } };
   const scenario = hash.match(SCENARIO_ROUTE);
   if (scenario) return { route: hash, tab: '#/scenarios', Page: ScenarioPage, params: { scenarioKey: scenario[1] } };
-  const banner = hash.match(BANNER_ROUTE);
-  if (banner) {
+  const link = hash.match(TIMELINE_ROUTE);
+  if (link) {
     return {
       route: '#/timeline',
       ...ROUTES['#/timeline'],
-      params: { linkServer: banner[1], bannerId: Number(banner[2]) },
+      params: { linkServer: link[1], linkId: link[2] },
     };
   }
   const route = ROUTES[hash] ? hash : '#/';
@@ -62,7 +64,7 @@ function useHashRoute() {
     window.addEventListener('hashchange', onChange);
     return () => window.removeEventListener('hashchange', onChange);
   }, []);
-  return parseHash(hash);
+  return { ...parseHash(hash), hash };
 }
 
 function goBack() {
@@ -72,7 +74,7 @@ function goBack() {
 
 export default function App() {
   const { t } = useTranslation();
-  const { route, tab, Page, title, fullHeight, params } = useHashRoute();
+  const { route, tab, Page, title, fullHeight, params, hash } = useHashRoute();
   // Re-render everything when a setting changes: some readers are plain functions (scenarioName()).
   useSettings();
   const [server, setServer] = useState('gl');
@@ -84,12 +86,12 @@ export default function App() {
     if (!scenarioOptions(next).includes(scenario)) setScenario(getServerConfig(next).defaultScenario);
   }
 
-  // A banner link names its server; switch to it.
+  // A Timeline link names its server; switch to it (every new link: a banner's or event's counterpart goes there).
   const { linkServer } = params;
   // biome-ignore lint/correctness/useExhaustiveDependencies: only a new link switches; picking a server by hand afterwards stays.
   useEffect(() => {
     if (linkServer && linkServer !== server) changeServer(linkServer);
-  }, [linkServer]);
+  }, [hash]);
 
   return (
     <div className="app">

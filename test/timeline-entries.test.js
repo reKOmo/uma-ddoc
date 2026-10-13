@@ -38,8 +38,9 @@ describe.each(SERVERS)('the calendar (%s)', (_, entries) => {
     expect(entries.filter((e) => Object.keys(e).sort().join() !== FIELDS.join()).map((e) => e.key)).toEqual([]);
   });
 
-  it('keys every entry once, with a known status and a start', () => {
+  it('keys every entry once (its id alone too: the address #/timeline/<server>/<id> opens it), with a known status and a start', () => {
     expect(keys.size).toBe(entries.length);
+    expect(new Set(entries.map((e) => String(e.id))).size).toBe(entries.length);
     expect(entries.filter((e) => !STATUSES.includes(e.status) || (e.group !== 'event' && !e.start))).toEqual([]);
   });
 

@@ -32,8 +32,11 @@ const middleOf = (entry) => {
 };
 
 // The Timeline: a server's banners and events on one calendar, the same for every server (only the data differs).
-// `bannerId` (from #/timeline/<server>/<id>): a banner to open and centre on once loaded.
-export default function TimelinePage({ server, scenario, bannerId }) {
+// `linkId` (from #/timeline/<server>/<id>): a banner or event to open and centre on once loaded (ids are unique on a
+// server, banners' and events' alike).
+// While a sheet is open, the address says which (replaced, not pushed: no history entry per sheet), so coming back
+// here (from a card's page) opens it again.
+export default function TimelinePage({ server, scenario, linkId }) {
   const { t } = useTranslation();
   const [data, setData] = useState(null); // { server, entries, marks }
   const [zoom, setZoom] = useState(2);
@@ -73,8 +76,8 @@ export default function TimelinePage({ server, scenario, bannerId }) {
   useDragScroll(scroller, !!timeline);
 
   const linked = useMemo(
-    () => current?.entries.find((entry) => entry.group !== 'event' && entry.id === bannerId) ?? null,
-    [current, bannerId]
+    () => (linkId && current?.entries.find((entry) => String(entry.id) === linkId)) ?? null,
+    [current, linkId]
   );
 
   // Another server's calendar: the open sheet was the old one's.
@@ -137,6 +140,12 @@ export default function TimelinePage({ server, scenario, bannerId }) {
   const at = useCallback((ms) => timeline.at(ms) * px, [timeline, px]);
 
   const entry = selected && byKey.get(selected);
+
+  // The address follows the open sheet (see `linkId` above).
+  useEffect(() => {
+    const hash = sheetOpen && entry ? `#/timeline/${server}/${entry.id}` : '#/timeline';
+    if (window.location.hash !== hash) window.history.replaceState(window.history.state, '', hash);
+  }, [sheetOpen, entry, server]);
   return (
     <div className="timeline-page">
       <header className="timeline-header">

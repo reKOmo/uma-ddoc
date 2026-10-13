@@ -17,6 +17,8 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
 - **Timeline** (`#/timeline`, a tab; `#/banners` still works) — a horizontal, scrollable/draggable calendar of past and current
   gacha banners (Global: our own record in `data/`, kept up from the official news; JP: our own record too, GameTora's
   history seeded once and the JP news merged over it, R cards, paid scouts and re-runs included).
+  While a sheet is open the address is `#/timeline/<server>/<id>` (replaced, not pushed; ids are unique on a server,
+  banners' and events' alike), so going back to the Timeline from a card's page reopens the sheet.
   **Both servers run exactly the same code, fed different data** (`src/timeline/`): every banner and event becomes an
   *entry* (`entries.js`, one shape whatever the server or source; every difference between the data files is read
   there and nowhere else), the page has no `server ===` branch, and one sheet (`TimelineSheet.jsx`, on `src/Sheet.jsx`: drag it down to close)
@@ -70,7 +72,8 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   Scenarios tab (which stays highlighted); the page isn't a tab.
 - **Settings** (`#/settings`, a tab) — banner times in UTC (default, as the game announces them) or the
   viewer's timezone; scenario names Global (Unity, TB, GC; JP's where Global has none yet, the default) or JP
-  (Aoharu, MANT, GL); remembered in the browser. At the bottom, About: version (package.json), the Cygames
+  (Aoharu, MANT, GL); JP news on umapyoi.net in Japanese (the original, default: `?lang=jp`) or English (umapyoi's
+  translation, `?lang=en`), for every umapyoi.net link to a JP post (`src/umapyoi.js`); remembered in the browser. At the bottom, About: version (package.json), the Cygames
   disclaimer, and credits linking GameTora and the original tier list (Euophrys' Uma Tiers).
 - **Card page** (`#/card/<id>`) — one support card's full art, GameTora link (if GameTora has it), and its
   tier at each limit break in every scenario (plus the averaged "Overall" and
@@ -205,7 +208,8 @@ scripts/
   lib/banner-posts.js  pure: bannerPost(post) → a scout post's banners (gacha id, type, period, art, featured list)
   lib/news.js        pure: the first parser (toRecord), still used for scenarios and events
 src/
-  App.jsx            shell: hash routes (#/, #/timeline, #/timeline/<gl|jp>/<banner id>, #/scenarios, #/settings, #/card/<id>,
+  App.jsx            shell: hash routes (#/, #/timeline, #/timeline/<gl|jp>/<id> (a banner or event open; the Timeline
+                     keeps it in the address while a sheet is open, so coming back reopens it), #/scenarios, #/settings, #/card/<id>,
                      #/scenario/<key>), top bar (title or back button +
                      server switch), tab bar, shared server + scenario state
   settingsStore.js   user settings as a plain store (getSetting / setSetting / subscribe), kept in localStorage
@@ -420,8 +424,10 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   originals, `GET /api/v1/news` (2,663 ids, 100…3497, back to the 2021 launch) / `/api/v1/news/<id>` (no language
   segment; drop its machine-translated `title_english` / `message_english`): same ids; on 8 posts both serve, title,
   `message` (byte for byte, same `<p data-local-id>` markup) and post time match. Its `post_at` is unix (→ JST
-  string), its `image` the thumbnail (`…/Thumbnail/<file>`, the header art's file), `article_image` the header art
-  on some older posts (null on recent ones): `news:umapyoi:jp` takes `article_image`, else `image` under `Header/`.
+  string), its `image` the post's banner as the news list shows it (`…/Thumbnail/<file>`, 936×228), `article_image`
+  on some older posts (null on recent ones) the header over its first section (936×120; in a celebration post, its
+  first part's: post 1122's ゆく年くる年 showed its login bonus's): `news:umapyoi:jp` takes `image` as `image_big` (the
+  post's main event's art), else `article_image` (`--refresh-images` brought the stored posts over, 2026-10-13).
   2,663 JP posts in all (317 official, 2,346 from umapyoi; per year 96 / 380 / 541 / 592 / 614 / 440 for 2021–2026),
   every id umapyoi lists, none without a message or time; 1,485 umapyoi posts have header art (old ones checked: still
   served).

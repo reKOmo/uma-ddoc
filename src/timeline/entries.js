@@ -23,6 +23,7 @@
 //   prediction { from: { start, end } (JP's dates), margin (± days), confirmed } for Global's predicted entries
 //   news       { url, site } the post it's from and its site's host name (umamusume.com / umamusume.jp), or null
 //   relations  [{ type: 'rerunOf' | 'reheld' | 'partOf', target (an entry key), start, end }]
+//   counterpart { server, id } the same banner or event on the other server (filled by loadTimeline()), or null
 //   parent     the key of the entry it's part of, or null; `parts`: its parts' keys, by start
 //   note       what a scout with no featured items draws from (JP's paid scouts), or null
 //   featured   [{ key, id, name, title, icon, card, isNew, stars, copies }]: a banner's featured items, an event's
@@ -68,6 +69,7 @@ function bannerEntry(banner, group, byId, now) {
     news: news(banner),
     // A re-run and its original (JP: a scout re-held after an issue) point to each other; a re-run not on the
     // calendar keeps its dates (no target).
+    counterpart: null,
     relations: [
       relation('rerunOf', banner.rerunOf != null && byId.get(banner.rerunOf)),
       banner.rerun && {
@@ -134,6 +136,7 @@ export function eventEntries(events, { cards, now = Date.now() } = {}) {
       paid: false,
       prediction: prediction(event),
       news: news(event),
+      counterpart: null,
       relations: parent ? [{ type: 'partOf', target: key(parent.id), start: parent.start, end: parent.end }] : [],
       parent: parent ? key(parent.id) : null,
       parts: (parts.get(event.id) ?? []).map((part) => key(part.id)),

@@ -23,3 +23,11 @@
 - JP banners: 1 featured items not found: [Claret Nosferatu]ドゥラメンテ (30476).
 - JP events: 1145, 0 added or changed.
 - From GameTora where the news has none: 12 story, 12 champions_meeting, 10 legend_race; dated by GameTora: 1 champions_meeting.
+
+## JP record
+
+- JP cards: 563 (0 from the news), 0 pending (not on GameTora yet), nothing changed.
+- JP banners: 299 banners from the news on GameTora's, 281 banners made from it (23 re-runs), nothing changed.
+- JP banners: 1 featured items not found: [Claret Nosferatu]ドゥラメンテ (30476).
+- JP events: 1145, 352 added or changed.
+- From GameTora where the news has none: 12 story, 12 champions_meeting, 10 legend_race; dated by GameTora: 1 champions_meeting.

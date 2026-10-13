@@ -3,9 +3,10 @@
 // missing or throw (private windows, blocked site data), then the defaults apply.
 //   timeZone       'utc' (the game's own times, default) | 'local' (the viewer's timezone)
 //   scenarioNames  'global' (Global's short names, JP's where Global has none; default) | 'jp'
+//   jpNewsLanguage umapyoi.net's copy of a JP post: 'jp' (the Japanese original, default) | 'en' (its translation)
 
-export const DEFAULTS = { timeZone: 'utc', scenarioNames: 'global' };
-export const OPTIONS = { timeZone: ['utc', 'local'], scenarioNames: ['global', 'jp'] };
+export const DEFAULTS = { timeZone: 'utc', scenarioNames: 'global', jpNewsLanguage: 'jp' };
+export const OPTIONS = { timeZone: ['utc', 'local'], scenarioNames: ['global', 'jp'], jpNewsLanguage: ['jp', 'en'] };
 const KEY = 'uma-ddoc.settings';
 
 function load() {

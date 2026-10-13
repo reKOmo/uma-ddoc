@@ -411,9 +411,11 @@
   font: inherit;
   color: var(--text);
   cursor: pointer;
-  margin: 8px 0 4px;
-  padding: 2px 10px;
-  font-size: 0.75rem;
+  /* Big enough to tap (folding the group away). */
+  min-height: 28px;
+  margin: 8px 0 5px;
+  padding: 3px 11px;
+  font-size: 0.8rem;
   font-weight: 600;
   background: var(--panel);
   border: 1px solid var(--border);
@@ -557,6 +559,21 @@
 @media (min-width: 768px) {
   .timeline-header {
     padding: 16px 16px 12px;
+  }
+
+  /* The group labels (Characters, Champions Meetings…) would get lost among the bars at this size. */
+  .lane-label {
+    gap: 6px;
+    margin: 12px 0 6px;
+    padding: 5px 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+
+  .lane-label svg {
+    width: 16px;
+    height: 16px;
   }
 
   .timeline {

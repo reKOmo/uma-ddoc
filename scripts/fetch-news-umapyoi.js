@@ -5,14 +5,18 @@
 // HTML, ids) in other packaging, turned into the official detail's shape so every parser reads them unchanged:
 //   post_at / update_at   unix seconds → "YYYY-MM-DD HH:MM:SS" in the official API's time zone (Global UTC, JP JST),
 //                         'None' → null
-//   image_big             Global: its `image` (the news index's thumbnail; the same file as the detail's header art);
-//                         JP: its `article_image` (the header art), else `image` (the thumbnail) under Header/
+//   image_big             its `image`: the post's banner as the news list shows it (936×228; Global: the same file as
+//                         the detail's header art; JP: …/Thumbnail/<file>, on older posts the only banner of the post
+//                         as a whole: its `article_image` is then the header over its first section, 936×120, which
+//                         in a celebration post is its first part's), else (JP) `article_image`
 //   from_date / to_date   null (the mirror doesn't have the post's display window)
 //   next_announce_id      null (and JP's prev_announce_id); source: 'umapyoi'
 // Only posts we don't have are fetched (the official ones stay as they are, so run `pnpm news:all` first), one at a
 // time with 0.1 s pauses (umapyoi.net allows 10 requests a second); saves every 20 and can be rerun.
+// --refresh-images (JP): instead, fetches the stored umapyoi posts again and updates their image_big alone (older runs
+// stored the header art; resumable: a post already showing its …/Thumbnail/ banner is skipped).
 //
-// Usage: pnpm news:umapyoi [--server jp]   (pnpm news:umapyoi:jp)
+// Usage: pnpm news:umapyoi [--server jp] [--refresh-images]   (pnpm news:umapyoi:jp)
 
 import { loadPosts, savePosts, serverArg } from './lib/news-api.js';
 
@@ -35,10 +39,8 @@ const date = (unix) =>
 const int = (s) => (s == null || s === 'None' ? null : Number(s));
 
 const set = (url) => (url && url !== 'None' ? url : '');
-// JP: the official image_big is the header art, prd-info-umamusume.akamaized.net/announce/<id>/Header/<file>; umapyoi
-// has it as article_image on older posts and otherwise only the thumbnail, the same file under Thumbnail/.
-const image = (p) =>
-  server === 'jp' ? set(p.article_image) || set(p.image).replace('/Thumbnail/', '/Header/') : set(p.image);
+// The post's banner (see image_big above).
+const image = (p) => set(p.image) || (server === 'jp' ? set(p.article_image) : '');
 
 // A umapyoi.net post in the official detail's shape (scripts/lib/news-api.js).
 export const fromUmapyoi = (p) => ({
@@ -59,6 +61,26 @@ export const fromUmapyoi = (p) => ({
 });
 
 const posts = loadPosts(server);
+
+if (process.argv.includes('--refresh-images')) {
+  const todo = [...posts.values()].filter((p) => p.source === 'umapyoi' && !p.image_big?.includes('/Thumbnail/'));
+  console.log(`${todo.length} umapyoi posts' images to refresh`);
+  let changed = 0;
+  for (const [i, post] of todo.entries()) {
+    await sleep(100);
+    const image_big = image(await get(`${API}/${post.announce_id}`));
+    if (image_big && image_big !== post.image_big) changed++;
+    posts.set(String(post.announce_id), { ...post, image_big: image_big || post.image_big });
+    if ((i + 1) % 100 === 0) {
+      savePosts(posts, server);
+      console.log(`${i + 1}/${todo.length}, ${changed} changed`);
+    }
+  }
+  savePosts(posts, server);
+  console.log(`${todo.length} refreshed, ${changed} images changed.`);
+  process.exit(0);
+}
+
 const ids = (await get(API)).map(Number).filter((id) => !posts.has(String(id)));
 console.log(`${ids.length} posts to fetch from umapyoi.net`);
 for (const [i, id] of ids.entries()) {
