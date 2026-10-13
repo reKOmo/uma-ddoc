@@ -1,29 +1,37 @@
-// @ts-nocheck
-// Whether the Timeline is compact (rows with nothing in view fold away; on by default), kept here so it survives
-// leaving the page, and in this browser's storage so it survives a reload (storage can be missing or throw: then only
-// until the page is closed).
+// Whether the Timeline is compact (rows with nothing in view fold away; on by default), a zustand store so it survives
+// leaving the page, and in this browser's storage so it survives a reload (stored as the string "false" or "true", not
+// JSON; anything but "false" is on). Storage can be missing or throw: then only until the page is closed.
 //   getCompact() → boolean
 //   saveCompact(compact)
 
+import * as z from 'zod/mini';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { rawStorage } from '../settingsStore.ts';
+
 const KEY = 'uma-ddoc.timelineCompact';
 
-function load() {
-  try {
-    return globalThis.localStorage?.getItem(KEY) !== 'false';
-  } catch {
-    return true;
-  }
-}
+type State = { compact: boolean; setCompact: (compact: boolean) => void };
 
-let current = load();
+export const useCompactStore = create<State>()(
+  persist(
+    (set) => ({
+      compact: true,
+      setCompact: (compact) => set({ compact }),
+    }),
+    {
+      name: KEY,
+      storage: rawStorage<Pick<State, 'compact'>>(
+        (raw) => {
+          const parsed = z.string().safeParse(raw);
+          return parsed.success ? { compact: parsed.data !== 'false' } : null;
+        },
+        ({ compact }) => String(compact)
+      ),
+      partialize: ({ compact }) => ({ compact }),
+    }
+  )
+);
 
-export const getCompact = () => current;
-
-export function saveCompact(compact) {
-  current = compact;
-  try {
-    globalThis.localStorage?.setItem(KEY, String(compact));
-  } catch {
-    // Not remembered across reloads; still kept while the page is open.
-  }
-}
+export const getCompact = (): boolean => useCompactStore.getState().compact;
+export const saveCompact = (compact: boolean) => useCompactStore.getState().setCompact(compact);

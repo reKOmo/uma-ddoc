@@ -8,11 +8,18 @@ import { useDragScroll } from '../useDragScroll.ts';
 import { loadTimeline } from '../timeline/data.ts';
 import { useAsync } from '../useAsync.ts';
 import { buildTimeline, laneGroups, spanOf, visibleRows } from '../timeline/layout.ts';
-import { DEFAULT_ORDER, getOrder, isDefaultOrder, orderedGroups, reorderGroups, saveOrder } from '../timeline/order.ts';
+import {
+  DEFAULT_ORDER,
+  isDefaultOrder,
+  orderedGroups,
+  reorderGroups,
+  saveOrder,
+  useOrderStore,
+} from '../timeline/order.ts';
 import { scenarioSegments } from '../timeline/scenarioStrip.ts';
-import { getCollapsed, saveCollapsed } from '../timeline/collapsed.ts';
-import { getCompact, saveCompact } from '../timeline/compact.ts';
-import { getHidden, saveHidden } from '../timeline/hidden.ts';
+import { getCollapsed, saveCollapsed, useCollapsedStore } from '../timeline/collapsed.ts';
+import { getCompact, saveCompact, useCompactStore } from '../timeline/compact.ts';
+import { getHidden, saveHidden, useHiddenStore } from '../timeline/hidden.ts';
 import TimelineFilter, { pullKey } from '../timeline/TimelineFilter.tsx';
 import { VERDICTS, bannerVerdicts, loadPullGuide } from '../pullGuide.ts';
 import { dateFormats } from '../timeline/format.ts';
@@ -78,23 +85,12 @@ export default function TimelinePage({ server, scenario, linkId }) {
   );
   // Banner sections and event kinds hidden by the filter, remembered in this browser. Hidden entries leave the lanes (a hidden event's
   // parts of shown kinds stand on their own); the calendar's dates and the sheets still have everything.
-  const [hidden, setHidden] = useState(getHidden);
+  const hidden = useHiddenStore((state) => state.hidden);
   // `update(old)` → the new Set (from the latest one: quick taps don't undo each other).
-  const changeHidden = useCallback(
-    (update) =>
-      setHidden((old) => {
-        const next = update(old);
-        saveHidden(next);
-        return next;
-      }),
-    []
-  );
+  const changeHidden = useCallback((update) => saveHidden(update(getHidden())), []);
   // The lane groups' order (the filter's Order tab), remembered in this browser.
-  const [order, setOrder] = useState(getOrder);
-  const changeOrder = (keys) => {
-    saveOrder(keys);
-    setOrder(keys);
-  };
+  const order = useOrderStore((state) => state.order);
+  const changeOrder = saveOrder;
   const laneOrder = useMemo(() => orderedGroups(order), [order]);
   // The kinds this calendar has, and its groups, in that order.
   const present = useMemo(() => new Set(current?.entries.map((e) => e.kind)), [current]);
@@ -184,16 +180,8 @@ export default function TimelinePage({ server, scenario, linkId }) {
 
   const [unfolded, setUnfolded] = useState(() => new Set());
   // Groups folded away by their label, remembered in this browser.
-  const [collapsed, setCollapsed] = useState(getCollapsed);
-  const toggleGroup = useCallback(
-    (key) =>
-      setCollapsed((old) => {
-        const next = toggled(old, key);
-        saveCollapsed(next);
-        return next;
-      }),
-    []
-  );
+  const collapsed = useCollapsedStore((state) => state.collapsed);
+  const toggleGroup = useCallback((key) => saveCollapsed(toggled(getCollapsed(), key)), []);
   const toggleParts = useCallback((key) => setUnfolded((old) => toggled(old, key)), []);
   const at = useCallback((ms) => timeline.at(ms) * px, [timeline, px]);
 
@@ -201,7 +189,7 @@ export default function TimelinePage({ server, scenario, linkId }) {
   // what's on screen needs. `visible`: { groups, rows: { [group key]: its rows in view } } (LaneGroup's `visible`),
   // worked out when scrolling stops or the zoom changes, and only replaced when a group's rows change (each LaneGroup
   // is memoised). `groups` is what it was worked out for: another server's (or a reloaded timeline's) isn't used.
-  const [compact, setCompact] = useState(getCompact);
+  const compact = useCompactStore((state) => state.compact);
   const [visible, setVisible] = useState(null);
   const measure = useCallback(() => {
     const el = scroller.current;
@@ -249,8 +237,7 @@ export default function TimelinePage({ server, scenario, linkId }) {
     };
   }, [compact, measure]);
   function toggleCompact() {
-    saveCompact(!compact);
-    setCompact(!compact);
+    saveCompact(!getCompact());
   }
 
   const entry = selected && byKey.get(selected);

@@ -7,7 +7,7 @@ import { cards } from '../../tierlist/cards.ts';
 import { getServerConfig } from '../../tierlist/scenarios.ts';
 import { TIER_NAMES, toTiers } from '../tiers.ts';
 import { cardIcon } from '../gametora.ts';
-import { DEFAULTS, SIZES, getFilters, isDefault, saveFilters } from '../tierListFilters.ts';
+import { DEFAULTS, SIZES, getFilters, isDefault, saveFilters, useFiltersStore } from '../tierListFilters.ts';
 import { useTranslation } from 'react-i18next';
 import { lbName, statName } from '../i18n/index.ts';
 import Dropdown from '../Dropdown.tsx';
@@ -36,18 +36,16 @@ const searchText = (card) => {
 };
 
 // server and scenario are shared with the other pages via App; the other filters are remembered in
-// src/tierListFilters.js.
+// src/tierListFilters.ts.
 export default function TierListPage({ server, scenario, onScenarioChange }) {
   const { t } = useTranslation();
-  const [stat, setStat] = useState(() => getFilters().stat);
+  const { stat, shown, query, size } = useFiltersStore((state) => state.filters);
   const [ranking, setRanking] = useState(null);
-  const [shown, setShown] = useState(() => getFilters().shown);
-  const [query, setQuery] = useState(() => getFilters().query);
-  // The cards' display size (a preference: "Reset filters" keeps it).
-  const [size, setSize] = useState(() => getFilters().size);
-  useEffect(() => {
-    saveFilters({ stat, shown, query, size });
-  }, [stat, shown, query, size]);
+  // (The store remembers them across pages and reloads; the cards' size is a preference: "Reset filters" keeps it.)
+  const setStat = (stat) => saveFilters({ ...getFilters(), stat });
+  const setShown = (update) => saveFilters({ ...getFilters(), shown: update(getFilters().shown) });
+  const setQuery = (query) => saveFilters({ ...getFilters(), query });
+  const setSize = (size) => saveFilters({ ...getFilters(), size });
   // Tiers folded away by their label, to compare the others (for this visit only).
   const [collapsed, setCollapsed] = useState([]);
   const toggleTier = (name) => setCollapsed((c) => (c.includes(name) ? c.filter((n) => n !== name) : [...c, name]));
@@ -55,9 +53,7 @@ export default function TierListPage({ server, scenario, onScenarioChange }) {
   const defaultScenario = getServerConfig(server).defaultScenario;
   const atDefaults = scenario === defaultScenario && isDefault({ stat, shown, query });
   const reset = () => {
-    setStat(DEFAULTS.stat);
-    setShown(DEFAULTS.shown);
-    setQuery(DEFAULTS.query);
+    saveFilters({ ...getFilters(), stat: DEFAULTS.stat, shown: DEFAULTS.shown, query: DEFAULTS.query });
     onScenarioChange(defaultScenario);
   };
 
