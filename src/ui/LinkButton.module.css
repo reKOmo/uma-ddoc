@@ -1,0 +1,21 @@
+/* A link or button drawn as an outlined pill, filled while pressed (App.css .link-button). */
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.linkButton:active {
+  color: var(--accent-text);
+  background: var(--accent);
+}

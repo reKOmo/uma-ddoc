@@ -1,0 +1,22 @@
+/* The button that folds or unfolds a list ("N more" / "Show less"): the .see-more look (App.css) with a
+   chevron that points down or up. */
+.foldToggle {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 4px 0 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  text-decoration: none;
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+}
+
+.foldToggle:active {
+  color: var(--accent-text);
+  background: var(--accent);
+}

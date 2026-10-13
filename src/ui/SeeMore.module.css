@@ -1,0 +1,21 @@
+/* A pill-shaped link or button to a card page ("See more", "See card"), with a chevron after it (App.css .see-more). */
+.seeMore {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 4px 0 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  text-decoration: none;
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+}
+
+.seeMore:active {
+  color: var(--accent-text);
+  background: var(--accent);
+}

@@ -1,0 +1,91 @@
+/* One module for the app's pills; each variant is its own class. */
+
+/* tag: a plain outlined pill (rarity, stat, server, a scenario's key) (card.css .tag). */
+.tag {
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+/* kind: an entry's kind, in its colour (--tone, from data-tone) (timeline/sheet.css .entry-kind). */
+.kind {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--tone) 25%, var(--panel));
+  border: 1px solid var(--tone);
+  border-radius: 999px;
+}
+
+/* status: where a banner or event stands (App.css .badge and its status colours). */
+.status {
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.live {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+.upcoming {
+  color: #fff;
+  background: #3d8bfd;
+}
+
+.predicted {
+  color: #fff;
+  background: #8b93a1;
+}
+
+.confirmed {
+  color: #fff;
+  background: #2f9e6e;
+}
+
+/* verdict: a pull verdict, in its colour (card.css .verdict-chip); tone is the verdict's kind. */
+.verdict {
+  padding: 4px 14px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+}
+
+.verdict[data-tone="yes"] {
+  color: var(--rank-up);
+}
+
+.verdict[data-tone="no"] {
+  color: var(--rank-down);
+}
+
+.verdict[data-tone="free"] {
+  color: var(--global-line);
+}
+
+.verdict[data-tone="whale"] {
+  color: var(--caution);
+}
+
+.verdict[data-tone="dolphin"] {
+  color: var(--accent);
+}
+
+/* label: a filled accent pill naming a card's banner (card.css .pull-label). */
+.label {
+  padding: 3px 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent);
+  border-radius: 999px;
+}

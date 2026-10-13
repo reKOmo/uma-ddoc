@@ -1,0 +1,22 @@
+/* A tier's letter on its colour (the global .tier-N classes, styles/global.css). line-height = height, so the
+   letter sits in the middle of the chip (card.css .tier-chip). */
+.tierChip {
+  display: inline-block;
+  min-width: 26px;
+  height: 26px;
+  line-height: 26px;
+  font-weight: 800;
+  color: #1c1f24;
+  border-radius: 6px;
+}
+
+.pending {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+@media (min-width: 768px) {
+  .tierChip {
+    min-width: 32px;
+  }
+}
