@@ -1,17 +1,10 @@
-// The new Career scenarios a news post (data/news/gl/posts.json, as the API sends it) names, for Global's scenario
-// launches (scripts/lib/scenarios.js applyScenarioNews()). Pure.
-//
-// scenarioPost(post) → { posted, scenarios: [{ full, start }] }: 'the new Career scenario "X" has been added', 'A new
-// career scenario, titled "X," will be added … at 10:00 p.m., Jul 22, 2026 (UTC)', 'the new "X" Career Scenario'. Only
-// these phrasings: plain "scenario" shows up all over (known issues, scout fine print). start: the time in the same
-// sentence when it says the scenario is added / begins, else null.
-
 import type { NewsPost } from '../../shared/schemas/news.ts';
 import { apiDate, decodeEntities, parsePeriod, toLines } from './news-text.ts';
 import { norm } from './event-rewards.ts';
 
 export type ScenarioMention = { full: string; start: string | null };
 
+// Only these phrasings: plain "scenario" shows up all over (known issues, scout fine print).
 const SCENARIO_RE: RegExp[] = [
   /new career scenario,?\s*(?:titled\s*)?["“]([^"”]+?)[\s,]*["”]/i,
   /new\s*["“]([^"”]+?)[\s,]*["”]\s*career scenario/i,

@@ -1,27 +1,16 @@
-// The official news APIs (Global: https://umamusume.com/news/, JP: https://umamusume.jp/news/) and our raw copy of
-// each, data/news/<server>/posts.json.
+// The official news APIs (umamusume.com, umamusume.jp) and our raw copy of each, data/news/<server>/posts.json.
 //
-// Both sites have the same two endpoints, called differently:
-//   pr_info_index   the news page, newest first, full messages but no availability period. Global only lists the
-//                   last few months.
-//                     gl: POST JSON { announce_label: 0, limit, offset } → { information_list, show_more_button }
-//                     jp: GET ?announce_label=0&per_page=&page= (from 1) → { information_list, total_page_count }
-//   pr_info_detail  one post: { detail, prev_announce_id, next_announce_id }.
-//                     gl: POST JSON { announce_id }; prev is the next newer post, next the next older one
-//                     jp: GET ?announce_id=; prev is the next lower id the site serves, next the next higher one (by
-//                     id, not post date; ids it doesn't serve are skipped)
-//                   Following the older one from the newest post walks the whole archive. On Global that reaches
-//                   older than the index; JP's index lists every post the site serves (~317, a few pinned old ones
-//                   among the newest), so there the walk only checks it.
-// Times are UTC strings on Global and JST strings on JP (news-text.js' apiDate() turns both into UTC).
+// Both sites have the same two endpoints. Global's index lists only the last few months, and its detail's
+// next_announce_id is the next older post by date. JP's index lists every post the site serves, and its
+// prev/next_announce_id are the next lower/higher id served (not post date). Walking older from the newest post thus
+// reaches the whole archive on JP, and on Global only past the index.
+// Times are UTC strings on Global and JST strings on JP (news-text.ts' apiDate() turns both into UTC).
 //
-// posts.json keeps each post's `detail` exactly as the API sends it (dates as strings, null for none) plus fetched_at
-// and the ids the detail gave: Global's next_announce_id (older), JP's prev_announce_id (lower id) and
-// next_announce_id (higher). One post per line, newest first. Parsing happens elsewhere, from this file, so a parser change never needs
-// a request. olderId() reads the older post's id on either server.
+// posts.json keeps each post's `detail` as sent, plus fetched_at and the ids the detail gave. One post per line,
+// newest first. Parsers read that file, so a parser change never needs a request.
 //
-// Keep it gentle: one request at a time with a random pause, 3–8 s by default (like someone reading the news page);
-// the one-off archive walk goes faster with setPause().
+// Keep it gentle: one request at a time with a random pause, 3–8 s by default; the one-off archive walk goes faster
+// with setPause().
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
@@ -51,7 +40,6 @@ type ApiJson = {
 // One request: a POST body (Global) or GET query (JP).
 type Request = { body?: object; query?: Record<string, string | number> };
 
-// How one server's API is called and answers.
 type ServerConfig = {
   headers: Record<string, string>;
   index: (page: number) => Request;
@@ -69,7 +57,6 @@ const BROWSER: Record<string, string> = {
   'Sec-Fetch-Site': 'same-origin',
 };
 
-// How each server's API is called.
 const SERVERS: Record<Server, ServerConfig> = {
   gl: {
     headers: { 'Accept-Language': 'en-US,en;q=0.9', 'Content-Type': 'application/json', Origin: NEWS_SITES.gl.site },
@@ -94,7 +81,6 @@ const SERVERS: Record<Server, ServerConfig> = {
 
 // One request at a time; a random pause (3–8 s) before every request but the first.
 const pace = paced({ pause: [3000, 8000] });
-// The pause between requests, in ms: a random one between min and max.
 export function setPause(min: number, max: number): void {
   pace.pause = [min, max];
 }
@@ -117,7 +103,6 @@ async function call(server: Server, endpoint: string, { body, query }: Request, 
   return json;
 }
 
-// One page of the news index (from 1): { items, more }.
 export async function indexPage(page: number, server: Server = 'gl'): Promise<{ items: IndexItem[]; more: boolean }> {
   const config = SERVERS[server];
   const json = await api(server, 'pr_info_index', config.index(page), `${NEWS_SITES[server].site}/news/`);
@@ -125,7 +110,6 @@ export async function indexPage(page: number, server: Server = 'gl'): Promise<{ 
   return { items: json.information_list, more: config.more(json, page) };
 }
 
-// One post, as stored in posts.json.
 export async function fetchPost(id: string | number, server: Server = 'gl'): Promise<NewsPost> {
   const config = SERVERS[server];
   const json = await api(server, 'pr_info_detail', config.detail(id), NEWS_SITES[server].post(id));
@@ -161,7 +145,6 @@ export function savePosts(posts: Map<string, NewsPost>, server: Server = 'gl'): 
 
 const isServer = (s: string): s is Server => s === 'gl' || s === 'jp';
 
-// `--server gl|jp` from a script's arguments (gl by default).
 export function serverArg(argv: string[] = process.argv): Server {
   // strict: false: scripts get flags they don't read (pnpm passes them through).
   const { values } = parseArgs({ args: argv.slice(2), options: { server: { type: 'string' } }, strict: false });

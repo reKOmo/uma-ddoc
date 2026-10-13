@@ -1,16 +1,8 @@
-// Global's own record of gacha banners and card releases, in data/ (committed):
-//   data/global_banners.json  { source, characters: [banner…], cards: [banner…] }, newest first, in
-//                             data/jp_banners.json's shape (scripts/lib/jp-banners.js; no GameTora URLs: the app
-//                             builds the art, en/gacha/img_bnr_gacha_<id>.png, and icons from ids)
-//   data/global_cards.json    { [card id]: { title_en, release_gl, news_url? } } for cards out on Global
-// Seeded once from GameTora (2026-10) and kept up since from the official
-// news (data/news/, pnpm update-global). Entries made from the news carry `news_url` (banners also
-// `announced: true`). Seeded banners (no `announced`) keep their dates and items; one a post shows gets that post's
-// `news_url` and official art (`news_image`), as JP's GameTora banners do (scripts/lib/jp-banners.js).
-//
-// A scout post names its banners by gacha id, which Global shares with JP, so a banner from the
-// news is JP's banner with that id (featured ids, rates) under Global's dates and art, with
-// the English names and titles the post lists.
+// Global's banners and card releases in data/ (committed). Seeded once from GameTora (2026-10), then kept up from the
+// official news by pnpm update-global. News-made entries carry `news_url` (banners also `announced`). A seeded banner
+// the news shows keeps its dates and items, and gets that post's `news_url` and official art (`news_image`).
+// A scout post names banners by gacha id, which Global shares with JP: a news banner is JP's banner with that id
+// (featured ids, rates) under Global's dates and art, with the English names and titles the post lists.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import type { Banner, BannerFile, BannerId, BannerItem } from '../../shared/schemas/banner.ts';
@@ -22,17 +14,14 @@ import { norm } from './news-text.ts';
 export const BANNERS_FILE = `${DATA_DIR}global_banners.json`;
 export const CARDS_FILE = `${DATA_DIR}global_cards.json`;
 
-// data/global_cards.json's entries, by id.
 export type CardRecords = GlobalCardsFile;
 type Kind = 'characters' | 'cards';
 // char_id → English name (englishNames()).
 type NameMap = Map<number | null, string>;
 
-// A scout post (bannerPost(), scripts/lib/banner-posts.ts) and its banners.
 type ScoutPost = BannerPost;
 type ScoutBanner = BannerPost['banners'][number];
 
-// A banner applyNews() made from a post, and a post it skipped.
 export type NewsBanner = { banner: Banner; kind: Kind; post: string; unmatched: string[] };
 export type NewsSkip = { id: number; post: string; reason: string };
 export type NewsResult = { global: BannerFile; cards: CardRecords; banners: NewsBanner[]; skipped: NewsSkip[] };
@@ -58,9 +47,9 @@ export function pickMain<T extends Pick<BannerItem, 'rarity' | 'rate'>>(featured
 const endOfMinute = (iso: string) => iso?.replace(/:00(\.000)?Z$/, ':59.000Z');
 const isoMs = (iso: string) => new Date(iso).toISOString();
 
-// Pairs a JP banner's items with the post's English list ({ name, title, rarity|stars }): by
-// character name first (`names`: char_id → English name), then, if one item and one entry are
-// left, with each other (the post lists each banner's items under its own art). Returns [{ item, entry }] (entry null when unmatched).
+// Pairs a JP banner's items with the post's English list ({ name, title, rarity|stars }): by character name first
+// (`names`: char_id → English name), then, if one item and one entry are left, with each other (the post lists each
+// banner's items under its own art). Entry null when unmatched.
 function pairEnglish(items: BannerItem[], entries: { name: string; title: string }[], names: NameMap) {
   const left = [...entries];
   const pairs = items.map((item) => {
@@ -72,14 +61,8 @@ function pairEnglish(items: BannerItem[], entries: { name: string; title: string
   return pairs;
 }
 
-// Rebuilds the news-made banners and card releases from every post (oldest first; a later post
-// about the same banner wins), on top of the seeded ones. Pure. Paid scouts (one-off guaranteed ones) are left out,
-// like JP's "special" banners.
-//   posts     scout posts, as scripts/lib/banner-posts.js reads them (bannerPost())
-//   global    data/global_banners.json      cards  data/global_cards.json
-//   jp        JP's banners (data/jp_banners.json, regular ones: scripts/lib/jp-banners.js's regularBanners())
-//   names     Map char_id → English name
-// Returns { global, cards, banners: [{ banner, kind, post, unmatched }], skipped: [{ id, post, reason }] }.
+// Rebuilds the news-made banners and card releases from every post (oldest first; a later post about the same banner
+// wins), on top of the seeded ones. Pure. Paid scouts are left out, like JP's "special" banners.
 export function applyNews({
   posts,
   global,
@@ -170,7 +153,7 @@ export function applyNews({
     const day = banner.start.slice(0, 10);
     for (const item of banner.featured) {
       if (kind === 'cards') {
-        const key = String(item.id); // as an object key, as before
+        const key = String(item.id);
         const known = nextCards[key]?.release_gl;
         item.new = !known || known >= day;
         if (!known) nextCards[key] = { title_en: item.title ?? null, release_gl: day, news_url: banner.news_url };

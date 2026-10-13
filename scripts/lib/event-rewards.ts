@@ -1,19 +1,6 @@
-// What an event gives, from the lines of its news post (scripts/lib/event-blocks.js). Pure.
-//
-// Support cards come first: what the site is for is telling whether an event gives a card. The rest (carats, monies,
-// shards, consumables…) are kept as the post names them, with their amounts.
-//
-//   cardsIn(lines, index)   [{ id, rarity, title, name, copies }]: every "[Title] Name" that is one of our support
-//                           cards (`index`: cardIndex(generated/cards.json)), however the post words it ("Event-Exclusive
-//                           SSR Support Card: [Title] Name", "gifted with the SSR Support Card "[Title] Name"", a bare
-//                           "[Title] Name" under Gift Contents); copies from "a total of five copies" / "up to two
-//                           times" in the same line or the next, else null. Trainee outfits never match (not cards).
-//   itemsIn(lines)          [{ name, count }]: "Item × N" lines, summed per item ("Login Days 8-12: Support Pt × 1000"
-//                           counts five times; "10:00 p.m., Oct 7 (UTC) – Carrot Jelly Mini × 3" rows add up), prose
-//                           gifts ("a gift of 3,000 carats"), and items named without an amount (count null: "Main
-//                           Rewards: • Carats", "rewards like carats and Rainbow Crystal Shards").
-//   titlesIn(lines)         player titles: "Event-Exclusive Title: X", or the bullets under "Event-Exclusive Titles".
-//   missionsIn(lines, year) limited-time mission sets: a line "X Missions" followed by its period.
+// What an event gives, from the lines of its news post. Pure. Support cards come first (what the site is for is
+// telling whether an event gives one); the rest are kept as the post names them, with their amounts. Trainee outfits
+// never match: they aren't cards.
 
 import type { CardsFile } from '../../shared/schemas/card.ts';
 import type { EventCard, EventItem } from '../../shared/schemas/event.ts';
@@ -22,16 +9,11 @@ import { en } from './news-lang/en.ts';
 import type { DateRef, Lexicon } from './news-lang/index.ts';
 import { norm } from './news-text.ts';
 
-// A card in cardIndex(): what cardsIn() reads of it (its id, rarity, and the title and name the post spells).
 export type IndexedCard = { id: number; rarity: Rarity; title: string; name: string };
-// The index cardIndex() builds: normalised title → the cards with that title.
 export type CardIndex = Map<string, IndexedCard[]>;
-// A mission set (missionsIn()): its name, its period.
 export type MissionSet = { name: string; start: string; end: string | null };
 
 export { norm };
-
-// Every reader below takes `lang`, the posts' wording (scripts/lib/news-lang/), English by default.
 
 export const NUMBERS = en.numbers;
 const number = (s: string, lang: Lexicon = en): number => lang.numbers[s.toLowerCase()] ?? Number(s.replace(/,/g, ''));
@@ -168,8 +150,6 @@ export function missionsIn(lines: string[], year: DateRef, lang: Lexicon = en): 
   });
   return sets;
 }
-
-// --- doubts: where the rules may have read a reward wrong (scripts/lib/events.js asks a model about these) ----------
 
 const listLine = (line: string, lang: Lexicon) => lang.item.test(line.replace(lang.login, '').replace(lang.dated, ''));
 

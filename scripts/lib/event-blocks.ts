@@ -1,17 +1,10 @@
-// A news post (data/news/gl/posts.json, as the API sends it) cut into blocks, one per event it describes. Pure.
+// A news post cut into blocks, one per event it describes. Pure.
 //
-// A post can describe several events: a celebration post has a login bonus, a present, a gift, extra race tickets…
-// each starting with its own header art (<figure><img …/header_26800002_….png></figure>), then a sentence saying what
-// it is and its own headings (availability period, reward contents…). So a block runs from one header art to the
-// next; text before the first one (the post's intro) belongs to the first block. A post without header art is one
-// block. Scout art (gacha_banner_…) isn't a block boundary.
-//
-// eventBlocks(post) → [{ art, artId, intro, sections }]
-//   art       the header art's URL, or null
-//   artId     its 8-digit number (the game's id of the art; the first three digits hint at the kind: 202 race
-//             tickets, 301 story event, 302 Legend Race, 303 Champions Meeting…), or null
-//   intro     the block's lines before its first heading
-//   sections  [{ heading, lines }]: every <h2>/<h3>/<h4> heading in order with the lines under it
+// A celebration post has a login bonus, a present, a gift… each starting with its own header art
+// (<figure><img …/header_26800002_….png></figure>), then a sentence about it and its own headings. So a block runs
+// from one header art to the next; text before the first one (the post's intro) goes with the first block. A post
+// without header art is one block. Scout art (gacha_banner_…) isn't a boundary. The art's 8-digit id hints at the
+// kind (202 race tickets, 301 story event, 302 Legend Race, 303 Champions Meeting).
 
 import type { NewsPost } from '../../shared/schemas/news.ts';
 import { en } from './news-lang/en.ts';
@@ -29,13 +22,11 @@ function block(html: string, art: string | null, lang: Lexicon): Block {
   };
 }
 
-// `lang`: the posts' wording (scripts/lib/news-lang/: which art starts a block), English by default.
 export function eventBlocks(post: NewsPost, lang: Lexicon = en): Block[] {
   const html = lang.clean(post.message ?? '');
   const arts = [...html.matchAll(lang.blockArt)].filter((m) => !lang.notBlockArt.test(m[1]));
   if (!arts.length) return [block(html, null, lang)];
-  // (JP: the post's intro is a block of its own when text comes before the first art, `lang.introBlock`: that art
-  // starts a part.)
+  // JP: text before the first art is a block of its own (`lang.introBlock`), that art starting a part.
   const intro =
     lang.introBlock && toLines(html.slice(0, arts[0].index)).length
       ? [block(html.slice(0, arts[0].index), null, lang)]

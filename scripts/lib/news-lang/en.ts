@@ -1,11 +1,8 @@
-// The English news' wording (Global, umamusume.com): every pattern the news parsers read a post with. The parsers
-// (post-categories.js, banner-posts.js, event-blocks.js, event-rewards.js, events.js) are shared by both servers and
-// take a lexicon like this one (news-lang/index.js: one per server). Keep the wording here and the structure there.
+// The English news' wording (Global, umamusume.com): what the shared parsers read Global's posts with. The structure
+// (what each pattern is for) is the Lexicon type in index.ts.
 
 import { parsePeriod } from '../news-text.ts';
 import type { Lexicon } from './index.ts';
-
-// --- titles (post-categories.js) ----------------------------------------------------------------------------------
 
 const PHASE_WORDS =
   /\s*(?:is here|are here|is coming.*|coming soon|(?:is )?now (?:available|underway)|out now|has begun|has ended|ending soon|added)!?$/i;
@@ -22,7 +19,6 @@ const campaignName = (title: string) =>
 
 export const en: Lexicon = {
   server: 'gl',
-  // The field of generated/cards.json' names and titles the posts use.
   cardLang: 'en',
   // Dates: parsePeriod(text, dateRef(posted)) (the post's UTC year fills a missing one).
   // (dateRef gives a year here; Number() only tells the type checker.)
@@ -77,10 +73,7 @@ export const en: Lexicon = {
     ],
   ],
 
-  // An event's name when the title gives none: the title without its "!".
   titleName: (title) => title.replace(/!$/, ''),
-
-  // --- scouts (banner-posts.js) -----------------------------------------------------------------------------------
 
   // A banner's art (<img …gacha_banner_<id>_….png>): split on (the capture keeps it), and its URL + gacha id.
   bannerArt: /(<img[^>]*\ssrc="[^"]*gacha_banner_\d+_[^"]*"[^>]*>)/,
@@ -90,20 +83,14 @@ export const en: Lexicon = {
   // "Trainee Umamusume" (older posts: "Umamusume") → character, "Support Cards" → support.
   bannerType: (heading) =>
     /Trainee|^Umamusume$/i.test(heading) ? 'character' : /Support Card/i.test(heading) ? 'support' : null,
-  // Period headings, and the scout period's among them.
   bannerPeriod: /period$/i,
   scoutPeriod: /scout.*period$/i,
-  // The post's scouts cost paid carats.
   paidPost: /paid carats/i,
-
-  // --- blocks (event-blocks.js) -----------------------------------------------------------------------------------
 
   // Header art (<figure><img …></figure>) starts a block; scout art doesn't.
   blockArt: /<figure>\s*<img[^>]*\ssrc="([^"]+)"[^>]*>\s*<\/figure>/gi,
   notBlockArt: /gacha_banner_/,
   artId: /_(\d{8})(?:_|\.)/,
-
-  // --- rewards (event-rewards.js) ---------------------------------------------------------------------------------
 
   numbers: { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 },
   // Same item, other spelling → the name we show (keyed without a trailing "gift(s)": "150-carat gifts" are Carats).
@@ -176,8 +163,6 @@ export const en: Lexicon = {
   copiesTalk: /\bcop(?:y|ies)\b|\b\w+ times\b/i,
   // A line after one naming a card that goes on about copies ("It can be obtained up to two times…").
   copiesNext: /\bcop(?:y|ies)\b|\btimes\b/i,
-
-  // --- events (events.js) -----------------------------------------------------------------------------------------
 
   // Headings that hold an event's own period (not when rewards can be collected, gifts expire, a final round runs…).
   period: /period|timing/i,

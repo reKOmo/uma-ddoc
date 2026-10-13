@@ -1,17 +1,14 @@
-// The main colour of an image, for the scenario strip (data/scenarios.json `colors`). Node only. The decoder is pngjs
-// (greyscale, RGB, palette, with or without alpha: GameTora's and the official site's art).
+// The main colour of an image, for the scenario strip. Node only.
 //
-// "Main colour": among clearly coloured pixels (opaque, not near-white/grey/black), the most common
-// hue (24 bins, weighted by saturation²), averaged over that bin's pixels. Skin and hair hues
-// (reds/oranges/browns, < 45° or ≥ 345°) are left out first: the art is mostly characters, and with them
-// every cover comes out brown. Only if nothing else is coloured are they counted.
+// Among clearly coloured pixels (opaque, not near-white/grey/black), the most common hue wins, weighted by
+// saturation². Skin and hair hues (reds, oranges, browns) are left out first: the art is mostly characters, and
+// with them every cover came out brown. They count only when nothing else is coloured.
 
 import { PNG } from 'pngjs';
 
-// An image's pixels, RGBA, row by row.
 export type Image = { width: number; height: number; rgba: Uint8Array };
 
-// PNG bytes → { width, height, rgba: Uint8Array } (chunk checksums aren't checked, as before).
+// Chunk checksums aren't checked.
 export function decodePng(buffer: Buffer): Image {
   const { width, height, data } = PNG.sync.read(buffer, { checkCRC: false });
   return { width, height, rgba: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
@@ -21,7 +18,7 @@ const hex = (rgb: number[]): string => `#${rgb.map((v) => Math.round(v).toString
 
 const isSkinOrHair = (hue: number): boolean => hue < 45 || hue >= 345;
 
-// rgba → "#rrggbb", or null if nothing in it is clearly coloured.
+// null if nothing in it is clearly coloured.
 export function mainColor(image: Image): string | null {
   return dominantHue(image, (hue) => !isSkinOrHair(hue)) ?? dominantHue(image, () => true);
 }

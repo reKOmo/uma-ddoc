@@ -5,40 +5,17 @@
 // Cards" heading, followed by that banner's list: "★★★ [Heroic Author] Zenno Rob Roy" / "• SSR [Party Formation]
 // Mayano Top Gun" (spotlight posts list debut trainees twice; each is kept once).
 //
-// bannerPost(post) → { id, url, posted, paid, banners } or null when the post shows no banner, with
-//   paid     the post's scouts cost paid carats (the one-off guaranteed scouts: launch, anniversaries), like the
-//            "special" banners JP's scrape skips
-//   banners  [{ gachaId, type: 'character' | 'support' | null, start, end, image, featured }]
-//   start/end   the scout period above the banner's art (else the post's first period); ISO UTC, end null when
-//               open-ended
-//   image       the official art's URL
-//   featured    characters [{ stars, title, name }], support cards [{ rarity, title, name }] (as the post spells
-//               them); empty when the post doesn't list them ("features Support Cards introduced up to …")
-//
-// What only some servers' posts need is behind lexicon entries (scripts/lib/news-lang/ja-banners.js), absent on
-// Global's:
-//   firstList      only a banner's first list after its art counts (JP posts list trainees 2–3 times, and a revival
-//                  post lists both banners after the second art); listPlaceholder: lines that don't end it
-//   periodLabel    a period section may hold labelled windows ("ピックアップ プリティーダービーガチャ" + its dates):
-//                  label → the banner type the window is for; the section's dates are then its first dated line
-//   paidBanner     paid is per banner (gacha id → paid?): each banner gets `paid`
-//   rerunPeriod    the heading of a re-run's period (a scout re-held after an issue): every banner of the post gets
-//                  `rerun: { start, end }`
-//   bannerName     a banner's own name (heading it sits under, the post's text, its type, the names used) →
-//                  `name`, or null: what a paid scout without a featured list is called
-//   bannerNote     a banner without a featured list gets `note`: the post's first line after its art
+// What only JP's posts need is a Lexicon hook (news-lang/index.ts), absent on Global's.
 
 import type { NewsPost } from '../../shared/schemas/news.ts';
 import { en } from './news-lang/en.ts';
 import type { BannerType, DateRef, Lexicon, Period } from './news-lang/index.ts';
 import { apiDate, decodeEntities, newsUrl, type Section, sections, toLines } from './news-text.ts';
 
-// A scout banner's featured card (`bannerCard`) or trainee (`bannerTrainee`), as the post spells them.
 export type FeaturedCard = { rarity: string; title: string; name: string };
 export type FeaturedTrainee = { stars: number; title: string; name: string };
 export type Featured = FeaturedCard | FeaturedTrainee;
 
-// One banner of a scout post (bannerPost()'s `banners`).
 export type Banner = {
   gachaId: number;
   type: BannerType | null;
@@ -52,7 +29,6 @@ export type Banner = {
   rerun?: { start: string | null; end: string | null };
 };
 
-// A post's scouts: its id, URL, post time, whether they cost paid carats, and its banners.
 export type BannerPost = {
   id: number;
   url: string;
@@ -61,11 +37,9 @@ export type BannerPost = {
   banners: Banner[];
 };
 
-// A period window: its banner type (null when unlabelled) and its dates.
 type Window = Period & { type: BannerType | null };
-// A period section: its heading, its first window's dates and every window.
 type ScoutPeriod = { heading: string; start: string | null; end: string | null; windows: Window[] };
-// A banner while it's being read (`listed`: its list has ended, bannerPost() drops it).
+// A banner while it's being read. `listed`: its list has ended, so later lines aren't its items (removed before returning).
 type DraftBanner = Banner & { listed?: boolean };
 
 // A period section's windows: [{ type, start, end }] (type null when unlabelled). Global's: its first line only.
@@ -83,7 +57,6 @@ function sectionPeriods(section: Section, lang: Lexicon, ref: DateRef): Window[]
   return out;
 }
 
-// `lang`: the posts' wording (scripts/lib/news-lang/), English by default.
 export function bannerPost(post: NewsPost, lang: Lexicon = en): BannerPost | null {
   const html = lang.clean(post.message ?? '');
   if (!lang.bannerArt.test(html)) return null;
@@ -107,7 +80,7 @@ export function bannerPost(post: NewsPost, lang: Lexicon = en): BannerPost | nul
 
   const banners = new Map<number, DraftBanner>();
   const text = all.flatMap((s) => [s.heading, ...s.lines]).join('\n'); // the names a scout may go by, in order
-  const named = new Set<string>(); // the names given so far
+  const named = new Set<string>();
   let last: DraftBanner | null | undefined = null; // the banner whose art came last: lists after it are its own
   for (const section of all) {
     const own = periods.find((p) => p.heading === section.heading);

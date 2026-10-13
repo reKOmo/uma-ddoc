@@ -1,5 +1,4 @@
-// The Japanese scout posts' wording (banner-posts.js), part of news-lang/ja.js. What they look like:
-// docs/jp-news-findings.md, "Scouts".
+// The Japanese scout posts' wording. What they look like: docs/jp-news-findings.md, "Scouts".
 
 import type { Lexicon } from './index.ts';
 

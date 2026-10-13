@@ -1,24 +1,12 @@
-// GameTora's JP event history (story events, Champions Meetings, Legend Races) filled into JP's events
-// (data/jp_events.json) where the JP news has none: our JP news archive is thin before mid-2022 (2021: 96 posts), and
-// GameTora's history goes back to the 2021 launch. From mid-2022 on the two agree exactly (checked on 2026-10-11), so a
-// GameTora event is only added before then (FILL_BEFORE), where no news event of its kind overlaps it: a newer one
-// GameTora lists first (the next cup, before the JP news dates it) waits for the news. Pure, except the reader/writer.
+// GameTora's JP event history (story events, Champions Meetings, Legend Races) filled into JP's events where the JP news
+// has none. The JP news archive is thin before mid-2022 (2021: 96 posts), and GameTora's goes back to the 2021 launch.
+// From mid-2022 on the two agree exactly (checked 2026-10-11), so a GameTora event is only added before FILL_BEFORE,
+// where no news event of its kind overlaps it. Pure, except the reader/writer.
 //
-// generated/raw/gametora_events.json (pnpm scrape-gametora), GameTora's files cut to the fields read here:
-//   { story: [{ id, name_ja, start_ja, end_ja, event_support_ids }],
-//     champions_meeting: [{ id, name, start, end }]                      start = round 1 (not the league selection)
-//     legend_race: [{ id, name_ja, start, end, races: [{ card_id, start, end }] }] }   times in unix seconds
-//
-// A filled event has the news events' shape with `source: 'gametora'`, no news_url, no art, no items or titles:
-//   story              name: GameTora's Japanese name, cards: the event's own cards (event_support_ids)
-//   champions_meeting  name: the cup's Japanese name as the news has it (タウラス杯… then SPRINT / MILE / CLASSIC…);
-//                      start = round 1: GameTora doesn't know the league selection (3 or 4 days earlier in the news,
-//                      never the same), so it's left out; phases from round 1 on (every cup since 2022 has the same
-//                      schedule: two 2-day rounds, half a day each to register and match, a 1-day final)
-//   legend_race        name null like the news' (the kind says it)
-// An event the news announced without dates ("coming soon": a 1-day bar on its post day) of the same kind and name,
-// up to SAME_EVENT_DAYS before GameTora's, takes GameTora's dates and phases instead (it keeps its id, link and
-// source 'news'), as buildEvents() does with a later dated post.
+// A filled event has the news events' shape with `source: 'gametora'`, no news_url, art, items or titles. A Champions
+// Meeting starts at round 1: GameTora doesn't know the league selection, so its phases run from round 1 on (every cup
+// since 2022 has the same schedule). A news event announced without dates, of the same kind and name, up to
+// SAME_EVENT_DAYS before GameTora's, takes GameTora's dates and phases instead (keeping its id, link and source 'news').
 
 import { existsSync, readFileSync } from 'node:fs';
 import type { CardsFile } from '../../shared/schemas/card.ts';
@@ -30,14 +18,12 @@ import { GENERATED_DIR } from './paths.ts';
 
 export const GAMETORA_EVENTS_FILE = `${GENERATED_DIR}raw/gametora_events.json`;
 
-// GameTora's data files and the fields kept from each (scripts/scrape-gametora.js).
 export const GAMETORA_EVENT_FILES = {
   story: { file: 'events/story-events', fields: ['id', 'name_ja', 'start_ja', 'end_ja', 'event_support_ids'] },
   champions_meeting: { file: 'events/champions-meeting', fields: ['id', 'name', 'start', 'end'] },
   legend_race: { file: 'events/legend-race', fields: ['id', 'name_ja', 'start', 'end', 'races'] },
 };
 const RACE_FIELDS = ['card_id', 'start', 'end'];
-// One record of a GameTora data file (external JSON: its fields are picked by name).
 export type GametoraRecord = Record<string, unknown>;
 
 const SAME_EVENT_DAYS = 45;
@@ -53,7 +39,6 @@ const CM_SCHEDULE: [key: string, from: number, to: number | null][] = [
   ['final_race', 5 * DAY, null],
 ];
 
-// GameTora's files → what raw/gametora_events.json keeps.
 export function cutEvents(files: Record<string, GametoraRecord[]>): GametoraEventsFile {
   const pick = (obj: GametoraRecord, fields: string[]): GametoraRecord =>
     Object.fromEntries(fields.map((f): [string, unknown] => [f, obj[f] ?? null]));
@@ -96,7 +81,7 @@ export function cmPhasesFrom(start: number, end: number): Phase[] {
   }));
 }
 
-// In the news events' key order (scripts/lib/events.js' output()).
+// In the news events' key order (events.ts' output()).
 const event = ({
   id,
   kind,
@@ -129,7 +114,7 @@ const event = ({
   source: 'gametora',
 });
 
-// GameTora's events in the shape of ours (sorted like them: newest first).
+// GameTora's events in the shape of ours, newest first.
 export function gametoraEvents(raw: GametoraEventsFile, cards: CardsFile = {}): GameEvent[] {
   const story = (raw.story ?? []).map((e) =>
     event({

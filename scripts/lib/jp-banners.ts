@@ -1,23 +1,9 @@
-// JP's banners (data/jp_banners.json, committed): GameTora's history, seeded once (2026-10; GameTora's banners
-// aren't scraped any more), with the banners the JP news announces merged over it (docs/jp-news-plan.md, decision 2).
-// { source, characters: [banner…], cards: [banner…] }, newest first, one banner per line, where a banner is
-//   { id, image?, start, end, main, featured: [item…] } and an item { id, char_id, name, title, rarity, type?, rate,
-//   new } (`type`: support cards). `featured` lists every rate-up item, `main` is the one with the highest rarity (then
-//   rate). No GameTora URLs: the app builds the art (gacha/img_bnr_gacha_<id>.png) and icons from ids
-//   (src/gametora.js); `image` is only the official art of a banner made from the news.
-//
-// What the news adds (rebuilt from every post each time; seeded entries are never lost):
-// - a banner GameTora has: `announced: true`, `news_url`, `news_image` (the post's official art; the app shows
-//   it over GameTora's). Its dates stay GameTora's (the news agrees on all of them; disagreements are listed). The R cards the
-//   post lists (GameTora leaves them out) are added to its featured, each marked `from_news: true`.
-// - a banner GameTora lacks (select-pickup supports, Twinkle Collection 30xxx, paid 50xxx): a new entry made from the
-//   post, `from_news: true`, `image` = `news_image` = the official art, featured resolved to ids (support cards by
-//   generated/cards.json's title.jp + name.jp, trainees by title + name on any banner of this file or Global's;
-//   unresolved ones keep their names with id null), R cards kept, `rate` null (posts don't give rates).
-// - `paid: true` on paid banners (gacha id ≥ 50000; Global never runs them, ml/ and Global's news skip them).
-// - re-runs (a scout re-held after an issue, decision 6): the original keeps its dates and gets `rerun: { id, start,
-//   end }`; the re-run is GameTora's banner with the same featured starting then (its `rerunOf` = the original's id),
-//   else a news-made entry with id `<original id>-rerun` (a string: the only ids that aren't numbers).
+// JP's banners (data/jp_banners.json, committed): GameTora's history, seeded once (2026-10; GameTora's banners aren't
+// scraped any more), with the JP news merged over it (docs/jp-news-plan.md, decision 2). No GameTora URLs are stored:
+// the app builds art and icons from ids. A banner's `image` is only a news-made banner's official art.
+// A banner GameTora has keeps its dates (the news agrees on all of them) and gets news_url / news_image.
+// Re-runs (decision 6): the original keeps its dates and gets `rerun`. A re-run GameTora already has is its `rerunOf`,
+// else a news-made entry with id `<original id>-rerun` (the only string ids).
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import type { GametoraType } from '../../shared/schemas/common.ts';
@@ -53,7 +39,6 @@ const NEWS_KEYS = ['announced', 'news_url', 'news_image', 'rerun', 'rerunOf', 'p
 type Item = Omit<BannerItem, 'new'> & { new?: boolean };
 // A banner while the news is merged in: its featured items may still lack `new` (see Item).
 type Draft = Omit<Banner, 'featured' | 'main'> & { featured: Item[]; main: Item | null };
-// A post's banner (bannerPost(post, ja), scripts/lib/banner-posts.ts), as the news merge reads it.
 type ScoutItem = { rarity?: string; stars?: number; title: string; name: string };
 type ScoutBanner = {
   gachaId: number;
@@ -135,7 +120,6 @@ function resolver({
   };
 }
 
-// applyJpNews()'s result (see above).
 export type ApplyJpNewsResult = {
   jp: BannerFile;
   enriched: Banner[];
@@ -146,11 +130,8 @@ export type ApplyJpNewsResult = {
   skipped: { id: BannerId; post: string; reason: string }[];
 };
 
-// The news (scout posts as bannerPost(post, ja) reads them) merged over the stored banners (data/jp_banners.json).
-// Pure and idempotent. `global`: Global's banners (data/global_banners.json), only to resolve trainee ids (optional);
-// `trainees`: GameTora's trainee list (GAMETORA_TRAINEES_FILE), for trainees no banner has shown yet (optional).
-// Returns { jp, enriched, made, reruns, unresolved: [{ banner, item }], mismatches: [{ id, post, what }],
-// skipped: [{ id, post, reason }] }.
+// The news (scout posts as bannerPost(post, ja) reads them) merged over the stored banners. Pure and idempotent.
+// `global` resolves trainee ids; `trainees` (GameTora's list) covers trainees no banner has shown yet.
 export function applyJpNews({
   posts,
   jp,
@@ -334,7 +315,6 @@ export function writeJpBanners(jp: BannerFile, file = JP_BANNERS_FILE): void {
 const banners = (n: number): string => `${n} banner${n === 1 ? '' : 's'}`;
 
 // The JP news' banners merged into data/jp_banners.json; returns a summary { lines: [...] } for summary.md.
-//   posts  the stored JP posts (data/news/jp/posts.json)    cards  generated/cards.json
 export async function updateJpBanners({
   posts,
   cards,

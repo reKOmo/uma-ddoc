@@ -1,25 +1,11 @@
-// Career scenarios and when they launched on each server, in data/scenarios.json (committed):
-//   { source, scenarios: [scenario…] } in JP launch order, where a scenario is
-//   { key, short: { jp, en }, full_en, full_jp, en_start_date, jp_start_date, links: { gametora, cover }, color }
-// where a start date is { date, tag } (or null while unknown):
-//   date       ISO launch time (UTC)
-//   tag        'out' (launched), 'confirmed' (a known date still ahead), 'predicted' (ml/scenarios.py, from
-//              the Global release model; also lo / hi: "YYYY-MM-DD", a rough 90% range)
-// Tags of known dates are refreshed (confirmed → out) every time the file is written.
-// key        the tier list's scenario key where it has one (tierlist/scenarios.js), else ours (an id)
-// short      short names per server (SCENARIO_NAMES, by hand): en null until Global has one
-// full_en    the full English name: Global's official one once the news names it, else GameTora's
-//            English, else null (JP-only scenarios GameTora hasn't translated)
-// full_jp    the full Japanese name (GameTora; refreshed every scrape)
-// *_date     launch dates as above; en_start_date is predicted until the news gives Global's
-// links      gametora: the scenario's GameTora page; cover: its key art (GameTora's media, no text, so it
-//            serves both servers); umapyoi_jp / umapyoi_gl: the post id of its launch post in JP's / Global's news
-//            (the scenario page links umapyoi.net's copy: JP's in Japanese), from `update-jp` / `update-global`
-// color      the main colour of the cover ("#rrggbb", scripts/lib/colors.js), computed once per cover
-//            (fillColors) and kept, so images aren't downloaded again
-// JP's side (jp_start_date, links, new scenarios) comes from GameTora on every `pnpm scrape-gametora`;
-// Global's (en_start_date, official names) from the official news (`pnpm update-global`; GameTora's Global dates
-// seeded them once), predictions from `pnpm predict-gl`. Global releases JP's scenarios in JP's order.
+// Career scenarios and when they launched on each server: data/scenarios.json (committed), in JP launch order.
+// A start date is { date, tag } (or null while unknown): tag 'out' (launched), 'confirmed' (known, still ahead), or
+// 'predicted' (ml/scenarios.py, with lo / hi: a rough 90% range). Known dates are re-tagged every time the file is written.
+// key: the tier list's where it ranks the scenario, else ours (an id, never shown). short: names per server, by hand
+// (SCENARIO_NAMES); Global's null until it has one. full_en: Global's official name once the news gives it, else GameTora's.
+// color: the cover's main colour, computed once and kept.
+// JP's side comes from GameTora on every scrape-gametora; Global's from the official news (update-global; GameTora's
+// Global dates seeded them once), its predictions from predict-gl. Global releases JP's scenarios in JP's order.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import type { Scenario, ScenariosFile, StartDate } from '../../shared/schemas/scenario.ts';
@@ -42,7 +28,6 @@ export type ScenarioDraft = Omit<Scenario, 'full_jp' | 'links' | 'color'> & {
   links: Omit<Scenario['links'], 'cover'> & { cover: string | null };
   color: string | null;
 };
-// What readScenarios() returns: the file's source (null with no file yet) and its scenarios.
 export type ScenariosRead = { source: ScenariosFile['source'] | null; scenarios: ScenarioDraft[] };
 
 // GameTora's scenario (its `scenarios` data file, external JSON): the fields read here.
@@ -55,7 +40,7 @@ export type GametoraScenario = {
   start_ja?: number | null;
 };
 
-// A scenario as scripts/lib/news.ts' scenarioPost() gives it (its posts: the Global launches read here).
+// A scenario post (news.ts' scenarioPost()): the Global launches read here.
 type ScenarioPost = { id: number; posted: string | null; scenarios: ScenarioMention[] };
 
 // The shape of a file on disk: older ones have dates as plain ISO strings and one `full` name.
@@ -70,7 +55,6 @@ type ScenarioOnDisk = {
   color?: string | null;
 };
 
-// [key, JP short name, Global short name] (see SCENARIO_NAMES).
 type ScenarioNames = [key: string, jp: string, en: string | null];
 
 // GameTora slug → [key, JP short name, Global short name]. key: the tier list's where it ranks the
@@ -95,7 +79,6 @@ export const SCENARIO_NAMES: Partial<Record<string, ScenarioNames>> = {
   'tracen-ken': ['TracenKen', 'Tracen-ken', null],
 };
 
-// { jp, en } short names of a GameTora slug (see SCENARIO_NAMES).
 export function shortNames(slug: string): Scenario['short'] {
   const [, jp, en]: ScenarioNames = SCENARIO_NAMES[slug] ?? [slug, slug, null];
   return { jp, en };
@@ -111,7 +94,6 @@ export const norm = (s: string | null | undefined): string =>
     .replace(/[^a-z0-9]/g, '');
 const slugOf = (scenario: { links: { gametora: string } }) => scenario.links.gametora.slice(GAMETORA.length);
 
-// A known launch date, tagged by whether it has passed.
 export const known = (date: string | null | undefined, now = Date.now()): StartDate | null =>
   date ? { date, tag: Date.parse(date) <= now ? 'out' : 'confirmed' } : null;
 // Global's launch isn't known yet: none, or only a prediction.

@@ -1,8 +1,5 @@
-// Plain text and dates out of the official news' HTML (data/news/), shared by every news parser. Pure.
-
 export type Server = 'gl' | 'jp';
 
-// The official news sites per server, and a post's page on each.
 export const NEWS_SITES: Record<Server, { site: string; post: (id: number | string) => string }> = {
   gl: { site: 'https://umamusume.com', post: (id) => `https://umamusume.com/news/${id}/` },
   jp: { site: 'https://umamusume.jp', post: (id) => `https://umamusume.jp/news/detail/?id=${id}` },
@@ -40,7 +37,6 @@ export function decodeEntities(s: string): string {
     .replace(/\u00a0/g, ' ');
 }
 
-// HTML → lines of plain text.
 export function toLines(html: string): string[] {
   return decodeEntities(html.replace(/<br\s*\/?>|<\/h2>|<\/p>|<\/li>/gi, '\n').replace(/<[^>]+>/g, ''))
     .split('\n')

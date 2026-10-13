@@ -1,39 +1,16 @@
-// Global's in-game events, from the official news alone (data/news/gl/posts.json), into data/global_events.json
-// (committed, rebuilt from every post by `pnpm update-global`). Pure, except the reader/writer at the bottom.
-//
-// An event is one bar on the Timeline: everything in the news with dates of its own is one.
-//   { id, kind, name, parent, start, end, cards, items, titles, news_url, image, source }
-//   kind      story | champions_meeting | league_of_heroes | legend_race | transfer_requests | uma_outing | special |
-//             factor_research | masters_challenge | celebration | campaign | gift | login_bonus | missions | shop | sale
-//             (EVENT_KINDS; league_of_heroes, factor_research, masters_challenge: JP only)
-//   name      as the news names it, or null (Legend Races, Transfer Requests, Leagues of Heroes: the kind says it)
-//   parent    the event it's part of (a celebration's sub-event, an event's mission set), else null
-//   cards     support cards it gives [{ id, rarity, title, name, copies }] (scripts/lib/event-rewards.js), the main
-//             thing; items [{ name, count, local? }] everything else it gives (count: a number, { min, max } for a
-//             Champions Meeting from the hand table, null when the post doesn't say; JP: an item Global has goes by
-//             Global's name, the Japanese one in `local`); titles: player titles by name
-//   phases    a Champions Meeting's schedule [{ key, start, end }]: league_selection, round_1, round_2,
-//             final_registration, final_matching, final_race (CM_PHASES); JP: a League of Heroes' too (team_formation,
-//             main_stage, extra_registration, extra_matching, extra_voting, extra_race: ja.schedules); others have none
-//   news_url  the post that announced it as running (else the first), image: its art (the Timeline's bar; a part
-//             without art of its own shows its parent's)
-//   source    'news'
+// Global's in-game events from the official news alone (data/news/gl/posts.json), rebuilt into data/global_events.json
+// by `pnpm update-global`. Pure, except the readers and writers at the bottom. Each event is one Timeline bar: everything
+// in the news with dates of its own. Shape: shared/schemas/event.ts.
 //
 // From posts to events (buildEvents):
-//   1. Each event post (categorize(): category 'event'; "ending soon" reminders skipped) is cut into blocks at its
-//      header art (eventBlocks()). A post about one event (story, Champions Meeting…) stays one event whatever
-//      art it shows. A celebration post is several: its first block is the celebration itself, every later block
-//      with dates of its own is a sub-event (kind and name from its opening sentence), and blocks without dates (a
-//      new song, stamps) belong to the block before them. A celebration without dates of its own spans its
-//      sub-events.
-//   2. Every mission set an event lists ("Sprinters Stakes Missions" + its period) is a bar of its own under it
-//      (missionBars()). Other dates inside an event (Champions Meeting rounds, reward collection, repeated windows)
-//      stay in its bar.
-//      An event spans its parts.
-//   3. Posts about the same event ("coming soon", "is here", "has ended", league selection) are merged: same kind
-//      and name, and overlapping dates (a post without dates joins the latest such event that started before it,
-//      within GROUP_DAYS). Dates and links come from the most advanced post (running > announced); items take the
-//      largest count any post gives (posts repeat lists); cards and titles are combined.
+//   1. An event post is cut into blocks at its header art (eventBlocks()); a post about one event stays one event
+//      whatever art it shows. A celebration's later blocks with dates of their own are sub-events; blocks without dates
+//      (a new song, stamps) belong to the block before. "Ending soon" reminders are skipped.
+//   2. Each mission set an event lists is a bar of its own under it (missionBars()). Other dates inside an event (Champions
+//      Meeting rounds, reward collection) stay in its bar. An event spans its parts.
+//   3. Posts about the same event are merged: same kind and name, overlapping dates (a post without dates joins the latest
+//      such event that started before it, within GROUP_DAYS). Dates and links come from the most advanced post; items take
+//      the largest count any post gives (posts repeat lists); cards and titles are combined.
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { DATA_DIR, newsDir } from './paths.ts';
@@ -49,7 +26,6 @@ import type { AiAnswersFile, NewsPost } from '../../shared/schemas/news.ts';
 import type { Block, DateRef, Lexicon } from './news-lang/index.ts';
 import type { Server } from './news-text.ts';
 
-// A post's dates: either may be missing.
 type Dates = { start: string | null; end: string | null };
 // One event as one post describes it, before posts about the same event are merged (`GameEvent` plus what merging and
 // the model's questions need; `output()` keeps only the schema's fields).
@@ -80,11 +56,8 @@ export type Fragment = {
   // Mission sets it lists (taken out into bars of their own by missionBars()).
   missions?: { name: string; start: string; end: string | null }[];
 };
-// A celebration's block with the blocks that belong to it.
 type Group = { i: number; first: Block; blocks: Block[]; period: Dates | null; headed: boolean };
-// A schedule of phases: [phase key, heading].
 type Schedule = [string, RegExp][];
-// The options of buildEvents().
 export type BuildOptions = {
   cmTable?: CmRewardsFile;
   cards?: Parameters<typeof cardIndex>[0];
@@ -93,11 +66,10 @@ export type BuildOptions = {
 };
 
 export const EVENTS_FILE = `${DATA_DIR}global_events.json`;
-// Each server's events: data/global_events.json, data/jp_events.json.
 export const eventsFile = (server: Server = 'gl'): string =>
   server === 'gl' ? EVENTS_FILE : `${DATA_DIR}${server}_events.json`;
 export const CM_REWARDS_FILE = `${DATA_DIR}champions_meeting_rewards.json`;
-// A model's answers about what the rules doubted (scripts/ai-events.js), by event aiKey.
+// A model's answers about what the rules doubted, by event aiKey.
 export const answersFile = (server: Server = 'gl'): string => `${newsDir(server)}ai_answers.json`;
 
 export { EVENT_KINDS };
@@ -108,8 +80,6 @@ const GROUP_DAYS = 14;
 const SAME_EVENT_DAYS = 45;
 // How far along a post is: dates from a later stage win.
 const STAGE: Record<string, number> = { announced: 1, league_selection: 2, started: 3 };
-
-// --- dates ---------------------------------------------------------------------------------------------------------
 
 // The wording of periods, sub-events and schedules is the lexicon's (scripts/lib/news-lang/): every function below
 // takes `lang`, English by default.
@@ -163,8 +133,6 @@ export function cmPhases(block: Block, year: DateRef, lang: Lexicon = en, schedu
   });
 }
 
-// --- celebration sub-events ----------------------------------------------------------------------------------------
-
 // The name in a sub-event's opening sentence ("the Sparkly Magic Show Holiday Present event is underway!" → "Sparkly
 // Magic Show Holiday Present"), or null.
 function sentenceName(block: Block, lang: Lexicon): string | null {
@@ -204,10 +172,8 @@ const subEventKind = (name: string | null, block: Block, lang: Lexicon): string 
 // (A lexicon's subKinds and 'campaign' are SUB_EVENT_KINDS, the kinds a model may answer.)
 if (en.subKinds.some(([kind]) => !SUB_EVENT_KINDS.includes(kind))) throw new Error('subKinds outside SUB_EVENT_KINDS');
 
-// --- doubts --------------------------------------------------------------------------------------------------------
-// What the rules aren't sure of in an event, { field: why }: the fields a model is asked about (scripts/ai-events.js;
-// its answers, data/news/gl/ai_answers.json, fill them in at build time). Fields: items, cards (copies), name, kind,
-// dates.
+// What the rules aren't sure of in an event, { field: why }: the fields a model is asked about (its answers fill them in
+// at build time, applyAnswer()). Fields: items, cards (copies), name, kind, dates.
 
 // FNV-1a: an event's text in a short key, so a stored answer is reused until the post changes.
 const hash = (text: string): string => {
@@ -239,8 +205,6 @@ function datesDoubt(
   if (blocks.some((b) => b.sections.some((s) => lang.timing.test(s.heading)))) return 'dates from a list of moments';
   return headed ? null : 'dates from a sentence, not a period heading';
 }
-
-// --- posts → fragments ---------------------------------------------------------------------------------------------
 
 function rewards(lines: string[], index: ReturnType<typeof cardIndex>, year: DateRef, lang: Lexicon) {
   return {
@@ -417,13 +381,10 @@ function missionBars(f: Fragment, lang: Lexicon): Fragment[] {
   ];
 }
 
-// --- merging -------------------------------------------------------------------------------------------------------
-
 // (An event without a start, an "ended" post's, never matches: NaN.)
 const ms = (date: string | null): number => Date.parse(date ?? '');
 const endOf = (e: Dates): number => ms(e.end ?? e.start) || ms(e.start) + DAY;
 const overlap = (a: Dates, b: Dates): boolean => ms(a.start) <= endOf(b) && ms(b.start) <= endOf(a);
-// Posts about the same event have the same kind and name.
 const sameKey = (e: { kind: string; name: string | null }): string => `${e.kind}|${norm(e.name)}`;
 
 function mergeItems(a: EventItem[], b: EventItem[]): EventItem[] {
@@ -494,18 +455,14 @@ const output = (e: Fragment): GameEvent => ({
 });
 
 // Every event fragment the news describes (one per event per post, mission sets included), with its doubts, text
-// and aiKey, before posts about the same event are merged: what scripts/ai-events.js asks a model about.
+// and aiKey, before posts about the same event are merged: what the model is asked about (news:ai).
 export function eventFragments(posts: NewsPost[], cards: BuildOptions['cards'] = {}, lang: Lexicon = en): Fragment[] {
   const index = cardIndex(cards, lang);
   return posts.flatMap((post) => postEvents(post, index, lang)).flatMap((f) => missionBars(f, lang));
 }
 
-// Every event the news describes, newest first. `answers` (data/news/gl/ai_answers.json) fill in the fields the rules
-// doubted or left empty (applyAnswer()).
-//   posts    data/news/gl/posts.json's posts
-//   cmTable  data/champions_meeting_rewards.json
-//   cards    generated/cards.json (card ids by title + name, in the posts' language)
-//   lang     the posts' wording (scripts/lib/news-lang/), English by default
+// Every event the news describes, newest first. `answers` fill in the fields the rules doubted or left empty
+// (applyAnswer()).
 export function buildEvents(
   posts: NewsPost[],
   { cmTable = [], cards = {}, answers = {}, lang = en }: BuildOptions = {}
@@ -514,7 +471,7 @@ export function buildEvents(
     .map((f) => (answers[f.aiKey] ? applyAnswer(f, answers[f.aiKey].answer, { lang }) : f))
     .sort((a, b) => a.posted.localeCompare(b.posted) || a.id.localeCompare(b.id));
   let events: Fragment[] = [];
-  const byKey = new Map<string, Fragment[]>(); // sameKey → the events so far with it
+  const byKey = new Map<string, Fragment[]>();
   const alias = new Map<string, string>(); // a merged fragment's id → its event's (sub-events point at their post's celebration)
   for (const f of fragments) {
     const key = sameKey(f);
@@ -575,15 +532,12 @@ export function buildEvents(
   for (const e of events) if (parts.has(e.id)) Object.assign(e, span([e, ...(parts.get(e.id) ?? [])]));
   for (const e of events) if (e.kind === 'champions_meeting') e.items = mergeItems(e.items, cmItems(cmTable, e.start));
 
-  // A sub-event without art of its own shows its celebration's.
   const byId = new Map(events.map((e) => [e.id, e]));
   return events
     .map((e) => (!e.image && e.parent ? { ...e, image: byId.get(e.parent)?.image ?? null } : e))
     .map(output)
     .sort((a, b) => b.start.localeCompare(a.start) || b.id.localeCompare(a.id));
 }
-
-// --- files ---------------------------------------------------------------------------------------------------------
 
 export const readEvents = (server: Server = 'gl'): EventsFile =>
   existsSync(eventsFile(server)) ? JSON.parse(readFileSync(eventsFile(server), 'utf8')) : [];

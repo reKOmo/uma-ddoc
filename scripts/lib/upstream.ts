@@ -1,18 +1,8 @@
-// Everything that knows about the upstream repo
-// (https://github.com/Euophrys/umamusume-tierlist).
-//
-// The tier list calculation started as a copy of upstream's and is ours now
-// (tierlist/). Upstream is still used for:
-//   data   card lists + card events, fetched from upstream main into generated/raw/upstream/
-//          at build time, never committed (scripts/update-cards.js, scripts/build-cards.js).
-//   tests  test/upstream/ compares our calculation with upstream's, run from a
-//          clone in upstream/ (scripts/clone-upstream.js).
-
+// Upstream is data only: the calculation is ours (tierlist/).
 export const REPO: string = 'Euophrys/umamusume-tierlist';
 import { GENERATED_DIR, ROOT } from './paths.ts';
 
 export const UPSTREAM_DIR: string = `${ROOT}upstream/`;
-// Where the data files go, as downloaded.
 export const UPSTREAM_RAW: string = `${GENERATED_DIR}raw/upstream/`;
 
 type DataFile = { upstream: string; local: string };
@@ -32,7 +22,7 @@ export async function latestRef(): Promise<string> {
   return (await res.text()).trim();
 }
 
-// Downloads each file at `ref`. Returns { upstreamPath: text }.
+// Downloads each file at `ref`: { [upstream path]: text }.
 export async function download(ref: string, files: DataFile[]): Promise<Record<string, string>> {
   const texts = await Promise.all(
     files.map(async (file) => {

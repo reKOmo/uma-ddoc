@@ -1,26 +1,15 @@
-// Questions for a language model about the fields of an event the rules aren't sure of (its `doubts`, from
-// scripts/lib/events.js) or left empty, and how its answers fill them in. Pure: scripts/ai-events.js asks,
-// buildEvents() applies the stored answers.
+// Questions for a language model about the fields of an event the rules aren't sure of (its `doubts`, from events.ts),
+// or left empty, and how its answers fill them in. Pure: `pnpm news:ai` asks, buildEvents() applies the stored answers.
 //
-// askedFields(event) → the fields to ask about: the doubted ones, plus empty ones (an item without an amount, a card
-//   without copies, a Legend Race without a name).
-// question(event, { all }) → { system, user, schema }: those fields (`all`: every field, for comparing a model with the
-//   rules), with worked examples for each (EXAMPLES: made-up posts), about the event's own text. Amounts are asked in parts (each time × how many times, or a total the text
-//   states): small models read numbers well but multiply badly, so the code does the arithmetic.
-// applyAnswer(event, answer, { trustModel }) → the event with the answer's valid parts applied. Rules come first: a
-//   doubted or empty field takes the model's answer, a value the rules are sure of is never touched (`trustModel`:
-//   the answer wins wherever it's valid, for comparing a model with the rules).
-//   An answer is used only if it checks out: item and event names that appear in the text (not a kind's generic name,
-//   like "Legend Race"), whole amounts up to 10 million, copies of a card the rules found (1–20) that the post gives
-//   (copiesGiven()), a known kind, dates
-//   as "YYYY-MM-DD HH:MM" in order and within ~200 days of the post.
-//
-// Per language (`lang`, the posts' lexicon from scripts/lib/news-lang/, English by default; QUESTIONS): the system
-// prompt, each field's question and its worked examples, the kinds a sub-event can be, and how an answer is checked.
-// JP posts are Japanese with times in JST and years mostly left out: the model gets the post date, answers dates in
-// JST as the post writes them, and the code converts them to UTC with the year nearest the post (as parsePeriodJa()
-// does); names stay as the text writes them (itemName() maps currencies to Global's names, the Japanese kept as
-// `local`); copies are digits before 枚 / 回.
+// Amounts are asked in parts (each time × how many times, or a total the text states): small models read numbers well
+// but multiply badly, so the code does the arithmetic.
+// Rules come first: a doubted or empty field takes the model's answer, a value the rules are sure of is never touched
+// (`trustModel`, for comparing a model with the rules, lets the answer win wherever it's valid).
+// An answer is used only if it checks out: names appear in the text, amounts are whole and up to 10 million, copies are
+// of a card the rules found (1–20) and the post gives them, the kind is known, dates are in order and within ~200 days
+// of the post.
+// JP posts are Japanese, with times in JST and years mostly left out: the model answers dates as the post writes them
+// and the code converts them to UTC with the year nearest the post (as parsePeriodJa() does).
 
 import { itemName, norm, numberWord } from './event-rewards.ts';
 import { DAY } from './news-text.ts';
@@ -86,12 +75,12 @@ const SYSTEM = [
   'Reply with one JSON object matching the schema, nothing else.',
 ].join(' ');
 
-// A celebration's sub-event kinds (scripts/lib/events.js reads them from the post; a model may correct one).
+// A celebration's sub-event kinds (events.ts reads them from the post; a model may correct one).
 export const SUB_EVENT_KINDS = ['login_bonus', 'missions', 'sale', 'shop', 'gift', 'campaign'];
 const KINDS = SUB_EVENT_KINDS;
 // Kinds whose posts never name the event (the kind says what it is).
 export const UNNAMED_KINDS = ['legend_race', 'transfer_requests', 'league_of_heroes'];
-// JP's sub-events can also be in-game events of their own (news-lang/ja.js subKinds).
+// JP's sub-events can also be in-game events of their own (ja.ts' subKinds).
 const KINDS_JA = [...SUB_EVENT_KINDS, 'special'];
 const nullable = (type: string): JsonSchema => ({ type: [type, 'null'] });
 
@@ -236,8 +225,6 @@ const examplesFor = (fields: Field[], examples: Examples = EXAMPLES) =>
     )
   );
 
-// --- Japanese (JP's posts) -----------------------------------------------------------------------------------------
-
 const SYSTEM_JA = [
   'You read official Japanese news posts of the game ウマ娘 プリティーダービー (Umamusume: Pretty Derby) and extract facts about one in-game event.',
   'Answer only from the text given. When the text does not say, answer null.',
@@ -358,8 +345,6 @@ const EXAMPLES_JA: Examples = {
     ],
   ],
 };
-
-// --- per language --------------------------------------------------------------------------------------------------
 
 // A name the text has (singular or plural: "150-carat gifts" has Carats).
 const inText = (event: AskedEvent, name: unknown): name is string =>
@@ -520,8 +505,6 @@ export function question(
     schema: { type: 'object', properties, required: Object.keys(properties), additionalProperties: false },
   };
 }
-
-// --- checking answers ----------------------------------------------------------------------------------------------
 
 const count = (n: unknown, max: number): n is number =>
   typeof n === 'number' && Number.isInteger(n) && n > 0 && n <= max;

@@ -1,11 +1,7 @@
-// Pure parsing of Luh's Umamusume Support Card Encyclopedia, a public Google Sheet with pull advice
-// for Global's support cards: one tab per Career scenario era, one row per card banner (reruns get
-// their own row). See scripts/fetch-pull-guide.js.
-//
-// Read from the sheet's HTML view (`htmlview/sheet?gid=…`, ~170 KB a tab): its CSV export has no
-// hyperlinks, and each row's card id is only in its GameTora link ("…/supports/30087-mejiro-bright";
-// GameTora's ids are ours). The xlsx export has them too, but is ~110 MB of card art. Cell comments
-// are in neither the HTML view nor the CSV, so they're left out.
+// Pure parsing of Luh's Umamusume Support Card Encyclopedia, a public Google Sheet with pull advice for Global's support
+// cards: one tab per Career scenario era, one row per card banner (reruns get their own row).
+// Read from the sheet's HTML view: its CSV export has no hyperlinks, and each row's card id is only in its GameTora link
+// ("…/supports/30087-mejiro-bright"; GameTora's ids are ours). Cell comments are in neither view, so they're left out.
 
 import type { Banner } from '../../shared/schemas/banner.ts';
 import type { Advice, PullGuide, Release } from '../../shared/schemas/pullGuide.ts';
@@ -49,7 +45,6 @@ function tableRows(html: string): TableRow[] {
   });
 }
 
-// The sheet's tabs, from its main HTML view: [{ name, gid }].
 export function parseSheetList(html: string): { name: string; gid: string }[] {
   return [...html.matchAll(/\{name: "((?:[^"\\]|\\.)*)", pageUrl: "[^"]*", gid: "(\d+)"/g)].map(([, name, gid]) => ({
     name: name.replace(/\\x([0-9a-f]{2})/gi, (_: string, h: string) => String.fromCharCode(Number.parseInt(h, 16))),
@@ -63,15 +58,13 @@ export function parseUpdated(html: string): string | null {
   return m ? `20${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : null;
 }
 
-// A banner date as the sheet writes it: "Mar 12th '26", "July 23rd, '26", "18 Sep '25" (exact) or
-// "Late Jun '28" (an estimate for banners Global hasn't scheduled) → { date } or { month, part },
-// else { dateText }.
 const PARTS = ['early', 'mid', 'late'] as const;
 type Part = (typeof PARTS)[number];
 
-// A date as the sheet writes it, without its label: exact, or an estimate's month and part, or the sheet's text.
 type DateOf = { date: string } | { month: string; part: Part | null } | { dateText: string | null };
 
+// A banner date as the sheet writes it: "Mar 12th '26", "July 23rd, '26", "18 Sep '25" (exact) or "Late Jun '28" (an
+// estimate for banners Global hasn't scheduled) → { date } or { month, part }, else { dateText }.
 export function parseDate(text: string): DateOf {
   const monthFirst = text.match(/^(early|mid|late)?\s*([a-z]+)\.?\s*(?:(\d{1,2})(?:st|nd|rd|th)?)?\s*,?\s*'(\d{2})$/i);
   const dayFirst = text.match(/^(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)\.?\s*,?\s*'(\d{2})$/i);
@@ -194,16 +187,12 @@ export type PullEntry = Omit<Advice, 'googleSheetsSrc'> & {
   row: number | null;
   banner: Release;
 };
-// A scenario tab as byBanner() takes it: its sheet's gid and entries.
 export type Tab = { gid?: string | null; entries: PullEntry[] };
-// An entry as byBanner() keeps it: its advice (with where it is in the sheet) and its banner's date.
 export type Listed = Advice & { banner: Release };
 
-// One scenario tab → { entries: [{ id, name, row, banner: { label, …date }, freePulls, shouldPull,
-// comment, advice }] }: `advice` is the notes as one paragraph, led by short advice without a pill (see
-// parsePull).
-// Tabs without a "Support Card" header (READ ME, Links…) give no entries. `names`: card names across the sheet, for joining notes
-// (parse every tab once without them to collect them).
+// One scenario tab → its entries (`advice` is the notes as one paragraph, see parsePull). Tabs without a "Support Card"
+// header (READ ME, Links…) give none. `names`: card names across the sheet, for joining notes (parse every tab once
+// without them to collect them).
 export function parseTab(html: string, names: string[] = []): { entries: PullEntry[] } {
   const rows = tableRows(html);
   const head = rows.findIndex((cells) => cells.some((c) => c.text === 'Support Card'));

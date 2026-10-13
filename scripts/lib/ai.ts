@@ -1,23 +1,14 @@
-// A small language model for the parts of news posts the rules aren't sure about (scripts/lib/events.js `doubts`).
-// One client for both places it runs, as both speak the OpenAI-style chat completions API:
-//   ollama      local (http://localhost:11434), for testing and backfills; no key, no limits
-//   openrouter  https://openrouter.ai, its free models, for the daily news run (OPENROUTER_API_KEY); free models allow
-//               20 requests a minute and 50 a day (1,000 once the account has bought $10 of credits), so requests are
-//               paced and 429s retried
-// Environment: AI_PROVIDER (ollama | openrouter; default openrouter when OPENROUTER_API_KEY is set, else ollama),
-// AI_MODEL, OLLAMA_URL, AI_THINK (1: let the model think first; Gemma 4 thinks by default, which on a laptop takes
-// minutes per answer and sometimes ends with an empty reply, so it's off unless asked for).
-//
-// ask(config, { system, user, schema }) → the answer as an object. The model is asked for JSON fitting `schema`
-// (Ollama's native /api/chat with `format` = the schema and `think`; OpenRouter's response_format json_schema and
-// `reasoning`), temperature 0; what comes back is still parsed defensively (code fences, text around it), and callers
-// validate it.
+// One client for the models that judge doubted news fields. Both providers speak the OpenAI-style chat API: ollama
+// is local with no limits; openrouter's free models allow 20 requests a minute and 50 a day (1,000 with $10 of
+// credits), so requests are paced and 429s retried.
+// Thinking is off unless AI_THINK is set: Gemma 4 thinks for minutes per answer on a laptop, sometimes ending in an
+// empty reply.
+// ask() asks for JSON fitting the schema (replies are parsed defensively; callers validate them).
 
 import pRetry from 'p-retry';
 import { sleep } from './http.ts';
 
 export type Provider = 'ollama' | 'openrouter';
-// A JSON schema (the model is asked for JSON fitting it).
 export type JsonSchema = { [key: string]: unknown };
 export type Question = { system: string; user: string; schema: JsonSchema };
 export type AiConfig = {
@@ -57,7 +48,6 @@ export function aiConfig(
   };
 }
 
-// The request body: Ollama's native chat API, or the OpenAI-style one OpenRouter speaks.
 function body(config: AiConfig, { system, user, schema }: Question) {
   const messages: [Message, Message] = [
     { role: 'system', content: system },

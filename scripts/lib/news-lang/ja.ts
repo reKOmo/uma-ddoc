@@ -1,11 +1,9 @@
-// The Japanese news' wording (JP, umamusume.jp and umapyoi.net's mirror of it): the same entries as news-lang/en.js,
-// read by the same parsers. What the posts look like: docs/jp-news-findings.md.
+// The Japanese news' wording (umamusume.jp, and umapyoi.net's mirror of it), read by the same parsers as en.ts.
+// What the posts look like: docs/jp-news-findings.md.
 
 import { norm, parsePeriodJa } from '../news-text.ts';
 import { jaBanners } from './ja-banners.ts';
 import type { Block, JapaneseLexicon, PostLike } from './index.ts';
-
-// --- titles (post-categories.js) ----------------------------------------------------------------------------------
 
 // Marks that aren't part of a name: 【予告】, 【重要】, 【修正済み】, 【9/30 11:00公開】.
 const unmarked = (title: string) => title.replace(/^(?:【[^】]*】\s*)+|\s*【[^】]*】$/g, '').trim();
@@ -234,10 +232,7 @@ export const ja: JapaneseLexicon = {
 
   titleName: jaName,
 
-  // Scouts (banner-posts.js): news-lang/ja-banners.js.
   ...jaBanners,
-
-  // --- blocks (event-blocks.js) -----------------------------------------------------------------------------------
 
   blockArt: PART_ART,
   // A celebration's intro ("…を開催中です！キャンペーンの詳細は、下記をご確認ください。") is its own block: the first art starts a
@@ -245,8 +240,6 @@ export const ja: JapaneseLexicon = {
   introBlock: true,
   notBlockArt: /gacha_banner_|banner_detail_/,
   artId: /(?:header|banner)_(?:(?:CP|EV)_\d{8}_(\d+)|(\d{4,10}))/,
-
-  // --- rewards (event-rewards.js) ---------------------------------------------------------------------------------
 
   numbers: {},
   // Items Global has too go by Global's names (both servers' events read and sort alike); the rest stay Japanese.
@@ -343,8 +336,6 @@ export const ja: JapaneseLexicon = {
   copiesCount: /\d+\s*枚/g,
   copiesTalk: /枚/,
   copiesNext: /枚|回/,
-
-  // --- events (events.js) -----------------------------------------------------------------------------------------
 
   period: /期間|日時|時期/,
   notOwn:

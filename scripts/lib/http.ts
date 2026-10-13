@@ -1,5 +1,3 @@
-// What the scripts that call a site share: waiting, and keeping to one request at a time with a pause between them.
-
 export const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Runs requests one after another (await each before starting the next) with a random pause between them, min–max ms

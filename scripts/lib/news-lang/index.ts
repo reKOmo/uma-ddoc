@@ -1,9 +1,6 @@
-// The news' wording per server: the lexicon the shared parsers read that server's posts with.
-
 import { en } from './en.ts';
 import { ja } from './ja.ts';
 
-// What a lexicon needs of a post (NewsPost has all of it).
 export type PostLike = { announce_id: number; announce_label: number; message?: string };
 // A post cut at its header art (event-blocks.ts' eventBlocks()): intro lines + headed sections.
 export type Block = {
@@ -34,10 +31,9 @@ export type Lexicon = {
   server: 'gl' | 'jp';
   // The field of generated/cards.json' names and titles the posts use.
   cardLang: 'en' | 'jp';
-  // Dates: parsePeriod(text, dateRef(posted)) (event-blocks, banner-posts, events, event-rewards).
+  // Dates: parsePeriod(text, dateRef(posted)).
   parsePeriod: (text: string, ref: DateRef) => Period;
   dateRef: (posted: string) => DateRef;
-  // A post's HTML before any parser reads it.
   clean: (html: string) => string;
   // Posts that are never in-game news (post-categories).
   community: (post: PostLike) => boolean;
@@ -47,7 +43,6 @@ export type Lexicon = {
   // An event's name when the title gives none.
   titleName: (title: string) => string;
 
-  // --- scouts (banner-posts.ts) ---
   // A banner's art: split on (the capture keeps it), and its URL + gacha id.
   bannerArt: RegExp;
   bannerArtSrc: RegExp;
@@ -59,7 +54,6 @@ export type Lexicon = {
   // Period headings, and the scout period's among them.
   bannerPeriod: RegExp;
   scoutPeriod: RegExp;
-  // The post's scouts cost paid carats.
   paidPost: RegExp;
   // JP: paid is per banner (gacha id → paid?): each banner gets `paid`.
   paidBanner?: (gachaId: number) => boolean;
@@ -75,7 +69,6 @@ export type Lexicon = {
   // JP: a banner without a featured list gets `note`: the post's first line after its art.
   bannerNote?: boolean;
 
-  // --- blocks (event-blocks.ts) ---
   // Header art starts a block (global flag); scout art doesn't; the art's id.
   blockArt: RegExp;
   notBlockArt: RegExp;
@@ -83,8 +76,6 @@ export type Lexicon = {
   // JP: the post's intro is a block of its own when text comes before the first art.
   introBlock?: boolean;
 
-  // --- rewards (event-rewards.ts) ---
-  // Number words → numbers.
   numbers: Record<string, number>;
   // Same item, other spelling → the name we show (keyed by aliasKey(norm(name))).
   aliases: Record<string, string>;
@@ -140,7 +131,6 @@ export type Lexicon = {
   giftCard?: RegExp;
   newCardGiven?: RegExp;
 
-  // doubts (event-questions.ts)
   amount: RegExp;
   amountWord: (word: string) => string;
   per: RegExp;
@@ -148,7 +138,6 @@ export type Lexicon = {
   copiesTalk: RegExp;
   copiesNext: RegExp;
 
-  // --- events (events.ts) ---
   // Headings that hold an event's own period, those that don't, and the main ones.
   period: RegExp;
   notOwn: RegExp;

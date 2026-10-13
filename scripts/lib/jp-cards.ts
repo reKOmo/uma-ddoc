@@ -1,37 +1,7 @@
-// JP's support cards (data/jp_cards.json, committed): our history of every JP card, keyed by id, one card per line.
-// Its first 563 cards are a frozen record of GameTora's support card list (2026-10); they never change. Newer cards
-// come from the JP news (scripts/update-jp.js), and GameTora augments them once its list has them. Pure, except the
-// readers/writers at the bottom.
-//
-//   newsCards(posts)    every support card the JP news shows, with where it first appeared:
-//                       [{ rarity, title, name, release, source, news_url }]
-//     from              scout posts' support cards (bannerPost(post, ja)'s featured lists: every rarity, R cards too,
-//                       paid scouts too; and any other card line in a scout post, ja.bannerCard: a select-pickup scout's
-//                       new R card under its own heading), and the cards events give, named with their rarity (ja.eventCard: a story event's
-//                       own SSR; ja.giftCard on a line that says it's given: a campaign's or gift's card)
-//     title / name      as the post writes them (title in brackets, as the history keeps titles); a title a post cut
-//                       short is the longest spelling another mention or the history has
-//     release           the JST date ("YYYY-MM-DD") of its first appearance: the earliest start of a banner featuring it
-//                       or of an event giving it (an event announced without dates doesn't count)
-//     source            what that first appearance was: 'gacha' (a scout banner; a banner wins a tie), 'story_event' (a
-//                       story event), 'gift' (any other event: a campaign, login bonus, missions…), which becomes
-//                       GameTora's `obtained` once augmented (promo or limited_quest: the news can't tell them apart),
-//                       else 'promo'
-//
-//   applyNewsCards({ history, found, gametora })  → { history, pending, added, gametoraOnly, rarityDiffers }
-//     history           the frozen cards as they are, then each news card the history lacks (by title.jp + name.jp,
-//                       normalised) that GameTora lists (by the same; a cut title by prefix): GameTora gives its id,
-//                       charId, type, slug and English name/title, the news everything else (title.jp, name.jp, rarity,
-//                       release, source but for gifts); `news_url` marks it news-made. Rebuilt from all posts each time
-//                       (idempotent); without GameTora's list (or once it drops the card) its GameTora fields are kept.
-//     pending           news cards GameTora doesn't list yet: no id, so not in generated/cards.json (no card page, not
-//                       ranked; banners show them by name). [{ rarity, name: { en: null, jp }, title: { en: null, jp },
-//                       release, source, news_url }]
-//     added             ids of the news-made cards that weren't in the history before
-//     gametoraOnly      GameTora's cards neither the history nor the news has: never added (a parser gap shows here)
-//     rarityDiffers     news cards whose rarity isn't GameTora's (the news' is kept)
-//
-// Upstream's jp.js isn't used for ids: it adds a card once its stats are known, after GameTora lists it.
+// JP's support cards (data/jp_cards.json, committed): our history, keyed by id, one card per line. Its first 563 are a
+// frozen record of GameTora's list (2026-10) and never change. Newer cards come from the JP news, augmented from
+// GameTora once its list has them (`pnpm update-jp`). Cards GameTora doesn't list yet go to jp_cards_pending.json.
+// Upstream's jp.js isn't used for ids: it adds a card only once its stats are known, after GameTora lists it.
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { rarityOf } from '../../tierlist/join-cards.ts';
@@ -55,12 +25,11 @@ const jstDate = (iso: string): string => new Date(Date.parse(iso) + 9 * HOUR).to
 const bare = (title: string | null | undefined): string => (title ?? '').replace(/^\[|\]$/g, '');
 const keyOf = (title: string | null | undefined, name: string | null | undefined): string =>
   `${norm(bare(title))}|${norm(name)}`;
-// Where a card's first appearance came from (see above).
+// Where a card's first appearance came from.
 type Source = 'gacha' | 'story_event' | 'gift';
 // Which first appearance wins a tie on the same day.
 const RANK: Record<Source, number> = { gacha: 0, story_event: 1, gift: 2 };
 
-// A support card as the news shows it (newsCards()): its first appearance.
 export type NewsCard = {
   rarity: Rarity;
   title: string;
@@ -79,7 +48,7 @@ const nameOfNews = (c: NewsCard): string => c.name;
 
 // Every support card the JP news shows, at its first appearance (see above).
 export function newsCards(posts: NewsPost[], lang: JapaneseLexicon = ja): NewsCard[] {
-  const seen: Seen[] = []; // { rarity, title, name, start, source, news_url }
+  const seen: Seen[] = [];
   for (const post of posts) {
     const scout = bannerPost(post, lang);
     const supports = (scout?.banners ?? []).filter(
@@ -164,7 +133,6 @@ function longerTitle<T>(card: NewsCard, list: T[], titleOf: (c: T) => string, na
   return found.length === 1 ? found[0] : null;
 }
 
-// applyNewsCards()'s result (see above).
 export type ApplyNewsCardsResult = {
   history: JpCardsFile;
   pending: JpPendingCard[];
@@ -272,8 +240,6 @@ function entry(
     news_url: news.news_url,
   } as JpCard;
 }
-
-// --- files ---------------------------------------------------------------------------------------------------------
 
 const readJson = <T>(file: string, fallback: T): T =>
   existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : fallback;
