@@ -29,7 +29,8 @@ export const server = (page: Page) =>
     .getByRole('button', { pressed: true, includeHidden: true });
 
 // The tab bar's highlighted tab.
-export const activeTab = (page: Page) => page.getByRole('navigation', { includeHidden: true }).locator('a.active');
+export const activeTab = (page: Page) =>
+  page.getByRole('navigation', { includeHidden: true }).locator('a[aria-current="page"]');
 
 // Loads an address on a fresh page (no saved state but what `storage` puts in localStorage first).
 export async function open(page: Page, hash: string, storage: Record<string, string> = {}) {

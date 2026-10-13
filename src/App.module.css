@@ -88,8 +88,8 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* The tab's class stays `active` (the tests and e2e find the current tab by it). */
-.tabbar a:global(.active) {
+/* The current tab (aria-current, which screen readers announce and the tests look up). */
+.tabbar a[aria-current="page"] {
   color: var(--accent);
   font-weight: 600;
 }

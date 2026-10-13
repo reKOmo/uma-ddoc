@@ -20,7 +20,6 @@ import type { Entry } from '../timeline/entries.ts';
 import { middleOf, useCenterOn } from '../timeline/useCenterOn.ts';
 import { useCompactRows } from '../timeline/useCompactRows.ts';
 import { useTimelineFilters } from '../timeline/useTimelineFilters.ts';
-import '../timeline/timeline.css';
 import Status from '../ui/Status.tsx';
 import { ToolbarButton } from '../ui/ToolbarButton.tsx';
 import { timelineUrl } from '../routes.ts';

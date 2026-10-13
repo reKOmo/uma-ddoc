@@ -18,7 +18,7 @@ import RankOverTime from './card/RankOverTime.tsx';
 import ScenarioTierTable from './card/ScenarioTierTable.tsx';
 import { useOrigins, usePredictions, useScenarioRankings } from './card/hooks.ts';
 import { nameOf, titleOf } from './card/shared.ts';
-import './card.css'; // the rank chart's rules, and what the scenario page shares
+import './card.css'; // the Rank over time picker's size (a global class of the Dropdown's)
 import styles from './CardPage.module.css';
 
 type CardPageProps = { cardId: number; server: Server; scenario: string };

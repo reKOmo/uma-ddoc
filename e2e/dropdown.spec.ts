@@ -25,8 +25,10 @@ test('the keyboard opens, moves and chooses; Escape closes', async ({ page }) =>
   await expect(list(page)).toBeHidden();
   await expect(picker(page)).toContainText('GC');
   await page.keyboard.press('Enter');
-  await expect(list(page)).toBeVisible();
+  // (the list opens on the selected option: wait for its focus, as a person would before pressing a key)
+  await expect(list(page).getByRole('option', { name: /^GC/ })).toBeFocused();
   await page.keyboard.press('ArrowDown'); // GC → TB
+  await expect(list(page).getByRole('option', { name: /^TB/ })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(list(page)).toBeHidden();
   await expect(picker(page)).toContainText('TB');

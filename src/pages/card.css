@@ -1,27 +1,5 @@
-/* What the card page leaves global: the Rank over time scenario picker, and the classes the scenario page shares
-   (ScenarioPage.tsx: .card-tags, .tag, .card-section). The rank chart's rules are in RankChart.module.css. */
-
-.card-tags {
-  display: flex;
-  gap: 6px;
-  margin: 0;
-}
-
-.tag {
-  padding: 2px 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-}
-
-.card-section {
-  margin: 24px 0 8px;
-  font-size: 1.05rem;
-}
-
-/* ── Rank over time ── */
+/* The Rank over time scenario picker's size: the Dropdown's global `dropdown-button` class inside the card page's
+   `history-controls` (src/pages/card/RankOverTime.tsx). */
 .history-controls .dropdown-button {
   min-width: 120px;
   min-height: 36px;

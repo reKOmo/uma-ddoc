@@ -23,6 +23,9 @@ const SCREENS: Record<string, { hash: string; act?: (page: Page) => Promise<void
     hash: '#/timeline',
     act: async (p) => {
       await options(p).click();
+      // (after the sheet has slid in: 500 ms; clicking while it moves left its content scrolled under load)
+      await p.getByRole('dialog').waitFor();
+      await p.waitForTimeout(700);
       await p.getByRole('dialog').getByRole('button', { name: 'Order' }).click();
     },
   },

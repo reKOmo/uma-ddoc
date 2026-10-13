@@ -134,10 +134,9 @@ function Shell() {
           </Route>
         </Switch>
       </main>
-      {/* The literal `tabbar` and `active` classes are what e2e/ and test/ look the current tab up by. */}
-      <nav className={clsx('tabbar', styles.tabbar)}>
+      <nav className={styles.tabbar}>
         {TABS.map(({ url, label, Icon }) => (
-          <a key={url} href={url} className={url === tab ? 'active' : undefined}>
+          <a key={url} href={url} aria-current={url === tab ? 'page' : undefined}>
             <Icon className={styles.tabIcon} size={22} aria-hidden="true" />
             {t(label)}
           </a>

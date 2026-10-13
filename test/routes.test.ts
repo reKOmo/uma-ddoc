@@ -46,7 +46,7 @@ describe('<App> routes', () => {
       await changed;
     }
     render(createElement(App));
-    const active = document.querySelector('.tabbar a.active')?.getAttribute('href');
+    const active = document.querySelector('nav a[aria-current="page"]')?.getAttribute('href');
     return { page: screen.getByTestId('page').textContent ?? '', active };
   }
 
