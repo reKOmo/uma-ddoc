@@ -274,7 +274,14 @@ re-run's `end` may be null; `global_cards.json` entries may have `news_url` and 
 | S9 | haiku | `scripts/{build-cards,update-cards,clone-upstream,update-global,update-jp,scrape-gametora,list-events,categorize-news}.ts` | BASE, DATA |
 | S10 | haiku | `scripts/{fetch-news-latest,fetch-news-all,fetch-news-umapyoi,fetch-pull-guide,ai-events}.ts` | BASE (no network runs: these fetch) |
 
-## Wave 3 — libraries (workers; L1→L2→L3 in order, L4 alongside)
+## Wave 3 — libraries (workers; L1→L2→L3 in order, L4 alongside) — done 2026-10-13
+
+`src/useAsync.ts` (data loading), zustand stores over `src/rawStorage.ts` (each store keeps its own stored
+format), wouter with `src/routes.ts` (every link built there; its own `useHashLocation` follows `hashchange` only, so
+the Timeline's `replaceState` doesn't re-route), `scripts/lib/http.ts` (`paced()`), p-retry, pngjs, parseArgs.
+Differences: `#/banners` now rewrites the address to `#/timeline`; `#/timeline/<unknown server>/<id>` opens the
+Timeline (was the Cards tab). Tests can render hooks: `// @vitest-environment jsdom` + `@testing-library/react`.
+Not yet checked in a browser (none on the lead's machine).
 
 **W-L1 · `useAsync` · haiku** — Depends: wave 1 · Files: `src/useAsync.ts` (new), `src/pages/{CardPage,TimelinePage,TierListPage,ScenarioPage}.tsx`, `src/timeline/useRankings.ts`, `test/use-async.test.tsx` (new) · Checks: BASE, UI
 Write the hook (spec, part 2) + a test (stale result ignored, deps change resets). Replace each `let cancelled`
