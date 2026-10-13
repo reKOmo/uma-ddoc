@@ -255,7 +255,13 @@ All: typing recipe; owned files only.
 | S1 | haiku | `scripts/lib/{paths,sources,upstream,news-text,news,post-categories}.ts` | BASE, DATA |
 | S2 | sonnet | `scripts/lib/news-lang/{index,en,ja,ja-banners}.ts`; export `type Lexicon` from `index.ts`: every key `en` has, + `ja`'s extra hooks as optional | BASE, DATA |
 
-## Wave 2 — type the scripts (workers, parallel)
+## Wave 2 — type the scripts (workers, parallel) — done 2026-10-13
+
+Every `scripts/` file is typed. Integration widened the schemas to what the code writes (a banner item's `type` and a
+re-run's `end` may be null; `global_cards.json` entries may have `news_url` and a null title; the pull guide's
+`updated` may be null). Types to build on: `scripts/lib/events.ts` (`Fragment`, `BuildOptions`),
+`scripts/lib/banner-posts.ts` (`BannerPost`), `scripts/lib/event-questions.ts` (`Field`, `AskedEvent`),
+`scripts/lib/global.ts` (`CardRecords`), `scripts/lib/cards.ts` (`UpstreamCard`). S8 typed `colors.ts` too.
 
 | ID | Model | Files | Checks |
 |---|---|---|---|
