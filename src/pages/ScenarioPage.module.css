@@ -1,5 +1,6 @@
-/* A column, so the previous / next links can sit on top on phones (order) and at the bottom on desktop. */
-.page.scenario-page {
+/* A column, so the previous / next links can sit on top on phones (order) and at the bottom on desktop.
+   :global(.page) is App.css's page box; this rule adds to it (and wins its max-width). */
+:global(.page).scenarioPage {
   --scenario-color: var(--accent);
   display: flex;
   flex-direction: column;
@@ -8,7 +9,7 @@
 
 /* ── Key art, then the facts and sections: stacked on phones, side by side on desktop ── */
 
-.scenario-hero {
+.hero {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -16,7 +17,7 @@
 }
 
 /* Key art is square, on a wash of the scenario's colour. */
-.scenario-art {
+.art {
   display: block;
   width: min(100%, 320px);
   aspect-ratio: 1;
@@ -26,12 +27,12 @@
   border-radius: 16px;
 }
 
-.scenario-body {
+.body {
   width: 100%;
   min-width: 0;
 }
 
-.scenario-facts {
+.facts {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -39,38 +40,94 @@
   text-align: center;
 }
 
-.scenario-facts h1 {
+.facts h1 {
   margin: 0;
 }
 
-.scenario-jp {
+.jpName {
   margin: 0;
   color: var(--muted);
 }
 
+/* The tags row (card.css .card-tags, copied). */
+.tags {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+}
+
+/* A plain outlined pill (card.css .tag, copied). */
+.tag {
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+/* A scenario's key as a pill in its cover colour (App.css .tag.scenario-key, copied): the text dark or light by
+   the colour's luminance (ink()). */
+.scenarioKey {
+  color: var(--text);
+  background: var(--scenario-color, var(--panel));
+  border-color: var(--scenario-color, var(--border));
+}
+
+.inkDark {
+  color: var(--ink-dark);
+}
+
+.inkLight {
+  color: var(--ink-light);
+}
+
 /* A short name's server label inside its pill ("Global GC"). */
-.scenario-key-server {
+.serverLabel {
   margin-right: 4px;
   font-weight: 400;
   opacity: 0.85;
 }
 
-.scenario-facts .tag.current {
+.current {
   color: var(--accent-text);
   background: var(--accent);
   border-color: var(--accent);
 }
 
-.scenario-actions {
+.actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
 }
 
+/* A link or button drawn as an outlined pill, filled while pressed (App.css .link-button, copied: this one is a
+   button, so it can't be the LinkButton primitive). */
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.linkButton:active {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
 /* ── Launch: one card, JP on the left → Global on the right, the gap in the middle ── */
 
-.scenario-launch {
+.launch {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: stretch;
@@ -79,7 +136,7 @@
   border-radius: 10px;
 }
 
-.scenario-launch-side {
+.side {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -87,44 +144,44 @@
   padding: 12px;
 }
 
-.scenario-launch-side.gl {
+.gl {
   align-items: flex-end;
   text-align: right;
 }
 
-.scenario-launch-server {
+.serverName {
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--muted);
 }
 
-.scenario-relative {
+.relative {
   font-size: 0.85rem;
   color: var(--muted);
 }
 
 /* Phones: the arrow alone between the sides, "Launched after …" as a row under both (the gap's box is dropped
    so its two parts can sit in the card's grid). Desktop puts the text back under the arrow. */
-.scenario-launch-side.jp {
+.side.jp {
   grid-area: 1 / 1;
 }
 
-.scenario-launch-side.gl {
+.side.gl {
   grid-area: 1 / 3;
 }
 
-.scenario-launch-gap {
+.gap {
   display: contents;
   color: var(--accent);
 }
 
-.scenario-launch-gap svg {
+.gap svg {
   grid-area: 1 / 2;
   align-self: center;
   margin: 0 4px;
 }
 
-.scenario-launch-gap small {
+.gap small {
   grid-area: 2 / 1 / 3 / -1;
   padding: 8px 12px;
   font-size: 0.85rem;
@@ -132,7 +189,7 @@
   border-top: 1px solid var(--border);
 }
 
-.scenario-status {
+.launchStatus {
   display: inline-block;
   padding: 0 8px;
   font-size: 0.75rem;
@@ -140,29 +197,29 @@
   border-radius: 999px;
 }
 
-.scenario-status.out {
+.out {
   color: var(--accent-text);
   background: var(--accent);
 }
 
-.scenario-status.confirmed {
+.confirmed {
   color: var(--accent);
   border: 1px solid var(--accent);
 }
 
-.scenario-status.predicted {
+.predicted {
   color: var(--muted);
   border: 1px dashed var(--muted);
 }
 
-.scenario-range {
+.range {
   font-size: 0.8rem;
   color: var(--muted);
 }
 
 /* ── Links: external pages about the scenario ── */
 
-.scenario-links {
+.links {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -171,7 +228,7 @@
   list-style: none;
 }
 
-.scenario-links a {
+.links a {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -185,23 +242,23 @@
   border-radius: 8px;
 }
 
-.scenario-links a:hover {
+.links a:hover {
   border-color: var(--scenario-color);
 }
 
-.scenario-links small {
+.links small {
   display: block;
   color: var(--muted);
 }
 
-.scenario-links svg {
+.links svg {
   flex: none;
   color: var(--muted);
 }
 
 /* ── Previous / next scenario ── */
 
-.scenario-nav {
+.nav {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
@@ -209,7 +266,7 @@
   margin-bottom: 16px;
 }
 
-.scenario-nav a {
+.nav a {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -222,22 +279,22 @@
   border-radius: 8px;
 }
 
-.scenario-nav a:hover {
+.nav a:hover {
   border-color: var(--scenario-color);
 }
 
-.scenario-nav a.next {
+.nav a.next {
   justify-content: flex-end;
   text-align: right;
 }
 
-.scenario-nav small {
+.nav small {
   display: block;
   color: var(--muted);
 }
 
 @media (min-width: 768px) {
-  .scenario-launch-gap {
+  .gap {
     display: flex;
     grid-area: 1 / 2;
     flex-direction: column;
@@ -248,50 +305,51 @@
     text-align: center;
   }
 
-  .scenario-launch-gap svg {
+  .gap svg {
     margin: 0;
   }
 
-  .scenario-launch-gap small {
+  .gap small {
     max-width: 8em;
     padding: 0;
     font-size: 0.72rem;
     border-top: 0;
   }
 
-  .scenario-nav {
+  .nav {
     order: 0;
     margin: 24px 0 0;
   }
 
-  .scenario-hero {
+  .hero {
     flex-direction: row;
     align-items: flex-start;
     gap: 32px;
   }
 
   /* The art stays in view while the right column scrolls past it. */
-  .scenario-art {
+  .art {
     position: sticky;
     top: 24px;
     flex: none;
     width: clamp(200px, 28vw, 300px);
   }
 
-  .scenario-body {
+  .body {
     flex: 1;
   }
 
-  .scenario-body > .card-section:first-of-type {
+  /* The first section's heading (Section's h2) gets the top margin the launch heading had. */
+  .body > section:first-of-type h2 {
     margin-top: 28px;
   }
 
-  .scenario-facts {
+  .facts {
     align-items: flex-start;
     text-align: left;
   }
 
-  .scenario-actions {
+  .actions {
     justify-content: flex-start;
   }
 }

@@ -1,8 +1,5 @@
-.scenarios-page {
-  max-width: 760px;
-}
-
-.scenario-list {
+/* :global(.page) is App.css's page box; this rule adds to it (and wins its max-width). */
+.list {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -13,11 +10,11 @@
 
 /* One scenario: thumbnail, names, dates; the whole row opens its page. Its colour comes from the
    <li>'s inline --scenario-color (muted when it has none). */
-.scenario-list li {
+.list li {
   --scenario-color: var(--muted);
 }
 
-.scenario-item {
+.item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -33,18 +30,19 @@
     background-color 0.15s;
 }
 
-.scenario-item:hover {
+.item:hover {
   background: color-mix(in srgb, var(--scenario-color) 10%, var(--panel));
   border-color: var(--scenario-color);
 }
 
-.scenario-item.current {
+/* The newest on the server picked in the top bar. */
+.item.current {
   background: color-mix(in srgb, var(--scenario-color) 18%, var(--panel));
   border-color: var(--scenario-color);
 }
 
 /* Key art is square; shown whole on a wash of the scenario's colour. */
-.scenario-thumb {
+.thumb {
   flex: none;
   width: 64px;
   height: 64px;
@@ -53,19 +51,44 @@
   border-radius: 8px;
 }
 
-.scenario-item-text {
+.text {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
 
-.scenario-item-name {
+.name {
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
-.scenario-item-name .tag {
+/* A plain outlined pill (card.css .tag, copied). */
+.tag {
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+/* A scenario's key as a pill in its cover colour (App.css .tag.scenario-key, copied). */
+.scenarioKey {
+  color: var(--text);
+  background: var(--scenario-color, var(--panel));
+  border-color: var(--scenario-color, var(--border));
+}
+
+.inkDark {
+  color: var(--ink-dark);
+}
+
+.inkLight {
+  color: var(--ink-light);
+}
+
+.name .tag {
   padding: 0 6px;
   font-size: 0.72rem;
   font-weight: 700;
@@ -74,17 +97,17 @@
   border-radius: 999px;
 }
 
-.scenario-item-when {
+.when {
   font-size: 0.85rem;
 }
 
-.scenario-item-when.predicted,
-.scenario-item-when.none {
+.predicted,
+.none {
   font-style: italic;
   color: var(--muted);
 }
 
-.scenario-item-newest {
+.newest {
   align-self: flex-start;
   padding: 0 8px;
   font-size: 0.72rem;
@@ -94,13 +117,13 @@
   border-radius: 999px;
 }
 
-.scenario-item-arrow {
+.arrow {
   flex: none;
   margin-left: auto;
   color: var(--muted);
   transition: transform 0.15s;
 }
 
-.scenario-item:hover .scenario-item-arrow {
+.item:hover .arrow {
   transform: translateX(2px);
 }
