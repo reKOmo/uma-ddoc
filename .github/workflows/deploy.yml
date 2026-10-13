@@ -57,6 +57,8 @@ jobs:
         run: pnpm fetch-pull-guide
       - name: Test
         run: pnpm test
+      - name: End-to-end tests (the app in a browser)
+        run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e
       - name: Build
         run: pnpm build
       - uses: actions/configure-pages@v5

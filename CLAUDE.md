@@ -143,6 +143,8 @@ pnpm lint              # Biome: formatting + lint check (CI runs this)
 pnpm format            # Biome: apply formatting and safe fixes
 pnpm test              # Vitest unit suite (~15s; fetches card data if missing)
 pnpm test:upstream     # compare our calculation with upstream's (~25s; needs the clone)
+pnpm test:e2e          # the app in a browser (Playwright, e2e/; starts the dev server; ~45s; needs
+                       # `pnpm exec playwright install chromium` once)
 pnpm rank gl GL speed  # print a ranking in the terminal (scenario may be overall / upcoming)
 
 pnpm update-cards      # upstream main's card lists + events → generated/raw/upstream/, then build-cards
@@ -871,6 +873,10 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 - `i18n.test.jsx`: every key used in `src/` exists (literal `t('…')`, `i18nKey="…"`, tab
   labels, and dynamically built ones); other catalogs match `en.json`'s keys; plurals,
   lists and `<Trans>` render as expected.
+- `e2e/` (`pnpm test:e2e`, Playwright, phone + desktop): links into the Timeline open their sheet on the right
+  server (direct, "See banner", the other server's link, back from a card page), what localStorage remembers survives a
+  reload and older stored formats load, every page renders and loads on both servers. Selectors by role and label, not
+  class names; any uncaught page error fails a test. Run after UI or routing changes; deploys run it.
 - `upstream/parity.test.js` (`pnpm test:upstream` only): same upstream commit as
   `generated/`; same scenarios, default and deck presets; every scenario × stat × preset
   deck ranks exactly like upstream's code on upstream's card lists (75 tests).

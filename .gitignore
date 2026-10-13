@@ -31,6 +31,10 @@ __pycache__/
 # Agents' git worktrees (one per task while the TypeScript migration runs in parallel)
 .claude/worktrees/
 
+# Playwright's results and reports (pnpm test:e2e)
+test-results/
+playwright-report/
+
 # Logs, test coverage, OS files
 *.log
 coverage/

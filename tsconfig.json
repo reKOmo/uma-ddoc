@@ -19,6 +19,16 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "tierlist", "scripts", "test", "shared", "vite.config.ts", "vitest.config.ts"],
+  "include": [
+    "src",
+    "tierlist",
+    "scripts",
+    "test",
+    "shared",
+    "e2e",
+    "playwright.config.ts",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
   "exclude": ["upstream", "generated", "dist", "node_modules"]
 }
