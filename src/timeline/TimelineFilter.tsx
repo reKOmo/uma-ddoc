@@ -12,6 +12,7 @@ import clsx from 'clsx';
 import { FilterButton, FilterSection, FilterSheet } from '../FilterSheet.tsx';
 import GroupOrder, { type LaneGroup } from './GroupOrder.tsx';
 import styles from './TimelineFilter.module.css';
+import type { Verdict } from '../pullGuide.ts';
 
 type TabKey = 'show' | 'order';
 const TABS: Record<TabKey, LucideIcon> = { show: Eye, order: ListOrdered };
@@ -30,7 +31,7 @@ export type TimelineFilterProps = {
   // The banner sections and event kinds to offer.
   kinds: string[];
   // The pull-advice verdicts to offer (none without pull advice).
-  verdicts: string[];
+  verdicts: readonly Verdict[];
   hidden: Set<FilterKey>;
   onChange: (update: HiddenUpdate) => void;
   // The calendar's lane groups in their order.
