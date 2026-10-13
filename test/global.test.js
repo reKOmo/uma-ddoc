@@ -116,7 +116,8 @@ describe('applyNews', () => {
       30072: CARDS[30072],
       30126: { title_en: '[Calm Breeze]', release_gl: '2026-10-07', news_url: 'https://umamusume.com/news/1089/' },
     });
-    expect(result.global.cards.at(-1)).toBe(SEEDED.cards[0]);
+    // (A copy: what an earlier run took from the posts is taken again.)
+    expect(result.global.cards.at(-1)).toEqual(SEEDED.cards[0]);
   });
 
   it('is idempotent, and a later post about the same banner wins', () => {
@@ -142,7 +143,8 @@ describe('applyNews', () => {
     expect(r.global.cards).toEqual([
       { ...seededToo.cards[0], news_url: 'https://umamusume.com/news/1089/', news_image: 'official-30135.png' },
     ]);
-    expect(r.banners).toEqual([]); // nothing made from the post: the banner was already there
+    // Only the trainee banner is made from the post: the card banner was already there.
+    expect(r.banners.map((b) => b.banner.id)).toEqual([30134]);
     // Idempotent: run again over its own output, the same.
     expect(apply([post(1089, '2026-10-07T22:00:00Z', '2026-10-07T22:00:00.000Z')], r.global).global).toEqual(r.global);
 
