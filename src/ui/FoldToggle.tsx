@@ -1,8 +1,3 @@
-// The button that folds or unfolds a list: `moreLabel` with a down chevron while folded, `lessLabel` with an up
-// chevron once expanded (the card page's "N more" / "Show less").
-//
-// <FoldToggle expanded={unfolded} onToggle={() => setUnfolded(!unfolded)} moreLabel="2 more" lessLabel="Show less" />
-
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import clsx from 'clsx';
 import styles from './FoldToggle.module.css';

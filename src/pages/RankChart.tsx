@@ -12,7 +12,7 @@ const HEIGHT = 240;
 // The rank axis sits in its own column outside the scroller, so it stays put.
 const AXIS_WIDTH = 40;
 const MARGIN = { top: 16, right: 28, bottom: 44 };
-const MONTH_WIDTH = 20; // pixels per month; the plot scrolls once it's wider than the screen
+const MONTH_WIDTH = 20; // pixels per month
 // Months are too narrow to label each one, so only quarters (Jan, Apr, Jul, Oct) are.
 const isQuarter = (time: number): boolean => new Date(time).getUTCMonth() % 3 === 0;
 
@@ -23,7 +23,7 @@ export const formatDay = (
 ): string => formatDate(toTime(date), { ...opts, timeZone: 'UTC' });
 const formatMonth = (time: number): string => formatDate(time, { month: 'short', timeZone: 'UTC' });
 
-// About `count` round rank ticks between 1 and max (1, 5, 10… or 1, 10, 20…).
+// Round ticks from 1 up to max, about `count` of them (1, 5, 10… or 1, 10, 20…).
 function rankTicks(max: number, count = 4): number[] {
   const raw = max / count;
   const step = [1, 2, 5, 10, 20, 25, 50, 100].find((s) => s >= raw) ?? 100;
@@ -32,7 +32,6 @@ function rankTicks(max: number, count = 4): number[] {
   return ticks;
 }
 
-// Every month start from the month holding `from` to the one after `to`, as UTC times.
 function monthStarts(from: number, to: number): number[] {
   const d = new Date(from);
   const months: number[] = [];
@@ -63,10 +62,7 @@ export type RankChartProps = {
   nameOf: (id: number) => string | undefined;
 };
 
-// Step chart of a card's tier list position over time (#1 at the top), from
-// rankHistory() points. The last real step runs on to today; points marked
-// `predicted` continue from there as a dashed line. Scrolls sideways, and opens
-// scrolled to today.
+// Points marked `predicted` continue from the last real step as a dashed line.
 export default function RankChart({ history, nameOf }: RankChartProps) {
   const { t } = useTranslation();
   const wrapper = useRef<HTMLDivElement>(null);
@@ -101,7 +97,6 @@ export default function RankChart({ history, nameOf }: RankChartProps) {
   const realPath = actual.length > 0 ? `${steps(actual[0], actual.slice(1))}H${todayX}` : null;
   const futureStart: Coords | undefined = current ? { x: todayX, y: current.y } : future[0];
   const futurePath = future.length > 0 && futureStart ? steps(futureStart, current ? future : future.slice(1)) : null;
-  // Dots where the position changed, plus the start and the current and last positions.
   const marked = points.filter(
     (p, i) => i === 0 || p === current || i === points.length - 1 || p.position !== points[i - 1].position
   );
@@ -116,7 +111,6 @@ export default function RankChart({ history, nameOf }: RankChartProps) {
     el.scrollLeft = future.length > 0 ? todayX - el.clientWidth / 3 : el.scrollWidth;
   }, [history, viewWidth > 0]);
 
-  // Keep the point picked with the arrow keys in view.
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs when the picked point changes; `points` is rebuilt every render.
   useEffect(() => {
     const el = scroller.current;

@@ -1,4 +1,4 @@
-/* :global(.page) is App.css's page box; this rule adds to it (and wins its max-width). */
+/* Wins over App.css's .page max-width. */
 .list {
   display: flex;
   flex-direction: column;
@@ -8,8 +8,7 @@
   list-style: none;
 }
 
-/* One scenario: thumbnail, names, dates; the whole row opens its page. Its colour comes from the
-   <li>'s inline --scenario-color (muted when it has none). */
+/* Colour from the <li>'s inline --scenario-color; muted without one. */
 .list li {
   --scenario-color: var(--muted);
 }
@@ -35,13 +34,11 @@
   border-color: var(--scenario-color);
 }
 
-/* The newest on the server picked in the top bar. */
 .item.current {
   background: color-mix(in srgb, var(--scenario-color) 18%, var(--panel));
   border-color: var(--scenario-color);
 }
 
-/* Key art is square; shown whole on a wash of the scenario's colour. */
 .thumb {
   flex: none;
   width: 64px;
@@ -63,7 +60,6 @@
   overflow-wrap: anywhere;
 }
 
-/* A plain outlined pill (card.css .tag, copied). */
 .tag {
   padding: 2px 10px;
   font-size: 0.8rem;
@@ -73,7 +69,6 @@
   border-radius: 999px;
 }
 
-/* A scenario's key as a pill in its cover colour (App.css .tag.scenario-key, copied). */
 .scenarioKey {
   color: var(--text);
   background: var(--scenario-color, var(--panel));

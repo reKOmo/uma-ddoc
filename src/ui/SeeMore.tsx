@@ -1,9 +1,3 @@
-// A pill with a chevron after it, to a card page or to fold/unfold ("See more", "See card"): an <a> when it
-// has an href, else a <button>.
-//
-// <SeeMore href={cardUrl(id)}>See card</SeeMore>
-// <SeeMore onClick={() => setOpen(true)}>See more</SeeMore>
-
 import { ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';

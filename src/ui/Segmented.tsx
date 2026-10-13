@@ -1,9 +1,3 @@
-// A toggle group: a <fieldset> of buttons, one pressed (aria-pressed) and the others a click away. The server switch,
-// the limit break and card size pickers, the zoom and the settings all use it. Its label is an aria-label, or the id of
-// an element that labels it (labelledBy).
-//
-// <Segmented label="Server" options={[{ value: 'gl', label: 'Global' }]} value="gl" onChange={setServer} />
-
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import clsx from 'clsx';

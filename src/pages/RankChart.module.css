@@ -1,7 +1,3 @@
-/* The rank chart (RankChart.tsx): a fixed rank axis, a sideways-scrolling plot, and a crosshair tooltip. Hand-written
-   SVG: colour tokens for marks and text, hairline gridlines. The tooltip's tier chip is <TierChip>. */
-
-/* Fixed rank axis on the left, scrolling plot on the right. */
 .rankChart {
   position: relative;
   display: flex;
@@ -63,7 +59,6 @@
   stroke-width: 1;
 }
 
-/* Year boundaries run the full plot height, a step darker than the rank gridlines. */
 .grid.year {
   stroke: var(--muted);
   stroke-opacity: 0.35;
@@ -89,7 +84,6 @@
   stroke-linecap: round;
 }
 
-/* Predicted: dashed line, hollow dots. */
 .rankLine.predicted {
   stroke-dasharray: 6 5;
 }

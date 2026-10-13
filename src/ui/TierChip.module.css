@@ -1,5 +1,4 @@
-/* A tier's letter on its colour (the global .tier-N classes, styles/global.css). line-height = height, so the
-   letter sits in the middle of the chip (card.css .tier-chip). */
+/* line-height = height centres the letter in the chip. */
 .tierChip {
   display: inline-block;
   min-width: 26px;

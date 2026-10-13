@@ -1,5 +1,3 @@
-/* The button that folds or unfolds a list ("N more" / "Show less"): the .see-more look (App.css) with a
-   chevron that points down or up. */
 .foldToggle {
   display: inline-flex;
   flex-shrink: 0;

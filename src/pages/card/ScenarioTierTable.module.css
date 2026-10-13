@@ -1,5 +1,3 @@
-/* Scenario × limit break tier table (from card.css). */
-
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -29,7 +27,6 @@
   text-align: left;
 }
 
-/* Averaged rows sit under a heavier rule, apart from the real scenarios. */
 .table tbody.averaged tr:first-child > * {
   border-top: 2px solid var(--border);
 }

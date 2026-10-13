@@ -1,8 +1,3 @@
-// A support card as a link row: its square icon (shown whole), the name in bold, the title small beneath, then `meta`
-// (anything extra, e.g. a date or a pill). Used by the card page's "passed" list and the sheets' featured items.
-//
-// <CardRow href="/card/30001" icon={iconUrl} name="Kitasan Black" title="Dreams" meta={<Pill />} />
-
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import styles from './CardRow.module.css';

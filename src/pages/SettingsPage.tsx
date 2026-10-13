@@ -9,7 +9,7 @@ import styles from './SettingsPage.module.css';
 
 const PULL_GUIDE_URL = 'https://docs.google.com/spreadsheets/d/1zZOBxjcgJEKna7ftYKq0AlZS25Q3hE_occ7kXB-Q6MQ';
 
-// Sites Umaddoc builds on, credited in About (name and description in en.json under settings.credit.<key>).
+// Credited in About; names and descriptions are in en.json under settings.credit.<key>.
 const CREDITS: readonly (readonly [string, string])[] = [
   ['gametora', 'https://gametora.com/umamusume'],
   ['tierList', 'https://euophrys.github.io/uma-tiers/'],
@@ -17,8 +17,6 @@ const CREDITS: readonly (readonly [string, string])[] = [
   ['umapyoi', 'https://umapyoi.net/'],
 ];
 
-// One setting: a heading, a hint, and a segmented toggle over its options. labels and details
-// are by option: each button shows its label, with the detail (an example, the timezone) in small print under it.
 type SettingProps<K extends SettingName> = {
   name: K;
   title: string;
@@ -58,7 +56,6 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   return (
     <div className={clsx('page', styles.settingsPage)}>
-      {/* Every setting in one panel, divided by rules. */}
       <div className={styles.group}>
         <Setting
           name="timeZone"

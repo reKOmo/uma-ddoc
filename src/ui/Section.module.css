@@ -1,10 +1,7 @@
-/* Copied from src/pages/card.css (`.card-section`, `.origins-heading`), for the Section component. */
-
 .section {
   display: block;
 }
 
-/* The heading row: the heading, then the action on the right. */
 .head {
   display: flex;
   gap: 8px;

@@ -36,7 +36,6 @@ const normalize = (text: string): string =>
     .replace(/[^\p{L}\p{M}\p{N}]+/gu, ' ')
     .trim();
 
-// Everything a search can match: the character's name and the card's title, in English and Japanese.
 const searchText = (card: Ranked): string => {
   const { name, title } = cards[card.id];
   return normalize([card.char_name, name.en, name.jp, title.en, title.jp].join(' '));
@@ -48,8 +47,6 @@ export type TierListPageProps = {
   onScenarioChange: (scenario: string) => void;
 };
 
-// server and scenario are shared with the other pages via App; the other filters are remembered in
-// src/tierListFilters.ts.
 export default function TierListPage({ server, scenario, onScenarioChange }: TierListPageProps) {
   const { t } = useTranslation();
   const { stat, shown, query, size } = useFiltersStore((state) => state.filters);
@@ -78,7 +75,6 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
       [rarity]: s[rarity].includes(lb) ? s[rarity].filter((n) => n !== lb) : [...s[rarity], lb],
     }));
   const setRarity = (rarity: Rarity, all: boolean) => setShown((s) => ({ ...s, [rarity]: all ? LIMIT_BREAKS : [] }));
-  // The filter button's count: limit breaks shown or hidden unlike the defaults.
   const changed = RARITIES.reduce(
     (n, rarity) =>
       n + LIMIT_BREAKS.filter((lb) => shown[rarity].includes(lb) !== DEFAULTS.shown[rarity].includes(lb)).length,
@@ -115,7 +111,6 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
 
   return (
     <div className={styles.root}>
-      {/* On desktop a sticky column on the left; on phones it stays above the tiers. */}
       <aside className={styles.tierSidebar}>
         <div className={styles.searchRow}>
           <div className={styles.searchGrow}>
@@ -227,7 +222,6 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
                     aria-label={t('tierList.toggleTier', { tier: TIER_NAMES[i] })}
                     title={t('tierList.toggleTier', { tier: TIER_NAMES[i] })}
                   >
-                    {/* The cue that it folds, pinned to the top of the strip (a folded tier's row has its own ›). */}
                     {!collapsed.includes(TIER_NAMES[i]) && (
                       <ChevronUp className={styles.tierFoldCue} size={16} aria-hidden="true" />
                     )}

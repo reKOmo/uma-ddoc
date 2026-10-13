@@ -1,4 +1,3 @@
-/* A pill-shaped link or button to a card page ("See more", "See card"), with a chevron after it (App.css .see-more). */
 .seeMore {
   display: inline-flex;
   flex-shrink: 0;

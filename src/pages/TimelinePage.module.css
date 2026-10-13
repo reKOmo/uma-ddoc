@@ -18,12 +18,10 @@
   gap: 8px;
 }
 
-/* The filter's button (src/FilterSheet.tsx, global) is as wide as the toolbar's other buttons (ToolbarButton). */
 .toolbar :global(.filter-button) {
   min-width: 44px;
 }
 
-/* The zoom buttons: a segmented pair with the toolbar buttons' size. */
 .zoom {
   display: flex;
   min-width: 0;
@@ -66,11 +64,9 @@
   padding: 0 12px;
 }
 
-/* ── Timeline: one scroll area; the axis sticks to the top, labels to the left ── */
-
 .timeline {
   --lane-height: 52px;
-  /* A bar's label is never wider than the visible calendar (100cqw: this element's width). */
+  /* Label width is capped at the visible calendar (100cqw). */
   container-type: inline-size;
   flex: 1;
   min-height: 0;
@@ -85,9 +81,8 @@
   user-select: none;
 }
 
-/* --day (pixels per day) is set inline; it spaces the faint day gridlines. */
 .canvas {
-  /* Rows: scenarios (32) + months (24) + days (22) + 1px border; marks below the axis use this. */
+  /* Scenarios 32 + months 24 + days 22 + 1px border: the axis's height. */
   --axis-height: 79px;
   position: relative;
   min-height: 100%;

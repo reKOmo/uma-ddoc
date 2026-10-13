@@ -24,11 +24,8 @@ import { useUpcomingRanking } from './hooks.ts';
 import { LIMIT_BREAKS, nameOf, titleOf } from './shared.ts';
 import styles from './RankOverTime.module.css';
 
-// Upcoming (predicted) passes listed before the rest are folded behind "See more".
 const UPCOMING_SHOWN = 2;
 
-// A timeline row's classes: whether its own date is predicted, and whether a line runs on to
-// the next date (dashed when that one is predicted).
 function timelineClass(predicted: boolean, next: HistoryPoint | undefined, fade = false): string {
   return clsx(
     predicted && styles.predicted,
@@ -38,7 +35,6 @@ function timelineClass(predicted: boolean, next: HistoryPoint | undefined, fade 
   );
 }
 
-// The card's new position on a date, with an arrow for whether it rose or fell since the date before.
 function RankChange({ point, history }: { point: HistoryPoint; history: HistoryPoint[] }) {
   const { t } = useTranslation();
   const before = history[history.indexOf(point) - 1];
@@ -64,8 +60,6 @@ type RankOverTimeProps = {
   stat: Stat | undefined;
 };
 
-// How the card's position in its tier list changed as newer cards came out and, where the
-// server has predicted release dates (Global), how it will change as JP's cards arrive.
 export default function RankOverTime({
   cardId,
   server,
@@ -92,7 +86,7 @@ export default function RankOverTime({
   const isPredicted = (id: number) => !released(id) && !!predictions?.cards[id];
   const history = ranking && rankHistory(ranking, cardId, lb, releaseOf, isPredicted);
   const passes = history ? history.filter((p) => p.overtakenBy.length > 0) : [];
-  // Past passes, then only the next UPCOMING_SHOWN predicted ones until "See more"; one more is drawn fading out.
+  // Past passes, then the next UPCOMING_SHOWN predicted ones; one more is drawn fading out.
   const firstUpcoming = passes.findIndex((p) => p.predicted);
   const foldedCount = firstUpcoming < 0 ? passes.length : firstUpcoming + UPCOMING_SHOWN;
   const foldable = passes.length > foldedCount;

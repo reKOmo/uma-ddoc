@@ -27,10 +27,8 @@ import type { Server } from '../servers.ts';
 import styles from './TimelinePage.module.css';
 
 const ZOOMS = [4, 8, 16, 32]; // pixels per day
-// A mark's toolbar button icon (marks: loadTimeline() in src/timeline/data.ts).
 const MARK_ICONS: Record<string, LucideIcon> = { global: Globe };
 
-// A copy of a set with `key` added, or removed if it was in it.
 function toggled<T>(set: Set<T>, key: T): Set<T> {
   const next = new Set(set);
   if (!next.delete(key)) next.add(key);
@@ -38,10 +36,8 @@ function toggled<T>(set: Set<T>, key: T): Set<T> {
 }
 
 // The Timeline: a server's banners and events on one calendar, the same for every server (only the data differs).
-// `linkId` (from #/timeline/<server>/<id>): a banner or event to open and centre on once loaded (ids are unique on a
-// server, banners' and events' alike).
-// While a sheet is open, the address says which (replaced, not pushed: no history entry per sheet), so coming back
-// here (from a card's page) opens it again.
+// Ids are unique per server, banners and events alike. The address follows the open sheet
+// (replaced, not pushed), so going back from a card reopens it.
 export default function TimelinePage({
   server,
   scenario,
@@ -93,7 +89,6 @@ export default function TimelinePage({
     setSheetOpen(false);
   }, [server]);
 
-  // A linked banner opens its sheet.
   useEffect(() => {
     if (!linked) return;
     setSelected(linked.key);
@@ -107,14 +102,12 @@ export default function TimelinePage({
     setZoom(next);
   }
 
-  // Opening another entry from a sheet (a re-run, a part) centres the calendar on it.
   function select(entry: Entry) {
     if (timeline) centerOn(timeline.at(middleOf(entry)));
     show(entry);
   }
 
   const [unfolded, setUnfolded] = useState<Set<string>>(() => new Set());
-  // Groups folded away by their label, remembered in this browser.
   const collapsed = useCollapsedStore((state) => state.collapsed);
   const toggleGroup = useCallback((key: string) => saveCollapsed(toggled(getCollapsed(), key)), []);
   const toggleParts = useCallback((key: string) => setUnfolded((old) => toggled(old, key)), []);
@@ -125,7 +118,6 @@ export default function TimelinePage({
 
   const entry = selected ? byKey.get(selected) : undefined;
 
-  // The address follows the open sheet (see `linkId` above).
   useEffect(() => {
     const hash = sheetOpen && entry ? timelineUrl(server, entry.id) : timelineUrl();
     if (window.location.hash !== hash) window.history.replaceState(window.history.state, '', hash);

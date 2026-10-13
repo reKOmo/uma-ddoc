@@ -1,9 +1,8 @@
-/* .page (App.css, loaded earlier) sets its own max-width; this one has to win. */
+/* Wins over App.css's .page max-width. */
 .settingsPage:global(.page) {
   max-width: 640px;
 }
 
-/* The settings share one panel; About has its own. */
 .group,
 .about {
   padding: 16px;
@@ -31,8 +30,7 @@
   color: var(--muted);
 }
 
-/* Styled like the server switch (the shared .segmented colours): compact, as wide as its options. The detail
-   (an example, the timezone) follows the name in small muted print; long ones wrap instead of overflowing. */
+/* Long option names wrap instead of overflowing. */
 .toggle {
   width: fit-content;
   max-width: 100%;
@@ -60,8 +58,6 @@
   font-size: 0.75rem;
   opacity: 0.75;
 }
-
-/* ── About: version, disclaimer, credits ── */
 
 .about {
   margin-top: 32px;

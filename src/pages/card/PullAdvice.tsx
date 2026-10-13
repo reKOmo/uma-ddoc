@@ -30,7 +30,6 @@ function ShouldPullChip({ pill }: { pill: string }) {
   );
 }
 
-// The banner's status badge and dates, in the Settings timezone, as in the Timeline's sheet.
 function BannerDates({ banner, timeZone }: { banner: ArtBanner; timeZone: 'utc' | 'local' }) {
   return (
     <>
@@ -48,10 +47,7 @@ function releaseDate(release: Release, t: TFunction): string {
   return t(`pullGuide.${release.part ?? 'month'}`, { month });
 }
 
-// The pull guide's advice for the card's next Global banner (or the one running now; real or predicted),
-// with links to that banner on the Timeline and to the card's row in the guide; for event / story / shop
-// cards, their release as the guide gives it; "no upcoming banners" when none is to come. Nothing while
-// it loads, without the guide, or for cards it doesn't cover.
+// Nothing while the guide loads or for cards it doesn't cover.
 export default function PullAdvice({ cardId }: { cardId: number }) {
   const { t } = useTranslation();
   const { timeZone } = useSettings().settings;
@@ -61,10 +57,8 @@ export default function PullAdvice({ cardId }: { cardId: number }) {
   if (!guide || !latest || !banners) return null;
   const now = Date.now();
   const upcoming = upcomingBanner(banners, cardId, now);
-  // The same banner with its art filled in.
   const banner = upcoming && banners.find((b) => b.id === upcoming.id);
   const entry = currentAdvice(guide, cardId, upcoming, new Date(now).toISOString().slice(0, 10));
-  // A card on no banner: what it is ("Event", "Story"…) and when, from the guide.
   const release = !upcoming && entry && 'release' in entry ? entry.release : undefined;
   const label = banner
     ? !banner.featured.find((item) => item.id === cardId)?.new && t('pullGuide.rerun')
@@ -73,7 +67,6 @@ export default function PullAdvice({ cardId }: { cardId: number }) {
   return (
     <section className={styles.guide}>
       <div className={styles.entry}>
-        {/* The banner's art behind it, as on the Timeline's bars. */}
         <div
           className={clsx(styles.banner, banner && styles.hasArt, banner?.officialArt && styles.officialArt)}
           style={banner ? { backgroundImage: `url(${banner.image})` } : undefined}

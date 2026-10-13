@@ -1,5 +1,3 @@
-/* Rank over time (from card.css; the chart's own rules stay in card.css). */
-
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -42,13 +40,10 @@
   font-size: 0.95rem;
 }
 
-/* A vertical timeline: a dot per date, joined by a line labelled with the time between them. */
 .list {
   --rail: 15px;
-  /* The dot's centre: the middle of the first line (date) of each entry. */
   --head: 22px;
   --dot-y: calc(4px + var(--head) / 2);
-  /* Space between a dot's edge and the line. */
   --dot-gap: 10px;
   margin: 0;
   padding: 8px 10px 8px 0;
@@ -67,8 +62,7 @@
   padding: 4px 0 4px calc(var(--rail) * 2);
 }
 
-/* One line per row, from just below its dot to just above the next row's dot, so each
-   stretch is a single solid or dashed piece. The next dot sits --dot-y below this row's bottom. */
+/* One line per row, between its dot and the next row's, so each stretch is one solid or dashed piece. */
 .list > li.hasNext::after {
   position: absolute;
   top: calc(var(--dot-y) + var(--dot-gap));
@@ -79,12 +73,10 @@
   background: var(--accent);
 }
 
-/* Into a predicted date. */
 .list > li.nextPredicted::after {
   background: repeating-linear-gradient(to bottom, var(--accent) 0 5px, transparent 5px 9px);
 }
 
-/* Dots sit next to their entry's date. */
 .dot {
   position: absolute;
   top: var(--dot-y);
@@ -96,7 +88,6 @@
   transform: translateY(-50%);
 }
 
-/* The release: hollow. */
 .list > li:first-child .dot {
   background: var(--panel);
   border: 2px solid var(--accent);
@@ -107,7 +98,6 @@
   border: 2px dashed var(--accent);
 }
 
-/* How long it took to get from one date to the next. */
 .gap {
   display: flex;
   align-items: center;
@@ -119,14 +109,12 @@
   color: var(--muted);
 }
 
-/* The first hidden entry, fading out under the "See more" button. */
 .list > li.fade {
   max-height: 140px;
   overflow: hidden;
   mask-image: linear-gradient(to bottom, #000 10%, transparent);
 }
 
-/* Holds the list and, over its faded bottom, the "See more" button. */
 .box {
   position: relative;
 }
@@ -170,7 +158,6 @@ button.less {
   margin-top: 8px;
 }
 
-/* The new rank, left of the cards that pushed it there. */
 .rank {
   display: inline-flex;
   flex: 0 0 52px;

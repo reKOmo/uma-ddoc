@@ -1,4 +1,3 @@
-/* A muted line of text, e.g. "Loading…" (App.css .status). */
 .status {
   color: var(--muted);
 }

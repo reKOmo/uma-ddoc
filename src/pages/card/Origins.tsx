@@ -33,7 +33,6 @@ const KIND_CLASS: Record<OriginKind, string | undefined> = {
 const originLabel = (origin: EntryOrigin, t: TFunction): string =>
   origin.kind === 'other' ? kindName(origin.entry) : t(`card.origins.kind.${origin.kind}`);
 
-// Under the card's name: how it first came out, "+N" for the other ways it has since (all of them in the tooltip).
 export function OriginPill({ origins }: { origins: EntryOrigin[] }) {
   const { t } = useTranslation();
   const kinds = originKinds(origins);
@@ -53,8 +52,7 @@ export function OriginPill({ origins }: { origins: EntryOrigin[] }) {
 
 type OriginsProps = { card: Card; server: Server; origins: OriginsData | null | undefined };
 
-// Every banner and event the card is on, oldest first (a toggle reverses it): the first, the rest folded. Each opens
-// on the Timeline. A card on none says how it's obtained (cards.json's `source`).
+// A card on no banner or event shows cards.json's source instead.
 export default function Origins({ card, server, origins }: OriginsProps) {
   const { t } = useTranslation();
   const { timeZone } = useSettings().settings;

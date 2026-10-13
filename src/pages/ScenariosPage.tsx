@@ -1,7 +1,3 @@
-// The Scenarios tab (#/scenarios): every Career scenario in launch order, with its status and date on
-// each server (JP, then Global) and "Newest on …" for each server it's the latest on. Only the newest on
-// the server picked in the top bar gets the coloured background. Each opens its scenario page.
-
 import clsx from 'clsx';
 import type { CSSProperties } from 'react';
 import { ChevronRight } from 'lucide-react';
@@ -17,7 +13,6 @@ import styles from './ScenariosPage.module.css';
 
 const SERVER_ORDER: Server[] = ['jp', 'gl'];
 
-// The key pill's ink class: the text dark or light by the cover colour.
 function inkClass(color: string): string | undefined {
   const tone = ink(color);
   return tone === 'dark' ? styles.inkDark : tone === 'light' ? styles.inkLight : undefined;
@@ -29,7 +24,6 @@ export default function ScenariosPage({ server }: { server: Server }) {
   const date = (iso: string) =>
     formatDate(iso, { ...timeZoneOptions(timeZone), year: 'numeric', month: 'short', day: 'numeric' });
 
-  // "Launched Jul 22, 2026" / "Predicted Nov 25, 2026" / "No date yet" (after the server's name).
   const when = (start: StartDate | null) =>
     start
       ? t('scenarioList.when', { status: t(`scenarioPage.status.${start.tag}`), date: date(start.date) })
@@ -40,7 +34,7 @@ export default function ScenariosPage({ server }: { server: Server }) {
       <ol className={styles.list}>
         {SCENARIOS.map((s) => {
           const newestOn = SERVER_ORDER.filter((on) => isCurrent(s.key, on));
-          const current = isCurrent(s.key, server); // highlighted: newest on the selected server
+          const current = isCurrent(s.key, server);
           return (
             <li key={s.key} style={s.color ? ({ '--scenario-color': s.color } as CSSProperties) : undefined}>
               <a href={scenarioUrl(s.key)} className={clsx(styles.item, current && styles.current)}>

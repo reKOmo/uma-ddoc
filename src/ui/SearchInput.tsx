@@ -1,8 +1,3 @@
-// The app's search box: a magnifier inside on the left, a clear button (×) on the right once there's text. The tier
-// list's search uses it. onChange gets the new text; clearing gives "".
-//
-// <SearchInput value={query} onChange={setQuery} placeholder="Search" label="Search cards" clearLabel="Clear search" />
-
 import { Search, X } from 'lucide-react';
 import styles from './SearchInput.module.css';
 

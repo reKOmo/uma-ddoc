@@ -1,7 +1,3 @@
-// One Career scenario (#/scenario/<key>): its key art, names, launch on each server (status, how
-// long ago / until, predicted range), Global's lag behind JP (under the arrow between them), links to GameTora and its tier list,
-// and the scenarios before / after it. Opened from the scenario strip on the banner calendar.
-
 import clsx from 'clsx';
 import type { CSSProperties } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Trophy } from 'lucide-react';
@@ -23,9 +19,8 @@ type Settings = ReturnType<typeof useSettings>['settings'];
 
 const day = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
 
-// scenario.links that are pages to visit (the rest, like `cover`, are images), in this order, each with a
-// scenarioPage.link.<key> name: GameTora's page, and the launch post on umapyoi.net (JP's in the language the JP news
-// setting picks, Global's).
+// scenario.links minus the image (cover): the pages to visit, in this order.
+// Labels: scenarioPage.link.<key>.
 function linkList(scenario: Scenario, settings: Settings): [string, string][] {
   const { links } = scenario;
   const out: [string, string][] = [];
@@ -35,7 +30,6 @@ function linkList(scenario: Scenario, settings: Settings): [string, string][] {
   return out;
 }
 
-// The key pill's ink class: the text dark or light by the cover colour.
 function inkClass(color: string): string | undefined {
   const tone = ink(color);
   return tone === 'dark' ? styles.inkDark : tone === 'light' ? styles.inkLight : undefined;
@@ -96,7 +90,6 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
   const [previous, next] = [SCENARIOS[index - 1], SCENARIOS[index + 1]];
   const rankable = SERVER_ORDER.some((s) => getServerConfig(s).availableScenarios.includes(scenario.key));
   const [jp, en] = [scenario.jp_start_date, scenario.en_start_date];
-  // External pages about the scenario (links other than images), in this order.
   const links = linkList(scenario, settings);
   const style = scenario.color ? ({ '--scenario-color': scenario.color } as CSSProperties) : undefined;
 
@@ -105,7 +98,6 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
     window.location.hash = TAB_URLS.cards;
   };
 
-  // One launch side: the server's name, its status and date, how long ago or until, the predicted range.
   const side = (server: Server, start: StartDate | null) => (
     <div key={server} className={clsx(styles.side, styles[server])}>
       <span className={styles.serverName}>{serverName(server)}</span>
@@ -130,7 +122,6 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
 
   return (
     <div className={clsx('page', styles.scenarioPage)} style={style}>
-      {/* Key art, then everything else: stacked on phones, side by side on desktop. */}
       <div className={styles.hero}>
         {scenario.links.cover && <img className={styles.art} src={scenario.links.cover} alt={name} />}
         <div className={styles.body}>
@@ -142,7 +133,6 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
               </p>
             )}
             <p className={styles.tags}>
-              {/* Both short names, labelled by server: JP's, and Global's when it has a different one. */}
               {shortNames.map(({ server: on, name: short }) => (
                 <span key={on} className={clsx(styles.tag, styles.scenarioKey, inkClass(scenario.color))}>
                   {shortNames.length > 1 && <span className={styles.serverLabel}>{serverName(on)}</span>}
@@ -166,7 +156,6 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
           </div>
 
           <Section title={t('scenarioPage.launch')}>
-            {/* One card: JP's launch on the left, Global's on the right, the gap between them in the middle ("Launched after …"). */}
             <div className={styles.launch}>
               {SERVER_ORDER.map((server, i) => {
                 const launch = scenario[DATE_FIELD[server]];

@@ -1,8 +1,3 @@
-// A button of a page's toolbar (the Timeline's): an icon with its label beside it, or the icon alone (iconOnly), the
-// label then its aria-label. `pressed` makes it a toggle (aria-pressed), `disabled` greys it out.
-//
-// <ToolbarButton icon={Filter} label="Filter" onClick={open} iconOnly />
-
 import type { LucideIcon } from 'lucide-react';
 import styles from './ToolbarButton.module.css';
 

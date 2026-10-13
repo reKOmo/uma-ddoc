@@ -47,8 +47,7 @@ type TableProps = {
   rankings: Record<string, Ranked[]>;
 };
 
-// Every scenario (then the averaged ones) × limit break: the card's tier, and its MLB rank, filled in as the
-// rankings finish. The note under it says what the tiers are of.
+// Filled in as the rankings finish.
 export default function ScenarioTierTable({
   cardId,
   server,

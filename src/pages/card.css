@@ -1,5 +1,4 @@
-/* The Rank over time scenario picker's size: the Dropdown's global `dropdown-button` class inside the card page's
-   `history-controls` (src/pages/card/RankOverTime.tsx). */
+/* The Dropdown's global `dropdown-button` class is sized here, inside `.history-controls`. */
 .history-controls .dropdown-button {
   min-width: 120px;
   min-height: 36px;

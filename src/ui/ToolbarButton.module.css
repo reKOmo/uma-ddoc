@@ -1,6 +1,3 @@
-/* Copied from src/timeline/timeline.css (`.toolbar button`, `:disabled`, `[aria-pressed="true"]`), for the
-   ToolbarButton component. */
-
 .button {
   display: inline-flex;
   align-items: center;
@@ -18,7 +15,6 @@
   opacity: 0.4;
 }
 
-/* A toggle (compact mode), on. */
 .button[aria-pressed="true"] {
   color: var(--accent-text);
   background: var(--accent);
