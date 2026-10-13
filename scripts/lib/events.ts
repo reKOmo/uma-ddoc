@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Global's in-game events, from the official news alone (data/news/gl/posts.json), into data/global_events.json
 // (committed, rebuilt from every post by `pnpm update-global`). Pure, except the reader/writer at the bottom.
 //
@@ -45,13 +44,61 @@ import { cardIndex, cardsIn, copiesDoubt, itemDoubt, itemsIn, missionsIn, norm, 
 import { SUB_EVENT_KINDS, UNNAMED_KINDS, applyAnswer } from './event-questions.ts';
 import { categorize, plain } from './post-categories.ts';
 import { EVENT_KINDS } from '../../shared/schemas/event.ts';
+import type { CmRewardsFile, EventCard, EventItem, EventsFile, GameEvent, Phase } from '../../shared/schemas/event.ts';
+import type { AiAnswersFile, NewsPost } from '../../shared/schemas/news.ts';
+import type { Block, DateRef, Lexicon } from './news-lang/index.ts';
+import type { Server } from './news-text.ts';
+
+// A post's dates: either may be missing.
+type Dates = { start: string | null; end: string | null };
+// One event as one post describes it, before posts about the same event are merged (`GameEvent` plus what merging and
+// the model's questions need; `output()` keeps only the schema's fields).
+export type Fragment = {
+  id: string;
+  kind: string;
+  name: string | null;
+  parent: string | null;
+  start: string | null;
+  end: string | null;
+  cards: EventCard[];
+  items: EventItem[];
+  titles: string[];
+  phases?: Phase[];
+  news_url: string;
+  image: string | null;
+  source: 'news';
+  posted: string;
+  phase: string | null;
+  // Announced without dates: joins the event when its dated post comes.
+  undated?: boolean;
+  // What the rules aren't sure of, { field: why }; the event's text and its key for a stored model answer.
+  doubts: Record<string, string>;
+  text: string;
+  aiKey: string;
+  // Lines elsewhere in the post about its cards.
+  context?: string[];
+  // Mission sets it lists (taken out into bars of their own by missionBars()).
+  missions?: { name: string; start: string; end: string | null }[];
+};
+// A celebration's block with the blocks that belong to it.
+type Group = { i: number; first: Block; blocks: Block[]; period: Dates | null; headed: boolean };
+// A schedule of phases: [phase key, heading].
+type Schedule = [string, RegExp][];
+// The options of buildEvents().
+export type BuildOptions = {
+  cmTable?: CmRewardsFile;
+  cards?: Parameters<typeof cardIndex>[0];
+  answers?: AiAnswersFile;
+  lang?: Lexicon;
+};
 
 export const EVENTS_FILE = `${DATA_DIR}global_events.json`;
 // Each server's events: data/global_events.json, data/jp_events.json.
-export const eventsFile = (server = 'gl') => (server === 'gl' ? EVENTS_FILE : `${DATA_DIR}${server}_events.json`);
+export const eventsFile = (server: Server = 'gl'): string =>
+  server === 'gl' ? EVENTS_FILE : `${DATA_DIR}${server}_events.json`;
 export const CM_REWARDS_FILE = `${DATA_DIR}champions_meeting_rewards.json`;
 // A model's answers about what the rules doubted (scripts/ai-events.js), by event aiKey.
-export const answersFile = (server = 'gl') => `${newsDir(server)}ai_answers.json`;
+export const answersFile = (server: Server = 'gl'): string => `${newsDir(server)}ai_answers.json`;
 
 export { EVENT_KINDS };
 
@@ -60,34 +107,36 @@ const GROUP_DAYS = 14;
 // name comes back months later). (JP: `lang.sameEventDays(kind)`, cups announced two months ahead.)
 const SAME_EVENT_DAYS = 45;
 // How far along a post is: dates from a later stage win.
-const STAGE = { announced: 1, league_selection: 2, started: 3 };
+const STAGE: Record<string, number> = { announced: 1, league_selection: 2, started: 3 };
 
 // --- dates ---------------------------------------------------------------------------------------------------------
 
 // The wording of periods, sub-events and schedules is the lexicon's (scripts/lib/news-lang/): every function below
 // takes `lang`, English by default.
 
-function span(dates) {
-  const starts = dates.map((d) => d.start).filter(Boolean);
+function span(dates: Dates[]): Dates | null {
+  const starts = dates.map((d) => d.start).filter((d): d is string => !!d);
   if (!starts.length) return null;
-  const ends = dates.map((d) => d.end).filter(Boolean);
+  const ends = dates.map((d) => d.end).filter((d): d is string => !!d);
   return { start: starts.sort()[0], end: ends.sort().at(-1) ?? null };
 }
 
 // A block's dates from its period headings (the main ones when it has any; a Champions Meeting's league selection
 // counts), or null.
-function headingPeriod(block, year, lang) {
+function headingPeriod(block: Block, year: DateRef, lang: Lexicon): Dates | null {
   const own = block.sections.filter((s) => lang.period.test(s.heading) && !lang.notOwn.test(s.heading));
   // A "Gift Timing" list is moments, not periods: from the first to the last.
-  const parse = (sections) =>
+  const parse = (sections: Block['sections']): Dates | null =>
     span(
-      sections.flatMap((s) => {
+      sections.flatMap((s): Dates[] => {
         const dates = s.lines.filter(lang.periodLine).map((line) => lang.parsePeriod(line, year));
         const moments = dates
           .map((d) => d.start)
-          .filter(Boolean)
+          .filter((d): d is string => !!d)
           .sort();
-        return lang.timing.test(s.heading) && moments.length > 1 ? [{ start: moments[0], end: moments.at(-1) }] : dates;
+        return lang.timing.test(s.heading) && moments.length > 1
+          ? [{ start: moments[0], end: moments.at(-1) ?? null }]
+          : dates;
       })
     );
   const main = own.filter((s) => lang.main.test(s.heading));
@@ -95,7 +144,7 @@ function headingPeriod(block, year, lang) {
 }
 
 // The start a block's opening sentences give ("As of 10:00 p.m., Oct 7, 2026 (UTC), …"), or null.
-function openingPeriod(block, year, lang) {
+function openingPeriod(block: Block, year: DateRef, lang: Lexicon): Dates | null {
   const opening = block.intro.find((line) => lang.starts.test(line) && lang.opening(line));
   return opening ? { start: lang.parsePeriod(opening, year).start, end: null } : null;
 }
@@ -103,13 +152,14 @@ function openingPeriod(block, year, lang) {
 // A Champions Meeting's schedule, from its post's phase headings: [{ key, start, end }] in order (CM_PHASES).
 // Its keys are the same in every lexicon (the app's list: src/timeline/events.js).
 export const CM_PHASES = en.cmPhases;
-export function cmPhases(block, year, lang = en, schedule = lang.cmPhases) {
+export function cmPhases(block: Block, year: DateRef, lang: Lexicon = en, schedule: Schedule = lang.cmPhases): Phase[] {
   return schedule.flatMap(([key, re]) => {
     const section = block.sections.find((s) => re.test(s.heading));
     const line = section?.lines.find((l) => lang.periodLine(l) && lang.parsePeriod(l, year).start);
     if (!line) return [];
     const { start, end } = lang.parsePeriod(line, year);
-    return [{ key, start, end }];
+    // TODO(ts): the line was picked for having a start, which the compiler can't follow
+    return [{ key, start: start as string, end }];
   });
 }
 
@@ -117,7 +167,7 @@ export function cmPhases(block, year, lang = en, schedule = lang.cmPhases) {
 
 // The name in a sub-event's opening sentence ("the Sparkly Magic Show Holiday Present event is underway!" → "Sparkly
 // Magic Show Holiday Present"), or null.
-function sentenceName(block, lang) {
+function sentenceName(block: Block, lang: Lexicon): string | null {
   for (const line of block.intro) {
     const sentence = line.replace(lang.subOpening, '');
     // (JP: `lang.subName(sentence)` picks among the names a sentence quotes.)
@@ -132,7 +182,7 @@ function sentenceName(block, lang) {
 }
 
 // A sub-event's name from its opening sentences, else its first heading that isn't a period, else null.
-function subEventName(block, lang) {
+function subEventName(block: Block, lang: Lexicon): string | null {
   const named = sentenceName(block, lang) ?? lang.blockName?.(block);
   if (named) return named;
   const heading = block.sections.find((s) => !lang.period.test(s.heading) && !lang.notNameHeading.test(s.heading));
@@ -140,7 +190,7 @@ function subEventName(block, lang) {
 }
 
 // A sub-event's kind, or null when nothing in it says (it's then a campaign).
-function matchedKind(name, block, lang) {
+function matchedKind(name: string | null, block: Block, lang: Lexicon): string | null {
   const opening = [name ?? '', block.intro[0] ?? ''].join(' ');
   const headings = block.sections.map((s) => s.heading).join(' ');
   for (const text of [opening, headings]) {
@@ -149,7 +199,8 @@ function matchedKind(name, block, lang) {
   }
   return null;
 }
-const subEventKind = (name, block, lang) => matchedKind(name, block, lang) ?? 'campaign';
+const subEventKind = (name: string | null, block: Block, lang: Lexicon): string =>
+  matchedKind(name, block, lang) ?? 'campaign';
 // (A lexicon's subKinds and 'campaign' are SUB_EVENT_KINDS, the kinds a model may answer.)
 if (en.subKinds.some(([kind]) => !SUB_EVENT_KINDS.includes(kind))) throw new Error('subKinds outside SUB_EVENT_KINDS');
 
@@ -159,21 +210,31 @@ if (en.subKinds.some(([kind]) => !SUB_EVENT_KINDS.includes(kind))) throw new Err
 // dates.
 
 // FNV-1a: an event's text in a short key, so a stored answer is reused until the post changes.
-const hash = (text) => {
+const hash = (text: string): string => {
   let h = 0x811c9dc5;
-  for (const ch of text) h = Math.imul(h ^ ch.codePointAt(0), 0x01000193) >>> 0;
+  for (const ch of text) h = Math.imul(h ^ (ch.codePointAt(0) ?? 0), 0x01000193) >>> 0;
   return h.toString(36);
 };
 
-function withDoubts(event, lines, lang, more = {}) {
+function withDoubts(
+  event: Omit<Fragment, 'doubts' | 'text' | 'aiKey'>,
+  lines: string[],
+  lang: Lexicon,
+  more: Record<string, string | null | false> = {}
+): Fragment {
   const found = { items: itemDoubt(lines, event.items, lang), cards: copiesDoubt(lines, event.cards, lang), ...more };
-  const doubts = Object.fromEntries(Object.entries(found).filter(([, why]) => why));
+  const doubts = Object.fromEntries(Object.entries(found).filter((entry): entry is [string, string] => !!entry[1]));
   const text = lines.join('\n');
   return { ...event, doubts, text, aiKey: `${event.id}:${hash(text)}` };
 }
 
 // Why an event's dates may be wrong, or null (`headed`: they come from period headings).
-function datesDoubt(blocks, period, headed, lang) {
+function datesDoubt(
+  blocks: Block[],
+  period: Dates | null,
+  headed: boolean | Dates | null,
+  lang: Lexicon
+): string | null {
   if (!period) return null;
   if (blocks.some((b) => b.sections.some((s) => lang.timing.test(s.heading)))) return 'dates from a list of moments';
   return headed ? null : 'dates from a sentence, not a period heading';
@@ -181,7 +242,7 @@ function datesDoubt(blocks, period, headed, lang) {
 
 // --- posts → fragments ---------------------------------------------------------------------------------------------
 
-function rewards(lines, index, year, lang) {
+function rewards(lines: string[], index: ReturnType<typeof cardIndex>, year: DateRef, lang: Lexicon) {
   return {
     cards: cardsIn(lines, index, lang),
     items: itemsIn(lines, lang),
@@ -191,35 +252,42 @@ function rewards(lines, index, year, lang) {
 }
 
 // An event post as fragments: one per event it describes, before posts about the same event are merged.
-export function postEvents(post, index = new Map(), lang = en) {
+export function postEvents(
+  post: NewsPost,
+  index: ReturnType<typeof cardIndex> = new Map(),
+  lang: Lexicon = en
+): Fragment[] {
   const c = categorize(post, lang);
   if (c.category !== 'event' || c.phase === 'ending') return [];
-  const posted = new Date(apiDate(post.post_at, lang.server)).toISOString();
+  // TODO(ts): a stored post always has a time
+  const posted = new Date(apiDate(post.post_at, lang.server) as string).toISOString();
+  // TODO(ts): an event post always has a kind
+  const kind = c.kind as string;
   const year = lang.dateRef(posted);
   const title = lang.titleName(plain(post.title));
-  const base = { posted, phase: c.phase, news_url: newsUrl(c.id, lang.server), source: 'news' };
+  const base = { posted, phase: c.phase, news_url: newsUrl(c.id, lang.server), source: 'news' as const };
   // "has ended" posts only confirm the event; their dates are the reward collection's.
-  const dated = (period) => (c.phase === 'ended' ? null : period);
+  const dated = (period: Dates | null): Dates | null => (c.phase === 'ended' ? null : period);
   const blocks = eventBlocks(post, lang);
 
   // A schedule of phases: a Champions Meeting's (JP: also a League of Heroes').
-  const schedule = c.kind === 'champions_meeting' ? lang.cmPhases : lang.schedules?.[c.kind];
+  const schedule = kind === 'champions_meeting' ? lang.cmPhases : lang.schedules?.[kind];
   // (JP: a gift without an end of its own runs until the deadline of who gets it, `lang.deadline`.)
-  const withEnd = (period, block) =>
+  const withEnd = (period: Dates | null, block: Block): Dates | null =>
     period && !period.end && lang.deadline ? { ...period, end: lang.deadline(block, year) } : period;
 
-  if (c.kind !== 'celebration') {
+  if (kind !== 'celebration') {
     const whole = joinBlocks(blocks);
     const lines = blockLines(whole);
     const headed = headingPeriod(whole, year, lang);
     // (JP: a gift sent without a period runs from when it was posted to the deadline of who gets it.)
-    const sent = lang.deadline && c.kind === 'gift' ? { start: posted, end: null } : null;
+    const sent = lang.deadline && kind === 'gift' ? { start: posted, end: null } : null;
     const period = dated(withEnd(headed ?? openingPeriod(whole, year, lang) ?? sent, whole));
     const event = {
       ...base,
       id: String(c.id),
-      kind: c.kind,
-      name: c.name ?? (UNNAMED_KINDS.includes(c.kind) ? null : title),
+      kind: kind,
+      name: c.name ?? (UNNAMED_KINDS.includes(kind) ? null : title),
       parent: null,
       start: period?.start ?? (c.phase === 'ended' ? null : posted),
       // Announced without dates ("coming in late November"): joins the event when its dated post comes.
@@ -243,7 +311,7 @@ export function postEvents(post, index = new Map(), lang = en) {
 
   // A celebration: its first block, then a sub-event per later block with dates of its own. (JP: a block can be no
   // part at all, `lang.blockRole`: a scout's, or a summary of what other parts give.)
-  const groups = [];
+  const groups: Group[] = [];
   const postLines = lang.partCopies ? blocks.flatMap(blockLines) : [];
   blocks.forEach((block, i) => {
     if (i > 0 && lang.blockRole?.(block)) return;
@@ -257,7 +325,7 @@ export function postEvents(post, index = new Map(), lang = en) {
       block
     );
     if (i === 0 || period) groups.push({ i, first: block, blocks: [block], period, headed: !!headed });
-    else groups.at(-1).blocks.push(block);
+    else groups.at(-1)?.blocks.push(block);
   });
   const id = String(c.id);
   const events = groups.map(({ i, first, blocks: own, period, headed }) => {
@@ -278,7 +346,7 @@ export function postEvents(post, index = new Map(), lang = en) {
     // で最大2枚、「…ミッション第2弾」で最大3枚".)
     if (lang.partCopies && i > 0)
       event.cards = event.cards.map((card) =>
-        card.copies == null ? { ...card, copies: lang.partCopies(postLines, event.name, card) } : card
+        card.copies == null ? { ...card, copies: lang.partCopies?.(postLines, event.name, card) ?? null } : card
       );
     const sub = i > 0;
     return withDoubts(event, lines, lang, {
@@ -320,8 +388,8 @@ export function postEvents(post, index = new Map(), lang = en) {
 
 // Every mission set an event lists ("Sprinters Stakes Missions" + its period) is a bar of its own under it (kind
 // missions, id `<event>-m<n>`).
-function missionBars(f, lang) {
-  const { missions, ...event } = f;
+function missionBars(f: Fragment, lang: Lexicon): Fragment[] {
+  const { missions = [], ...event } = f;
   if (!event.start) return [event]; // an "ended" post: its sets are the event's, already listed
   // What a set gives is only named in the post's sentence about its missions ("By completing these missions, you can
   // earn rewards including carats, monies and Support Points!"); posts never give per-set amounts.
@@ -351,13 +419,15 @@ function missionBars(f, lang) {
 
 // --- merging -------------------------------------------------------------------------------------------------------
 
-const endOf = (e) => Date.parse(e.end ?? e.start) || Date.parse(e.start) + DAY;
-const overlap = (a, b) => Date.parse(a.start) <= endOf(b) && Date.parse(b.start) <= endOf(a);
+// (An event without a start, an "ended" post's, never matches: NaN.)
+const ms = (date: string | null): number => Date.parse(date ?? '');
+const endOf = (e: Dates): number => ms(e.end ?? e.start) || ms(e.start) + DAY;
+const overlap = (a: Dates, b: Dates): boolean => ms(a.start) <= endOf(b) && ms(b.start) <= endOf(a);
 // Posts about the same event have the same kind and name.
-const sameKey = (e) => `${e.kind}|${norm(e.name)}`;
+const sameKey = (e: { kind: string; name: string | null }): string => `${e.kind}|${norm(e.name)}`;
 
-function mergeItems(a, b) {
-  const items = new Map(a.map((i) => [norm(i.name), i]));
+function mergeItems(a: EventItem[], b: EventItem[]): EventItem[] {
+  const items = new Map<string, EventItem>(a.map((i) => [norm(i.name), i]));
   for (const item of b) {
     const old = items.get(norm(item.name));
     if (!old || (item.count != null && (old.count == null || item.count > old.count))) items.set(norm(item.name), item);
@@ -365,8 +435,8 @@ function mergeItems(a, b) {
   return [...items.values()];
 }
 
-function merge(event, next, lang = en) {
-  const later = (STAGE[next.phase] ?? 0) >= (STAGE[event.phase] ?? 0) && next.start;
+function merge(event: Fragment, next: Fragment, lang: Lexicon = en): Fragment {
+  const later = (STAGE[next.phase ?? ''] ?? 0) >= (STAGE[event.phase ?? ''] ?? 0) && next.start;
   // (JP: posts at the same stage each give some of an event's windows, `lang.unionDates`: one race weekend's piece
   // campaign in its own post, all of them in a celebration's.)
   const union = lang.unionDates && later && event.start && next.phase === event.phase;
@@ -393,26 +463,28 @@ function merge(event, next, lang = en) {
 
 // The Champions Meeting reward range for a cup starting at `start`: the newest table block whose `since` is on or
 // before it, min/max per item over its rows (rows not filled in yet are skipped).
-const CM_ITEMS = {
+const CM_ITEMS: Record<'carats' | 'monies' | 'ticket_support' | 'ticket_trainee', string> = {
   carats: 'Carats',
   monies: 'Monies',
   ticket_support: 'Support Card Scout Tickets',
   ticket_trainee: 'Trainee Scout Tickets',
 };
-export function cmItems(table, start) {
+export function cmItems(table: CmRewardsFile, start: string | null): EventItem[] {
   const block = table
     .filter((b) => b.since <= (start ?? '').slice(0, 10))
     .sort((a, b) => b.since.localeCompare(a.since))[0];
   if (!block) return [];
-  return Object.entries(CM_ITEMS).flatMap(([key, name]) => {
-    const values = block.final.map((row) => row[key]).filter((v) => typeof v === 'number');
+  // TODO(ts): Object.entries() types the keys as string
+  return (Object.entries(CM_ITEMS) as [keyof typeof CM_ITEMS, string][]).flatMap(([key, name]) => {
+    const values = block.final.map((row) => row[key]).filter((v): v is number => typeof v === 'number');
     return values.length ? [{ name, count: { min: Math.min(...values), max: Math.max(...values) } }] : [];
   });
 }
 
-const FIELDS = ['id', 'kind', 'name', 'parent', 'start', 'end', 'cards', 'items', 'titles', 'phases'];
-const output = (e) => ({
-  ...Object.fromEntries(FIELDS.map((f) => [f, e[f]])),
+const FIELDS = ['id', 'kind', 'name', 'parent', 'start', 'end', 'cards', 'items', 'titles', 'phases'] as const;
+const output = (e: Fragment): GameEvent => ({
+  // TODO(ts): fromEntries() loses the keys; FIELDS are GameEvent's, and the merged fragments have them all (dated, kind known)
+  ...(Object.fromEntries(FIELDS.map((f) => [f, e[f]])) as Pick<GameEvent, (typeof FIELDS)[number]>),
   // What a sale lists is bought, not given (a JP pack with a support card in it).
   cards: e.kind === 'sale' ? [] : e.cards,
   items: e.kind === 'sale' ? [] : e.items,
@@ -423,7 +495,7 @@ const output = (e) => ({
 
 // Every event fragment the news describes (one per event per post, mission sets included), with its doubts, text
 // and aiKey, before posts about the same event are merged: what scripts/ai-events.js asks a model about.
-export function eventFragments(posts, cards = {}, lang = en) {
+export function eventFragments(posts: NewsPost[], cards: BuildOptions['cards'] = {}, lang: Lexicon = en): Fragment[] {
   const index = cardIndex(cards, lang);
   return posts.flatMap((post) => postEvents(post, index, lang)).flatMap((f) => missionBars(f, lang));
 }
@@ -434,20 +506,23 @@ export function eventFragments(posts, cards = {}, lang = en) {
 //   cmTable  data/champions_meeting_rewards.json
 //   cards    generated/cards.json (card ids by title + name, in the posts' language)
 //   lang     the posts' wording (scripts/lib/news-lang/), English by default
-export function buildEvents(posts, { cmTable = [], cards = {}, answers = {}, lang = en } = {}) {
+export function buildEvents(
+  posts: NewsPost[],
+  { cmTable = [], cards = {}, answers = {}, lang = en }: BuildOptions = {}
+): GameEvent[] {
   const fragments = eventFragments(posts, cards, lang)
     .map((f) => (answers[f.aiKey] ? applyAnswer(f, answers[f.aiKey].answer, { lang }) : f))
     .sort((a, b) => a.posted.localeCompare(b.posted) || a.id.localeCompare(b.id));
-  let events = [];
-  const byKey = new Map(); // sameKey → the events so far with it
-  const alias = new Map(); // a merged fragment's id → its event's (sub-events point at their post's celebration)
+  let events: Fragment[] = [];
+  const byKey = new Map<string, Fragment[]>(); // sameKey → the events so far with it
+  const alias = new Map<string, string>(); // a merged fragment's id → its event's (sub-events point at their post's celebration)
   for (const f of fragments) {
     const key = sameKey(f);
     const same = byKey.get(key) ?? [];
     const match = f.start
       ? same.find((e) => overlap(e, f))
       : same
-          .filter((e) => Date.parse(e.start) <= Date.parse(f.posted))
+          .filter((e) => ms(e.start) <= Date.parse(f.posted))
           .find((e) => Date.parse(f.posted) - endOf(e) <= GROUP_DAYS * DAY);
     // (JP: a typo in one post's name. The same kind with the very same dates is the same event, `lang.sameDates`; the
     // later post's name wins.)
@@ -471,16 +546,13 @@ export function buildEvents(posts, { cmTable = [], cards = {}, answers = {}, lan
   }
   // An event announced without dates is the same-named one starting within SAME_EVENT_DAYS after the post (its own
   // "starts when posted" bar is dropped), else it stays (announced, not scheduled yet).
-  const dropped = new Set();
+  const dropped = new Set<Fragment>();
   for (const f of events.filter((e) => e.undated)) {
     const days = lang.sameEventDays?.(f.kind) ?? SAME_EVENT_DAYS;
     const later = byKey
       .get(sameKey(f))
-      .find(
-        (e) =>
-          !e.undated &&
-          Date.parse(e.start) >= Date.parse(f.posted) &&
-          Date.parse(e.start) - Date.parse(f.posted) <= days * DAY
+      ?.find(
+        (e) => !e.undated && ms(e.start) >= Date.parse(f.posted) && ms(e.start) - Date.parse(f.posted) <= days * DAY
       );
     if (!later) continue;
     // One event, under the first post's id, with the dated post's dates.
@@ -489,7 +561,10 @@ export function buildEvents(posts, { cmTable = [], cards = {}, answers = {}, lan
     dropped.add(f);
   }
   events = events.filter((e) => !dropped.has(e));
-  for (const e of events) if (alias.has(e.parent)) e.parent = alias.get(e.parent);
+  for (const e of events) {
+    const parent = e.parent && alias.get(e.parent);
+    if (parent) e.parent = parent;
+  }
   // An event spans its parts (a celebration dated from its first section, a 3-day collab, runs as long as its login
   // bonus and gifts).
   // (lang.notSpanning: parts that don't stretch their event; JP: sales, a pack on sale for a year or more after it.)
@@ -497,7 +572,7 @@ export function buildEvents(posts, { cmTable = [], cards = {}, answers = {}, lan
     events.filter((e) => e.parent && !lang.notSpanning?.(e)),
     (e) => e.parent
   );
-  for (const e of events) if (parts.has(e.id)) Object.assign(e, span([e, ...parts.get(e.id)]));
+  for (const e of events) if (parts.has(e.id)) Object.assign(e, span([e, ...(parts.get(e.id) ?? [])]));
   for (const e of events) if (e.kind === 'champions_meeting') e.items = mergeItems(e.items, cmItems(cmTable, e.start));
 
   // A sub-event without art of its own shows its celebration's.
@@ -510,20 +585,22 @@ export function buildEvents(posts, { cmTable = [], cards = {}, answers = {}, lan
 
 // --- files ---------------------------------------------------------------------------------------------------------
 
-export const readEvents = (server = 'gl') =>
+export const readEvents = (server: Server = 'gl'): EventsFile =>
   existsSync(eventsFile(server)) ? JSON.parse(readFileSync(eventsFile(server), 'utf8')) : [];
-export const readAnswers = (server = 'gl') =>
+export const readAnswers = (server: Server = 'gl'): AiAnswersFile =>
   existsSync(answersFile(server)) ? JSON.parse(readFileSync(answersFile(server), 'utf8')) : {};
 // One answer per line, sorted by key, so commits diff per answer.
-export function writeAnswers(answers, server = 'gl') {
+export function writeAnswers(answers: AiAnswersFile, server: Server = 'gl'): void {
   const keys = Object.keys(answers).sort();
   writeFileSync(
     answersFile(server),
     `{\n${keys.map((k) => `${JSON.stringify(k)}: ${JSON.stringify(answers[k])}`).join(',\n')}\n}\n`
   );
 }
-export const readCmTable = () => (existsSync(CM_REWARDS_FILE) ? JSON.parse(readFileSync(CM_REWARDS_FILE, 'utf8')) : []);
+export const readCmTable = (): CmRewardsFile =>
+  existsSync(CM_REWARDS_FILE) ? JSON.parse(readFileSync(CM_REWARDS_FILE, 'utf8')) : [];
 
 // One event per line, so commits diff per event (excluded from Biome, see biome.json).
-const lines = (events) => `[\n${events.map((e) => JSON.stringify(e)).join(',\n')}\n]\n`;
-export const writeEvents = (events, server = 'gl') => writeFileSync(eventsFile(server), lines(events));
+const lines = (events: GameEvent[]): string => `[\n${events.map((e) => JSON.stringify(e)).join(',\n')}\n]\n`;
+export const writeEvents = (events: GameEvent[], server: Server = 'gl'): void =>
+  writeFileSync(eventsFile(server), lines(events));
