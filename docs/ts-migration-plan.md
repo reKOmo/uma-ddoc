@@ -78,11 +78,13 @@ hand-written: `RankChart`, `useDragScroll`, `BackToTop`, `useMediaQuery`, search
 
 - Scripts run on Node 24's type stripping: `node scripts/x.ts`, no build step. So: **`.ts` in every relative import
   path**, no `enum`, `namespace` or constructor parameter properties (`erasableSyntaxOnly` enforces it).
-- `tsconfig.json`: `strict`, `noEmit`, `allowImportingTsExtensions`, `erasableSyntaxOnly`, `verbatimModuleSyntax`,
-  `resolveJsonModule`, `module`/`moduleResolution` `nodenext` (scripts, tierlist, shared, tests) with `jsx:
-  react-jsx` + `vite/client` types for `src/`.
-- `pnpm typecheck` = `tsc --noEmit` (and in `deploy.yml`).
-- JSON imports keep `with { type: 'json' }`.
+- One `tsconfig.json` for everything (TypeScript 7): `strict`, `noEmit`, `allowImportingTsExtensions`,
+  `erasableSyntaxOnly`, `verbatimModuleSyntax`, `resolveJsonModule`, `module`/`moduleResolution` `nodenext`,
+  `jsx: react-jsx`, types `node` (24) + `vite/client`, libs `esnext` + DOM.
+- `pnpm typecheck` = `tsc` (under a second; also in `deploy.yml`).
+- JSON imports keep `with { type: 'json' }`. `test/data.test.ts` imports upstream's raw `.js` card lists (no
+  `allowJs`): type them with a small `declare module` / cast when X1 gets there.
+- Biome lints `.ts` files even under `@ts-nocheck` (e.g. `noImplicitAnyLet`): L0 annotated the few it flagged.
 
 **Every file is renamed in L0 and starts with `// @ts-nocheck`.** A typing task removes that line from its files and
 makes them type-check. So no task ever edits another task's files to fix an import path, and the app keeps working

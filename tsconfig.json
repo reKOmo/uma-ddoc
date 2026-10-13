@@ -1,0 +1,24 @@
+{
+  // One project for everything: the scripts and tierlist/ run on Node's type stripping (`node x.ts`, hence `.ts` in
+  // import paths and erasable syntax only), src/ is bundled by Vite (its client types: CSS imports,
+  // import.meta.glob), tests run both. Only type-checks; nothing is emitted.
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node", "vite/client"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src", "tierlist", "scripts", "test", "shared", "vite.config.ts", "vitest.config.ts"],
+  "exclude": ["upstream", "generated", "dist", "node_modules"]
+}

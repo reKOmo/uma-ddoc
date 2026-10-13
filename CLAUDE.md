@@ -128,6 +128,11 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
 Stack: React 19 + Vite 8, i18next + react-i18next, Vitest, Biome + husky, `lucide-react` icons, `vaul` (sheets, on Radix's dialog), `@dnd-kit` (drag to reorder), `clsx`, pnpm (never npm). No
 backend: all data is generated at build time.
 
+**TypeScript migration in progress** (`docs/ts-migration-plan.md`, branch `ts-migration`): every file is `.ts` /
+`.tsx` now (the paths below still say `.js` / `.jsx` until the last task updates them); files not typed yet start with
+`// @ts-nocheck`. Scripts run on Node 24's type stripping (`node scripts/x.ts`): `.ts` in import paths, erasable
+syntax only. `pnpm typecheck` runs `tsc`.
+
 ## Commands
 
 ```sh
