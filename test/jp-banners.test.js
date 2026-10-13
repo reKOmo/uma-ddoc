@@ -1,7 +1,13 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { bannerPost } from '../scripts/lib/banner-posts.js';
-import { applyJpNews, isRegular, JP_BANNERS_FILE, regularBanners } from '../scripts/lib/jp-banners.js';
+import {
+  applyJpNews,
+  GAMETORA_TRAINEES_FILE,
+  isRegular,
+  JP_BANNERS_FILE,
+  regularBanners,
+} from '../scripts/lib/jp-banners.js';
 import { BANNERS_FILE as GLOBAL_BANNERS_FILE } from '../scripts/lib/global.js';
 import { postsFile } from '../scripts/lib/news-api.js';
 import { ja } from '../scripts/lib/news-lang/ja.js';
@@ -277,10 +283,12 @@ describe.skipIf(!posts.length || !existsSync(JP_BANNERS_FILE))('the stored JP ba
     const cards = readJson(`${GENERATED_DIR}cards.json`);
     const global = existsSync(GLOBAL_BANNERS_FILE) ? readJson(GLOBAL_BANNERS_FILE) : null;
     expect(applyJpNews({ posts: scouts, jp: stored, cards, global }).jp).toEqual(stored);
-    // From the seeded history alone (no GameTora file): the same, every featured trainee and card resolved.
+    // From the seeded history alone: the same, every featured trainee and card resolved. A trainee debuting on a
+    // banner made from the news resolves only from GameTora's trainee list, as update-jp reads it (when there is one).
+    const trainees = existsSync(GAMETORA_TRAINEES_FILE) ? readJson(GAMETORA_TRAINEES_FILE) : null;
     const seeded = (list) => list.filter((b) => !b.from_news);
     const jp = { ...stored, characters: seeded(stored.characters), cards: seeded(stored.cards) };
-    const again = applyJpNews({ posts: scouts, jp, cards, global });
+    const again = applyJpNews({ posts: scouts, jp, cards, global, trainees });
     expect(again.jp).toEqual(stored);
     // Unresolved: only a trainee debuting on a banner made from the news (no earlier banner names it, and the news
     // gives no trainee ids); every card and every known trainee resolves.

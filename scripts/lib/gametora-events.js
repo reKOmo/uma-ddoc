@@ -1,7 +1,8 @@
 // GameTora's JP event history (story events, Champions Meetings, Legend Races) filled into JP's events
 // (data/jp_events.json) where the JP news has none: our JP news archive is thin before mid-2022 (2021: 96 posts), and
 // GameTora's history goes back to the 2021 launch. From mid-2022 on the two agree exactly (checked on 2026-10-11), so a
-// GameTora event is only added where no news event of its kind overlaps it. Pure, except the reader/writer.
+// GameTora event is only added before then (FILL_BEFORE), where no news event of its kind overlaps it: a newer one
+// GameTora lists first (the next cup, before the JP news dates it) waits for the news. Pure, except the reader/writer.
 //
 // generated/raw/gametora_events.json (pnpm scrape-gametora), GameTora's files cut to the fields read here:
 //   { story: [{ id, name_ja, start_ja, end_ja, event_support_ids }],
@@ -35,6 +36,8 @@ export const GAMETORA_EVENT_FILES = {
 const RACE_FIELDS = ['card_id', 'start', 'end'];
 
 const SAME_EVENT_DAYS = 45;
+// GameTora's events are only filled in before this (where the news archive is thin); later ones only date a news event.
+export const FILL_BEFORE = '2022-07-01T00:00:00.000Z';
 const HOUR = DAY / 24;
 // A cup's schedule from round 1 (ms after its start; the last phase ends with the event).
 const CM_SCHEDULE = [
@@ -164,7 +167,7 @@ export function fillFromGametora(events, raw, cards = {}) {
       const out = { ...announced, start, end, cards: announced.cards.length ? announced.cards : given };
       if (phases) out.phases = phases;
       dated.set(announced.id, out);
-    } else filled.push(g);
+    } else if (g.start < FILL_BEFORE) filled.push(g);
   }
   const all = [...news.map((e) => dated.get(e.id) ?? e), ...filled].sort(
     (a, b) => b.start.localeCompare(a.start) || b.id.localeCompare(a.id)

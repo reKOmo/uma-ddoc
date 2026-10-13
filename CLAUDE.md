@@ -841,6 +841,8 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   staging would commit their unstaged changes); fix those with `pnpm format` + re-stage.
   `pnpm install` sets it up (the `prepare` script). Bypass in an emergency with
   `git commit --no-verify`.
+- **Pre-push hook** (`.husky/pre-push`): runs `pnpm test`; a failing test blocks the push
+  (`git push --no-verify` to bypass).
 - Linter uses the `recommended` preset. Where the code is deliberate, suppress with a
   `biome-ignore <rule>: <reason>` comment (see `RankChart`)
   rather than turning rules off globally.

@@ -1,0 +1,4 @@
+# The unit suite (pnpm test, ~15s) before anything leaves this machine; a failure blocks the push.
+# Bypass in an emergency with `git push --no-verify`.
+
+pnpm test

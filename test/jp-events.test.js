@@ -350,9 +350,11 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
     expect(cmPhasesFrom(Date.parse(round1.start), Date.parse(e.end))).toEqual(e.phases.slice(1));
   });
 
-  it('fills only where the news has nothing of the kind, and dates a cup the news only announced', () => {
+  it('fills only before mid-2022 where the news has nothing of the kind, and dates a cup the news only announced', () => {
     const { events, filled, dated } = fillFromGametora(news, raw, cardsJp);
-    expect(filled.map((e) => e.id).sort()).toEqual(['gt-cm-10', 'gt-lr-20261008', 'gt-story-1003']);
+    // (The 2026 Legend Race waits for the news: GameTora lists newer events before the news dates them.)
+    expect(filled.map((e) => e.id).sort()).toEqual(['gt-cm-10', 'gt-story-1003']);
+    expect(events.some((e) => e.id === 'gt-lr-20261008')).toBe(false);
     expect(dated).toHaveLength(1);
     expect(events.find((e) => e.id === '526')).toMatchObject({
       start: '2022-01-22T03:00:00.000Z',
