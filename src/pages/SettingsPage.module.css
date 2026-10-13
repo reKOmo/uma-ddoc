@@ -1,10 +1,10 @@
-/* .page (App.css, loaded later) sets its own max-width; this one has to win. */
-.page.settings-page {
+/* .page (App.css, loaded earlier) sets its own max-width; this one has to win. */
+.settingsPage:global(.page) {
   max-width: 640px;
 }
 
 /* The settings share one panel; About has its own. */
-.settings-group,
+.group,
 .about {
   padding: 16px;
   background: var(--panel);
@@ -24,7 +24,7 @@
   font-size: 1.05rem;
 }
 
-.setting-hint {
+.hint {
   margin: 0 0 12px;
   font-size: 0.875rem;
   line-height: 1.4;
@@ -33,12 +33,12 @@
 
 /* Styled like the server switch (the shared .segmented colours): compact, as wide as its options. The detail
    (an example, the timezone) follows the name in small muted print; long ones wrap instead of overflowing. */
-.setting .segmented {
+.toggle {
   width: fit-content;
   max-width: 100%;
 }
 
-.setting .segmented button {
+.toggle button {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -52,11 +52,11 @@
   overflow-wrap: anywhere;
 }
 
-.option-label {
+.optionLabel {
   font-weight: 600;
 }
 
-.option-detail {
+.optionDetail {
   font-size: 0.75rem;
   opacity: 0.75;
 }
@@ -67,21 +67,21 @@
   margin-top: 32px;
 }
 
-.about-app {
+.aboutApp {
   margin: 0 0 12px;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--muted);
 }
 
-.about-text {
+.aboutText {
   margin: 0 0 12px;
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--muted);
 }
 
-.about-text a {
+.aboutText a {
   color: var(--accent);
 }
 

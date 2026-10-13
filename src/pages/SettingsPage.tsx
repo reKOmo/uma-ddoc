@@ -1,14 +1,16 @@
-// @ts-nocheck
+import clsx from 'clsx';
 import { ExternalLink } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 import pkg from '../../package.json' with { type: 'json' };
+import { Segmented } from '../ui/Segmented.tsx';
 import { SETTING_OPTIONS, localTimeZone, useSettings } from '../settings.tsx';
-import './settings.css';
+import type { Settings, SettingName } from '../settingsStore.ts';
+import styles from './SettingsPage.module.css';
 
 const PULL_GUIDE_URL = 'https://docs.google.com/spreadsheets/d/1zZOBxjcgJEKna7ftYKq0AlZS25Q3hE_occ7kXB-Q6MQ';
 
 // Sites Umaddoc builds on, credited in About (name and description in en.json under settings.credit.<key>).
-const CREDITS = [
+const CREDITS: readonly (readonly [string, string])[] = [
   ['gametora', 'https://gametora.com/umamusume'],
   ['tierList', 'https://euophrys.github.io/uma-tiers/'],
   ['pullGuide', PULL_GUIDE_URL],
@@ -17,25 +19,37 @@ const CREDITS = [
 
 // One setting: a heading, a hint, and a segmented toggle over its options. labels and details
 // are by option: each button shows its label, with the detail (an example, the timezone) in small print under it.
-function Setting({ name, title, hint, labels, details }) {
+type SettingProps<K extends SettingName> = {
+  name: K;
+  title: string;
+  hint: string;
+  options: readonly Settings[K][];
+  labels: Record<Settings[K], string>;
+  details: Record<Settings[K], string>;
+};
+
+function Setting<K extends SettingName>({ name, title, hint, options, labels, details }: SettingProps<K>) {
   const { settings, setSetting } = useSettings();
+  const headingId = `setting-${name}`;
   return (
-    <section className="setting">
-      <h2 id={`setting-${name}`}>{title}</h2>
-      <p className="setting-hint">{hint}</p>
-      <fieldset className="segmented" aria-labelledby={`setting-${name}`}>
-        {SETTING_OPTIONS[name].map((option) => (
-          <button
-            type="button"
-            key={option}
-            aria-pressed={settings[name] === option}
-            onClick={() => setSetting(name, option)}
-          >
-            <span className="option-label">{labels[option]}</span>
-            {details?.[option] && <small className="option-detail">{details[option]}</small>}
-          </button>
-        ))}
-      </fieldset>
+    <section className={styles.setting}>
+      <h2 id={headingId}>{title}</h2>
+      <p className={styles.hint}>{hint}</p>
+      <Segmented<Settings[K]>
+        labelledBy={headingId}
+        className={styles.toggle}
+        options={options.map((option) => ({
+          value: option,
+          label: (
+            <>
+              <span className={styles.optionLabel}>{labels[option]}</span>
+              {details[option] && <small className={styles.optionDetail}>{details[option]}</small>}
+            </>
+          ),
+        }))}
+        value={settings[name]}
+        onChange={(value) => setSetting(name, value)}
+      />
     </section>
   );
 }
@@ -43,11 +57,12 @@ function Setting({ name, title, hint, labels, details }) {
 export default function SettingsPage() {
   const { t } = useTranslation();
   return (
-    <div className="page settings-page">
+    <div className={clsx('page', styles.settingsPage)}>
       {/* Every setting in one panel, divided by rules. */}
-      <div className="settings-group">
+      <div className={styles.group}>
         <Setting
           name="timeZone"
+          options={SETTING_OPTIONS.timeZone}
           title={t('settings.timeZone')}
           hint={t('settings.timeZoneHint')}
           labels={{ utc: t('settings.utc'), local: t('settings.local') }}
@@ -55,6 +70,7 @@ export default function SettingsPage() {
         />
         <Setting
           name="scenarioNames"
+          options={SETTING_OPTIONS.scenarioNames}
           title={t('settings.scenarioNames')}
           hint={t('settings.scenarioNamesHint')}
           labels={{ global: t('settings.scenarioNamesGlobal'), jp: t('settings.scenarioNamesJp') }}
@@ -62,6 +78,7 @@ export default function SettingsPage() {
         />
         <Setting
           name="jpNewsLanguage"
+          options={SETTING_OPTIONS.jpNewsLanguage}
           title={t('settings.jpNewsLanguage')}
           hint={t('settings.jpNewsLanguageHint')}
           labels={{ jp: t('settings.jpNewsLanguageJp'), en: t('settings.jpNewsLanguageEn') }}
@@ -69,11 +86,11 @@ export default function SettingsPage() {
         />
       </div>
 
-      <section className="about">
+      <section className={styles.about}>
         <h2>{t('settings.about')}</h2>
-        <p className="about-app">{t('settings.version', { version: pkg.version })}</p>
-        <p className="about-text">{t('settings.disclaimer')}</p>
-        <p className="about-text">
+        <p className={styles.aboutApp}>{t('settings.version', { version: pkg.version })}</p>
+        <p className={styles.aboutText}>{t('settings.disclaimer')}</p>
+        <p className={styles.aboutText}>
           <Trans
             i18nKey="settings.pullGuideDisclaimer"
             // biome-ignore lint/a11y/useAnchorContent: <Trans> fills the link with the catalog's <a> text.
@@ -81,7 +98,7 @@ export default function SettingsPage() {
           />
         </p>
         <h3>{t('settings.credits')}</h3>
-        <ul className="credits">
+        <ul className={styles.credits}>
           {CREDITS.map(([key, url]) => (
             <li key={key}>
               <a href={url} target="_blank" rel="noreferrer">
