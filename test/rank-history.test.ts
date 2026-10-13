@@ -1,8 +1,8 @@
-// @ts-nocheck
 // rankHistory replays a ranking as cards are released.
 
 import { describe, it, expect } from 'vitest';
 import { rankHistory } from '../src/rankHistory.ts';
+import { present } from './helpers.ts';
 
 // Sorted by score, as rankByUsefulness returns it; card 2 also has an LB0 copy.
 const ranking = [
@@ -13,12 +13,18 @@ const ranking = [
   { id: 2, lb: 0, score: 30 },
   { id: 5, lb: 4, score: 20 },
 ];
-const RELEASES = { 1: '2025-01-01', 2: '2024-06-01', 3: '2025-03-01', 4: '2025-05-01', 5: null };
-const releaseOf = (id) => RELEASES[id];
+const RELEASES: Record<number, string | null> = {
+  1: '2025-01-01',
+  2: '2024-06-01',
+  3: '2025-03-01',
+  4: '2025-05-01',
+  5: null,
+};
+const releaseOf = (id: number) => RELEASES[id];
 
 describe('rankHistory', () => {
   it("starts at the card's release and adds a point per later release date", () => {
-    const history = rankHistory(ranking, 1, 4, releaseOf);
+    const history = present(rankHistory(ranking, 1, 4, releaseOf), 'history');
     expect(history.map((p) => [p.date, p.position, p.total])).toEqual([
       ['2025-01-01', 2, 2],
       ['2025-03-01', 2, 3],
@@ -27,19 +33,22 @@ describe('rankHistory', () => {
   });
 
   it('names the cards that overtook it, and only on their release date', () => {
-    const history = rankHistory(ranking, 1, 4, releaseOf);
+    const history = present(rankHistory(ranking, 1, 4, releaseOf), 'history');
     expect(history.map((p) => p.overtakenBy.map((c) => c.id))).toEqual([[], [], [4]]);
   });
 
   it('only compares against the same limit break', () => {
-    const history = rankHistory(ranking, 2, 0, releaseOf);
+    const history = present(rankHistory(ranking, 2, 0, releaseOf), 'history');
     expect(history).toEqual([
       { date: '2024-06-01', position: 1, total: 1, tier: 0, overtakenBy: [], predicted: false },
     ]);
   });
 
   it('marks the dates where a card with a predicted release date comes out', () => {
-    const history = rankHistory(ranking, 1, 4, releaseOf, (id) => id === 4);
+    const history = present(
+      rankHistory(ranking, 1, 4, releaseOf, (id) => id === 4),
+      'history'
+    );
     expect(history.map((p) => p.predicted)).toEqual([false, false, true]);
   });
 

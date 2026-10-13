@@ -1,4 +1,3 @@
-// @ts-nocheck
 // JP's new support cards (scripts/lib/jp-cards.js): the cards the JP news shows (scout lists, story events' SSRs,
 // campaign gifts), augmented from GameTora's list, pending until it has them, GameTora-only cards never added.
 
@@ -7,12 +6,17 @@ import { describe, expect, it } from 'vitest';
 import { GAMETORA_CARDS_FILE } from '../scripts/build-cards.ts';
 import { JP_CARDS_FILE, applyNewsCards, newsCards } from '../scripts/lib/jp-cards.ts';
 import { postsFile } from '../scripts/lib/news-api.ts';
+import type { NewsCard } from '../scripts/lib/jp-cards.ts';
+import type { JpCard, JpCardsFile } from '../shared/schemas/card.ts';
+import type { GametoraCard } from '../shared/schemas/gametora.ts';
+import type { NewsPost } from '../shared/schemas/news.ts';
+import { present } from './helpers.ts';
 
-const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
-const posts = existsSync(postsFile('jp')) ? readJson(postsFile('jp')) : [];
+const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8'));
+const posts = existsSync(postsFile('jp')) ? readJson<NewsPost[]>(postsFile('jp')) : [];
 const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
-const some = (...ids) => ids.map((id) => byId.get(String(id)));
-const named = (cards) => Object.fromEntries(cards.map((c) => [`${c.title}${c.name}`, c]));
+const some = (...ids: number[]) => ids.map((id) => present(byId.get(String(id)), `post ${id}`));
+const named = (cards: NewsCard[]) => Object.fromEntries(cards.map((c) => [`${c.title}${c.name}`, c]));
 
 describe.skipIf(!posts.length)('newsCards', () => {
   it("reads a story event's own SSR, quoted or not", () => {
@@ -72,7 +76,14 @@ describe.skipIf(!posts.length)('newsCards', () => {
 });
 
 // GameTora's support cards (raw/gametora_cards.json's shape) and the history entries they make.
-const gt = (support_id, char_id, char_name, name_jp, title_ja, extra = {}) => ({
+const gt = (
+  support_id: number,
+  char_id: number,
+  char_name: string,
+  name_jp: string,
+  title_ja: string,
+  extra: Partial<GametoraCard> = {}
+): GametoraCard => ({
   support_id,
   char_id,
   char_name,
@@ -86,7 +97,7 @@ const gt = (support_id, char_id, char_name, name_jp, title_ja, extra = {}) => ({
   url_name: `${support_id}-x`,
   ...extra,
 });
-const old = {
+const old: JpCard = {
   charId: 1001,
   type: 'speed',
   rarity: 'SSR',
@@ -96,7 +107,7 @@ const old = {
   source: ['gacha'],
   slug: '30001-old',
 };
-const found = [
+const found: NewsCard[] = [
   {
     rarity: 'SSR',
     title: '[掲げよ、燃え盛る灯を]',
@@ -124,7 +135,7 @@ const gametora = [
   gt(30401, 1201, 'Giver', '贈る', '[贈り物]', { obtained: 'limited_quest', type: 'friend' }),
   gt(30402, 1202, 'Nobody', 'だれ', '[知らない]'),
 ];
-const history = { 30001: old };
+const history: JpCardsFile = { 30001: old };
 
 describe('applyNewsCards', () => {
   const result = applyNewsCards({ history, found, gametora });
@@ -202,8 +213,8 @@ describe('applyNewsCards', () => {
 const stored = posts.length && existsSync(GAMETORA_CARDS_FILE) && existsSync(JP_CARDS_FILE);
 describe.skipIf(!stored)('the stored news, history and GameTora list', () => {
   const all = stored ? newsCards(posts) : [];
-  const jpCards = stored ? readJson(JP_CARDS_FILE) : {};
-  const gtCards = stored ? readJson(GAMETORA_CARDS_FILE) : [];
+  const jpCards = stored ? readJson<JpCardsFile>(JP_CARDS_FILE) : {};
+  const gtCards = stored ? readJson<GametoraCard[]>(GAMETORA_CARDS_FILE) : [];
 
   it('add nothing GameTora lists that the history lacks, today', () => {
     const r = applyNewsCards({ history: jpCards, found: all, gametora: gtCards });

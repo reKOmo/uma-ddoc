@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { EVENT_GROUPS, itemList, withPredicted } from '../src/timeline/events.ts';
@@ -6,22 +5,37 @@ import { eventEntries } from '../src/timeline/entries.ts';
 import { DAY, laneGroups, partCount } from '../src/timeline/layout.ts';
 import { CM_PHASES, EVENT_KINDS } from '../scripts/lib/events.ts';
 import en from '../src/i18n/en.json' with { type: 'json' };
-import globalEvents from '../data/global_events.json' with { type: 'json' };
-import jpEvents from '../data/jp_events.json' with { type: 'json' };
-import fixture from './fixtures/predicted-global-events.json' with { type: 'json' };
+import globalEventsJson from '../data/global_events.json' with { type: 'json' };
+import jpEventsJson from '../data/jp_events.json' with { type: 'json' };
+import predictedJson from './fixtures/predicted-global-events.json' with { type: 'json' };
+import type { Entry } from '../src/timeline/entries.ts';
+import type { LaneItem } from '../src/timeline/layout.ts';
+import type { GameEvent, PredictedEventsFile } from '../shared/schemas/event.ts';
+import { fixture } from './helpers.ts';
+
+// The data files as their schemas describe them (JSON imports are typed more loosely; test/schemas.test.ts checks
+// the files).
+const globalEvents = fixture<GameEvent[]>(globalEventsJson);
+const jpEvents = fixture<GameEvent[]>(jpEventsJson);
+const predicted = fixture<PredictedEventsFile>(predictedJson);
 
 // The Timeline shows each server's events the same way.
-const SERVERS = [
+const SERVERS: [string, GameEvent[]][] = [
   ['Global', globalEvents],
   ['JP', jpEvents],
 ];
 
 // Events in their lane groups, as the Timeline draws them.
-const eventGroups = (events) => laneGroups(eventEntries(events));
-const idsOf = (rows) => rows.map((row) => row.map((item) => item.entry.id));
+// The phases' labels (en.json), by key.
+const PHASE_LABELS: Record<string, string> = en.events.phase;
+
+const eventGroups = (events: GameEvent[]) => laneGroups(eventEntries(events));
+const idsOf = (rows: LaneItem<Entry>[][]) => rows.map((row) => row.map((item) => item.entry.id));
 
 describe('event lanes', () => {
-  const event = (id, kind, start, end, parent = null) => ({ id, kind, start, end, parent, cards: [], items: [] });
+  // (events with the fields the lanes read)
+  const event = (id: string, kind: string, start: string, end: string | null, parent: string | null = null) =>
+    fixture<GameEvent>({ id, kind, start, end, parent, cards: [], items: [] });
 
   it('groups events by type, each packed on its own, parts only under their parent', () => {
     const groups = eventGroups([
@@ -44,7 +58,8 @@ describe('event lanes', () => {
   });
 
   it.each(SERVERS)('places every dated event in the data once, in a known group (%s)', (_, events) => {
-    const placed = (items) => items.flatMap((item) => [item.entry.id, ...placed(item.parts.flat())]);
+    const placed = (items: LaneItem<Entry>[]): Entry['id'][] =>
+      items.flatMap((item) => [item.entry.id, ...placed(item.parts.flat())]);
     const all = eventGroups(events).flatMap((g) => placed(g.rows.flat()));
     expect(all.sort()).toEqual(
       events
@@ -80,7 +95,8 @@ describe('itemList', () => {
 
 describe('event parts', () => {
   it("lists a celebration's sub-events by start, each pointing back to it", () => {
-    const event = (id, parent, start) => ({ id, kind: 'gift', parent, start, end: null, cards: [], items: [] });
+    const event = (id: string, parent: string | null, start: string) =>
+      fixture<GameEvent>({ id, kind: 'gift', parent, start, end: null, cards: [], items: [] });
     const [celebration, , part] = eventEntries([
       event('902', null, '2026-07-22T22:00:00Z'),
       event('902-21', '902', '2026-07-23T15:00:00Z'),
@@ -100,7 +116,7 @@ describe.each(SERVERS)('the event data (%s)', (_, events) => {
     const keys = CM_PHASES.map(([key]) => key);
     // (Only an announcement without dates of its own has none. JP's cups dated by GameTora start at round 1, the
     // league selection unknown: scripts/lib/gametora-events.js.)
-    const fromRound1 = (e) => e.start === e.phases?.find((p) => p.key === 'round_1')?.start;
+    const fromRound1 = (e: GameEvent) => e.start === e.phases?.find((p) => p.key === 'round_1')?.start;
     for (const e of events.filter((x) => x.kind === 'champions_meeting' && (x.end || x.phases?.length)))
       expect({ id: e.id, phases: e.phases?.map((p) => p.key) }).toEqual({
         id: e.id,
@@ -110,7 +126,7 @@ describe.each(SERVERS)('the event data (%s)', (_, events) => {
 
   it('labels every phase', () => {
     const phases = new Set(events.flatMap((e) => e.phases ?? []).map((p) => p.key));
-    expect([...phases].filter((key) => !en.events.phase[key])).toEqual([]);
+    expect([...phases].filter((key) => !PHASE_LABELS[key])).toEqual([]);
   });
 
   it('links sub-events to a celebration that exists', () => {
@@ -124,7 +140,8 @@ describe.each(SERVERS)('the event data (%s)', (_, events) => {
 });
 
 describe('withPredicted', () => {
-  const real = [
+  // (events with the fields withPredicted() and the lanes read)
+  const real = fixture<GameEvent[]>([
     {
       id: '1',
       kind: 'story',
@@ -143,11 +160,11 @@ describe('withPredicted', () => {
       cards: [],
       items: [],
     },
-  ];
-  const ids = (events) => events.map((e) => e.id);
+  ]);
+  const ids = (events: GameEvent[]) => events.map((e) => e.id);
 
   it("adds the predicted events after the real ones, leaving out those Global's news has overtaken", () => {
-    const merged = withPredicted(real, fixture.events);
+    const merged = withPredicted(real, predicted.events);
     // jp-3000 (a story starting before Global's latest real one) goes, its mission set with it; parts aren't compared
     // with real parts (Global's mission 1-m1 starts after the predicted ones).
     expect(ids(merged)).toEqual(['1', '1-m1', 'jp-3444', 'jp-3500', 'jp-3500-m1', 'jp-3379', 'jp-3400']);
@@ -155,7 +172,7 @@ describe('withPredicted', () => {
   });
 
   it("draws them in Global's groups, kinds Global lacks too, parts under their predicted parent", () => {
-    const groups = eventGroups(withPredicted(real, fixture.events));
+    const groups = eventGroups(withPredicted(real, predicted.events));
     const rows = Object.fromEntries(groups.map((g) => [g.key, idsOf(g.rows)]));
     expect(rows).toEqual({
       'events-story': [['1', 'jp-3500', 'jp-3400']],
@@ -167,17 +184,17 @@ describe('withPredicted', () => {
   });
 
   it("keeps every predicted event after Global's latest real one of its kind (the real data)", () => {
-    const merged = withPredicted(globalEvents, fixture.events);
-    const latest = (kind) =>
+    const merged = withPredicted(globalEvents, predicted.events);
+    const latest = (kind: string) =>
       Math.max(...globalEvents.filter((e) => e.kind === kind && !e.parent).map((e) => Date.parse(e.start)));
-    for (const e of merged.filter((x) => x.predicted && !x.parent))
+    for (const e of merged.filter((x) => 'predicted' in x && x.predicted && !x.parent))
       expect(Date.parse(e.start) > latest(e.kind) || latest(e.kind) === -Infinity).toBe(true);
   });
 });
 
 // The predicted events `pnpm predict-gl` writes (when it has: the file is optional), in the shape the Timeline reads.
 const PREDICTED_FILE = new URL('../generated/predicted_global_events.json', import.meta.url);
-const predictedFiles = [['the fixture', fixture]];
+const predictedFiles: [string, PredictedEventsFile][] = [['the fixture', predicted]];
 if (existsSync(PREDICTED_FILE))
   predictedFiles.push(['generated/predicted_global_events.json', JSON.parse(readFileSync(PREDICTED_FILE, 'utf8'))]);
 
@@ -203,6 +220,6 @@ describe.each(predictedFiles)('predicted events (%s)', (_, file) => {
 
   it('labels every phase', () => {
     const phases = new Set(file.events.flatMap((e) => e.phases ?? []).map((p) => p.key));
-    expect([...phases].filter((key) => !en.events.phase[key])).toEqual([]);
+    expect([...phases].filter((key) => !PHASE_LABELS[key])).toEqual([]);
   });
 });

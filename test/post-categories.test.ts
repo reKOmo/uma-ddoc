@@ -1,11 +1,15 @@
-// @ts-nocheck
 import { describe, expect, it } from 'vitest';
 import { categorize, plain } from '../scripts/lib/post-categories.ts';
+import type { NewsPost } from '../shared/schemas/news.ts';
+import { fixture } from './helpers.ts';
 
-const post = (title, { id = 1000, message = '' } = {}) => ({ announce_id: id, title, message });
-const art = (id) =>
+type PostOptions = { id?: number; message?: string };
+// (a post with the fields categorize() reads)
+const post = (title: string, { id = 1000, message = '' }: PostOptions = {}) =>
+  fixture<NewsPost>({ announce_id: id, title, message });
+const art = (id: number) =>
   `<figure><img src="https://example.com/uploads/Header/gacha_banner_${id}_L1791410400.png?c=1"></figure>`;
-const of = (title, options) => {
+const of = (title: string, options?: PostOptions) => {
   const { category, kind, phase, name } = categorize(post(title, options));
   return { category, kind, phase, name };
 };

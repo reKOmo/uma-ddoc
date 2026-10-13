@@ -197,7 +197,7 @@ export type PullEntry = Omit<Advice, 'googleSheetsSrc'> & {
 // A scenario tab as byBanner() takes it: its sheet's gid and entries.
 export type Tab = { gid?: string | null; entries: PullEntry[] };
 // An entry as byBanner() keeps it: its advice (with where it is in the sheet) and its banner's date.
-type Listed = Advice & { banner: Release };
+export type Listed = Advice & { banner: Release };
 
 // One scenario tab → { entries: [{ id, name, row, banner: { label, …date }, freePulls, shouldPull,
 // comment, advice }] }: `advice` is the notes as one paragraph, led by short advice without a pill (see

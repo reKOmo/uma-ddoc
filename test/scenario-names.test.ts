@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Scenario short names (scenarioName() in src/i18n) under the "Scenario names" setting.
 
 import { afterEach, describe, it, expect } from 'vitest';
@@ -37,6 +36,7 @@ describe('scenarioName', () => {
   });
 
   it('ignores values that are not an option', () => {
+    // @ts-expect-error: not an option, on purpose
     setSetting('scenarioNames', 'nonsense');
     expect(scenarioName('Aoharu')).toBe('Unity');
   });

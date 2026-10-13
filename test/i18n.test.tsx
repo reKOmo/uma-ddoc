@@ -1,4 +1,3 @@
-// @ts-nocheck
 // UI strings: every key the code asks for exists, every language has the same
 // keys as English, and i18next fills placeholders, plurals, lists and <Trans>.
 
@@ -16,6 +15,7 @@ import { EVENT_GROUPS } from '../src/timeline/events.ts';
 import { LANE_GROUPS } from '../src/timeline/layout.ts';
 import { ORIGIN_KINDS } from '../src/cardOrigins.ts';
 import { cards } from '../tierlist/cards.ts';
+import { present } from './helpers.ts';
 
 const I18N_DIR = new URL('../src/i18n/', import.meta.url);
 const SRC_DIR = new URL('../src/', import.meta.url);
@@ -23,8 +23,9 @@ const t = i18n.t.bind(i18n);
 
 // Leaf keys as dotted paths, with plural forms (days_one, days_other) folded
 // into the key the code uses (days).
-function leafKeys(node, prefix = '') {
-  return Object.entries(node).flatMap(([key, value]) =>
+type Catalog = { [key: string]: string | Catalog };
+function leafKeys(node: Catalog, prefix = ''): string[] {
+  return Object.entries(node).flatMap(([key, value]): string[] =>
     typeof value === 'object'
       ? leafKeys(value, `${prefix}${key}.`)
       : [`${prefix}${key.replace(/_(zero|one|two|few|many|other)$/, '')}`]
@@ -41,7 +42,7 @@ describe('catalogs', () => {
   }
 
   it('has every literal key the code uses', () => {
-    const sources = readdirSync(SRC_DIR, { recursive: true })
+    const sources = readdirSync(SRC_DIR, { recursive: true, encoding: 'utf8' })
       .filter((f) => /\.[jt]sx?$/.test(f))
       .map((f) => readFileSync(new URL(f, SRC_DIR), 'utf8'));
     const used = sources.flatMap((source) => [
@@ -81,7 +82,7 @@ describe('catalogs', () => {
       ...EVENT_KINDS.map((k) => `events.kind.${k}`),
       ...EVENT_GROUPS.map(([k]) => `events.group.${k}`),
       ...CM_PHASES.map(([k]) => `events.phase.${k}`),
-      ...ja.schedules.league_of_heroes.map(([k]) => `events.phase.${k}`),
+      ...present(ja.schedules, 'JP schedules').league_of_heroes.map(([k]) => `events.phase.${k}`),
       ...['show', 'order'].map((k) => `timeline.filter.tab.${k}`),
       ...[1, 2, 3, 4].map((n) => `tierList.size.${n}`),
       ...ORIGIN_KINDS.filter((k) => k !== 'other').map((k) => `card.origins.kind.${k}`),

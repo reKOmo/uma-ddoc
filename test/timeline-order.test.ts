@@ -1,4 +1,3 @@
-// @ts-nocheck
 // The Timeline's group order: dragging a group among the shown ones, the default, and groups a saved order lacks.
 
 import { describe, it, expect } from 'vitest';

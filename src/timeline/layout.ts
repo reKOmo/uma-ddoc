@@ -4,8 +4,9 @@
 
 import { EVENT_GROUPS } from './events.ts';
 
-// What the layout reads of an entry (an Entry, src/timeline/entries.ts; the tests lay out bare ones).
-type LaneEntry = {
+// What the layout reads of an entry (an Entry, src/timeline/entries.ts; the tests lay out bare ones). The rows keep
+// the entries they're given, whatever their type.
+export type LaneEntry = {
   key: string;
   kind: string;
   start: string | null;
@@ -13,7 +14,7 @@ type LaneEntry = {
   parent?: string | null;
 };
 // An entry with a start (the ones laid out).
-type DatedEntry = LaneEntry & { start: string };
+type Dated<E extends LaneEntry> = E & { start: string };
 
 export const DAY = 24 * 60 * 60 * 1000;
 
@@ -63,19 +64,24 @@ export const LANE_GROUPS: LaneGroup[] = [
 // event's mission sets), packed the same way. A part is only under its parent, never in a group's rows. Empty groups
 // are left out.
 // A row item: an entry's span (ms) and the rows of its parts.
-export type LaneItem = { entry: DatedEntry; start: number; end: number; parts: LaneItem[][] };
-export type LaneGroupRows = { key: string; label: string; rows: LaneItem[][] };
+export type LaneItem<E extends LaneEntry = LaneEntry> = {
+  entry: Dated<E>;
+  start: number;
+  end: number;
+  parts: LaneItem<E>[][];
+};
+export type LaneGroupRows<E extends LaneEntry = LaneEntry> = { key: string; label: string; rows: LaneItem<E>[][] };
 
-export function laneGroups(entries: LaneEntry[], groups: LaneGroup[] = LANE_GROUPS): LaneGroupRows[] {
-  const dated = entries.filter((entry): entry is DatedEntry => !!entry.start);
+export function laneGroups<E extends LaneEntry>(entries: E[], groups: LaneGroup[] = LANE_GROUPS): LaneGroupRows<E>[] {
+  const dated = entries.filter((entry): entry is Dated<E> => !!entry.start);
   const keys = new Set(dated.map((entry) => entry.key));
-  const children = new Map<string, DatedEntry[]>();
+  const children = new Map<string, Dated<E>[]>();
   for (const entry of dated)
     if (entry.parent && keys.has(entry.parent)) {
       if (!children.has(entry.parent)) children.set(entry.parent, []);
       children.get(entry.parent)?.push(entry);
     }
-  const item = (entry: DatedEntry): LaneItem => ({
+  const item = (entry: Dated<E>): LaneItem<E> => ({
     entry,
     ...spanOf(entry),
     parts: packRows((children.get(entry.key) ?? []).map(item)),
@@ -125,7 +131,7 @@ export function buildTimeline(
     d[`set${f.hours}`](0, 0, 0, 0);
     return d.getTime();
   };
-  const times = entries.filter((e): e is DatedEntry => !!e.start).flatMap((e) => Object.values(spanOf(e)));
+  const times = entries.filter((e): e is Dated<LaneEntry> => !!e.start).flatMap((e) => Object.values(spanOf(e)));
   // A week of padding before the first entry, a month after the last (or today).
   const origin = startOfDay(Math.min(...times)) - 7 * DAY;
   const last = Math.max(...times, now) + 30 * DAY;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { describe, expect, it } from 'vitest';
 import { umapyoiUrl } from '../src/umapyoi.ts';
 

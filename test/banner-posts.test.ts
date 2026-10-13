@@ -1,12 +1,13 @@
-// @ts-nocheck
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { bannerPost } from '../scripts/lib/banner-posts.ts';
 import { postsFile } from '../scripts/lib/news-api.ts';
+import type { NewsPost } from '../shared/schemas/news.ts';
+import { fixture, present } from './helpers.ts';
 
-const art = (id) =>
+const art = (id: number) =>
   `<figure><img src="https://example.com/uploads/Header/gacha_banner_${id}_L1791410400.png?c=1&amp;x=2"></figure>`;
-const h2 = (text) => `<h2 class="heading"> ${text}</h2>\n`;
+const h2 = (text: string) => `<h2 class="heading"> ${text}</h2>\n`;
 
 // Post 1089, trimmed.
 const SPOTLIGHT = [
@@ -27,12 +28,14 @@ const SPOTLIGHT = [
   ' 10:00 p.m., Oct 7–9:59 p.m., Oct 22, 2026 (UTC)<br>\n',
 ].join('');
 
-const post = (message, { id = 1089, posted = '2026-10-07 22:00:00' } = {}) => ({
-  announce_id: id,
-  title: 'Spotlight Pretty Derby and Spotlight Support Card Scouts out now!',
-  message,
-  post_at: posted,
-});
+// (a post with the fields bannerPost() reads)
+const post = (message: string, { id = 1089, posted = '2026-10-07 22:00:00' } = {}) =>
+  fixture<NewsPost>({
+    announce_id: id,
+    title: 'Spotlight Pretty Derby and Spotlight Support Card Scouts out now!',
+    message,
+    post_at: posted,
+  });
 
 describe('bannerPost', () => {
   it('reads each banner: type, scout period, art and its own list (each entry once)', () => {
@@ -71,25 +74,28 @@ describe('bannerPost', () => {
 
   it("takes the post's first period when none is a scout period, and open-ended ones", () => {
     const message = `${h2('Availability Period')} Jun 26, 2025 (UTC) onwards<br>${h2('Trainee Umamusume')}${art(50001)}`;
-    const [banner] = bannerPost(post(message, { id: 122, posted: '2025-06-26 00:30:00' })).banners;
+    const [banner] = present(
+      bannerPost(post(message, { id: 122, posted: '2025-06-26 00:30:00' })),
+      'scout post'
+    ).banners;
     expect(banner).toMatchObject({ gachaId: 50001, start: '2025-06-26T00:00:00.000Z', end: null, featured: [] });
   });
 
   it('carries a period over the new year', () => {
     const message = `${h2('Spotlight Scout Availability Period')} 10:00 p.m., Dec 28–9:59 p.m., Jan 5, 2027 (UTC)<br>${h2('Support Cards')}${art(1)}`;
-    const [banner] = bannerPost(post(message, { posted: '2026-12-27 22:00:00' })).banners;
+    const [banner] = present(bannerPost(post(message, { posted: '2026-12-27 22:00:00' })), 'scout post').banners;
     expect([banner.start, banner.end]).toEqual(['2026-12-28T22:00:00.000Z', '2027-01-05T21:59:00.000Z']);
   });
 
   it('flags scouts paid with paid carats', () => {
     const message = ` A scout can be performed at the cost of 1,500 paid carats.<br>${h2('Trainee Umamusume')}${art(50009)}`;
-    expect(bannerPost(post(message)).paid).toBe(true);
+    expect(present(bannerPost(post(message)), 'scout post').paid).toBe(true);
   });
 });
 
 describe.skipIf(!existsSync(postsFile('gl')))('the stored news', () => {
-  const posts = JSON.parse(readFileSync(postsFile('gl'), 'utf8'));
-  const banners = posts.map((post) => bannerPost(post)).filter(Boolean);
+  const posts: NewsPost[] = JSON.parse(readFileSync(postsFile('gl'), 'utf8'));
+  const banners = posts.map((post) => bannerPost(post)).filter((scout) => scout !== null);
 
   it('types and dates every banner', () => {
     expect(banners.length).toBeGreaterThan(0);

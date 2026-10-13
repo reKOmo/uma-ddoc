@@ -1,18 +1,24 @@
-// @ts-nocheck
 // Career scenario launches: parsing them from the news, GameTora's records, applying the news to
 // Global's (scripts/lib/news.js, scripts/lib/scenarios.js).
 
 import { describe, it, expect } from 'vitest';
 import { scenarioPost } from '../scripts/lib/news.ts';
 import { applyJpScenarioNews, applyScenarioNews, mergeGametora, retag } from '../scripts/lib/scenarios.ts';
+import type { ScenarioMention } from '../scripts/lib/news.ts';
+import type { GametoraScenario, ScenarioDraft } from '../scripts/lib/scenarios.ts';
+import type { NewsPost } from '../shared/schemas/news.ts';
+import type { StartDate } from '../shared/schemas/scenario.ts';
+import { fixture, present } from './helpers.ts';
 
-const post = (id, posted, title, lines) => ({
-  announce_id: id,
-  title,
-  post_at: posted,
-  announce_label: 1,
-  message: lines.join('<br>\n'),
-});
+// (a post with the fields the scenario parsers read)
+const post = (id: number, posted: string, title: string, lines: string[]) =>
+  fixture<NewsPost>({
+    announce_id: id,
+    title,
+    post_at: posted,
+    announce_label: 1,
+    message: lines.join('<br>\n'),
+  });
 
 describe('scenario mentions in the news', () => {
   it('reads the name, and the start only when the sentence says it is added', () => {
@@ -22,7 +28,7 @@ describe('scenario mentions in the news', () => {
         'A new career scenario, titled "Brighter Together! Our Grand Concert," will be added to the game at 10:00 p.m., Jul 22, 2026 (UTC)!',
       ])
     );
-    expect(record.scenarios).toEqual([
+    expect(present(record, 'record').scenarios).toEqual([
       { full: 'Brighter Together! Our Grand Concert', start: '2026-07-22T22:00:00.000Z' },
     ]);
   });
@@ -33,7 +39,7 @@ describe('scenario mentions in the news', () => {
         'To celebrate the release of the new "Unity Cup: Shine On, Team Spirit!" Career Scenario, we\'re holding a giveaway.',
       ])
     );
-    expect(record.scenarios).toEqual([{ full: 'Unity Cup: Shine On, Team Spirit!', start: null }]);
+    expect(present(record, 'record').scenarios).toEqual([{ full: 'Unity Cup: Shine On, Team Spirit!', start: null }]);
   });
 
   it('ignores "scenario" anywhere else', () => {
@@ -43,26 +49,33 @@ describe('scenario mentions in the news', () => {
         'New Career Scenario Celebration Support Card Scout',
       ])
     );
-    expect(record.scenarios).toEqual([]);
+    expect(present(record, 'record').scenarios).toEqual([]);
   });
 });
 
-const raw = (url_name, start_ja, extra = {}) => ({ url_name, name_ja: `JP ${url_name}`, start_ja, ...extra });
+// (GameTora's scenario records, with the fields mergeGametora() reads)
+const raw = (url_name: string, start_ja: number, extra: Record<string, unknown> = {}) =>
+  fixture<GametoraScenario>({ url_name, name_ja: `JP ${url_name}`, start_ja, ...extra });
 const GT = 'https://gametora.com/umamusume/';
 const GAMETORA = [
   raw('our-grand-concert', 1661310000, { name_en: 'Brighter Together Our Grand Concert', start_en: 1784757600 }),
   raw('grand-masters', 1677207600, { name_en: 'Grandmasters Legacies Immortal' }),
   raw('project-larc', 1692846000),
 ];
-const iso = (s) => new Date(s * 1000).toISOString();
+const iso = (s: number) => new Date(s * 1000).toISOString();
 const NOW = Date.parse('2026-10-08T00:00:00Z');
-const out = (date) => ({ date, tag: 'out' });
-const PREDICTED_GM = { date: '2026-11-25T22:00:00.000Z', tag: 'predicted', lo: '2026-11-21', hi: '2026-11-29' };
+const out = (date: string): StartDate => ({ date, tag: 'out' });
+const PREDICTED_GM: StartDate = {
+  date: '2026-11-25T22:00:00.000Z',
+  tag: 'predicted',
+  lo: '2026-11-21',
+  hi: '2026-11-29',
+};
 
 describe('mergeGametora', () => {
   it("adds JP's scenarios with key, name, tagged JP launch and link; never Global's launch", () => {
     const merged = mergeGametora([], GAMETORA, { now: NOW });
-    const row = (s) => [s.key, s.full_en, s.full_jp, s.en_start_date, s.jp_start_date, s.links.gametora];
+    const row = (s: ScenarioDraft) => [s.key, s.full_en, s.full_jp, s.en_start_date, s.jp_start_date, s.links.gametora];
     expect(merged.map(row)).toEqual([
       [
         'GL',
@@ -92,7 +105,12 @@ describe('mergeGametora', () => {
 });
 
 describe('applyScenarioNews', () => {
-  const news = (id, posted, scenarios) => ({ id, url: `https://umamusume.com/news/${id}/`, posted, scenarios });
+  const news = (id: number, posted: string, scenarios: ScenarioMention[]) => ({
+    id,
+    url: `https://umamusume.com/news/${id}/`,
+    posted,
+    scenarios,
+  });
   const base = mergeGametora([], GAMETORA, { now: NOW }).map((s) => {
     if (s.key === 'GL') return { ...s, en_start_date: out('2026-07-22T22:00:00.000Z') };
     if (s.key === 'GM') return { ...s, en_start_date: PREDICTED_GM };
@@ -151,14 +169,17 @@ describe('applyScenarioNews', () => {
 });
 
 describe('applyJpScenarioNews', () => {
-  const post = (id, title) => ({
-    announce_id: id,
-    announce_label: 1,
-    title,
-    message: '',
-    post_at: '2026-06-29 12:00:00',
-  });
-  const scenario = (key, full_jp) => ({ key, full_jp, links: { gametora: `https://gametora.com/umamusume/${key}` } });
+  const post = (id: number, title: string) =>
+    fixture<NewsPost>({
+      announce_id: id,
+      announce_label: 1,
+      title,
+      message: '',
+      post_at: '2026-06-29 12:00:00',
+    });
+  // (a scenario with the fields the JP news is matched against)
+  const scenario = (key: string, full_jp: string) =>
+    fixture<ScenarioDraft>({ key, full_jp, links: { gametora: `https://gametora.com/umamusume/${key}` } });
 
   it("links JP's launch post by the Japanese name, however it's spaced; leaves others alone", () => {
     const { scenarios, unmatched } = applyJpScenarioNews({
@@ -190,13 +211,13 @@ describe('covers', () => {
 
 describe('retag', () => {
   it('turns a confirmed date out once it has passed, and leaves predictions alone', () => {
-    const scenario = {
+    const scenario = fixture<ScenarioDraft>({
       key: 'GM',
       en_start_date: { date: '2027-01-10T22:00:00.000Z', tag: 'confirmed' },
       jp_start_date: PREDICTED_GM,
-    };
+    });
     const [later] = retag([scenario], Date.parse('2027-01-11T00:00:00Z'));
-    expect(later.en_start_date.tag).toBe('out');
+    expect(present(later.en_start_date, 'launch').tag).toBe('out');
     expect(later.jp_start_date).toBe(PREDICTED_GM);
   });
 });

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Cover colours (scripts/lib/colors.js): the PNG decoder and the main colour.
 
 import { deflateSync } from 'node:zlib';
@@ -6,8 +5,9 @@ import { describe, it, expect } from 'vitest';
 import { decodePng, mainColor } from '../scripts/lib/colors.ts';
 
 // A PNG from rows of [r, g, b, a] pixels (RGBA, filter 0 / "Sub" alternating to exercise both).
-function png(rows) {
-  const chunk = (type, data) => {
+type Pixel = [number, number, number, number];
+function png(rows: Pixel[][]) {
+  const chunk = (type: string, data: Buffer) => {
     const out = Buffer.alloc(12 + data.length);
     out.writeUInt32BE(data.length, 0);
     out.write(type, 4, 'latin1');
@@ -34,9 +34,9 @@ function png(rows) {
   ]);
 }
 
-const SKIN = [235, 180, 150, 255];
-const BLUE = [40, 90, 220, 255];
-const CLEAR = [0, 200, 0, 0];
+const SKIN: Pixel = [235, 180, 150, 255];
+const BLUE: Pixel = [40, 90, 220, 255];
+const CLEAR: Pixel = [0, 200, 0, 0];
 
 describe('decodePng', () => {
   it('reads RGBA pixels through the row filters', () => {
@@ -53,7 +53,7 @@ describe('decodePng', () => {
 
 describe('mainColor', () => {
   it("prefers the art's colour over skin and hair, ignoring transparent pixels", () => {
-    const rows = [
+    const rows: Pixel[][] = [
       [SKIN, SKIN, SKIN, BLUE],
       [SKIN, SKIN, CLEAR, CLEAR],
     ];

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // What a model is asked about the fields the rules doubt, and how its answers fill them in
 // (scripts/lib/event-questions.js); the doubts themselves (scripts/lib/events.js, event-rewards.js).
 
@@ -14,6 +13,13 @@ import {
 } from '../scripts/lib/event-questions.ts';
 import { parseJson } from '../scripts/lib/ai.ts';
 import { ja } from '../scripts/lib/news-lang/ja.ts';
+import type { AskedEvent } from '../scripts/lib/event-questions.ts';
+import type { Question } from '../scripts/lib/ai.ts';
+import type { AiAnswer } from '../shared/schemas/news.ts';
+import { fixture } from './helpers.ts';
+
+// A question's JSON schema properties, as the model is sent them.
+const properties = (q: Question) => q.schema.properties as Record<string, { enum?: string[] }>;
 
 const TEXT = [
   'As of 10:00 p.m., Aug 26, 2026 (UTC), an Umayuru Login Bonus has begun!',
@@ -23,7 +29,9 @@ const TEXT = [
   'Trainers will also be gifted with the SSR Support Card "[U & Me] Mihono Bourbon"!',
   'It can be obtained up to two times in the Login Bonus, and up to three times in the Missions, for a maximum of five times!',
 ];
-const event = (fields = {}) => ({
+// An event as events.ts hands it to the questions (its fragment), and its titles.
+type TestEvent = AskedEvent & { titles: string[] };
+const event = (fields: Partial<TestEvent> = {}): TestEvent => ({
   id: '994-1',
   posted: '2026-08-26T22:00:00.000Z',
   kind: 'login_bonus',
@@ -62,13 +70,13 @@ describe('doubts', () => {
 describe('question', () => {
   it('asks only the doubted fields, about the event its own text', () => {
     const q = question(event());
-    expect(Object.keys(q.schema.properties)).toEqual(['items', 'cards']);
+    expect(Object.keys(properties(q))).toEqual(['items', 'cards']);
     expect(q.user).toContain('[U & Me] Mihono Bourbon');
     expect(q.user).toContain('series of 150-carat gifts');
   });
 
   it('asks every field when comparing, kind only for sub-events', () => {
-    expect(Object.keys(question(event(), { all: true }).schema.properties)).toEqual([
+    expect(Object.keys(properties(question(event(), { all: true })))).toEqual([
       'items',
       'cards',
       'name',
@@ -76,7 +84,7 @@ describe('question', () => {
       'start',
       'end',
     ]);
-    expect(question(event({ kind: 'story', cards: [] }), { all: true }).schema.properties).not.toHaveProperty('kind');
+    expect(properties(question(event({ kind: 'story', cards: [] }), { all: true }))).not.toHaveProperty('kind');
   });
 });
 
@@ -136,7 +144,8 @@ describe('applyAnswer', () => {
       cards: [{ ...event().cards[0], copies: null }],
       doubts: {},
     });
-    const copies = (e, n) => applyAnswer(e, { cards: [{ title: 'U & Me', copies: n }] }).cards[0].copies;
+    const copies = (e: TestEvent, n: number) =>
+      applyAnswer(e, { cards: [{ title: 'U & Me', copies: n }] }).cards[0].copies;
     expect(copies(missions, 1)).toBeNull(); // "1st" isn't a count, naming the card isn't "1"
     const told = {
       ...missions,
@@ -186,7 +195,12 @@ describe('asking again', () => {
 
   it('re-asks only the fields whose question changed, and merges the new answer in', () => {
     const e = event({ doubts: { items: 'x', dates: 'y' } });
-    const old = { model: 'm', version: 3, answer: { items: [], start: '2026-08-26 22:00', end: null } }; // before per-field versions
+    // before per-field versions (and before `at`)
+    const old = fixture<AiAnswer>({
+      model: 'm',
+      version: 3,
+      answer: { items: [], start: '2026-08-26 22:00', end: null },
+    });
     expect(staleFields(e, old)).toEqual(FIELD_VERSIONS.items > 1 ? ['items'] : []);
     expect(staleFields(e, undefined)).toEqual(['items', 'dates']);
     const merged = mergeAnswer(
@@ -210,7 +224,7 @@ const TEXT_JA = [
   '開催期間',
   '12/26 12:00 ～ 1/9 4:59',
 ];
-const eventJa = (fields = {}) => ({
+const eventJa = (fields: Partial<TestEvent> = {}): TestEvent => ({
   id: '2314-3',
   posted: '2025-12-20T03:00:00.000Z',
   kind: 'login_bonus',
@@ -235,10 +249,10 @@ describe('JP questions', () => {
     expect(q.user).toContain('Posted: 2025-12-20');
     expect(q.user).toContain('「[ためしの一枚]サンプルウマ娘」');
     expect(q.user).toContain('最大で2250個');
-    expect(q.schema.properties.kind.enum).toContain('special');
+    expect(properties(q).kind.enum).toContain('special');
     // Kinds only for a celebration's sub-events (JP's top-level events can be `special` too).
     expect(
-      question(eventJa({ parent: null, kind: 'special' }), { all: true, lang: ja }).schema.properties
+      properties(question(eventJa({ parent: null, kind: 'special' }), { all: true, lang: ja }))
     ).not.toHaveProperty('kind');
   });
 
@@ -249,7 +263,7 @@ describe('JP questions', () => {
 });
 
 describe('JP answers', () => {
-  const apply = (answer, fields) => applyAnswer(eventJa(fields), answer, { lang: ja });
+  const apply = (answer: unknown, fields?: Partial<TestEvent>) => applyAnswer(eventJa(fields), answer, { lang: ja });
 
   it('maps item names to Global names, keeping the Japanese, and multiplies', () => {
     const e = apply({
@@ -266,7 +280,7 @@ describe('JP answers', () => {
   });
 
   it('takes copies the post gives as a digit (枚), never one it only names', () => {
-    const copies = (n) => apply({ cards: [{ title: 'ためしの一枚', copies: n }] }).cards[0].copies;
+    const copies = (n: number) => apply({ cards: [{ title: 'ためしの一枚', copies: n }] }).cards[0].copies;
     expect(copies(2)).toBe(2);
     expect(copies(3)).toBeNull();
     const named = { text: 'ミッションをクリアすると「[ためしの一枚]サンプルウマ娘」などの報酬を獲得できます！' };
@@ -284,11 +298,12 @@ describe('JP answers', () => {
   });
 
   it("takes names the text has, not a kind's generic one; kinds only for sub-events", () => {
-    const named = (name) => apply({ name }, { name: '対象のトレーナー', doubts: { name: 'a heading' } }).name;
+    const named = (name: string) => apply({ name }, { name: '対象のトレーナー', doubts: { name: 'a heading' } }).name;
     expect(named('ゆく年くる年ログインボーナス')).toBe('ゆく年くる年ログインボーナス');
     expect(named('ログインボーナス')).toBe('対象のトレーナー');
     expect(named('冬のログインボーナス')).toBe('対象のトレーナー'); // not in the text
-    const kind = (fields) => applyAnswer(eventJa(fields), { kind: 'special' }, { lang: ja, trustModel: true }).kind;
+    const kind = (fields: Partial<TestEvent>) =>
+      applyAnswer(eventJa(fields), { kind: 'special' }, { lang: ja, trustModel: true }).kind;
     expect(kind({})).toBe('special');
     expect(kind({ parent: null, kind: 'campaign' })).toBe('campaign');
   });

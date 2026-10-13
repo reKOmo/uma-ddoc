@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { postsFile } from '../scripts/lib/news-api.ts';
@@ -6,14 +5,19 @@ import { ja } from '../scripts/lib/news-lang/ja.ts';
 import { norm, parsePeriodJa } from '../scripts/lib/news-text.ts';
 import { categorize } from '../scripts/lib/post-categories.ts';
 import samples from './fixtures/jp-news-samples.json' with { type: 'json' };
+import type { NewsPost } from '../shared/schemas/news.ts';
+import { fixture, present } from './helpers.ts';
 
-const post = (title, { id = 3000, label = 1, message = '' } = {}) => ({
-  announce_id: id,
-  announce_label: label,
-  title,
-  message,
-});
-const of = (title, options) => {
+type PostOptions = { id?: number; label?: number; message?: string };
+// (a post with the fields categorize() reads)
+const post = (title: string, { id = 3000, label = 1, message = '' }: PostOptions = {}) =>
+  fixture<NewsPost>({
+    announce_id: id,
+    announce_label: label,
+    title,
+    message,
+  });
+const of = (title: string, options?: PostOptions) => {
   const { category, kind, phase, name } = categorize(post(title, options), ja);
   return { category, kind, phase, name };
 };
@@ -114,7 +118,7 @@ describe('categorize (JP)', () => {
   });
 
   it('makes a campaign with several parts a celebration', () => {
-    const part = (n) => `<figure><img src="https://x/announce/1/Header/header_2120000${n}.png?c=1"></figure>`;
+    const part = (n: number) => `<figure><img src="https://x/announce/1/Header/header_2120000${n}.png?c=1"></figure>`;
     expect(of('「ゴルシウィークキャンペーン」開催！', { message: part(1) }).kind).toBe('campaign');
     expect(of('「ゴルシウィークキャンペーン」開催！', { message: part(1) + part(2) }).kind).toBe('celebration');
   });
@@ -135,30 +139,32 @@ describe('norm', () => {
 
 const file = postsFile('jp');
 describe.skipIf(!existsSync(file))('the stored JP news', () => {
-  const posts = JSON.parse(readFileSync(file, 'utf8'));
+  const posts: NewsPost[] = JSON.parse(readFileSync(file, 'utf8'));
   const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
   const categories = new Map(posts.map((p) => [String(p.announce_id), categorize(p, ja)]));
+  const category = (id: string) => present(categories.get(id), `post ${id}`);
+  const BANNER_SAMPLES: Record<string, string> = samples.banner;
 
   it('finds a scout banner in exactly the posts that show scout art, typed', () => {
     const withArt = posts.filter((p) => /gacha_banner_\d+/.test(p.message ?? '')).map((p) => String(p.announce_id));
     const banners = [...categories].filter(([, c]) => c.category === 'banner').map(([id]) => id);
     expect(banners.sort()).toEqual(withArt.sort());
-    for (const id of banners) expect(categories.get(id).banners.every((b) => b.type)).toBe(true);
+    for (const id of banners) expect(present(category(id).banners, 'banners').every((b) => b.type)).toBe(true);
   });
 
   it("gives the sampled posts their group's category", () => {
-    for (const id of Object.keys(samples.banner)) {
-      const c = categories.get(id);
-      if (/^not a banner/.test(samples.banner[id])) expect(c.category, id).not.toBe('banner');
+    for (const id of Object.keys(BANNER_SAMPLES)) {
+      const c = category(id);
+      if (/^not a banner/.test(BANNER_SAMPLES[id])) expect(c.category, id).not.toBe('banner');
       else expect(c.category, id).toBe('banner');
     }
     // the named-event samples: every one an event, except the event-named bug posts and the scenario launches
     for (const id of Object.keys(samples.event)) {
-      const c = categories.get(id);
-      const title = byId.get(id).title;
+      const c = category(id);
+      const { title, announce_label } = present(byId.get(id), `post ${id}`);
       if (/不具合/.test(title)) expect(c.category, id).toBe('other');
       else if (/^育成シナリオ/.test(title)) expect(c.kind, id).toBe('scenario');
-      else if (byId.get(id).announce_label === 3) expect(c.kind, id).toBe('community');
+      else if (announce_label === 3) expect(c.kind, id).toBe('community');
       else expect(c.category, `${id} ${title}`).toBe('event');
     }
   });

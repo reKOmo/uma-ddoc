@@ -48,7 +48,7 @@ export function useTimelineFilters(entries: Entry[] | null) {
         entry.featured.flatMap((item) => (item.card && item.id != null ? [Number(item.id)] : []))
       );
   }, [guide, entries]);
-  const groups = useMemo((): LaneGroupRows[] => {
+  const groups = useMemo((): LaneGroupRows<Entry>[] => {
     if (!entries) return [];
     const pullShown = (entry: Entry) =>
       entry.group !== 'cards' || !verdictsOf || [...verdictsOf(entry)].some((v) => !hidden.has(pullKey(v)));

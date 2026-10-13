@@ -1,11 +1,13 @@
-// @ts-nocheck
 // The Career scenario strip on the banner calendar (src/timeline/scenarioStrip.js).
 
 import { describe, it, expect } from 'vitest';
 import { scenarioSegments } from '../src/timeline/scenarioStrip.ts';
+import type { Scenario, StartDate } from '../shared/schemas/scenario.ts';
+import { fixture } from './helpers.ts';
 
-const date = (iso, tag) => ({ date: iso, tag });
-const SCENARIOS = [
+const date = (iso: string, tag: StartDate['tag']) => ({ date: iso, tag });
+// (only the fields the strip reads)
+const SCENARIOS = fixture<Scenario[]>([
   {
     key: 'GL',
     full_en: 'Brighter Together! Our Grand Concert',
@@ -29,7 +31,7 @@ const SCENARIOS = [
     en_start_date: null,
     jp_start_date: date('2023-08-24T03:00:00.000Z', 'out'),
   },
-];
+]);
 
 describe('scenarioSegments', () => {
   it("runs each scenario to the next one's launch on Global, marking the current one", () => {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Global's events from the news: posts cut into blocks (scripts/lib/event-blocks.js), what they give
 // (scripts/lib/event-rewards.js) and the events they make (scripts/lib/events.js), on HTML trimmed from real posts.
 
@@ -9,24 +8,31 @@ import { cardIndex, cardsIn, itemsIn, missionsIn, titlesIn } from '../scripts/li
 import { EVENT_KINDS, buildEvents, cmItems, postEvents } from '../scripts/lib/events.ts';
 import { postsFile } from '../scripts/lib/news-api.ts';
 import { categorize } from '../scripts/lib/post-categories.ts';
+import type { CardsFile } from '../shared/schemas/card.ts';
+import type { CmRewardsFile } from '../shared/schemas/event.ts';
+import type { NewsPost } from '../shared/schemas/news.ts';
+import { fixture } from './helpers.ts';
 
-const h2 = (text) => `<h2 class="heading"> ${text}</h2>\n`;
-const art = (id) =>
+const h2 = (text: string) => `<h2 class="heading"> ${text}</h2>\n`;
+const art = (id: number | string) =>
   `<figure><img src="https://example.com/uploads/Header/header_${id}_L1791410400.png?c=1"></figure>\n`;
-const lines = (...list) => list.map((l) => ` ${l}<br>\n`).join('');
-const post = (id, title, message, posted = '2026-10-07 22:00:00') => ({
-  announce_id: id,
-  title,
-  message,
-  post_at: posted,
-  image_big: `https://example.com/uploads/Header/banner_${id}.png`,
-});
+const lines = (...list: string[]) => list.map((l) => ` ${l}<br>\n`).join('');
+// (a post with the fields the event parsers read)
+const post = (id: number, title: string, message: string, posted = '2026-10-07 22:00:00') =>
+  fixture<NewsPost>({
+    announce_id: id,
+    title,
+    message,
+    post_at: posted,
+    image_big: `https://example.com/uploads/Header/banner_${id}.png`,
+  });
 
-const CARDS = {
+// (cards with the fields the card lookup reads)
+const CARDS = fixture<CardsFile>({
   30125: { rarity: 'SSR', title: { en: "[Don't Stop Anymore!]" }, name: { en: 'Sakura Laurel' } },
   30145: { rarity: 'SSR', title: { en: '[Welcome to Umayuru]' }, name: { en: 'Tanino Gimlet' } },
   30121: { rarity: 'SSR', title: { en: '[U & Me]' }, name: { en: 'Mihono Bourbon' } },
-};
+});
 const INDEX = cardIndex(CARDS);
 
 describe('eventBlocks', () => {
@@ -271,7 +277,7 @@ describe('postEvents', () => {
   });
 });
 
-const cm = (id, title, periods, posted) =>
+const cm = (id: number, title: string, periods: string[], posted: string) =>
   post(
     id,
     title,
@@ -337,7 +343,7 @@ describe('buildEvents', () => {
   });
 
   it('keeps same-named events apart when their dates do', () => {
-    const bonus = (id, period, posted) =>
+    const bonus = (id: number, period: string, posted: string) =>
       post(id, 'Bonus Star Piece rewards in Career!', `${h2('Race / Period / Rewards')}${lines(period)}`, posted);
     const events = buildEvents([
       bonus(1041, '3:00 p.m., Oct 4–2:59 p.m., Oct 6, 2026 (UTC)', '2026-10-04 22:00:00'),
@@ -347,7 +353,8 @@ describe('buildEvents', () => {
   });
 
   it("gives Champions Meetings the hand table's range", () => {
-    const table = [
+    // (the table's rows with only the columns read)
+    const table = fixture<CmRewardsFile>([
       {
         since: '2025-06-26',
         final: [
@@ -356,7 +363,7 @@ describe('buildEvents', () => {
         ],
       },
       { since: '2027-01-01', final: [{ carats: 999 }] },
-    ];
+    ]);
     expect(cmItems(table, '2026-08-28T22:00:00.000Z')).toEqual([
       { name: 'Carats', count: { min: 100, max: 300 } },
       { name: 'Monies', count: { min: 5000, max: 5000 } },
@@ -422,7 +429,7 @@ describe.skipIf(!existsSync(postsFile('gl')))('the stored news', () => {
   it('makes every event post into dated events of known kinds', () => {
     for (const p of posts) {
       const c = categorize(p);
-      if (c.category === 'event' && !['ending', 'ended'].includes(c.phase))
+      if (c.category === 'event' && !['ending', 'ended'].includes(c.phase ?? ''))
         expect({ id: p.announce_id, events: postEvents(p).length > 0 }).toEqual({ id: p.announce_id, events: true });
     }
     expect(events.filter((e) => !e.start || !EVENT_KINDS.includes(e.kind))).toEqual([]);

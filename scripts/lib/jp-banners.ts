@@ -57,17 +57,18 @@ type Draft = Omit<Banner, 'featured' | 'main'> & { featured: Item[]; main: Item 
 type ScoutItem = { rarity?: string; stars?: number; title: string; name: string };
 type ScoutBanner = {
   gachaId: number;
-  type?: ScoutType;
+  type?: ScoutType | null;
   start: string | null;
   end: string | null;
   image?: string;
   featured: ScoutItem[];
   paid?: boolean;
-  name?: string;
+  name?: string | null;
   note?: string;
   rerun?: { start: string | null; end: string | null };
 };
-type ScoutPost = { id: number; url: string; posted: string; banners: ScoutBanner[] };
+// (what bannerPost() gives, scripts/lib/banner-posts.ts: these are the fields read here)
+type ScoutPost = { id: number; url: string; posted: string | null; banners: ScoutBanner[] };
 
 // Posts end banners at "11:59"; GameTora's end on the last second of that minute.
 const endOfMinute = (iso: string | null | undefined): string | undefined => iso?.replace(/:00(\.000)?Z$/, ':59.000Z');
@@ -180,7 +181,8 @@ export function applyJpNews({
   // id → the newest post naming it (with dates), and the newest giving it a re-run.
   const latest = new Map<number, { post: ScoutPost; b: ScoutBanner & { start: string } }>();
   const reheld = new Map<number, { post: ScoutPost; b: ScoutBanner & { rerun: { start: string } } }>();
-  for (const post of [...posts].sort((a, b) => a.posted.localeCompare(b.posted) || a.id - b.id))
+  // (every stored post has a time: posts.json's post_at)
+  for (const post of [...posts].sort((a, b) => (a.posted ?? '').localeCompare(b.posted ?? '') || a.id - b.id))
     for (const b of post.banners) {
       if (b.start) latest.set(b.gachaId, { post, b: { ...b, start: b.start } });
       if (b.rerun?.start) reheld.set(b.gachaId, { post, b: { ...b, rerun: { ...b.rerun, start: b.rerun.start } } });
@@ -344,9 +346,7 @@ export async function updateJpBanners({
   const jp = readJpBanners();
   const global = existsSync(GLOBAL_BANNERS_FILE) ? readJpBanners(GLOBAL_BANNERS_FILE) : null;
   const trainees = existsSync(GAMETORA_TRAINEES_FILE) ? JSON.parse(readFileSync(GAMETORA_TRAINEES_FILE, 'utf8')) : null;
-  // TODO(ts): bannerPost() (banner-posts.ts, not typed yet) gives `posted` null for a post without a time; the merge
-  // sorts by it, as before.
-  const scouts = posts.map((post) => bannerPost(post, ja)).filter(Boolean) as ScoutPost[];
+  const scouts = posts.map((post) => bannerPost(post, ja)).filter((scout) => scout !== null);
   const before = JSON.stringify(jp);
   const result = applyJpNews({ posts: scouts, jp, cards, global, trainees });
   writeJpBanners(result.jp);

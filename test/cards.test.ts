@@ -1,4 +1,3 @@
-// @ts-nocheck
 // The card data build (scripts/lib/cards.js): upstream's lists + our history of JP's cards (data/jp_cards.json) +
 // GameTora's list (slugs only) + Global's record → cards.json and the per-server stats, and cards.json's shape
 // (shared/schemas/card.ts).
@@ -8,10 +7,17 @@ import { existsSync, readFileSync } from 'node:fs';
 import { CardsFileSchema } from '../shared/schemas/card.ts';
 import { buildCards, fromGametora } from '../scripts/lib/cards.ts';
 import { joinCards, withoutEvents } from '../tierlist/join-cards.ts';
+import type { UpstreamCard } from '../scripts/lib/cards.ts';
+import type { GametoraType } from '../shared/schemas/common.ts';
+import type { GametoraCard } from '../shared/schemas/gametora.ts';
+import type { JpCard, JpCardsFile } from '../shared/schemas/card.ts';
+import { fixture, present } from './helpers.ts';
 
-// Upstream's card objects for one card, at every limit break.
-const levels = (id, type, rarity, char_name, group = false) =>
-  [0, 1, 2, 3, 4].map((limit_break) => ({ id, type, group, rarity, limit_break, sb: 10 + limit_break, char_name }));
+// Upstream's card objects for one card, at every limit break (one stat, sb, stands for them all).
+const levels = (id: number, type: number, rarity: number, char_name: string, group = false) =>
+  fixture<UpstreamCard[]>(
+    [0, 1, 2, 3, 4].map((limit_break) => ({ id, type, group, rarity, limit_break, sb: 10 + limit_break, char_name }))
+  );
 
 const upstream = {
   gl: [...levels(30001, 0, 3, 'T.M. Opera O')],
@@ -22,7 +28,14 @@ const upstream = {
   ],
   events: { 30001: [1, 2, 3, 4, 5, 6, 7, 8] },
 };
-const gt = (support_id, char_id, char_name, name_jp, type, extra = {}) => ({
+const gt = (
+  support_id: number,
+  char_id: number,
+  char_name: string,
+  name_jp: string,
+  type: GametoraType,
+  extra: Partial<GametoraCard> = {}
+): GametoraCard => ({
   support_id,
   char_id,
   char_name,
@@ -44,7 +57,12 @@ const gametora = [
 ];
 const globalCards = { 30001: { title_en: '[Our title]', release_gl: '2026-01-01' } };
 // The history: everything GameTora has but its newest card (30200), which the news hasn't shown.
-const history = Object.fromEntries(gametora.slice(0, 3).map((c) => [c.support_id, fromGametora(c)]));
+// A history entry from GameTora's (its rarity known: these are all SSRs).
+const historyEntry = (g: GametoraCard): JpCard => {
+  const entry = fromGametora(g);
+  return { ...entry, rarity: present(entry.rarity, 'rarity') };
+};
+const history: JpCardsFile = Object.fromEntries(gametora.slice(0, 3).map((c) => [c.support_id, historyEntry(c)]));
 const { cards, stats } = buildCards({ upstream, history, gametora, globalCards, iconBase: 'https://up/' });
 
 describe('cards.json', () => {
@@ -87,7 +105,7 @@ describe('cards.json', () => {
   });
 
   it('fills a card upstream lacks from the history, in our type names', () => {
-    const newer = { ...history, 30200: fromGametora(gametora[3]) };
+    const newer = { ...history, 30200: historyEntry(gametora[3]) };
     const withNew = buildCards({ upstream, history: newer, gametora, globalCards, iconBase: 'https://up/' }).cards;
     expect(withNew[30200]).toMatchObject({
       type: 'wisdom',
@@ -119,7 +137,7 @@ describe('the stats', () => {
 });
 
 describe('the schema', () => {
-  const check = (data) => expect(CardsFileSchema.safeParse(data).error?.issues ?? []).toEqual([]);
+  const check = (data: unknown) => expect(CardsFileSchema.safeParse(data).error?.issues ?? []).toEqual([]);
 
   it('fits what the build writes', () => {
     check(cards);

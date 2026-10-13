@@ -1,19 +1,27 @@
-// @ts-nocheck
 // Where a card comes from: banners and events giving it, oldest first, parts over the events listing them.
 
 import { describe, it, expect } from 'vitest';
 import { cardOrigins, originKinds } from '../src/cardOrigins.ts';
+import type { Entry } from '../src/timeline/entries.ts';
+import { fixture } from './helpers.ts';
 
-const entry = (key, start, { group = 'event', kind = group, paid = false, parent = null, cards = [] } = {}) => ({
-  key,
-  id: key.split(':')[1],
-  group,
-  kind,
-  paid,
-  parent,
-  start,
-  featured: cards.map(([id, isNew = true]) => ({ id, card: true, isNew })),
-});
+type Options = { group?: string; kind?: string; paid?: boolean; parent?: string | null; cards?: [number, boolean?][] };
+// (an entry with the fields cardOrigins() reads, and an id the tests name it by)
+const entry = (
+  key: string,
+  start: string | null,
+  { group = 'event', kind = group, paid = false, parent = null, cards = [] }: Options = {}
+) =>
+  fixture<Entry>({
+    key,
+    id: key.split(':')[1],
+    group,
+    kind,
+    paid,
+    parent,
+    start,
+    featured: cards.map(([id, isNew = true]) => ({ id, card: true, isNew })),
+  });
 
 describe('cardOrigins', () => {
   it('finds banners and events by kind, oldest first', () => {

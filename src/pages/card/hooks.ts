@@ -66,8 +66,7 @@ export function useScenarioRankings(server: Server, stat: Stat | undefined, enab
 const originServers = (card: (typeof cards)[number] | undefined, server: Server): Server[] =>
   server === 'gl' && !card?.release.gl ? ['gl', 'jp'] : [server];
 
-// cardOrigins() keeps the whole entry it was given (its type names only the fields it reads).
-export type EntryOrigin = Omit<Origin, 'entry' | 'server'> & { entry: Entry; server: Server };
+export type EntryOrigin = Origin<Entry, Server>;
 export type Origins = { servers: Server[]; list: EntryOrigin[] };
 
 // Where the card comes from (cardOrigins(), oldest first) on originServers(): { servers, list }, null while loading.
@@ -75,8 +74,8 @@ export function useOrigins(cardId: number, server: Server): Origins | null | und
   const { data, pending } = useAsync(async () => {
     const servers = originServers(cards[cardId], server);
     const lists = await Promise.all(servers.map((s) => loadEntries(s)));
-    const byServer = Object.fromEntries(servers.map((s, i) => [s, lists[i] ?? []]));
-    return { servers, list: cardOrigins(cardId, byServer) as EntryOrigin[] };
+    const byServer: Partial<Record<Server, Entry[]>> = Object.fromEntries(servers.map((s, i) => [s, lists[i] ?? []]));
+    return { servers, list: cardOrigins(cardId, byServer) };
   }, [cardId, server]);
   return pending ? null : data;
 }

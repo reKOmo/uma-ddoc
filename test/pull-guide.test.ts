@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Pull advice from Luh's Umamusume Support Card Encyclopedia: parsing a tab's HTML view, its dates,
 // "Pull?" and "Notes" cells, matching entries to banners (scripts/lib/pull-guide.js), and picking the
 // advice shown (src/pullGuide.js).
@@ -18,10 +17,14 @@ import {
   parseUpdated,
 } from '../scripts/lib/pull-guide.ts';
 import { bannerVerdicts, currentAdvice, latestAdvice, sheetLink, upcomingBanner, verdictOf } from '../src/pullGuide.ts';
+import type { Listed } from '../scripts/lib/pull-guide.ts';
+import type { Banner } from '../shared/schemas/banner.ts';
+import type { Advice, PullGuide } from '../shared/schemas/pullGuide.ts';
+import { fixture, present } from './helpers.ts';
 
-const link = (url) => `<a href="https://www.google.com/url?q=${url}&amp;sa=D&amp;usg=x">`;
+const link = (url: string) => `<a href="https://www.google.com/url?q=${url}&amp;sa=D&amp;usg=x">`;
 let rowIndex = 0;
-const row = (cells) =>
+const row = (cells: string[]) =>
   `<tr><th id="557481421R${rowIndex++}">${rowIndex}</th>${cells.map((c) => `<td class="s1">${c}</td>`).join('')}</tr>`;
 
 // A trimmed-down tab as Google renders it: scenario link on top, a header row, card rows.
@@ -86,8 +89,11 @@ describe('a tab', () => {
   });
 
   it('maps entries to banners, and cards on none to noBanner', () => {
-    const banners = [{ id: 30120, start: '2026-03-11T22:00:00Z', featured: [{ id: 30086, new: true }] }];
-    expect(byBanner([{ name: 'Trackblazer', gid: '557481421', ...parseTab(TAB) }], banners)).toEqual({
+    const banners = fixture<Banner[]>([
+      { id: 30120, start: '2026-03-11T22:00:00Z', featured: [{ id: 30086, new: true }] },
+    ]);
+    const tab = { name: 'Trackblazer', gid: '557481421', ...parseTab(TAB) };
+    expect(byBanner([tab], banners)).toEqual({
       banners: {
         30120: {
           30086: {
@@ -198,26 +204,28 @@ describe('cells', () => {
 });
 
 describe('the advice shown', () => {
-  const banner = (id, start, end, isNew) => ({ id, start, end, featured: [{ id: 30078, new: isNew }] });
+  // (banners, advice and guides with the fields the code reads)
+  const banner = (id: number, start: string, end: string, isNew: boolean) =>
+    fixture<Banner>({ id, start, end, featured: [{ id: 30078, new: isNew }] });
   const banners = [
     banner(3, '2026-11-24T22:00:00Z', '2026-12-03T21:59:59Z', false),
     banner(1, '2026-01-28T22:00:00Z', '2026-02-06T21:59:59Z', true),
   ];
-  const guide = {
+  const guide = fixture<PullGuide>({
     banners: { 1: { 30078: { shouldPull: 'yes' } }, 3: { 30078: { shouldPull: 'no' } } },
     noBanner: { 30087: { shouldPull: 'free', release: { month: '2026-11', part: 'late' } } },
-  };
+  });
 
   it("is for the card's banner running now or the next one", () => {
-    expect(upcomingBanner(banners, 30078, Date.parse('2026-02-01T00:00:00Z')).id).toBe(1);
-    expect(upcomingBanner(banners, 30078, Date.parse('2026-10-08T00:00:00Z')).id).toBe(3);
+    expect(present(upcomingBanner(banners, 30078, Date.parse('2026-02-01T00:00:00Z')), 'banner').id).toBe(1);
+    expect(present(upcomingBanner(banners, 30078, Date.parse('2026-10-08T00:00:00Z')), 'banner').id).toBe(3);
     expect(upcomingBanner(banners, 30078, Date.parse('2026-12-05T00:00:00Z'))).toBeNull();
     expect(currentAdvice(guide, 30078, banners[0], '2026-10-08')).toEqual({ shouldPull: 'no' });
-    expect(currentAdvice(guide, 30078, { id: 9 }, '2026-10-08')).toBeNull();
+    expect(currentAdvice(guide, 30078, fixture<Banner>({ id: 9 }), '2026-10-08')).toBeNull();
   });
 
   it('is for a card on no banner while its release is ahead', () => {
-    expect(currentAdvice(guide, 30087, null, '2026-11-30').shouldPull).toBe('free');
+    expect(present(currentAdvice(guide, 30087, null, '2026-11-30'), 'advice').shouldPull).toBe('free');
     expect(currentAdvice(guide, 30087, null, '2026-12-01')).toBeNull();
   });
 
@@ -227,21 +235,27 @@ describe('the advice shown', () => {
   });
 
   it("links to the entry's row in the sheet", () => {
-    expect(sheetLink({ googleSheetsSrc: { gid: '5', row: 12 } }, 'https://s')).toBe('https://s/edit#gid=5&range=B12');
+    expect(sheetLink(fixture<Advice>({ googleSheetsSrc: { gid: '5', row: 12 } }), 'https://s')).toBe(
+      'https://s/edit#gid=5&range=B12'
+    );
     expect(sheetLink(null, 'https://s')).toBe('https://s');
   });
 });
 
 describe('verdicts (the Timeline filter)', () => {
   it("reads an advice's pill without its +s, else none", () => {
-    expect(verdictOf({ shouldPull: 'whale++' })).toBe('whale');
-    expect(verdictOf({ shouldPull: 'yes' })).toBe('yes');
-    expect(verdictOf({ shouldPull: null })).toBe('none');
+    const advice = (shouldPull: string | null) => fixture<Advice>({ shouldPull });
+    expect(verdictOf(advice('whale++'))).toBe('whale');
+    expect(verdictOf(advice('yes'))).toBe('yes');
+    expect(verdictOf(advice(null))).toBe('none');
     expect(verdictOf(undefined)).toBe('none');
   });
 
   it("gives a banner's cards' verdicts, none for cards or banners without advice", () => {
-    const guide = { banners: { 30001: { 1: { shouldPull: 'yes' }, 2: { shouldPull: 'dolphin+' } } }, noBanner: {} };
+    const guide = fixture<PullGuide>({
+      banners: { 30001: { 1: { shouldPull: 'yes' }, 2: { shouldPull: 'dolphin+' } } },
+      noBanner: {},
+    });
     expect([...bannerVerdicts(guide, 30001, [1, 2, 3])]).toEqual(['yes', 'dolphin', 'none']);
     expect([...bannerVerdicts(guide, 30002, [1])]).toEqual(['none']);
     expect([...bannerVerdicts(guide, 30001, [])]).toEqual(['none']);
@@ -249,36 +263,37 @@ describe('verdicts (the Timeline filter)', () => {
 });
 
 describe('the banner an entry is about', () => {
-  const banner = (id, start, cards) => ({
-    id,
-    start: `${start}T22:00:00.000Z`,
-    featured: cards.map((c) => ({ id: c })),
-  });
+  const banner = (id: number, start: string, cards: number[]) =>
+    fixture<Banner>({
+      id,
+      start: `${start}T22:00:00.000Z`,
+      featured: cards.map((c) => ({ id: c })),
+    });
   const banners = [
     banner(1, '2026-01-28', [30078]),
     banner(2, '2026-05-10', [30078, 30080]),
     banner(3, '2026-11-24', [30078]),
     banner(4, '2026-12-01', [30099]),
   ];
-  const entries = [
+  const entries = fixture<Listed[]>([
     { banner: { date: '2026-01-29' } },
     { banner: { date: '2026-05-10', label: 'Rerun' } },
     { banner: { month: '2026-11', part: 'late', label: 'Rerun' } },
-  ];
+  ]);
 
   it('is the earliest banner featuring the card for its first release', () => {
-    expect(findBanner(banners, 30078, entries, entries[0]).id).toBe(1);
-    const event = [{ banner: { month: '2027-06', part: 'early', label: 'Event' } }];
+    expect(present(findBanner(banners, 30078, entries, entries[0]), 'banner').id).toBe(1);
+    const event = fixture<Listed[]>([{ banner: { month: '2027-06', part: 'early', label: 'Event' } }]);
     expect(findBanner(banners, 30111, event, event[0])).toBeNull();
   });
 
   it('is the closest one for a rerun, estimates included', () => {
-    expect(findBanner(banners, 30078, entries, entries[1]).id).toBe(2);
-    expect(findBanner(banners, 30078, entries, entries[2]).id).toBe(3);
+    expect(present(findBanner(banners, 30078, entries, entries[1]), 'banner').id).toBe(2);
+    expect(present(findBanner(banners, 30078, entries, entries[2]), 'banner').id).toBe(3);
   });
 
   it('is none for a rerun far from any banner', () => {
-    const late = { banner: { date: '2027-06-01', label: 'Rerun' } };
+    const late = fixture<Listed>({ banner: { date: '2027-06-01', label: 'Rerun' } });
     expect(findBanner(banners, 30078, [...entries, late], late)).toBeNull();
   });
 });
@@ -293,11 +308,13 @@ describe('the notes shown', () => {
 });
 
 describe('the schema', () => {
-  const check = (guide) => expect(PullGuideSchema.safeParse(guide).error?.issues ?? []).toEqual([]);
-  const fits = (guide) => PullGuideSchema.safeParse(guide).success;
+  const check = (guide: unknown) => expect(PullGuideSchema.safeParse(guide).error?.issues ?? []).toEqual([]);
+  const fits = (guide: unknown) => PullGuideSchema.safeParse(guide).success;
 
   it('fits what the script writes', () => {
-    const banners = [{ id: 30120, start: '2026-03-11T22:00:00Z', featured: [{ id: 30086, new: true }] }];
+    const banners = fixture<Banner[]>([
+      { id: 30120, start: '2026-03-11T22:00:00Z', featured: [{ id: 30086, new: true }] },
+    ]);
     const guide = byBanner([{ gid: '557481421', ...parseTab(TAB) }], banners);
     check({ $schema: '../schemas/pull_guide.schema.json', ...guide });
     expect(fits({ ...guide, extra: 1 })).toBe(false);

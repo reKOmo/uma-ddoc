@@ -1,4 +1,3 @@
-// @ts-nocheck
 // The generated card data must be complete, consistent with upstream's card
 // lists, and usable for every scenario and stat the UI offers.
 
@@ -11,10 +10,11 @@ import { getScenarios, getServerConfig } from '../tierlist/scenarios.ts';
 import gl from '../generated/raw/upstream/gl.js';
 import jp from '../generated/raw/upstream/jp.js';
 import events from '../generated/raw/upstream/card-events.js';
+import { present } from './helpers.ts';
 
 const SOURCE = { gl, jp };
 
-for (const server of ['gl', 'jp']) {
+for (const server of ['gl', 'jp'] as const) {
   describe(`${server} data`, () => {
     it(`loadCards rebuilds upstream's ${server} card list exactly`, async () => {
       expect(isDeepStrictEqual(withoutEvents(await loadCards(server)), SOURCE[server])).toBe(true);
@@ -65,7 +65,7 @@ for (const server of ['gl', 'jp']) {
         ).toBe(true);
         const ranking = await rankByUsefulness(server, key, 'speed');
         expect(ranking[0].score, key).toBeLessThanOrEqual(1000);
-        expect(ranking.at(-1).score, key).toBeGreaterThanOrEqual(0);
+        expect(present(ranking.at(-1), 'last card').score, key).toBeGreaterThanOrEqual(0);
       }
     });
   });

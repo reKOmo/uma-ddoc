@@ -1,18 +1,28 @@
-// @ts-nocheck
 // The Timeline's calendar days, in UTC (default) or the viewer's timezone (Settings), and its lanes.
 
 import { describe, it, expect } from 'vitest';
 import { buildTimeline, laneGroups, visibleRows } from '../src/timeline/layout.ts';
+import type { Entry } from '../src/timeline/entries.ts';
+import type { Timeline } from '../src/timeline/layout.ts';
+import { fixture, present } from './helpers.ts';
 
 process.env.TZ = 'Europe/Warsaw'; // UTC+2 in October: a 22:00 UTC start is the next local day
 
-const banner = { key: 'cards:1', kind: 'cards', start: '2026-10-14T22:00:00.000Z', end: '2026-10-23T21:59:59.000Z' };
+const banner = fixture<Entry>({
+  key: 'cards:1',
+  kind: 'cards',
+  start: '2026-10-14T22:00:00.000Z',
+  end: '2026-10-23T21:59:59.000Z',
+});
 const now = Date.parse('2026-10-08T12:00:00Z');
 
 // The calendar date an entry starts in, and how far into that day (hours).
-function barStart(timeline, entry = banner) {
+function barStart(timeline: Timeline, entry: Entry = banner) {
   const from = timeline.at(Date.parse(entry.start));
-  const day = timeline.dayDates.findLast((d) => d.day <= from + 1e-9);
+  const day = present(
+    timeline.dayDates.findLast((d) => d.day <= from + 1e-9),
+    'day'
+  );
   return [day.date, Math.round((from - day.day) * 24)];
 }
 
@@ -43,7 +53,7 @@ describe('buildTimeline', () => {
 
 describe('laneGroups', () => {
   it('puts banners and events in their groups, in order, packed alike', () => {
-    const entry = (key, kind, start, end) => ({ key, kind, start, end, parent: null });
+    const entry = (key: string, kind: string, start: string, end: string) => ({ key, kind, start, end, parent: null });
     const groups = laneGroups([
       entry('event:1', 'story', '2026-10-01T00:00:00Z', '2026-10-10T00:00:00Z'),
       entry('cards:1', 'cards', '2026-10-01T00:00:00Z', '2026-10-08T00:00:00Z'),
@@ -59,8 +69,8 @@ describe('laneGroups', () => {
 });
 
 describe('visibleRows (compact mode)', () => {
-  const day = (d) => Date.parse(`2026-10-${String(d).padStart(2, '0')}T00:00:00Z`);
-  const entry = (key, from, to, parent = null) => ({
+  const day = (d: number) => Date.parse(`2026-10-${String(d).padStart(2, '0')}T00:00:00Z`);
+  const entry = (key: string, from: number, to: number, parent: string | null = null) => ({
     key,
     kind: parent ? 'gift' : 'celebration',
     parent,

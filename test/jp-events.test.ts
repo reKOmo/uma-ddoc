@@ -1,4 +1,3 @@
-// @ts-nocheck
 // JP's in-game events from the JP news (scripts/lib/events.js read with the Japanese lexicon, news-lang/ja.js), on the
 // posts sampled in test/fixtures/jp-news-samples.json, and the stored data/jp_events.json.
 import { existsSync, readFileSync } from 'node:fs';
@@ -11,31 +10,33 @@ import { ja } from '../scripts/lib/news-lang/ja.ts';
 import { GENERATED_DIR } from '../scripts/lib/paths.ts';
 import { EVENT_GROUPS } from '../src/timeline/events.ts';
 import { eventEntries } from '../src/timeline/entries.ts';
-import { laneGroups } from '../src/timeline/layout.ts';
+import { type LaneItem, laneGroups } from '../src/timeline/layout.ts';
+import type { Entry } from '../src/timeline/entries.ts';
+import type { CardsFile } from '../shared/schemas/card.ts';
+import type { EventCard, GameEvent } from '../shared/schemas/event.ts';
+import type { NewsPost } from '../shared/schemas/news.ts';
+import { fixture, present } from './helpers.ts';
 
-const read = (file) => JSON.parse(readFileSync(file, 'utf8'));
+const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8'));
 const cardsFile = `${GENERATED_DIR}cards.json`;
-const cards = existsSync(cardsFile) ? read(cardsFile) : {};
+const cards: CardsFile = existsSync(cardsFile) ? read<CardsFile>(cardsFile) : {};
 // Card lookups need GameTora's Japanese titles (pnpm scrape-gametora).
 const withJp = cards['30113']?.title?.jp != null;
 const index = cardIndex(cards, ja);
 
 const file = postsFile('jp');
 describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
-  const posts = read(file);
+  const posts = read<NewsPost[]>(file);
   const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
-  const of = (id) => postEvents(byId.get(String(id)), index, ja);
-  const one = (id) => {
+  const post = (id: number) => present(byId.get(String(id)), `post ${id}`);
+  const of = (id: number) => postEvents(post(id), index, ja);
+  const one = (id: number) => {
     const events = of(id);
     expect(events).toHaveLength(1);
     return events[0];
   };
-  const build = (...ids) =>
-    buildEvents(
-      ids.map((id) => byId.get(String(id))),
-      { cards, lang: ja }
-    );
-  const copies = (e) => e.cards.map((c) => [c.id, c.copies]);
+  const build = (...ids: number[]) => buildEvents(ids.map(post), { cards, lang: ja });
+  const copies = (e: { cards: EventCard[] }) => e.cards.map((c) => [c.id, c.copies]);
 
   it('reads a story event: dates in JST, its SSR and its title', () => {
     const e = one(915);
@@ -64,8 +65,8 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
   it("reads a Champions Meeting's schedule, from its league selection", () => {
     const e = one(810);
     expect(e).toMatchObject({ kind: 'champions_meeting', name: 'ジェミニ杯', start: '2022-06-10T03:00:00.000Z' });
-    expect(e.phases.map((p) => p.key)).toEqual(CM_PHASES.map(([key]) => key));
-    expect(e.end).toBe(e.phases.at(-1).end);
+    expect(present(e.phases, 'phases').map((p) => p.key)).toEqual(CM_PHASES.map(([key]) => key));
+    expect(e.end).toBe(present(present(e.phases, 'phases').at(-1), 'last phase').end);
     expect(e.titles).toEqual(['ジェミニ杯プラチナ', 'ジェミニ杯ゴールド', 'ジェミニ杯シルバー', 'ジェミニ杯ブロンズ']);
     expect(e.items).toEqual([
       { name: 'タフネス30', count: 3 },
@@ -95,7 +96,9 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
   it('reads a League of Heroes: no name, its schedule from team formation, its titles but not placeholders', () => {
     const e = one(3380);
     expect(e).toMatchObject({ kind: 'league_of_heroes', name: null, start: '2026-08-11T03:00:00.000Z' });
-    expect(e.phases.map((p) => p.key)).toEqual(ja.schedules.league_of_heroes.map(([key]) => key));
+    expect(present(e.phases, 'phases').map((p) => p.key)).toEqual(
+      present(ja.schedules, 'JP schedules').league_of_heroes.map(([key]) => key)
+    );
     expect(e.titles).toContain('英雄譚');
     expect(e.titles.some((t) => t.includes('○'))).toBe(false);
     expect(e.items.some((i) => /称号/.test(i.name))).toBe(false);
@@ -127,7 +130,7 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
       ['campaign', 'campaign', 'campaign', 'campaign', 'gift', 'login_bonus', 'missions', 'sale', 'shop'].sort()
     );
     // the paid ★3/SSR scouts aren't parts, nor is the block summing up the card's copies
-    expect(parts.some((e) => /ガチャ」?$|確定/.test(e.name))).toBe(false);
+    expect(parts.some((e) => /ガチャ」?$|確定/.test(e.name ?? ''))).toBe(false);
     const byKind = Object.fromEntries(parts.map((e) => [e.kind, e]));
     // a gift sent without a period: from the post to the deadline of who gets it
     expect(byKind.gift).toMatchObject({
@@ -158,7 +161,12 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
       start: '2022-03-07T03:00:00.000Z',
       items: [{ name: 'Carats', count: 2250, local: 'ジュエル' }],
     });
-    expect(events.find((e) => e.kind === 'missions').items).toContainEqual({
+    expect(
+      present(
+        events.find((e) => e.kind === 'missions'),
+        'event'
+      ).items
+    ).toContainEqual({
       name: '1st Anniversary SSR引換券',
       count: null,
     });
@@ -171,24 +179,37 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
       end: '2026-01-29T19:59:00.000Z',
       items: [{ name: 'Carats', count: 4200, local: 'ジュエル' }],
     });
-    expect(events.some((e) => /ガチャ」?$/.test(e.name) && !/無料/.test(e.name))).toBe(false);
+    expect(events.some((e) => /ガチャ」?$/.test(e.name ?? '') && !/無料/.test(e.name ?? ''))).toBe(false);
   });
 
   it('reads login days, mission sets in one period, dated gift rows', () => {
-    const christmas = of(1093).find((e) => e.kind === 'gift' && /クリスマスプレゼント/.test(e.name));
+    const christmas = present(
+      of(1093).find((e) => e.kind === 'gift' && /クリスマスプレゼント/.test(e.name ?? '')),
+      'Christmas gift'
+    );
     expect(christmas.items).toContainEqual({ name: 'Carats', count: 650, local: 'ジュエル' });
     expect(christmas.items).toContainEqual({ name: 'Support Points', count: 5000, local: 'サポートPt' });
     const g1 = of(3233);
-    expect(g1.find((e) => e.kind === 'gift').items).toEqual([{ name: 'Monies', count: 600000, local: 'マニー' }]);
-    const [missions] = buildEvents([byId.get('3233')], { lang: ja }).filter((e) => e.parent === '3233-1');
+    expect(
+      present(
+        g1.find((e) => e.kind === 'gift'),
+        'event'
+      ).items
+    ).toEqual([{ name: 'Monies', count: 600000, local: 'マニー' }]);
+    const [missions] = buildEvents([post(3233)], { lang: ja }).filter((e) => e.parent === '3233-1');
     expect(missions).toMatchObject({
       kind: 'missions',
       name: '帝王賞応援の期間限定ミッション',
       start: '2026-06-24T20:00:00.000Z',
     });
-    expect(buildEvents([byId.get('3233')], { lang: ja }).filter((e) => e.parent === '3233-1')).toHaveLength(4);
+    expect(buildEvents([post(3233)], { lang: ja }).filter((e) => e.parent === '3233-1')).toHaveLength(4);
     // "「目覚まし時計」×50、「タフネス30」×10" on ten dated rows
-    expect(of(2559).find((e) => e.items.length).items).toEqual([
+    expect(
+      present(
+        of(2559).find((e) => e.items.length),
+        'event'
+      ).items
+    ).toEqual([
       { name: '目覚まし時計', count: 500 },
       { name: 'タフネス30', count: 100 },
     ]);
@@ -202,9 +223,25 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
       end: '2027-04-04T19:59:00.000Z',
       items: [{ name: 'Carats', count: 3900, local: 'ジュエル' }],
     });
-    if (withJp) expect(copies(events.find((e) => e.kind === 'gift'))).toEqual([[30318, 5]]);
+    if (withJp)
+      expect(
+        copies(
+          present(
+            events.find((e) => e.kind === 'gift'),
+            'event'
+          )
+        )
+      ).toEqual([[30318, 5]]);
     // "第1話から第3話では1枚ずつ、第4話では2枚の合計5枚"
-    if (withJp) expect(copies(of(2525).find((e) => e.kind === 'gift'))).toEqual([[30260, 5]]);
+    if (withJp)
+      expect(
+        copies(
+          present(
+            of(2525).find((e) => e.kind === 'gift'),
+            'event'
+          )
+        )
+      ).toEqual([[30260, 5]]);
   });
 
   it('reads gifts once, until the deadline of who gets them', () => {
@@ -222,14 +259,20 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
       kind: 'login_bonus',
       items: [{ name: 'Carats', count: 500, local: 'ジュエル' }],
     });
-    const gold = of(3210).find((e) => e.kind === 'login_bonus');
+    const gold = present(
+      of(3210).find((e) => e.kind === 'login_bonus'),
+      'login bonus'
+    );
     expect(gold.items).toHaveLength(6);
     expect(gold.items[0]).toEqual({ name: 'GOLDコイン/フェノーメノ', count: 1 });
   });
 
   it("lists nothing a sale's buyers pay for", () => {
     const events = build(3472);
-    const sale = events.find((e) => e.kind === 'sale');
+    const sale = present(
+      events.find((e) => e.kind === 'sale'),
+      'sale'
+    );
     expect(sale.items).toEqual([]);
     expect(events.flatMap((e) => e.items).some((i) => /有償/.test(i.name))).toBe(false);
   });
@@ -243,7 +286,7 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
 
 // GameTora's JP history filled in where the news has none (scripts/lib/gametora-events.js).
 describe("GameTora's story events, Champions Meetings and Legend Races", () => {
-  const unix = (iso) => Date.parse(iso) / 1000;
+  const unix = (iso: string) => Date.parse(iso) / 1000;
   const raw = {
     story: [
       {
@@ -275,7 +318,7 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
       },
     ],
   };
-  const news = [
+  const news: GameEvent[] = [
     {
       id: '835',
       kind: 'story',
@@ -306,7 +349,10 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
       source: 'news',
     },
   ];
-  const cardsJp = { 30041: { rarity: 'SSR', title: { jp: '[おもい、ねがう]' }, name: { jp: 'メジロドーベル' } } };
+  // (a card with the fields the GameTora fills read)
+  const cardsJp = fixture<CardsFile>({
+    30041: { rarity: 'SSR', title: { jp: '[おもい、ねがう]' }, name: { jp: 'メジロドーベル' } },
+  });
 
   it("cuts GameTora's files to the fields read, races included", () => {
     const cut = cutEvents({
@@ -337,18 +383,26 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
       image: null,
       source: 'gametora',
     });
-    const cup = events.find((e) => e.id === 'gt-cm-10');
+    const cup = present(
+      events.find((e) => e.id === 'gt-cm-10'),
+      'cup'
+    );
+    const phases = present(cup.phases, 'phases');
     expect(cup.start).toBe('2022-02-18T03:00:00.000Z');
-    expect(cup.phases.map((p) => p.key)).toEqual(CM_PHASES.map(([key]) => key).filter((k) => k !== 'league_selection'));
-    expect(cup.phases.at(-1)).toEqual({ key: 'final_race', start: '2022-02-23T03:00:00.000Z', end: cup.end });
+    expect(phases.map((p) => p.key)).toEqual(CM_PHASES.map(([key]) => key).filter((k) => k !== 'league_selection'));
+    expect(phases.at(-1)).toEqual({ key: 'final_race', start: '2022-02-23T03:00:00.000Z', end: cup.end });
     expect(events.find((e) => e.kind === 'legend_race')).toMatchObject({ id: 'gt-lr-20261008', name: null });
   });
 
   it('has the same schedule as the news gives cups since mid-2022', () => {
-    const e = read(eventsFile('jp')).find((x) => x.id === '1065');
+    const e = read<GameEvent[]>(eventsFile('jp')).find((x) => x.id === '1065');
     if (!e) return;
-    const round1 = e.phases.find((p) => p.key === 'round_1');
-    expect(cmPhasesFrom(Date.parse(round1.start), Date.parse(e.end))).toEqual(e.phases.slice(1));
+    const phases = present(e.phases, 'phases');
+    const round1 = present(
+      phases.find((p) => p.key === 'round_1'),
+      'round 1'
+    );
+    expect(cmPhasesFrom(Date.parse(round1.start), Date.parse(present(e.end, 'end')))).toEqual(phases.slice(1));
   });
 
   it('fills only before mid-2022 where the news has nothing of the kind, and dates a cup the news only announced', () => {
@@ -371,8 +425,8 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
 
 const stored = eventsFile('jp');
 describe.skipIf(!existsSync(stored))('the stored JP events', () => {
-  const events = read(stored);
-  const since = (kind, date) => events.filter((e) => e.kind === kind && e.start >= date);
+  const events = read<GameEvent[]>(stored);
+  const since = (kind: string, date: string) => events.filter((e) => e.kind === kind && e.start >= date);
 
   it('only uses kinds the app styles and labels, with dates in order', () => {
     expect(events.filter((e) => !EVENT_KINDS.includes(e.kind))).toEqual([]);
@@ -389,7 +443,7 @@ describe.skipIf(!existsSync(stored))('the stored JP events', () => {
     const keys = CM_PHASES.map(([key]) => key);
     for (const e of since('champions_meeting', '2022-06'))
       expect({ id: e.id, phases: e.phases?.map((p) => p.key) }).toEqual({ id: e.id, phases: keys });
-    const loh = ja.schedules.league_of_heroes.map(([key]) => key);
+    const loh = present(ja.schedules, 'JP schedules').league_of_heroes.map(([key]) => key);
     for (const e of since('league_of_heroes', '2023-05'))
       expect({ id: e.id, phases: e.phases?.map((p) => p.key) }).toEqual({ id: e.id, phases: loh });
   });
@@ -406,7 +460,9 @@ describe.skipIf(!existsSync(stored))('the stored JP events', () => {
     expect(filled.length).toBeGreaterThan(20);
     expect(filled.filter((e) => e.start >= '2022-07' || e.news_url || e.parent)).toEqual([]);
     const news = events.filter((e) => e.source === 'news' && !e.parent && e.end);
-    const overlaps = (a, b) => a.kind === b.kind && a.start <= b.end && b.start <= a.end;
+    // (an open end never overlaps, as comparing with null never did)
+    const overlaps = (a: GameEvent, b: GameEvent) =>
+      a.kind === b.kind && b.end != null && a.end != null && a.start <= b.end && b.start <= a.end;
     expect(filled.filter((g) => news.some((e) => overlaps(e, g))).map((e) => e.id)).toEqual([]);
     // With them, every story event since the launch has its SSR (but one the 2021 news names none for).
     expect(events.filter((e) => e.kind === 'story' && !e.cards.some((c) => c.rarity === 'SSR')).length).toBeLessThan(2);
@@ -415,7 +471,8 @@ describe.skipIf(!existsSync(stored))('the stored JP events', () => {
   it('links parts to an event that exists, and places every event in a group once', () => {
     const ids = new Set(events.map((e) => e.id));
     expect(events.filter((e) => e.parent && !ids.has(e.parent))).toEqual([]);
-    const placed = (items) => items.flatMap((item) => [item.entry.id, ...placed(item.parts.flat())]);
+    const placed = (items: LaneItem<Entry>[]): Entry['id'][] =>
+      items.flatMap((item) => [item.entry.id, ...placed(item.parts.flat())]);
     const all = laneGroups(eventEntries(events)).flatMap((g) => placed(g.rows.flat()));
     expect(all.sort()).toEqual(events.map((e) => e.id).sort());
     expect(EVENT_GROUPS.flatMap(([, kinds]) => kinds)).toContain('league_of_heroes');

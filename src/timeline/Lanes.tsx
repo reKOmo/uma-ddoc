@@ -12,9 +12,6 @@ import { barLabel, dateRange, kindName } from './format.ts';
 const CHIP_WIDTH = 64;
 const MIN_WIDTH = 6;
 
-// A lane's items are an Entry's span (layout.ts reads only a few of its fields); the calendar lays out Entries.
-const entryOf = (item: LaneItem): Entry => item.entry as Entry;
-
 type Callbacks = {
   at: (ms: number) => number;
   format: DateFormats;
@@ -40,7 +37,7 @@ export const LaneGroup = memo(function LaneGroup({
   onToggleParts,
   onSelect,
 }: Callbacks & {
-  group: LaneGroupRows;
+  group: LaneGroupRows<Entry>;
   collapsed: boolean;
   visible: string | null;
   onToggleGroup: (key: string) => void;
@@ -89,7 +86,7 @@ function Rows({
   onSelect,
   depth = 0,
   prefix = '',
-}: Callbacks & { rows: LaneItem[][]; shown: Set<string> | null; depth?: number; prefix?: string }) {
+}: Callbacks & { rows: LaneItem<Entry>[][]; shown: Set<string> | null; depth?: number; prefix?: string }) {
   return rows.map((row, i) => {
     const open = row.filter((item) => item.parts.length && unfolded.has(item.entry.key));
     return (
@@ -115,7 +112,7 @@ function Rows({
           ))}
         </div>
         {open.map((item) => (
-          <div key={item.entry.key} className={styles.partRows} data-tone={entryOf(item).tone}>
+          <div key={item.entry.key} className={styles.partRows} data-tone={item.entry.tone}>
             <div
               className={styles.partBand}
               style={{ left: at(item.start), width: Math.max(at(item.end) - at(item.start), MIN_WIDTH) }}
@@ -154,9 +151,9 @@ const Bar = memo(function Bar({
   open,
   onToggleParts,
   onSelect,
-}: Omit<Callbacks, 'unfolded'> & { item: LaneItem; open: boolean }) {
+}: Omit<Callbacks, 'unfolded'> & { item: LaneItem<Entry>; open: boolean }) {
   const { t } = useTranslation();
-  const entry = entryOf(item);
+  const entry = item.entry;
   const left = at(item.start);
   const width = Math.max(at(item.end) - left, MIN_WIDTH);
   const chip = width < CHIP_WIDTH;
