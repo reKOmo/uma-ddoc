@@ -1,6 +1,4 @@
-/* The filter's section markup, shared with the Cards tab (src/pages/TierListPage.tsx) and the Timeline's filter
-   (src/timeline/TimelineFilter.tsx), which use these class names directly (src/FilterSheet.tsx's own rules are in
-   FilterSheet.module.css). */
+/* Shared with the Cards tab and the Timeline's filter, which use these class names directly. */
 
 .filter-section:last-of-type {
   border-bottom: 0;

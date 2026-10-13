@@ -1,7 +1,4 @@
-// Loads data for a component: runs `load()` when `deps` change. The result of a run that a newer one has
-// superseded is ignored (what each effect's `cancelled` flag did). No caching: the loaders cache themselves.
-//   useAsync(load, deps) → { data, error, pending }: `data` and `error` reset when deps change, `pending` is true
-//   until the run settles.
+// Runs `load()` when `deps` change; a superseded run's result is ignored. No caching here: the loaders cache themselves.
 
 import { type DependencyList, useEffect, useState } from 'react';
 

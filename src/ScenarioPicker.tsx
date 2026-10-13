@@ -1,10 +1,3 @@
-// The scenario dropdown (tier list, card page): the real scenarios, then the averaged ones in their own
-// group. Scenarios not launched on the selected server yet are in italics with a "Not released yet"
-// note (isReleased, from data/scenarios.json); the one running now on it has a "Current" badge.
-// Scenarios the tier list doesn't rank yet (in data/scenarios.json, not in the server's list) are
-// listed too, disabled, where they fall in launch order (newest first, like the tier list's). Every scenario's name is
-// a pill in its cover's colour (data/scenarios.json `color`), as on the scenario pages.
-
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import Dropdown, { type DropdownOption } from './Dropdown.tsx';
@@ -19,7 +12,6 @@ const pillOf = (key: string): DropdownOption['pill'] => {
   return color ? { color, ink: ink(color) ?? undefined } : undefined;
 };
 
-// The Dropdown's options for a server's scenarios (keys) and averaged rankings (keys). `t` translates.
 type PickerArgs = { scenarios: string[]; combined: string[]; server: Server; t: TFunction };
 
 export function scenarioPickerOptions({ scenarios, combined, server, t }: PickerArgs): DropdownOption[] {

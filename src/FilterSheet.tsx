@@ -1,11 +1,6 @@
-// The app's filter, shared by the Cards tab and the Timeline: a button with a count of what differs from the defaults,
-// opening a sheet (src/Sheet.tsx) with a title, an action beside it (a reset), and sections of toggle chips, each with
-// All / None. Every change applies at once (no Done); the pages keep and save the state.
-//
-// <FilterButton count countTitle onClick disabled />
-// <FilterSheet open onClose title action>…</FilterSheet>
-// <FilterSection heading note off chips onToggle onAll />: `chips` [{ key, label, shown, tone }] (`tone`: its colour,
-//   a `data-tone` of src/styles/global.css), `onToggle(key)`, `onAll(shown)` (true: All, false: None); `off` greys the whole section out.
+// <FilterButton count countTitle onClick disabled />, <FilterSheet open onClose title action>…</FilterSheet>
+// <FilterSection heading note off chips onToggle onAll />: `chips` [{ key, label, shown, tone }] (`tone`: a `data-tone`
+// of src/styles/global.css), `onToggle(key)`, `onAll(shown)` (true: All, false: None); `off` greys the section out.
 
 import type { ReactNode } from 'react';
 import { Check, SlidersHorizontal } from 'lucide-react';

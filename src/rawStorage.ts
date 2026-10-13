@@ -1,9 +1,7 @@
 import type { PersistStorage } from 'zustand/middleware';
 
-// The persisted stores' storage (src/settingsStore.ts, src/tierListFilters.ts, src/timeline/*): zustand's persist would
-// wrap the state as `{ state, version }`; this keeps each store's own plain format. `parse(raw)` → the state, or null
-// for anything invalid (then the defaults stay); `serialize(state)` → the string stored. Every access to
-// localStorage is guarded: it can be missing or throw, and then nothing is remembered across reloads.
+// zustand's persist would wrap each state as `{ state, version }`; this keeps every store's own plain format (stored
+// formats never change). Every localStorage access is guarded: it can be missing or throw (private windows).
 export function rawStorage<S>(parse: (raw: string) => S | null, serialize: (state: S) => string): PersistStorage<S> {
   return {
     getItem: (name) => {
@@ -25,9 +23,7 @@ export function rawStorage<S>(parse: (raw: string) => S | null, serialize: (stat
     removeItem: (name) => {
       try {
         globalThis.localStorage?.removeItem(name);
-      } catch {
-        // Nothing to remove.
-      }
+      } catch {}
     },
   };
 }

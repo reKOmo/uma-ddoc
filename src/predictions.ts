@@ -1,5 +1,4 @@
-// Predicted Global release dates of JP's cards (`pnpm predict-gl`, see ml/). Optional:
-// the glob is empty when the file hasn't been generated, and loadPredictions() gives null.
+// Optional: the glob is empty until `pnpm predict-gl` has written the file; loadPredictions() then gives null.
 import type { PredictionsFile } from '../shared/schemas/predictions.ts';
 
 const FILES = import.meta.glob('../generated/predicted_gl_releases.json', { import: 'default' });

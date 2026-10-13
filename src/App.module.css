@@ -1,6 +1,3 @@
-/* The app shell (src/App.tsx): the page area, the top bar (title or back button, server switch) and the tab bar
-   (at the bottom on phones, under the top bar on wide screens). */
-
 .app {
   display: flex;
   flex-direction: column;
@@ -13,14 +10,12 @@
   overflow-y: auto;
 }
 
-/* Pages that manage their own scrolling (the banner timeline). */
 .appMain.fullHeight {
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* Top bar: the page title (or a back button on detail pages), server switch on the right. */
 .topbar {
   display: flex;
   flex-shrink: 0;
@@ -54,7 +49,6 @@
   cursor: pointer;
 }
 
-/* The server switch: a Segmented, smaller than the filters' toggles. */
 .serverSwitch {
   flex-shrink: 0;
 }
@@ -88,7 +82,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* The current tab (aria-current, which screen readers announce and the tests look up). */
+/* aria-current, not a class: screen readers announce it and the tests look it up. */
 .tabbar a[aria-current="page"] {
   color: var(--accent);
   font-weight: 600;
@@ -108,7 +102,6 @@
     border-bottom: 1px solid var(--border);
   }
 
-  /* Title bar first, then the tabs. */
   .topbar {
     order: -2;
     padding: 0 16px;

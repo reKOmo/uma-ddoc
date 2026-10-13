@@ -1,19 +1,9 @@
 import { type RankedCard, toTiers } from './tiers.ts';
 
-// A card's place in one stat's tier list over time. Each card's score is
-// independent of the other candidates (it's scored against fixed decks), so
-// the tier list on any past date is just the ranking filtered to the cards
-// released by then.
-//
-// ranking:   rankByUsefulness() result (sorted by score, every id × LB)
-// releaseOf: id → "YYYY-MM-DD" on the server, or null (left out of the history)
-// isPredicted: id → whether releaseOf's date is a prediction, not a real release
-// Compares the card against every other card at the same limit break.
-// Returns one point per date the field changed, from the card's own release:
-//   { date, position, total, tier, overtakenBy: [entry…], predicted }
-// where overtakenBy lists the cards released that day that score higher, and
-// predicted says a card released that day only has a predicted date.
-// Returns null if the card isn't ranked or has no release date.
+// A card's score doesn't depend on the other candidates (each is scored against fixed decks), so the tier list on a past
+// date is the ranking filtered to the cards released by then. Compares the card with the others at the same limit break.
+// One point per date its place changed, from its release: { date, position, total, tier, overtakenBy, predicted }
+// (overtakenBy: the cards released that day that score higher). Null if the card isn't ranked or has no release date.
 
 export type HistoryPoint = {
   date: string;

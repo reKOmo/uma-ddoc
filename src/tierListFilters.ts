@@ -1,13 +1,9 @@
-// The Cards tab's filters (stat, limit breaks shown per rarity, search) as a zustand store, so they survive leaving
-// the page, and in this browser's storage (the stored JSON is `{ stat, shown, query, size }`, as it always was) so
-// they survive a reload. Storage can be missing or throw (private windows, blocked site data); then they're only
-// kept until the page is closed. The scenario is App's (shared
-// with the other pages).
-//   stat    a key of STATS
-//   shown   { [rarity]: [limit breaks] }, rarity SSR / SR / R (as in cards.json)
-//   query   the search box's text
-//   size    the cards' display size, 1–4 (SIZES; 3 the default): a display preference, not a filter, so isDefault()
-//           and "Reset filters" leave it alone
+// The Cards tab's filters, a zustand store: kept across pages, and in this browser's storage across reloads (the stored
+// JSON is `{ stat, shown, query, size }`, never changed). Storage can be missing or throw: then they're kept only while
+// the page is open.
+//   shown  { [rarity]: [limit breaks] }, rarity SSR / SR / R (as in cards.json)
+//   size   the cards' display size, 1–4 (SIZES): a display preference, not a filter, so isDefault() and "Reset filters"
+//          leave it alone
 
 import * as z from 'zod/mini';
 import { create } from 'zustand';

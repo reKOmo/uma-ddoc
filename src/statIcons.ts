@@ -1,5 +1,4 @@
-// The game's stat type icons (70×70, from the original tier list's repo: utx_ico_obtain_00–05), by stat key (STATS in
-// tierlist/index.js). Bundled with the app: no hotlinking.
+// The game's stat icons (70×70, from upstream's src/icons/utx_ico_obtain_00–05), by stat key. Bundled: not hotlinked.
 
 import speed from './icons/stats/speed.png';
 import stamina from './icons/stats/stamina.png';

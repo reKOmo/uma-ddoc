@@ -1,4 +1,3 @@
-/* Floating "back to top" (src/BackToTop.tsx): bottom right, above the tab bar on phones; fades in once scrolled. */
 .backToTop {
   position: fixed;
   right: 16px;

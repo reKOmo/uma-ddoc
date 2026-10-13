@@ -1,5 +1,4 @@
-// A floating "back to top" button, shown once the page has scrolled past one screen. Pages scroll inside
-// App's <main data-scroll-root>, not the window, so it watches the scroll container it sits in.
+// Pages scroll inside App's <main data-scroll-root>, not the window, so this watches the container it sits in.
 
 import { useEffect, useRef, useState } from 'react';
 import { ArrowUp } from 'lucide-react';

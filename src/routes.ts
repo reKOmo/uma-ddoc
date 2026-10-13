@@ -4,15 +4,8 @@ import { navigate } from 'wouter/use-hash-location';
 import type { Server } from './servers.ts';
 
 // Hash routes, so GitHub Pages never has to serve a deep link. Every link in the app is built here.
-//   #/                          the Cards tab (the tier list)
-//   #/timeline                  the Timeline tab (#/banners still works: it redirects here)
-//   #/timeline/<gl|jp>/<id>     the Timeline on that server with one entry (a banner or an event, by its id: unique on
-//                               a server) open, e.g. the card page's "See banner". The Timeline keeps its address so
-//                               while a sheet is open, so going back to it (from a card's page) opens that sheet again.
-//   #/scenarios                 the Scenarios tab
-//   #/settings                  the Settings tab
-//   #/card/<id>                 one support card (not a tab: keeps the Cards tab highlighted)
-//   #/scenario/<key>            one Career scenario (not a tab: keeps the Scenarios tab highlighted)
+// The Timeline keeps `#/timeline/<server>/<id>` in the address while a sheet is open (replaced, not pushed), so going
+// back to it from a card's page reopens that sheet.
 
 /** The tabs' addresses. */
 export const TAB_URLS = {

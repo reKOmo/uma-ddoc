@@ -1,10 +1,4 @@
-// Where a support card comes from: every banner featuring it and every event giving it, as Timeline entries
-// (src/timeline/entries.js), real or predicted, oldest first. Pure.
-//
-// cardOrigins(cardId, byServer) → [{ entry, server, kind, rerun }], oldest first; `byServer`: { [server]: entries }
-//   kind   ORIGIN_KINDS ('other': shown by the event's own kind)
-//   rerun  a banner on which the card isn't new
-//   An event giving it inside an event that lists it too (a celebration's gift) counts once, as the part.
+// An event giving the card inside an event that lists it too (a celebration's gift) counts once, as the part.
 
 import type { Entry } from './timeline/entries.ts';
 
@@ -70,5 +64,4 @@ export function cardOrigins<E extends OriginEntry, S extends string>(
     .sort((a, b) => a.entry.start.localeCompare(b.entry.start));
 }
 
-// The kinds a card comes by, each once, in the order it first came by them.
 export const originKinds = (origins: Origin[]): OriginKind[] => [...new Set(origins.map((origin) => origin.kind))];

@@ -1,10 +1,5 @@
-// The app's detail sheet. On phones it slides up from the bottom, with a down arrow on top: drag it down (or tap the
-// arrow) to put it away. On desktop it's a centred, nearly square dialog that fades in and out (Sheet.module.css), with an ×
-// and no dragging (vaul only drags by a handle with `handleOnly`, and there's none). Either way vaul's drawer (on Radix's dialog) does the rest: the drag (only once its
-// content is scrolled to the top; a flick closes it, a short drag springs back), focus kept inside, Escape and a click
-// outside close it, the page doesn't scroll behind it. Its heading must be a <SheetTitle> (the accessible name).
-// Keep it rendered with `open` false while it closes, so it slides away (unmounted, it would just vanish);
-// `onClosed()` once it has.
+// Keep it rendered with `open` false while it closes, or it vanishes instead of sliding away (`onClosed()` once it has).
+// Its heading must be a <SheetTitle> (the accessible name).
 
 import type { ReactNode } from 'react';
 import { Drawer } from 'vaul';

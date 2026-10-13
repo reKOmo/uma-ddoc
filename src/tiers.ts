@@ -1,12 +1,9 @@
-// Tier grouping shared by the tier list page and the Timeline's sheet.
-
 import type { CardType, GametoraType } from '../shared/schemas/common.ts';
 import type { Ranked, Stat } from '../tierlist/index.ts';
 
 export const TIER_NAMES = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
 // A support card's id (cards.json's keys are strings, a card's `id` a number).
-// One card in a ranking (rankByUsefulness() in tierlist/index.ts): its score and limit break.
 export type RankedCard = Pick<Ranked, 'id' | 'lb' | 'score'>;
 
 // Support card types → the tier list's stat tabs (banner files say GameTora's `intelligence`, cards.json `wisdom`).

@@ -1,8 +1,7 @@
 import { type RefObject, useEffect } from 'react';
 
-// Lets a mouse pan a scroll container by dragging. Touch and pens are left to
-// native scrolling. A press only becomes a drag after moving a few pixels, so
-// plain clicks still reach the content; the click that ends a drag is eaten.
+// A press becomes a drag only after a few pixels, so plain clicks still reach the content; the click that ends a drag
+// is eaten. Touch is left to native scrolling.
 const THRESHOLD = 4;
 
 export function useDragScroll(ref: RefObject<HTMLElement | null>, enabled = true): void {

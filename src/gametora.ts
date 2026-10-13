@@ -1,4 +1,4 @@
-// GameTora's URLs, built from ids (the data files store none: GameTora's images are hotlinked, its card pages linked).
+// No data file stores GameTora's URLs: they're built from ids here.
 import type { BannerFile, BannerId, BannerItem, Banner } from '../shared/schemas/banner.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 
@@ -22,7 +22,6 @@ const ART_PREFIX = { global: 'en/', jp: '' };
 export const bannerArt = (id: BannerId, art: 'global' | 'jp'): string =>
   `${IMAGES}${ART_PREFIX[art]}gacha/img_bnr_gacha_${Number.parseInt(String(id), 10)}.png`;
 
-// A banner's featured item or main item with its icon.
 export type ArtItem = BannerItem & { icon: string | null };
 // A banner with what the app shows filled in (see withArt()).
 export type ArtBanner = Omit<Banner, 'main' | 'featured'> & {
@@ -36,11 +35,9 @@ export type ArtBannerFile = Omit<BannerFile, 'characters' | 'cards'> & {
   cards: ArtBanner[];
 };
 
-// A banner file ({ characters, cards }) with what the app shows filled in: each banner's `image` (the official art from
-// its post, `news_image` or a news-made banner's `image`, else GameTora's for `art`: 'global' | 'jp') and
-// `officialArt` (the official art: 936×228, no margin, so it's cropped differently from GameTora's), each item's
-// `icon` (none without an id).
-// `cards`: generated/cards.json, so a card upstream has shows upstream's icon (GameTora's otherwise).
+// A banner file with its art and icons filled in: each banner's `image` (the official art from its post when it has one,
+// else GameTora's, for `art`), `officialArt` (936×228, no margin, so cropped differently), each item's `icon` (none without
+// an id). `cards` (cards.json) gives upstream's icon for a card upstream has.
 export function withArt(file: BannerFile, art: 'global' | 'jp', cards: CardsFile): ArtBannerFile {
   const item =
     (kind: 'characters' | 'cards') =>

@@ -1,7 +1,5 @@
-// The user's settings as a zustand store, so code outside React (scenarioName() in src/i18n) can read
-// them too (getSetting()); React reads it through src/settings.tsx. Remembered in this browser (the stored
-// JSON is `{ timeZone, scenarioNames, jpNewsLanguage }`, as it always was); storage can be missing or throw
-// (private windows, blocked site data), then the defaults apply.
+// Read outside React too (getSetting(); React uses src/settings.tsx). Remembered in this browser as the stored JSON
+// `{ timeZone, scenarioNames, jpNewsLanguage }` (that format never changes). Storage can be missing or throw: the defaults apply then.
 //   timeZone       'utc' (the game's own times, default) | 'local' (the viewer's timezone)
 //   scenarioNames  'global' (Global's short names, JP's where Global has none; default) | 'jp'
 //   jpNewsLanguage umapyoi.net's copy of a JP post: 'jp' (the Japanese original, default) | 'en' (its translation)

@@ -1,6 +1,5 @@
-// umapyoi.net's copies of the official news posts (it mirrors both servers' news under the same post ids). A JP post
-// in Japanese (?lang=jp, the original) or umapyoi's English translation (?lang=en), by `language` (the JP news setting,
-// src/settingsStore.js); a Global post on its English mirror.
+// umapyoi.net mirrors both servers' news under the same post ids: a JP post in Japanese (?lang=jp, the original) or its
+// English translation (?lang=en), by the JP news setting; a Global post on its English mirror.
 
 export type UmapyoiLanguage = 'jp' | 'en';
 

@@ -1,6 +1,4 @@
-// Pull advice from Luh's Umamusume Support Card Encyclopedia (`pnpm fetch-pull-guide`,
-// see scripts/fetch-pull-guide.js). Optional: the glob is empty when the file hasn't been generated,
-// and loadPullGuide() gives null.
+// Optional: the glob is empty until `pnpm fetch-pull-guide` has written the file; loadPullGuide() then gives null.
 import type { Banner } from '../shared/schemas/banner.ts';
 import type { SourcesFile } from '../shared/schemas/sources.ts';
 import type { Advice, NoBannerAdvice, PullGuide, Release } from '../shared/schemas/pullGuide.ts';

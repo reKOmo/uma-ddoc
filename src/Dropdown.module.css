@@ -1,4 +1,3 @@
-/* The app's dropdown (Dropdown.tsx, on Radix Select): a field with its label, a trigger button, and a listbox popup under it. */
 .dropdown {
   position: relative;
   display: flex;
@@ -67,7 +66,6 @@
   white-space: nowrap;
 }
 
-/* An option's icon (e.g. a stat's), before its label. */
 .icon {
   flex: none;
   width: 22px;
@@ -75,7 +73,6 @@
   object-fit: contain;
 }
 
-/* A label as a pill in its option's colour (--pill-color), the text dark or light to read on it. */
 .pill {
   display: inline-block;
   max-width: 100%;
@@ -98,7 +95,6 @@
   color: var(--ink-light);
 }
 
-/* e.g. scenarios not launched on the selected server yet: in the list, and on the button. */
 .italic .label {
   font-style: italic;
 }
@@ -172,7 +168,6 @@
   color: var(--muted);
 }
 
-/* Right-aligned like .note (an option has one or the other). */
 .badge {
   margin-left: auto;
   padding: 0 8px;
@@ -183,7 +178,6 @@
   border-radius: 999px;
 }
 
-/* Can't be chosen (e.g. scenarios the tier list doesn't rank yet): greyed out, no highlight. */
 .option[data-disabled] {
   color: var(--muted);
   cursor: default;

@@ -1,6 +1,3 @@
-// User settings (the Settings tab) for React: useSettings() re-renders on change. The values and their
-// storage live in src/settingsStore.ts (a zustand store, readable outside React too).
-
 import { OPTIONS, useSettingsStore } from './settingsStore.ts';
 
 export const useSettings = () => ({

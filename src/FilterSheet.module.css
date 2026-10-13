@@ -1,5 +1,3 @@
-/* The app's filter (src/FilterSheet.tsx, the Cards tab's and the Timeline's): a button with a count, and a sheet of
-   toggle chips in sections. Each chip is tinted in its colour (--tone) while on. */
 .filterButton {
   display: inline-flex;
   align-items: center;
@@ -53,12 +51,10 @@
   margin: 0;
 }
 
-/* A note for the whole sheet, under its title. */
 .filterHead + :global(.filter-note) {
   margin: 6px 0 0;
 }
 
-/* All / None: quiet text buttons. */
 .filterAll {
   display: flex;
   gap: 2px;
@@ -93,7 +89,6 @@
   gap: 6px;
 }
 
-/* A toggle: shown, tinted in its colour (--tone, set by the page's classes; grey without) with a filled check; hidden, plain and muted with an empty one. */
 .filterChip {
   display: inline-flex;
   align-items: center;

@@ -18,14 +18,13 @@ import { ALIAS, PATTERNS, TAB_URLS, isServer, useHashLocation } from './routes.t
 import { Segmented } from './ui/Segmented.tsx';
 import styles from './App.module.css';
 
-// The tabs, in order. Settings (src/settings.tsx) come through context, not props.
 const TABS = [
   { url: TAB_URLS.cards, label: 'nav.tierList', Icon: Trophy },
   { url: TAB_URLS.timeline, label: 'nav.timeline', Icon: CalendarRange },
   { url: TAB_URLS.scenarios, label: 'nav.scenarios', Icon: RouteIcon },
   { url: TAB_URLS.settings, label: 'nav.settings', Icon: Settings },
 ];
-// Each tab's top bar title. The detail pages (a card, a scenario) have none: the top bar shows a back button.
+// Detail pages (a card, a scenario) have no title: their top bar shows a back button instead.
 const TITLES: Record<string, string> = {
   [TAB_URLS.cards]: 'tierList.title',
   [TAB_URLS.timeline]: 'timeline.title',
@@ -48,21 +47,17 @@ function Shell() {
   const [server, setServer] = useState<Server>('gl');
   const [scenario, setScenario] = useState(getServerConfig('gl').defaultScenario);
 
-  // Servers offer different scenarios; fall back to the new server's default.
   function changeServer(next: Server) {
     setServer(next);
     if (!scenarioOptions(next).includes(scenario)) setScenario(getServerConfig(next).defaultScenario);
   }
 
-  // Which page: the detail pages (a card's, a scenario's) have no title and a back button; anything unknown is the
-  // Cards tab.
   const [onCard, cardParams] = useRoute(PATTERNS.card);
   const [onScenario, scenarioParams] = useRoute(PATTERNS.scenario);
   const [onTimeline, timelineParams] = useRoute(PATTERNS.timeline);
   const [onScenarios] = useRoute(PATTERNS.scenarios);
   const [onSettings] = useRoute(PATTERNS.settings);
   const cardId = onCard && /^\d+$/.test(cardParams.id) ? Number(cardParams.id) : null;
-  // A card's page keeps the Cards tab highlighted, a scenario's the Scenarios tab.
   let tab: string = TAB_URLS.cards;
   if (onTimeline) tab = TAB_URLS.timeline;
   else if (onScenarios || onScenario) tab = TAB_URLS.scenarios;
@@ -71,8 +66,7 @@ function Shell() {
   // A card's pages share a key: going from one to the next keeps the scroll position, as before.
   const pageKey = cardId !== null ? 'card' : onScenario ? `scenario/${scenarioParams.key}` : tab;
 
-  // A Timeline link names its server; switch to it (every new link: a banner's or event's counterpart goes there).
-  // (An address that isn't a server's is just the Timeline.)
+  // Every new Timeline link switches to its server, even when the user picked another one since.
   const linkServer = onTimeline && isServer(timelineParams?.server) ? timelineParams.server : undefined;
   const linkId = linkServer ? timelineParams?.id : undefined;
   // biome-ignore lint/correctness/useExhaustiveDependencies: only a new link switches; picking a server by hand afterwards stays.

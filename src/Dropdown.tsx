@@ -1,18 +1,8 @@
-// The app's dropdown: a styled listbox instead of a <select>, so options can be styled everywhere
-// (phones' native pickers ignore <option> styling) and look the same on every device. Every dropdown
-// in the app uses it; ScenarioPicker.tsx is the scenario one. Built on Radix Select (keyboard, type-ahead,
-// ARIA, touch, focus and the popup's portal come from it); the look is Dropdown.module.css.
-//
-// options: [{ value, label, icon?, pill?, group?, note?, badge?, italic?, disabled? }] — ungrouped options first,
-// then each group (by its label, in order of first appearance) under a heading; `icon` an image's URL shown before
-// the label (in the list and on the button); `pill` { color, ink: 'dark' | 'light' } sets the label as a pill in that
-// colour (e.g. a scenario's), its text dark or light (the --ink-* tokens); `note` is a small
-// hint on the right (also the button's tooltip while selected), `badge` a small accent pill there (e.g. "Current"),
-// `italic` sets the label in italics (on the button too while it's selected), `disabled` shows the option greyed
-// out and can't be chosen (the keyboard skips it).
-//
-// The popup is positioned "popper"-style under the button (as wide as it at least, 60vh at most), not
-// item-aligned over it, and opens scrolled so the selected option is centred in view.
+// Radix Select underneath: keyboard, type-ahead, ARIA, touch and the popup's portal come from it. Every dropdown
+// uses it (not a <select>: phones' native pickers ignore option styling).
+// Options: { value, label, icon?, pill?, group?, note?, badge?, italic?, disabled? }. `pill` { color, ink: 'dark' |
+// 'light' } sets the label as a pill (the --ink-* token for its text); `disabled` options are greyed and skipped by the
+// keyboard.
 
 import * as Select from '@radix-ui/react-select';
 import clsx from 'clsx';
@@ -43,7 +33,6 @@ export default function Dropdown({ label, value, options, onChange }: DropdownPr
   const id = useId();
   const viewport = useRef<HTMLDivElement>(null);
 
-  // Display order: ungrouped, then each group.
   const groups = [...new Set(options.filter((o) => o.group).map((o) => o.group as string))];
   const ungrouped = options.filter((o) => !o.group);
   const selected = options.find((o) => o.value === value) ?? ungrouped[0] ?? options[0];

@@ -1,7 +1,4 @@
-// Career scenarios from data/scenarios.json (scripts/lib/scenarios.js), for the app: lookups, and
-// whether one has launched on a server. Launched: a known start date (not a prediction) that has
-// passed. Scenario pickers set unlaunched ones in italics. Keys the file doesn't know count as launched
-// (nothing to say otherwise).
+// Launched: a known (not predicted) start date that has passed. Keys data/scenarios.json doesn't know count as launched.
 
 import scenarioData from '../data/scenarios.json' with { type: 'json' };
 import type { Scenario } from '../shared/schemas/scenario.ts';
