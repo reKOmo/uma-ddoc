@@ -1,5 +1,8 @@
 # TypeScript migration plan
 
+**Done 2026-10-13** (branch `ts-migration`): every file TypeScript and type-checked (no `@ts-nocheck`), the libraries
+in, every page on CSS Modules and `src/ui/`, e2e + visual suites. What follows is the plan as it ran, kept for its notes.
+
 Goal: the whole JS codebase (`src/`, `tierlist/`, `scripts/`, `test/`, configs; not `ml/`) in TypeScript, hand-written
 mechanics replaced by libraries where it pays, and the frontend built from reusable components with CSS Modules.
 
@@ -349,7 +352,12 @@ components; don't change callers yet** (the old classes stay until the page task
 Same props and look (groups under headings, icon, pill, note, badge, italic, disabled; opening scrolls the selected
 option into view, centred). Radix gives the keyboard handling and type-ahead. Lead adds `@radix-ui/react-select`.
 
-## Wave 5 — pages (workers, parallel)
+## Wave 5 — pages (workers, parallel) — done 2026-10-13
+
+Every page on CSS Modules and typed, pixel-identical (`pnpm test:visual`). P4 finished by the lead (the worker hit a
+rate limit). Cleanup after: dead global rules removed (App.css keeps `.page`, `.segmented`, `.reset-filters`;
+timeline.css deleted), the current tab `aria-current`. Found on the way: `.card-page`'s and the Scenarios tab's
+`max-width: 760px` never applied (`.page`'s 1100px won); dropped, so the look is unchanged.
 
 Every page task: switch the page to the `src/ui/` primitives, move its CSS into `*.module.css` (delete the old file
 or the moved rules), remove `@ts-nocheck` and type it (recipe), make its tests find elements by role/text.
@@ -367,7 +375,10 @@ Checks: BASE, UI (list the screens).
 | P8 | sonnet | `src/pages/TimelinePage.tsx` → split out `src/timeline/{useCompactRows,useTimelineFilters,useCenterOn}.ts`; `src/timeline/{Lanes,TimelineAxis}.tsx`, `timeline.css` → modules |
 | P9 | haiku | `src/timeline/{TimelineFilter,GroupOrder}.tsx` + their CSS |
 
-## Wave 6 — tests + docs
+## Wave 6 — tests + docs — done 2026-10-13
+
+All tests typed by the lead (`test/helpers.ts`: `fixture<T>()`, `present()`; `test/upstream-modules.d.ts`);
+`cardOrigins()` / `laneGroups()` made generic on the way; CLAUDE.md describes the TypeScript codebase.
 
 | ID | Model | Files |
 |---|---|---|

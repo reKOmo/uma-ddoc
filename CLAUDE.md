@@ -5,14 +5,14 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
 - **Tier list** (the "Cards" tab, `#/`) — ranks support cards per server, scenario and stat. The calculation
   started as a copy of [Euophrys/umamusume-tierlist](https://github.com/Euophrys/umamusume-tierlist)'s
   (MIT, see `tierlist/LICENSE`) and is maintained here now; tests compare it with upstream.
-  A rarity × LB filter (the Filter button beside the search box, a sheet like the Timeline's: `src/FilterSheet.jsx`, a
+  A rarity × LB filter (the Filter button beside the search box, a sheet like the Timeline's: `src/FilterSheet.tsx`, a
   section of LB chips per rarity with All / None, a count on the button of LBs changed from the defaults; at its bottom
   "Card size": Small / Medium / Large (the default) / Huge, a display preference "Reset filters" keeps) picks which
   copies are shown (default: MLB of everything, plus
   LB0 and LB3 of SSR and SR); tiers are banded on the full ranking, so filtering doesn't move cards between tiers.
   A search box filters by character name and card title (English + Japanese, from `generated/cards.json`; every
   word must match, accents/punctuation ignored); like the LB filter, it doesn't move cards between tiers.
-  Stat, LB filter, search and card size are remembered (`src/tierListFilters.js`: kept across pages and in localStorage); the
+  Stat, LB filter, search and card size are remembered (`src/tierListFilters.ts`: kept across pages and in localStorage); the
   scenario is App's (kept across pages, not reloads). "Reset filters" (by the filter sheet's title; disabled at the defaults) restores all four,
   scenario = the server's default.
   A tier's label (S, A…; a ⌃ pinned to the top of the strip says so) folds it to a slim row ("› N cards hidden · Show"), to compare the tiers around it; while any
@@ -25,58 +25,58 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   While a sheet is open the address is `#/timeline/<server>/<id>` (replaced, not pushed; ids are unique on a server,
   banners' and events' alike), so going back to the Timeline from a card's page reopens the sheet.
   **Both servers run exactly the same code, fed different data** (`src/timeline/`): every banner and event becomes an
-  *entry* (`entries.js`, one shape whatever the server or source; every difference between the data files is read
-  there and nowhere else), the page has no `server ===` branch, and one sheet (`TimelineSheet.jsx`, on `src/Sheet.jsx`: drag it down to close)
+  *entry* (`entries.ts`, one shape whatever the server or source; every difference between the data files is read
+  there and nowhere else), the page has no `server ===` branch, and one sheet (`TimelineSheet.tsx`, on `src/Sheet.tsx`: drag it down to close)
   shows every banner and event alike: art, kind pill, name, status + dates, where its dates come from (predicted /
   confirmed from JP's; paid), relations (re-run of / re-held / part of, each opening the other), featured items or
   cards with their tier-list rank, other rewards, schedule, titles, parts, the post + umapyoi.net; sections without
   content aren't shown. Cards rank in the server's own tier list (MLB, the selected scenario); when it lacks one of
   them (an announced or predicted card on Global), in the one that also ranks JP's cards it doesn't have yet
-  (`useRankings.js`, as the card page's dashed future). Global's calendar continues into the
+  (`useRankings.ts`, as the card page's dashed future). Global's calendar continues into the
   future with JP's banners at their predicted Global dates (`ml/`), drawn half-transparent
   with JP art (nearly solid and "confirmed" when `data/known_dates.json` has their exact dates). Banners from the news
   use the official art and link to their post.
   A strip above the date axis shows which Career scenario runs when on that server (`data/scenarios.json`,
-  `src/timeline/scenarioStrip.js`), each in its cover's colour: the current one solid, unlaunched ones faint (confirmed) or
+  `src/timeline/scenarioStrip.ts`), each in its cover's colour: the current one solid, unlaunched ones faint (confirmed) or
   dashed (predicted), with a line down the calendar where each begins; labels stick to the left edge while scrolling, with a › arrow (it opens the scenario page) right after the
   name on desktop and at the segment's right edge on phones (`overflow: clip`, not hidden, keeps sticky working).
   Events under the banners on both servers (`data/global_events.json` / `data/jp_events.json`, loaded per server by
-  `loadEvents()` in `src/timeline/data.js`; JP's names as the posts give them, items by their Japanese `local` name;
-  `src/timeline/events.js`) in labelled groups by type
+  `loadEvents()` in `src/timeline/data.ts`; JP's names as the posts give them, items by their Japanese `local` name;
+  `src/timeline/events.ts`) in labelled groups by type
   (`EVENT_GROUPS`, after the support card then trainee banners: story & special, celebrations, gifts & login bonuses,
   bonuses, missions, Champions Meetings, League of Heroes (JP), Legend Races, shops & sales, transfers & outings: what
   gives cards and pulls first, competitive modes next), each group packed on its own. Every group label (the banner sections'
-  too) folds its group away (`src/timeline/collapsed.js`: remembered in localStorage, try/catch; rows stay fixed, bars
-  never move). **Filter** (the toolbar's button, with a count of what's hidden, opens a sheet, `TimelineFilter.jsx`: sections
+  too) folds its group away (`src/timeline/collapsed.ts`: remembered in localStorage, try/catch; rows stay fixed, bars
+  never move). **Filter** (the toolbar's button, with a count of what's hidden, opens a sheet, `TimelineFilter.tsx`: sections
   Banners / Events / Pull advice, each with All / None, "Show all" by the title; a second tab, Order, drags the
-  calendar's lane groups into order (`GroupOrder.jsx`, dnd-kit's pointer sensor, by a handle with `touch-action: none`:
+  calendar's lane groups into order (`GroupOrder.tsx`, dnd-kit's pointer sensor, by a handle with `touch-action: none`:
   phones drag at once and the rest of a row still scrolls; keyboard too; tabs with icons; "Reset order" by
   the title (on the Order tab, where "Show all" is on the Show tab); both tabs share one grid cell (the other
-  invisible + `inert`), so switching never resizes the sheet; `src/timeline/order.js`: remembered in localStorage,
-  the lanes and the chips both follow it); every change applies and is saved at once, no Done; `src/timeline/hidden.js`: remembered in
+  invisible + `inert`), so switching never resizes the sheet; `src/timeline/order.ts`: remembered in localStorage,
+  the lanes and the chips both follow it); every change applies and is saved at once, no Done; `src/timeline/hidden.ts`: remembered in
   localStorage, try/catch, the same for both servers): a toggle per banner section (trainee, support card) and event
   kind the calendar has, in its groups' order; when the pull guide covers any of the calendar's banners (Global's), a
   toggle per pull-advice verdict (Yes / No / Free / If Whale / If Dolphin / No advice: a support card banner stays
-  while one of its cards has a verdict shown; `VERDICTS`, `bannerVerdicts()` in `src/pullGuide.js`; greyed out while
+  while one of its cards has a verdict shown; `VERDICTS`, `bannerVerdicts()` in `src/pullGuide.ts`; greyed out while
   support card banners are hidden).
   Hidden bars leave the lanes (a hidden event's parts of shown kinds stand on their own; the calendar's dates and the
-  sheets keep everything). **Compact mode** (the toolbar's fold button, on by default, `src/timeline/compact.js`: remembered in
+  sheets keep everything). **Compact mode** (the toolbar's fold button, on by default, `src/timeline/compact.ts`: remembered in
   localStorage): rows with nothing in view (± half a screen) fold away while scrolling slowly or once it stops (`visibleRows()` in
-  `layout.js`), so a group is only as tall as what's on screen; rows are never repacked, a bar never changes row. An event with parts (a celebration's sub-events, an event's mission sets) is one bar with a "+N" fold
+  `layout.ts`), so a group is only as tall as what's on screen; rows are never repacked, a bar never changes row. An event with parts (a celebration's sub-events, an event's mission sets) is one bar with a "+N" fold
   button (`.bar-fold`); unfolded, its parts' rows open under its row over a band tinted in its colour
   (`.event-parts-band`), nested parts the same way. Bars: the post's art covering the bar
   (`background-size: cover`, like banners' official art) behind the banners' gradient, edge coloured by kind family; under 64px a bar is a chip
   (no label, no art; name in the tooltip and sheet). A bar opens a sheet: dates, "Part of <event>" (opens it), the
   support cards it gives first (to their card page, copies), other rewards (carats, monies, shards first; ranges for
   Champions Meetings), a cup's schedule (league selection, rounds, final round steps), titles, its parts (open them; a
-  "Support cards" pill on those giving one), the news post and umapyoi.net's copy of it (`src/umapyoi.js`: JP's in
+  "Support cards" pill on those giving one), the news post and umapyoi.net's copy of it (`src/umapyoi.ts`: JP's in
   Japanese, `news/<id>?lang=jp`; Global's `en/news/<id>`; every event with a post has both, GameTora-filled ones none).
   News-made banners' sheets link both too.
   Global's calendar also shows **predicted events** (`generated/predicted_global_events.json`, optional like the
   predicted banners): every JP event Global hasn't had yet at its predicted Global date, in the same groups,
   half-transparent (nearly solid when confirmed), with JP's names and art; the sheet says "Predicted from the JP event
   of … ± N days" and links JP's announcement. A prediction is dropped when Global's real events already have a newer
-  event of its kind (`withPredicted()`, `src/timeline/events.js`).
+  event of its kind (`withPredicted()`, `src/timeline/events.ts`).
   JP's calendar marks where Global is: a window from the JP banner Global is running to its next banner's
   JP start (announced / confirmed / predicted; faded end when predicted), a dashed estimate line inside it
   (linear in time between the two), and a "Global now" button that scrolls there.
@@ -94,7 +94,7 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
 - **Settings** (`#/settings`, a tab) — banner times in UTC (default, as the game announces them) or the
   viewer's timezone; scenario names Global (Unity, TB, GC; JP's where Global has none yet, the default) or JP
   (Aoharu, MANT, GL); JP news on umapyoi.net in Japanese (the original, default: `?lang=jp`) or English (umapyoi's
-  translation, `?lang=en`), for every umapyoi.net link to a JP post (`src/umapyoi.js`); remembered in the browser. At the bottom, About: version (package.json), the Cygames
+  translation, `?lang=en`), for every umapyoi.net link to a JP post (`src/umapyoi.ts`); remembered in the browser. At the bottom, About: version (package.json), the Cygames
   disclaimer, and credits linking GameTora and the original tier list (Euophrys' Uma Tiers).
 - **Card page** (`#/card/<id>`) — one support card's full art, GameTora link (if GameTora has it), and its
   tier at each limit break in every scenario (plus the averaged "Overall" and
@@ -102,7 +102,7 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   and the newer cards that passed it — continued dashed into the future on Global with
   predicted release dates of JP's cards (when it'll drop a tier). Above the tiers, pull advice from Luh's Umamusume
   Support Card Encyclopedia (a public Google Sheet), only for the card's next Global banner, real or predicted (or the one
-  running; `upcomingBanner()` + `currentAdvice()` in `src/pullGuide.js`), in one box:
+  running; `upcomingBanner()` + `currentAdvice()` in `src/pullGuide.ts`), in one box:
   - "Upcoming banner", on the banner's art like the Timeline's bars (same crop of GameTora's margin, dark
     gradient, shadowed text, "See banner" a solid accent (pink) button): its status badge + dates as in the Timeline's sheet (Settings timezone; the guide's
     own date for event/story/shop cards, on no banner), then the label pill (Rerun when the banner's `featured`
@@ -114,7 +114,7 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
     24 characters (shorter, e.g. "With Kitasan", it leads the notes instead; `parsePull`), free pulls, then the notes as one paragraph (`notesParagraph()` at build time: a full stop added where a sentence has none).
   - The box's footer (under both halves): a centred "See more on Luh's encyclopedia" (the card's row in the sheet). The guide's disclaimer (with a link
     to the sheet) is in About, not on the card page.
-  - "Available on" (`Origins`, `src/cardOrigins.js`): every banner featuring the card and event giving it on the
+  - "Available on" (`Origins`, `src/cardOrigins.ts`): every banner featuring the card and event giving it on the
     selected server (a card not on Global yet: Global's predicted ones and JP's, JP's tagged), oldest first (a toggle
     reverses it), the first shown and the rest folded; a kind pill (Banner / Paid banner / Story event / Gift: gifts,
     login bonuses, missions, campaigns / Shop; else the event's own kind) in one colour per kind (not the Timeline's: a banner there takes its main card's type), Re-run when the card
@@ -125,14 +125,18 @@ A static, mobile-first web app for Uma Musume players, deployed to GitHub Pages:
   The tier list's floating "Back to top" button too.
   Opened from tier-list cards and the Timeline sheet's "See more"; it isn't a tab, but keeps the Cards tab highlighted.
 
-Stack: React 19 + Vite 8, i18next + react-i18next, Vitest, Biome + husky, `lucide-react` icons, `vaul` (sheets, on Radix's dialog), `@dnd-kit` (drag to reorder), `clsx`, pnpm (never npm). No
-backend: all data is generated at build time.
+Stack: TypeScript 7 (strict), React 19 + Vite 8 (CSS Modules), i18next + react-i18next, zod (data shapes), zustand
+(remembered state), wouter (hash routing), Radix Select (the dropdown), `vaul` (sheets, on Radix's dialog), `@dnd-kit`
+(drag to reorder), `lucide-react` icons, `clsx`, Vitest + Playwright, Biome + husky, pnpm (never npm). No backend: all
+data is generated at build time.
 
-**TypeScript migration in progress** (`docs/ts-migration-plan.md`, branch `ts-migration`): every file is `.ts` /
-`.tsx` now (the paths below still say `.js` / `.jsx` until the last task updates them); files not typed yet start with
-`// @ts-nocheck`. Data shapes are zod schemas in `shared/schemas/` (types via `z.infer`; `schemas/*.json` generated by
-`pnpm build-schemas`). Scripts run on Node 24's type stripping (`node scripts/x.ts`): `.ts` in import paths, erasable
-syntax only. `pnpm typecheck` runs `tsc`.
+**TypeScript everywhere** (migrated in 2026-10, `docs/ts-migration-plan.md`): one `tsconfig.json` (`strict`,
+`nodenext`, `erasableSyntaxOnly`, `allowImportingTsExtensions`), `pnpm typecheck` (= `tsc`, in CI). Scripts and
+`tierlist/` run on Node 24's type stripping (`node scripts/x.ts`, no build step): `.ts` in every import path, no
+`enum` / `namespace` / parameter properties. Data shapes are zod schemas in `shared/schemas/` (types via `z.infer`;
+`schemas/*.json` generated from them by `pnpm build-schemas`); `src/` imports their types only (`import type`), so zod
+isn't in the bundle but where stored state is parsed (`zod/mini`). Never `any`: `unknown` + narrowing, or a cast with a
+`// TODO(ts):` comment saying why (mostly JSON from outside: GameTora, umapyoi.net, a model's reply).
 
 ## Commands
 
@@ -143,13 +147,17 @@ pnpm lint              # Biome: formatting + lint check (CI runs this)
 pnpm format            # Biome: apply formatting and safe fixes
 pnpm test              # Vitest unit suite (~15s; fetches card data if missing)
 pnpm test:upstream     # compare our calculation with upstream's (~25s; needs the clone)
+pnpm typecheck         # tsc over everything (CI runs this)
 pnpm test:e2e          # the app in a browser (Playwright, e2e/; starts the dev server; ~45s; needs
-                       # `pnpm exec playwright install chromium` once)
+                       # `pnpm exec playwright install chromium` once; E2E_PORT=… for parallel runs)
+pnpm test:visual       # screens compared pixel by pixel with baselines made on this machine (.visual-baseline/, not
+                       # in git; `--update-snapshots` from a known-good commit; VISUAL_BASELINE=… to share them)
 pnpm rank gl GL speed  # print a ranking in the terminal (scenario may be overall / upcoming)
 
 pnpm update-cards      # upstream main's card lists + events → generated/raw/upstream/, then build-cards
 pnpm build-cards       # raw inputs + data/jp_cards.json + data/global_cards.json → generated/cards.json + card_stats/
                        # (the three scripts that change an input run it themselves)
+pnpm build-schemas     # schemas/*.json from the zod schemas in shared/schemas/ (test/schemas.test.ts fails when stale)
 pnpm scrape-gametora    # support card list (augments new cards, slugs) + JP scenarios + JP event history (story events, Champions
                        # Meetings, Legend Races) from GameTora → generated/, then build-cards (--events: only the events)
 pnpm update-jp         # JP news → new cards in data/jp_cards.json (augmented from GameTora's list; else pending in
@@ -190,135 +198,167 @@ dates and slugs from `data/jp_cards.json` (committed: every card, the news-made 
 
 ```
 tierlist/          ranking code (runs in Node and the browser)
-  tierlist-calc.js   processCards(): scores candidates against a fixed deck (from upstream, ours now)
-  scenarios.js       weights, training gains, per-server scenarios + deck presets (likewise)
-  index.js           rankCards() (one deck), rankByUsefulness() (avg over preset decks, cached),
+  tierlist-calc.ts   processCards(): scores candidates against a fixed deck (from upstream, ours now)
+  scenarios.ts       weights, training gains, per-server scenarios + deck presets (likewise)
+  index.ts           rankCards() (one deck), rankByUsefulness() (avg over preset decks, cached),
                      STATS (stat keys), presetDecks(), COMBINED (averaged rankings), scenarioOptions()
-  cards.js           `cards` (generated/cards.json), loadCards(server): joins it with the server's stats;
+  cards.ts           `cards` (generated/cards.json), loadCards(server): joins it with the server's stats;
                      loadCardsWithUpcoming()
-  join-cards.js      joinCards() (+ `events` per card), withoutEvents(), TYPE_CODES / RARITY_CODES (cards.json's
+  join-cards.ts      joinCards() (+ `events` per card), withoutEvents(), TYPE_CODES / RARITY_CODES (cards.json's
                      strings ↔ upstream's codes)
-  cli.js             `pnpm rank`
+  cli.ts             `pnpm rank`
 scripts/
-  lib/paths.js       ROOT, GENERATED_DIR, DATA_DIR, newsDir(server) (every script's paths)
-  lib/sources.js     generated/sources.json (file → where its data came from): readSources(), writeSources()
-  lib/upstream.js    everything that knows about the upstream repo (REPO, DATA_FILES,
+  lib/paths.ts       ROOT, GENERATED_DIR, DATA_DIR, newsDir(server) (every script's paths)
+  lib/http.ts        sleep(), paced(): one request at a time with a pause between (every fetching script's pacing)
+  lib/sources.ts     generated/sources.json (file → where its data came from): readSources(), writeSources()
+  lib/upstream.ts    everything that knows about the upstream repo (REPO, DATA_FILES,
                      UPSTREAM_DIR, UPSTREAM_RAW, download)
-  clone-upstream.js  shallow clone (or fetch + reset) of upstream main into upstream/
-  update-cards.js    download upstream's card data into generated/raw/upstream/; exports ensureCards()
-  build-cards.js     raw inputs → generated/cards.json + card_stats/<gl|jp>_card_stats.json (buildCardFiles())
-  lib/cards.js       pure: buildCards() (the merge, + the round-trip check against upstream's lists)
-  scrape-gametora.js  GameTora: support card list + JP event history (generated/raw/), JP scenarios (data/)
-  update-global.js   data/news/ → Global's banners + card releases in data/, appends to data/news/gl/summary.md
-  update-jp.js       data/news/jp/ → new cards in data/jp_cards.json (+ build-cards), data/jp_banners.json +
+  clone-upstream.ts  shallow clone (or fetch + reset) of upstream main into upstream/
+  update-cards.ts    download upstream's card data into generated/raw/upstream/; exports ensureCards()
+  build-cards.ts     raw inputs → generated/cards.json + card_stats/<gl|jp>_card_stats.json (buildCardFiles())
+  build-schemas.ts   schemas/*.json from shared/schemas/ (z.toJSONSchema)
+  lib/cards.ts       pure: buildCards() (the merge, + the round-trip check against upstream's lists)
+  scrape-gametora.ts  GameTora: support card list + JP event history (generated/raw/), JP scenarios (data/)
+  update-global.ts   data/news/ → Global's banners + card releases in data/, appends to data/news/gl/summary.md
+  update-jp.ts       data/news/jp/ → new cards in data/jp_cards.json (+ build-cards), data/jp_banners.json +
                      data/jp_events.json, appends to data/news/jp/summary.md
-  lib/jp-cards.js    pure: newsCards() (every support card the JP news shows, at its first appearance),
+  lib/jp-cards.ts    pure: newsCards() (every support card the JP news shows, at its first appearance),
                      applyNewsCards() (→ the history + pending, GameTora augmenting; GameTora-only cards listed),
                      data/jp_cards.json + jp_cards_pending.json readers/writers, updateJpCards()
-  lib/gametora-events.js  GameTora's JP story events / Champions Meetings / Legend Races → fills in jp_events.json
-  lib/jp-banners.js  pure: applyJpNews() (JP news → data/jp_banners.json), regularBanners() (what Global and ml/ read),
+  lib/gametora-events.ts  GameTora's JP story events / Champions Meetings / Legend Races → fills in jp_events.json
+  lib/jp-banners.ts  pure: applyJpNews() (JP news → data/jp_banners.json), regularBanners() (what Global and ml/ read),
                      reader / writer
   lib/news-lang/     the news' wording per language, read by every parser below (`lang`, English by default):
-                     en.js (Global), ja.js + ja-banners.js (JP), index.js (lexicon(server))
-  lib/global.js      pure: applyNews() (news posts + JP banners → Global banners/releases), data/ reader/writer
-  lib/event-blocks.js  pure: eventBlocks() (a post cut at its header art into blocks: intro + h2–h4 sections)
-  lib/event-rewards.js pure: cardsIn() (cards by lookup), itemsIn(), titlesIn(), missionsIn()
-  lib/events.js      pure: postEvents() (a post → its events, with doubts), eventFragments(), buildEvents() (mission
+                     en.ts (Global), ja.ts + ja-banners.ts (JP), index.ts (lexicon(server))
+  lib/global.ts      pure: applyNews() (news posts + JP banners → Global banners/releases), data/ reader/writer
+  lib/event-blocks.ts  pure: eventBlocks() (a post cut at its header art into blocks: intro + h2–h4 sections)
+  lib/event-rewards.ts pure: cardsIn() (cards by lookup), itemsIn(), titlesIn(), missionsIn()
+  lib/events.ts      pure: postEvents() (a post → its events, with doubts), eventFragments(), buildEvents() (mission
                      sets as bars, merged over posts, answers applied), cmPhases() (a cup's schedule), cmItems()
                      (Champions Meeting range from the hand table), data/ readers/writers (events, answers)
-  lib/event-questions.js  pure: what a model is asked about an event (askedFields(), question(): prompt + examples
+  lib/event-questions.ts  pure: what a model is asked about an event (askedFields(), question(): prompt + examples
                      + JSON schema), staleFields() / mergeAnswer() (per-field versions), applyAnswer() (checks + rules first)
-  lib/ai.js          the model client: Ollama (native /api/chat) or OpenRouter (OpenAI-style), aiConfig(), ask()
-  ai-events.js       `pnpm news:ai` (ask about doubted fields, store answers; --compare to test a model)
-  list-events.js     `pnpm news:events` (the events the news makes, printed, nothing written)
-  lib/colors.js      PNG decoder (zlib only) + main colour of an image, for scenario covers
-  lib/scenarios.js   Career scenarios (data/scenarios.json): SCENARIO_NAMES (slug → key + JP/Global short names, by hand),
+  lib/ai.ts          the model client: Ollama (native /api/chat) or OpenRouter (OpenAI-style), aiConfig(), ask()
+  ai-events.ts       `pnpm news:ai` (ask about doubted fields, store answers; --compare to test a model)
+  list-events.ts     `pnpm news:events` (the events the news makes, printed, nothing written)
+  lib/colors.ts      PNG decoder (zlib only) + main colour of an image, for scenario covers
+  lib/scenarios.ts   Career scenarios (data/scenarios.json): SCENARIO_NAMES (slug → key + JP/Global short names, by hand),
                      mergeGametora() (JP side), applyScenarioNews() (Global side, from the news)
-  fetch-pull-guide.js  Luh's Support Card Encyclopedia (Google Sheet) → generated/pull_guide.json
-  lib/pull-guide.js  pure: the sheet's HTML view → entries (dates, Pull?, notes) → advice per banner (findBanner())
-  fetch-news-latest.js  new/edited posts → data/news/<server>/posts.json + summary.md (incremental, news.yml)
-  fetch-news-all.js  the whole archive → data/news/<server>/posts.json (one-off, resumable)
-  fetch-news-umapyoi.js  older posts from umapyoi.net's mirror → data/news/<server>/posts.json (one-off, resumable)
-  categorize-news.js `pnpm news:categories`
-  lib/news-api.js    the news API client per server (gl / jp; gentle pacing), posts.json reader/writer, --server
-  lib/news-text.js   pure: HTML → lines/sections, period dates (parsePeriod), shared by the news parsers
-  lib/post-categories.js  pure: categorize(post) → banner / event (+ kind) / other, phase, name
-  lib/banner-posts.js  pure: bannerPost(post) → a scout post's banners (gacha id, type, period, art, featured list)
-  lib/news.js        pure: the first parser (toRecord), still used for scenarios and events
-src/
-  App.jsx            shell: hash routes (#/, #/timeline, #/timeline/<gl|jp>/<id> (a banner or event open; the Timeline
-                     keeps it in the address while a sheet is open, so coming back reopens it), #/scenarios, #/settings, #/card/<id>,
-                     #/scenario/<key>), top bar (title or back button +
-                     server switch), tab bar, shared server + scenario state
-  settingsStore.js   user settings as a plain store (getSetting / setSetting / subscribe), kept in localStorage
-                     (try/catch; defaults without it): timeZone 'utc' | 'local', scenarioNames 'global' | 'jp'
-  tierListFilters.js the Cards tab's stat / LB filter / search / card size: getFilters(), saveFilters(), DEFAULTS,
-                     SIZES, isDefault()
-  settings.jsx       useSettings() (useSyncExternalStore over the store); App calls it so plain readers like
-                     scenarioName() refresh on change
-  pages/SettingsPage.jsx, settings.css  the Settings tab
-  pages/TierListPage.jsx
-  pages/TimelinePage.jsx               the Timeline tab: loads a server's timeline, draws its groups and marks, opens
+  fetch-pull-guide.ts  Luh's Support Card Encyclopedia (Google Sheet) → generated/pull_guide.json
+  lib/pull-guide.ts  pure: the sheet's HTML view → entries (dates, Pull?, notes) → advice per banner (findBanner())
+  fetch-news-latest.ts  new/edited posts → data/news/<server>/posts.json + summary.md (incremental, news.yml)
+  fetch-news-all.ts  the whole archive → data/news/<server>/posts.json (one-off, resumable)
+  fetch-news-umapyoi.ts  older posts from umapyoi.net's mirror → data/news/<server>/posts.json (one-off, resumable)
+  categorize-news.ts `pnpm news:categories`
+  lib/news-api.ts    the news API client per server (gl / jp; gentle pacing), posts.json reader/writer, --server
+  lib/news-text.ts   pure: HTML → lines/sections, period dates (parsePeriod), shared by the news parsers
+  lib/post-categories.ts  pure: categorize(post) → banner / event (+ kind) / other, phase, name
+  lib/banner-posts.ts  pure: bannerPost(post) → a scout post's banners (gacha id, type, period, art, featured list)
+  lib/news.ts        pure: the first parser (toRecord), still used for scenarios and events
+src/                 (components' styles: `X.module.css` beside each, `camelCaseOnly` names; global ones below)
+  main.tsx           mounts App (StrictMode); imports styles/global.css first, then App.css
+  styles/global.css  what is global on purpose: colour tokens (light, dark), resets, tier colours (.tier-0…7), and the
+                     tones: an element's colour (--tone) from its `data-tone` (a Timeline entry's `tone`, a chip's)
+  App.css            the few plain classes pages still share: .page (every page's box), .segmented (the Timeline
+                     filter's tabs), .reset-filters
+  App.tsx            shell: wouter routes (src/routes.ts), top bar (title or back button + server switch), tab bar
+                     (current tab aria-current="page"), shared server + scenario state; <main data-scroll-root>
+  routes.ts          every address the app links to, built here (cardUrl, scenarioUrl, timelineUrl, TAB_URLS): no page
+                     writes `#/…` by hand; wouter's patterns; `useHashLocation`: one location for the whole app,
+                     changed only by `hashchange` (the Timeline's replaceState of the open sheet must not re-route)
+  useAsync.ts        useAsync(load, deps) → { data, error, pending }: loads, ignoring a superseded run (pages' data)
+  rawStorage.ts      the persisted stores' localStorage adapter: each store keeps its own stored format (never
+                     zustand's { state, version } wrapper), every access guarded (private windows)
+  settingsStore.ts   user settings (zustand + persist; getSetting / setSetting / subscribe for non-React readers):
+                     timeZone 'utc' | 'local', scenarioNames 'global' | 'jp', jpNewsLanguage 'jp' | 'en'
+  tierListFilters.ts the Cards tab's stat / LB filter / search / card size (zustand store): getFilters(),
+                     saveFilters(), DEFAULTS, SIZES, isDefault()
+  settings.tsx       useSettings() (the settings store's hook); App calls it so plain readers like scenarioName()
+                     refresh on change
+  ui/                the shared components (each with its module): LinkButton, SeeMore, FoldToggle, Pill (tag / kind
+                     / status / verdict / label), TierChip, Status, Segmented, Section, SearchInput, ToolbarButton,
+                     CardRow; pages use them where they look identical, else keep their own markup
+  pages/SettingsPage.tsx               the Settings tab
+  pages/TierListPage.tsx               the Cards tab
+  pages/TimelinePage.tsx               the Timeline tab: loads a server's timeline, draws its groups and marks, opens
                                        the sheet; no server-specific code (src/timeline/)
-  pages/CardPage.jsx, card.css         one card: art, GameTora link, tier per scenario × LB
-  gametora.js        GameTora's URLs built from ids (no data file stores them): cardPage(slug), cardArt(id),
+  pages/CardPage.tsx                   one card (the entry App imports): art, tags, GameTora link, its parts:
+  pages/card/        PullAdvice, Origins (+ OriginPill), RankOverTime, ScenarioTierTable; hooks.ts (usePredictions,
+                     useOrigins, useScenarioRankings, useUpcomingRanking), shared.ts
+  pages/card.css     global on purpose: the Rank over time picker's size (`.history-controls .dropdown-button`)
+  gametora.ts        GameTora's URLs built from ids (no data file stores them): cardPage(slug), cardArt(id),
                      cardIcon(id, cards) (upstream's icon from cards.json, else GameTora's), traineeIcon(charId, id),
                      bannerArt(id, 'global' | 'jp'), withArt(file, art, cards) (a banner file's art + item icons, filled
-                     by timeline/data.js when it loads one; `officialArt`: the news' art, over GameTora's)
-  pages/ScenariosPage.jsx, scenarios.css  the Scenarios tab (list)
-  pages/ScenarioPage.jsx, scenario.css  one scenario (reuses card.css's tag / link / section classes)
-  pages/RankChart.jsx                  SVG step chart of rank over time: fixed rank axis, sideways-scrolling
+                     by timeline/data.ts when it loads one; `officialArt`: the news' art, over GameTora's; ArtBanner…)
+  pages/ScenariosPage.tsx              the Scenarios tab (list)
+  pages/ScenarioPage.tsx               one scenario
+  pages/RankChart.tsx                  SVG step chart of rank over time: fixed rank axis, sideways-scrolling
                                        plot (20px/month, quarters + years labelled), crosshair tooltip
-  rankHistory.js     pure: a card's position at each release date (marks predicted ones)
-  cardOrigins.js     pure: cardOrigins() (a card's banners and events, as Timeline entries, oldest first), originKinds()
-  predictions.js     optional loader for generated/predicted_gl_releases.json
-  pullGuide.js       optional loader for generated/pull_guide.json (card page's "Pull advice"), upcomingBanner(),
+  rankHistory.ts     pure: a card's position at each release date (marks predicted ones)
+  cardOrigins.ts     pure: cardOrigins() (a card's banners and events, as Timeline entries, oldest first; generic: the
+                     origins keep the entries given), originKinds()
+  predictions.ts     optional loader for generated/predicted_gl_releases.json
+  pullGuide.ts       optional loader for generated/pull_guide.json (card page's "Pull advice"), upcomingBanner(),
                      currentAdvice(), latestAdvice(), sheetLink()
-  umapyoi.js         umapyoiUrl(news_url): umapyoi.net's copy of an official post (JP's in Japanese)
-  BackToTop.jsx      floating "back to top" button (the tier list), watches the .app-main scroll container
-  Dropdown.jsx, .css the app's dropdown (custom listbox; every dropdown uses it)
-  statIcons.js       STAT_ICONS: the game's stat type icons by stat key (src/icons/stats/<stat>.png, committed: 70×70,
+  umapyoi.ts         umapyoiUrl(news_url): umapyoi.net's copy of an official post (JP's in Japanese)
+  BackToTop.tsx      floating "back to top" button (the tier list, the card page), watches the [data-scroll-root]
+                     scroll container
+  Dropdown.tsx       the app's dropdown on Radix Select (every dropdown uses it; keeps a global `dropdown-button`
+                     class on its button for card.css)
+  statIcons.ts       STAT_ICONS: the game's stat type icons by stat key (src/icons/stats/<stat>.png, committed: 70×70,
                      from upstream's src/icons/utx_ico_obtain_00–05), bundled; the Cards tab's Stat picker shows them
-  FilterSheet.jsx, .css  the app's filter (Cards tab, Timeline): FilterButton (count), FilterSheet (on Sheet.jsx: title +
-                     a reset), FilterSection (toggle chips coloured by --tone, All / None); changes apply at once
-  Sheet.jsx, .css    the app's detail sheet on vaul's drawer: phones, a bottom sheet dragged down to close (down arrow);
-                     desktop (useMediaQuery.js' DESKTOP), a centred near-square dialog, fading, × button, no drag
+  FilterSheet.tsx    the app's filter (Cards tab, Timeline): FilterButton (count), FilterSheet (on Sheet.tsx: title +
+                     a reset), FilterSection (toggle chips coloured by data-tone, All / None); changes apply at once;
+                     FilterSheet.css: its section classes (filter-section, -head, filter-note), shared with the pages
+  Sheet.tsx          the app's detail sheet on vaul's drawer: phones, a bottom sheet dragged down to close (down arrow);
+                     desktop (useMediaQuery.ts' DESKTOP), a centred near-square dialog, fading, × button, no drag
                      (`handleOnly`); focus, Escape, click outside, scroll lock; its heading is a <SheetTitle>
-  ScenarioPicker.jsx scenario dropdown on top of it (italic + note when unreleased);
-                     scenarioRelease.js: SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
+  ScenarioPicker.tsx scenario dropdown on top of it (italic + note when unreleased);
+                     scenarioRelease.ts: SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
   timeline/          the Timeline, the same for both servers:
-    data.js          loadTimeline(server) → { entries, marks }, loadEntries(server) (entries alone: the card page) (MARKS: per-server overlays + toolbar buttons, JP's
-                     "Global now"); banner / event file loaders (real + optional predicted), shared with the card page
-    entries.js       pure: bannerEntries(), eventEntries() → entries (one shape, documented there), bannerStatus()
-    layout.js        pure: buildTimeline(entries) (months, days, `at(ms)` → position), laneGroups() (LANE_GROUPS:
-                     the one order of the Timeline and its filter: support cards, trainees, then EVENT_GROUPS; rows packed, parts nested under their parent), partCount()
-    events.js        pure: EVENT_GROUPS, items with currencies first (itemList()), withPredicted()
-    format.js        dateFormats(timeZone), dateRange(), kindName(), barLabel(), entryTitle()
-    useRankings.js   MLB ranks of a sheet's cards (server's own tier list, else looking ahead)
-    TimelineSheet.jsx, sheet.css  the one sheet for every entry, in sections (Header, Provenance, Relations, Featured,
+    data.ts          loadTimeline(server) → { entries, marks }, loadEntries(server) (entries alone: the card page)
+                     (MARKS: per-server overlays + toolbar buttons, JP's "Global now"); banner / event file loaders
+                     (real + optional predicted), shared with the card page
+    entries.ts       pure: bannerEntries(), eventEntries() → entries (`Entry`: one shape, documented there),
+                     bannerStatus()
+    layout.ts        pure: buildTimeline(entries) (months, days, `at(ms)` → position), laneGroups() (LANE_GROUPS:
+                     the one order of the Timeline and its filter: support cards, trainees, then EVENT_GROUPS; rows
+                     packed, parts nested under their parent; generic: rows keep the entries given), partCount()
+    events.ts        pure: EVENT_GROUPS, items with currencies first (itemList()), withPredicted()
+    format.ts        dateFormats(timeZone), dateRange(), kindName(), barLabel(), entryTitle()
+    useRankings.ts   MLB ranks of a sheet's cards (server's own tier list, else looking ahead)
+    useCenterOn.ts, useCompactRows.ts, useTimelineFilters.ts  the Timeline page's centring (linked entry / today,
+                     zoom), compact mode's measuring, and its hidden / order / verdict filtering
+    TimelineSheet.tsx  the one sheet for every entry, in sections (Header, Provenance, Relations, Featured,
                      Rewards, Schedule, Titles, Parts, RankNote, Links)
-    TimelineAxis.jsx scenario strip + months + days; CalendarLines (scenario starts, today, marks)
-    Lanes.jsx        LaneGroup (foldable label + rows), one Bar for banners and events (chip when short, +N parts)
-    timeline.css     calendar styles; an entry's colour is --tone (`.kind-*` / `.type-*`)
-    StatusBadge.jsx  a status pill (Live, Upcoming, Predicted…): the sheet and the card page (`.badge`: App.css)
-    collapsed.js     which Timeline groups are folded: getCollapsed() / saveCollapsed(), kept in localStorage
-    order.js         the lane groups' order (the filter's Order tab): getOrder() / saveOrder(), orderedGroups(),
-                     reorderGroups(), kept in localStorage
-    GroupOrder.jsx   the Order tab's draggable list (dnd-kit, by handles; rows `data-vaul-no-drag`: they don't drag the sheet)
-    hidden.js        banner sections + event kinds the filter hides: getHidden() / saveHidden(), kept in localStorage
-    TimelineFilter.jsx  the toolbar's filter button + sheet (toggles per banner section / event kind / pull verdict)
-    compact.js       compact mode on/off (default on): getCompact() / saveCompact(), kept in localStorage
-    scenarioStrip.js pure: scenario segments (launch → next launch, cover colour + text ink) for the calendar's strip
-    globalProgress.js pure: where Global is in JP's history (window between banners + linear estimate)
-  tiers.js           toTiers(), cardRanks(), TIER_NAMES, STAT_OF_TYPE
-  servers.js         SERVERS: gl/jp ↔ banner file names
-  i18n/index.js      i18next setup; statName/serverName/scenarioName/lbName, formatDate
+    TimelineAxis.tsx scenario strip + months + days; CalendarLines (scenario starts, today, marks)
+    Lanes.tsx        LaneGroup (foldable label + rows), one Bar for banners and events (chip when short, +N parts;
+                     its button data-testid="bar"); an entry's colour: data-tone
+    StatusBadge.tsx  a status pill (Live, Upcoming, Predicted…): ui/Pill's status variant
+    collapsed.ts     which Timeline groups are folded (zustand store): getCollapsed() / saveCollapsed()
+    order.ts         the lane groups' order (the filter's Order tab; zustand store): getOrder() / saveOrder(),
+                     orderedGroups(), reorderGroups()
+    GroupOrder.tsx   the Order tab's draggable list (dnd-kit, by handles; rows `data-vaul-no-drag`: they don't drag
+                     the sheet)
+    hidden.ts        banner sections + event kinds the filter hides (zustand store): getHidden() / saveHidden()
+    TimelineFilter.tsx  the toolbar's filter button + sheet (toggles per banner section / event kind / pull verdict)
+    compact.ts       compact mode on/off (default on; zustand store): getCompact() / saveCompact()
+    scenarioStrip.ts pure: scenario segments (launch → next launch, cover colour + text ink) for the calendar's strip
+    globalProgress.ts pure: where Global is in JP's history (window between banners + linear estimate)
+  tiers.ts           toTiers(), cardRanks(), TIER_NAMES, STAT_OF_TYPE
+  servers.ts         SERVERS: gl/jp ↔ banner file names
+  i18n/index.ts      i18next setup; statName/serverName/scenarioName/lbName, formatDate
   i18n/en.json       every UI string (English)
-  useDragScroll.js   mouse drag-to-pan
-schemas/             JSON Schemas of generated files (pull_guide.schema.json, which the file points at via `$schema`;
-                     cards.schema.json: cards.json is keyed by card id alone, so no `$schema`); tests check both
-test/                Vitest `unit` project (pnpm test)
+  useDragScroll.ts   mouse drag-to-pan (marks the scroller data-dragging)
+shared/schemas/      zod schemas + their types for every data file (card, banner, event, scenario, pullGuide, news,
+                     predictions, sources, gametora, common); files.ts: each data file's schema, the JSON Schemas
+schemas/             JSON Schemas generated from shared/schemas/ (`pnpm build-schemas`; pull_guide.json points at its
+                     own via `$schema`; cards.json is keyed by card id alone, so no `$schema`)
+test/                Vitest `unit` project (pnpm test); helpers.ts: fixture<T>() (test data with only the fields the
+                     code under test reads) and present() (a value fixed data must have); upstream-modules.d.ts types
+                     upstream's plain-JS modules
 test/upstream/       Vitest `upstream` project (pnpm test:upstream), needs upstream/
+e2e/                 Playwright (pnpm test:e2e; visual.spec.ts only in pnpm test:visual); fixtures.ts
 ml/                  Python (own venv, ml/.venv): predicts Global release dates of JP cards from
                      card info (data.py: JP dates from data/jp_cards.json via cards.json + data/'s Global ones), models.py, adjust.py
                      (known dates: by hand + Global banners rerunning newer JP ones; no JP weekends),
@@ -363,7 +403,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 | GameTora's support card list (augments the news' new cards: id, type, charId, slug, English; every card's slug) | `generated/raw/gametora_cards.json` (cut to the fields we read) | no | `pnpm scrape-gametora` (every deploy) |
 | Every card's shown data | `generated/cards.json` (`schemas/cards.schema.json`; no GameTora URLs: a slug, upstream's icon) | no | `pnpm build-cards`, from the raw inputs + `data/jp_cards.json` + `data/global_cards.json` |
 | Tier list calculation inputs | `generated/card_stats/gl_card_stats.json`, `jp_card_stats.json` | no | `pnpm build-cards` |
-| Where generated files came from | `generated/sources.json`: `{ [file name]: source }` (upstream's repo + commit for `raw/upstream/*`, GameTora for `raw/gametora_cards.json`, the sheet's URL + update date for `pull_guide.json`, each with `fetched_at`); each script sets its own files' entries (`scripts/lib/sources.js`) | no | `update-cards`, `scrape-gametora`, `fetch-pull-guide` |
+| Where generated files came from | `generated/sources.json`: `{ [file name]: source }` (upstream's repo + commit for `raw/upstream/*`, GameTora for `raw/gametora_cards.json`, the sheet's URL + update date for `pull_guide.json`, each with `fetched_at`); each script sets its own files' entries (`scripts/lib/sources.ts`) | no | `update-cards`, `scrape-gametora`, `fetch-pull-guide` |
 | JP banners | `data/jp_banners.json` (GameTora's shape without its URLs; what the Timeline, `update-global` and `ml/` read) | yes | seeded once from GameTora's history (no longer scraped); `pnpm update-jp` merges the JP news over it (`news.yml`; deploys rerun it) |
 | JP's events + what they give | `data/jp_events.json` (same shape as Global's) | yes | `pnpm update-jp`: built from `data/news/jp/posts.json` (+ `data/news/jp/ai_answers.json`), plus GameTora's story events / CMs / Legend Races where the news has none (before mid-2022) |
 | GameTora's JP event history | `generated/raw/gametora_events.json` (cut to the fields used) | no | `pnpm scrape-gametora` (every deploy) |
@@ -381,25 +421,25 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 | Official JP news (Japanese originals) | `data/news/jp/posts.json`, `data/news/jp/summary.md`, `ai_answers.json` | yes | `pnpm news:all:jp` + `news:umapyoi:jp` once; `news:latest:jp` (`news.yml`); answers: `news:ai --server jp` |
 | Upstream code (for comparison only) | `upstream/` | no | `pnpm clone-upstream` (manual locally; CI clones it) |
 
-- **The calculation is ours** (`tierlist/tierlist-calc.js`, `scenarios.js`): nothing
+- **The calculation is ours** (`tierlist/tierlist-calc.ts`, `scenarios.ts`): nothing
   syncs it automatically. Upstream's UI-only parts were dropped (the per-card `info`
   breakdown, scenario `version`/`currentState`/`show`, server `referenceDocUrl`,
   `defaultLocale`, `defaultFilters`, `defaultTierListDropdown`, `useLegacyFsBonusDisplay`).
   Keep the MIT attribution in their headers and `tierlist/LICENSE`.
-- **Hearing about upstream changes:** `test/upstream/parity.test.js` imports upstream's
+- **Hearing about upstream changes:** `test/upstream/parity.test.ts` imports upstream's
   calc, scenarios and card lists straight from the clone (Vite resolves their
   extensionless imports) and requires our rankings to match exactly. When it fails,
   port the change by hand (or update the test if we diverge on purpose). It also checks
   the clone and `generated/` are the same upstream commit (`sources.json` `ref`) — if
   not, run `pnpm clone-upstream && pnpm update-cards`.
-- `vite.config.js` keeps Vite's dependency scan and watcher out of `upstream/` (it's a
+- `vite.config.ts` keeps Vite's dependency scan and watcher out of `upstream/` (it's a
   whole other app with its own `index.html`).
 - **Card ids are the same on Global and JP and in GameTora's data.** Global has a subset
-  of JP's cards. The card data (`scripts/lib/cards.js`) is:
+  of JP's cards. The card data (`scripts/lib/cards.ts`) is:
   - `generated/cards.json`: every card upstream or `data/jp_cards.json` has (a card only GameTora lists isn't one:
     `update-jp` warns), what the site shows: `{ id, charId, type, rarity, name: { en, jp }, title: { en, jp }, release: { gl, jp
     }, source, links: { gametora }, images: { icon } }`. Readable strings (type `speed`…`wisdom`, `friend`, `group`;
-    rarity `R`/`SR`/`SSR`), mapped to upstream's codes in `tierlist/join-cards.js`. "GameTora's" below means
+    rarity `R`/`SR`/`SSR`), mapped to upstream's codes in `tierlist/join-cards.ts`. "GameTora's" below means
     `data/jp_cards.json`'s (our frozen copy of GameTora's fields, 2026-10-12, then the JP news' cards with
     GameTora's id/type/charId/slug/English; a card in it never takes GameTora's list's values but its slug).
     Type/rarity: upstream's where it has the card. `name.en`: Global's (upstream's gl list) where it has the
@@ -410,25 +450,25 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
     (`url_name`, e.g. `30321-duramente`; the current list's, else the history's); the app links
     `https://gametora.com/umamusume/supports/<slug>` (`/supports/<id>` alone is a 404). `images.icon`: upstream's at
     its commit, null for cards upstream lacks. No GameTora URLs: the app builds the full art and icons from the id
-    (`src/gametora.js`).
+    (`src/gametora.ts`).
   - `generated/card_stats/<gl|jp>_card_stats.json`: the calculation's inputs per server, `{ [id]: { charName,
     events, lb: [LB0…LB4 stats] } }`. `charName` is upstream's per-server name (each in its own language, which
     `scenarioLink` relies on; a group card's is a member's, as upstream has it); `events` the card's event rewards
     (the same on both servers) or null.
   `joinCards()` rebuilds upstream's exact arrays plus `events` per card (verified by `buildCards()` and
-  `test/data.test.js`).
+  `test/data.test.ts`).
 - Generated card data is **JSON** (one card per line), imported with
   `with { type: 'json' }` so the same imports work in Node (CLI, scripts) and Vite.
   Vite's dev server keeps that attribute on dynamic `import()`s while serving JSON as
-  JS, which the browser rejects; a dev-only plugin in `vite.config.js` strips it.
+  JS, which the browser rejects; a dev-only plugin in `vite.config.ts` strips it.
   Only `generated/raw/upstream/` keeps upstream's JS modules, as downloaded (the build and tests read them).
 - `ensureCards()` fetches upstream's card data if it's missing and builds the card data if that's missing; it runs
-  from a Vite plugin (dev/build) and from `test/global-setup.js`.
+  from a Vite plugin (dev/build) and from `test/global-setup.ts`.
 - **What still comes from GameTora** (nothing else may): card page links (slugs only), the ids, types, charIds, slugs
-  and English names/titles of the JP news' new cards (`update-jp`: scripts/lib/jp-cards.js), the id and character of
-  a trainee debuting on a JP banner (`raw/gametora_trainees.json`, scripts/lib/jp-banners.js), JP's events without a news source (the pre-mid-2022 fills in `data/jp_events.json`,
+  and English names/titles of the JP news' new cards (`update-jp`: scripts/lib/jp-cards.ts), the id and character of
+  a trainee debuting on a JP banner (`raw/gametora_trainees.json`, scripts/lib/jp-banners.ts), JP's events without a news source (the pre-mid-2022 fills in `data/jp_events.json`,
   `source: 'gametora'`), Career scenarios (`data/scenarios.json`'s JP side, covers, links), and hotlinked images
-  (card art and icons, trainee icons, banner art) whose URLs the app builds from ids (`src/gametora.js`: no data file
+  (card art and icons, trainee icons, banner art) whose URLs the app builds from ids (`src/gametora.ts`: no data file
   or generated file stores one, but scenarios' `links`). Both servers' banners are our own records in `data/`,
   seeded once from GameTora's history (2026-10) and kept up from the news; JP's cards are `data/jp_cards.json` (frozen,
   then from the news). Global's banners and card titles/release dates come from `data/`; `raw/gametora_cards.json`
@@ -461,7 +501,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   **Global's in-game posts reuse JP's post ids** for the same content (Global's 1076 story event is JP's 1076; its
   1065 Sagittarius Cup JP's 1065): the strongest way to pair events across servers.
 - **Official JP news** (`umamusume.jp/api/ajax/pr_info_index` / `pr_info_detail`, **GET** with query params; a POST
-  gets the site's HTML; `scripts/lib/news-api.js`' `SERVERS.jp`): same pacing. The index is paged from 1 with
+  gets the site's HTML; `scripts/lib/news-api.ts`' `SERVERS.jp`): same pacing. The index is paged from 1 with
   `total_page_count`, and lists **every** post the site serves (317 on 2026-10-11, ids 107…3497): all of them from
   2026-07-23 on (id 3348; about the last 2½ months), plus 188 older ones it kept, scattered back to April 2023 and a
   few from the 2021 launch (rules, the known-issues post 155, updated often, sits among the newest), so index order
@@ -481,21 +521,21 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   2,663 JP posts in all (317 official, 2,346 from umapyoi; per year 96 / 380 / 541 / 592 / 614 / 440 for 2021–2026),
   every id umapyoi lists, none without a message or time; 1,485 umapyoi posts have header art (old ones checked: still
   served).
-- **Post categories** (`scripts/lib/post-categories.js`): `categorize(post)` → `{ category: banner | event | other,
+- **Post categories** (`scripts/lib/post-categories.ts`): `categorize(post)` → `{ category: banner | event | other,
   kind, phase, name, banners }`, from the title (very regular; first matching rule wins), the id series and, for
   banners, the body. Event kinds: story, champions_meeting, legend_race, transfer_requests, uma_outing, special
   (named one-offs), celebration (multi-part: anniversaries, holidays, Fall G1), campaign (single bonuses: Star Pieces,
   race tickets, free scouts), gift. Other: scenario, update, issue, maintenance, sale, roundup, community, misc.
   Phase: announced / league_selection / started / ending / ended. `news:latest` uses it for the summary and to tell
   news.yml whether data/ needs rebuilding.
-- **Banner posts** (`scripts/lib/banner-posts.js`): `bannerPost(post)` → `{ id, url, posted, paid, banners: [{
+- **Banner posts** (`scripts/lib/banner-posts.ts`): `bannerPost(post)` → `{ id, url, posted, paid, banners: [{
   gachaId, type: character | support, start, end, image, featured }] }`. Each banner's art sits under a "Trainee
   Umamusume" / "Support Cards" heading (its type) and is followed by its own list (`★★★ [Title] Name` / `SSR [Title]
   Name`, each once); its period is the scout period above it. Headings at every level (h2–h4: older posts use h3;
   `sections(html, '234')`); older posts say "Umamusume" for trainees. `paid`: the post's scouts cost paid carats (the
   one-off guaranteed scouts), left out like JP's special banners. Verified against the first parser on all 32 banner
   posts (same ids, dates, art, items).
-- **News → Global banners** (`scripts/lib/global.js`, fed `bannerPost()`s): scout posts show each banner's art as
+- **News → Global banners** (`scripts/lib/global.ts`, fed `bannerPost()`s): scout posts show each banner's art as
   `gacha_banner_<id>_….png`, and `<id>` is the game's gacha id, which Global shares with JP (Global reruns JP's
   banners under JP's ids; 130/132 seeded Global banners match JP's id and cards). So a news banner is JP's banner
   of that id (featured ids, rates, types) with the post's dates and official art, names/titles paired with
@@ -506,7 +546,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   (132 of 134 on 2026-10-13). Predicted banners keep JP's post as `news_url` (the sheet: "Read JP's announcement"). Verified: from the
   news alone it rebuilt 30134/30135 identical to GameTora's. A banner whose id JP lacks, or whose type (from the post)
   isn't JP's, is skipped (listed in the summary); so are paid scouts.
-- **Scenarios** (`data/scenarios.json`, `scripts/lib/scenarios.js`): one entry per scenario in JP launch order,
+- **Scenarios** (`data/scenarios.json`, `scripts/lib/scenarios.ts`): one entry per scenario in JP launch order,
   `{ key, full_en, full_jp, en_start_date, jp_start_date, links: { gametora, cover, umapyoi_jp?, umapyoi_gl? }, color }`
   (`umapyoi_*`: the launch post's id in that server's news, the page builds the umapyoi.net URL: JP's from `update-jp`,
   `applyJpScenarioNews()`, by the Japanese name of 育成シナリオ「X」公開！; Global's from `update-global`, the post that
@@ -520,7 +560,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   `full_jp`: the Japanese name (GameTora, every scrape). `links.cover`: GameTora's key art
   (`media.gametora.com/umamusume/scenarios/hero/<id>.png`, no text, so one for both servers; no official EN
   covers for now). `color`: the cover's main colour
-  (`scripts/lib/colors.js`: own PNG decoder, skin/hair hues left out since the art is mostly characters), computed
+  (`scripts/lib/colors.ts`: own PNG decoder, skin/hair hues left out since the art is mostly characters), computed
   once per cover by `fillColors` and kept. GameTora's own `bg_color` per scenario is a curated alternative. Dates
   are ISO UTC; `en_start_date` is predicted until the news gives Global's (a dated mention replaces the prediction). Links: `https://gametora.com/umamusume/<slug>`
   (GameTora's scenario pages; there's no `/scenarios/<slug>`). `scrape-gametora` refreshes the JP side and adds new
@@ -553,7 +593,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   its `dates` give. A JP day known otherwise (Global's banners, paired events, a confirmed banner's day) still gives
   the exact Global day, but nothing on it is `confirmed`: sharing a day with an announced banner or cup confirms
   nothing about a gift on that day.
-- **Events** (`scripts/lib/events.js` → `data/global_events.json`): Global's in-game events from the news alone (no
+- **Events** (`scripts/lib/events.ts` → `data/global_events.json`): Global's in-game events from the news alone (no
   GameTora; Global's upcoming ones are predicted from JP's: "Global ↔ JP events" below). **Everything with dates of its
   own is a bar** (except inside one event: Champions Meeting rounds, reward collection, repeated windows stay in its
   bar), newest first: `{ id, kind, name, parent, start, end, cards, items, titles, phases?, news_url, image, source }`
@@ -606,7 +646,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   dates, cards), Legend Race, mission set and special-event run matches it, and every Champions Meeting's end (its
   start is earlier on purpose: league selection); ours only has less (the Trainer Aptitude Test's / Racing Carnival's
   reward-collection days after their event period, mission sets the news hasn't announced).
-- **A model for what the rules doubt** (`scripts/lib/ai.js`, `event-questions.js`, `ai-events.js`, `pnpm news:ai`): the
+- **A model for what the rules doubt** (`scripts/lib/ai.ts`, `event-questions.ts`, `ai-events.ts`, `pnpm news:ai`): the
   rules stay the extractor; each event records its `doubts` ({ field: why }: an amount in a sentence they didn't read or
   given per day (`itemDoubt()`), copies given in several places or talked about but not read (`copiesDoubt()`), a
   sub-event name from a heading instead of a sentence, a kind nothing matched, dates from a sentence or a "Timing"
@@ -643,13 +683,13 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   **A change to the shared code must leave Global's output byte-identical** (`update-global` before/after, `news:events`).
   `norm()` keeps letters of every script (kana, kanji). What the JP posts look like, and the user's decisions:
   docs/jp-news-findings.md; the plan: docs/jp-news-plan.md.
-- **JP categories** (`news-lang/ja.js`): label 2/3 = community (≈ EN's 200001 series; label 5 is one maintenance post),
+- **JP categories** (`news-lang/ja.ts`): label 2/3 = community (≈ EN's 200001 series; label 5 is one maintenance post),
   scouts by their art (exactly the 466 posts with `gacha_banner_` art), then anchored title rules (`^ストーリーイベント「…」
   (開催決定|開催|終了)！$`, `^(レースイベント|M/D|N月下旬)「チャンピオンズミーティング X」`, …) so event-named bug posts stay
   other. JP kinds Global lacks: `league_of_heroes` (no name, in UNNAMED_KINDS), `factor_research` (因子研究),
   `masters_challenge`. A campaign post showing ≥ 2 parts' art is a celebration. Names stay Japanese (decision 1): a
   name is the leading 「…」/『…』 when only the phase follows it, else the title without its phase.
-- **News → JP cards** (`scripts/lib/jp-cards.js`, `pnpm update-jp`, first step; user decision 2026-10-12): a JP card
+- **News → JP cards** (`scripts/lib/jp-cards.ts`, `pnpm update-jp`, first step; user decision 2026-10-12): a JP card
   the history (`data/jp_cards.json`) lacks comes from the JP news; GameTora augments it once its list has it.
   `newsCards(posts)`: every support card the news shows, at its first appearance — scout posts' featured lists
   (`bannerPost(post, ja)`, every rarity and scout, paid too) plus any other card line in a scout post (`ja.bannerCard`:
@@ -675,10 +715,10 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   titles, slug, release.jp, source); the 12 others (collab/promo and main-story SSRs) are named in no event or scout
   post (some only in ぱかライブTV summaries), so they're GameTora-only warnings. Over all 563, the news finds 394; the
   only release differences are 2021–22 cards whose first archived banner is a later re-run.
-- **News → JP banners** (`scripts/lib/jp-banners.js`, `pnpm update-jp`): `data/jp_banners.json` is GameTora's history
+- **News → JP banners** (`scripts/lib/jp-banners.ts`, `pnpm update-jp`): `data/jp_banners.json` is GameTora's history
   (seeded once, 366 banners) with the JP news merged over it, rebuilt from every post each time (idempotent; seeded
   entries never lost; GameTora's banners aren't scraped any more). No GameTora URLs (seeded banners have no `image`,
-  items no `icon`: the app builds them, `src/gametora.js`); `image` is only a news-made banner's official art. A
+  items no `icon`: the app builds them, `src/gametora.ts`); `image` is only a news-made banner's official art. A
   banner GameTora has gets `announced`, `news_url`, `news_image` (official art, shown over GameTora's; dates stay
   GameTora's: all 574 post/GameTora pairs agree on start, end and type) and the R cards the post lists,
   as `from_news` featured items (GameTora leaves R cards out). Banners GameTora lacks (select-pickup supports, Twinkle
@@ -709,13 +749,13 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   celebration (`notSpanning`: a pack stays on sale a year or more). Before mid-2022, where the news archive is thin,
   GameTora's JP story events (with their SSR), Champions Meetings (from round 1: GameTora has no league selection;
   phases round_1 → final_race) and Legend Races fill in (`source: 'gametora'`, ids `gt-story-<id>` / `gt-cm-<id>` /
-  `gt-lr-…`, no news_url or art; `scripts/lib/gametora-events.js`, from `generated/raw/gametora_events.json`; news
+  `gt-lr-…`, no news_url or art; `scripts/lib/gametora-events.ts`, from `generated/raw/gametora_events.json`; news
   events always win; without the raw file the fills in data/ are kept). 1,144 events. Checked
   against GameTora's JP event data on 2026-10-11 (a one-off script): every story event from mid-2022 (44/45 with the
   SSR; the miss is a 2021 announcement naming none), Champions Meeting (36/36: round 1 = GameTora's start, same end)
   and Legend Race (48/48) matches; before mid-2022 the archive is thin (2021: 96 posts).
 - **The model on JP events** (`news:ai --server jp`): the questions are per language (`QUESTIONS` in
-  event-questions.js: Japanese SYSTEM / FIELDS / made-up EXAMPLES; English's unchanged, so Global's stored answers
+  event-questions.ts: Japanese SYSTEM / FIELDS / made-up EXAMPLES; English's unchanged, so Global's stored answers
   still match). JP times are JST: the model gets the post date and answers dates in JST as the post writes them; the
   code converts them to UTC with the year nearest the post. Sub-event kinds also allow `special` (an event embedded in
   a celebration post). Answer names go through the JP lexicon (`itemName(raw, ja)`, `local`). Run locally with
@@ -724,12 +764,12 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   posts typed `special` and merged into their own post's event (no more duplicates), mission sets listed twice merged
   (1,120 → 1,110 events). Known weak spot: the cosmetic 特別ホーム画面 parts became `special`.
 - **JP on the Timeline and in the workflows**: JP's calendar has the event lanes Global has (groups, parts, sheets).
-  A banner without an end (an open-ended scout, 終了日時未定) counts as one day in `src/timeline/layout.js` and reads "from
+  A banner without an end (an open-ended scout, 終了日時未定) counts as one day in `src/timeline/layout.ts` and reads "from
   <start>". `fetch-news-latest --server jp` categorizes with the JP lexicon (summary + `update`). `news.yml`: Global's
   news, then JP's (`news_jp`); cards + GameTora if either updated; the model for each server that updated;
   `update-jp`, then `update-global` (Global's news pairs with JP's banners by id); one commit whose subject sums both
   servers. `deploy.yml` runs `update-jp` before `update-global` (not committed).
-- **Pull guide** (`scripts/lib/pull-guide.js`): Luh's Umamusume Support Card Encyclopedia, a public Google Sheet
+- **Pull guide** (`scripts/lib/pull-guide.ts`): Luh's Umamusume Support Card Encyclopedia, a public Google Sheet
   (one tab per Global scenario era, one row per card banner; reruns get their own row). Read from each tab's HTML
   view (`htmlview/sheet?gid=…`): the CSV export has no hyperlinks, and a row's card id is only in its GameTora link
   (`…/supports/<id>-…`, ids are ours); the xlsx export has them but is ~110 MB of art. Cell comments are in neither,
@@ -751,7 +791,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   the sheet (the script warns about any other card that maps to no banner). The sheet's
   content is the author's English text, shown as is; credited (with a disclaimer) in About. ~15 requests with 1–2 s pauses; the script fails loudly if no cards are found.
 - Banner/card images are hotlinked from GameTora and upstream GitHub; the app builds GameTora's URLs from ids
-  (`src/gametora.js`; `src/timeline/data.js` fills a loaded banner file's `image` and items' `icon` with `withArt()`: Global's
+  (`src/gametora.ts`; `src/timeline/data.ts` fills a loaded banner file's `image` and items' `icon` with `withArt()`: Global's
   banners Global's art, JP's and predicted ones JP's; card items GameTora's icon, trainee items `chara_stand_<char_id>_
   <id>`). Full card art is GameTora's `tex_support_card_<id>.png` (3:4 portrait). News-made banners use the official
   art from the post, stored (936×228, no transparent margin: `.bar.official-art` covers instead of GameTora's crop).
@@ -765,7 +805,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   presets; if a deck already holds the candidate's character, the candidate is scored
   against the other 4 cards (the game forbids duplicate characters).
 - Tiers (S, A, B…) split the score range into 7 equal bands (upstream's banding).
-- **Averaged rankings** (`COMBINED` in `tierlist/index.js`) are offered next to the real
+- **Averaged rankings** (`COMBINED` in `tierlist/index.ts`) are offered next to the real
   scenarios everywhere a scenario is picked: `overall` (every scenario) and `upcoming`
   ("Current + future": the server's `defaultScenario` plus every scenario listed before
   it, since `availableScenarios` is newest first). Each scenario's ranking is rescaled to
@@ -782,7 +822,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   release date (a few Global promo cards) are left out. The last step runs on to today,
   so where upstream's card lists lag the game the line is just flat at the end.
   **On Global it continues as a dashed line** through JP's cards Global doesn't have yet, at
-  their predicted dates (`generated/predicted_gl_releases.json` via `src/predictions.js`,
+  their predicted dates (`generated/predicted_gl_releases.json` via `src/predictions.ts`,
   optional). They're ranked with `rankByUsefulness(…, { upcoming: true })`: JP's stats
   (identical to Global's for every shared card), English names via another card of the same
   character; existing cards' scores don't change (averaged rankings keep the Global-only
@@ -792,102 +832,114 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   banners or cards (ml/data.py `is_promo()`: status 'promo'; ml/banners.py drops them from predicted banners and skips a
   banner of nothing else). One Global does get comes from the news like any release.
 - Server keys: `gl` / `jp` for tier-list code, `global` / `jp` for banner files
-  (`src/servers.js` maps them). GameTora card types map to stat tabs via `STAT_OF_TYPE`
+  (`src/servers.ts` maps them). GameTora card types map to stat tabs via `STAT_OF_TYPE`
   (`intelligence` → `wisdom`, `group` → `friend`).
 
 ## Tests
 
-- `pull-guide.test.js`: the script's output and `generated/pull_guide.json` (when present) fit
-  `schemas/pull_guide.schema.json` (ajv); a tab's HTML view → entries (card id from the link, label, dates, Pull?, notes), mapped to banners
+- `schemas.test.ts`: every committed data file fits its zod schema (`shared/schemas/files.ts`), every generated one
+  present too, and `schemas/*.json` are what `pnpm build-schemas` writes.
+- `stores.test.ts`: each persisted store reads the format older versions stored, writes exactly that format, and
+  falls back to its defaults on garbage or a throwing localStorage.
+- `use-async.test.tsx`, `routes.test.ts`, `routes-replace.test.tsx` (jsdom): `useAsync` (stale runs ignored, deps
+  resets); the URL builders and `<App>` at each address (page, highlighted tab, the `#/banners` alias); a Timeline link
+  keeping its entry when the page replaces the address on mount (the routing bug wouter's first hook had).
+- `ui.test.tsx`, `ui-b.test.tsx`, `dropdown.test.tsx` (jsdom): the `src/ui/` components and the Radix dropdown (groups,
+  disabled options, choosing, icons / notes / badges).
+- `e2e/` (Playwright; `pnpm test:e2e`): links into the Timeline open their sheet on the right server (direct, "See
+  banner", the other server's link, back from a card page), stored state survives reloads and older formats load, every
+  page renders and loads on both servers, the dropdown by click / keyboard / tap, the rank chart's tooltip. Selectors by
+  role and label, never class names; any uncaught page error fails a test. Run after UI or routing changes; deploys run it.
+  `pnpm test:visual`: 14 screens × light/dark × phone/desktop pixel by pixel against this machine's baselines.
+- `pull-guide.test.ts`: the script's output and `generated/pull_guide.json` (when present) fit the pull guide's zod
+  schema; a tab's HTML view → entries (card id from the link, label, dates, Pull?, notes), mapped to banners
   (`byBanner`, `findBanner`), the tab list and update date; `upcomingBanner` / `currentAdvice` (running / next banner,
   cards on no banner), `latestAdvice`, `sheetLink`, `verdictOf` / `bannerVerdicts` (the Timeline filter).
-- `news.test.js`: the first parser (periods, kinds, banner ids + art, featured).
-- `post-categories.test.js`: categories, event kinds, phases and names from real titles; community posts never events.
-- `jp-news.test.js`: `parsePeriodJa` (JST, year nearest the post, open ends), JP `categorize()` (kinds, names, phases,
+- `news.test.ts`: the first parser (periods, kinds, banner ids + art, featured).
+- `post-categories.test.ts`: categories, event kinds, phases and names from real titles; community posts never events.
+- `jp-news.test.ts`: `parsePeriodJa` (JST, year nearest the post, open ends), JP `categorize()` (kinds, names, phases,
   admin posts kept out, celebrations by part art, labels), `norm()` on Japanese; over the stored JP news: scouts exactly
   where scout art is, the fixture samples (`test/fixtures/jp-news-samples.json`, ids sampled per kind) by group.
-- `jp-banners.test.js`: JP scout posts (first list, periods, R cards, paid per banner, re-runs) on fixtures,
+- `jp-banners.test.ts`: JP scout posts (first list, periods, R cards, paid per banner, re-runs) on fixtures,
   `applyJpNews()` (enrich, make, re-runs, idempotent, no icons); over the stored data: every seeded (GameTora) banner a
   post shows agrees on start, end and type; the 366 seeded banners kept, re-runs paired both ways; rebuilt from the
   seeded entries alone it's the stored file, nothing unresolved; no GameTora URL stored.
-- `jp-events.test.js`: JP events on fixture posts (story, CM, LR, LoH, specials, celebrations, gifts, login bonuses,
+- `jp-events.test.ts`: JP events on fixture posts (story, CM, LR, LoH, specials, celebrations, gifts, login bonuses,
   sales) and over the stored data (story SSRs, CM / LoH schedules, no paid items, `local` names, parents exist); the
   GameTora fills (the cut, each kind's shape, cup schedules as the news has them, no overlap with news events,
   idempotent; only before mid-2022 in the data).
-- `banner-posts.test.js`: a scout post's banners (type, period, art, own list, each once), open-ended and
+- `banner-posts.test.ts`: a scout post's banners (type, period, art, own list, each once), open-ended and
   year-crossing periods, paid scouts; every stored banner typed and dated, every regular scout's list non-empty.
-- `events.test.js`: posts cut into blocks; cards (phrasings, copies, trainees/unknown/bonus cards skipped); items
+- `events.test.ts`: posts cut into blocks; cards (phrasings, copies, trainees/unknown/bonus cards skipped); items
   (login day ranges, dated rows, aliases, prose gifts vs lists, fees, amount-less mentions, vouchers); titles; mission
   sets; one-event posts kept whole; celebration sub-events (names, kinds, gift without period, folded blocks); merging
   (most advanced post's dates, ended posts, same-named events kept apart); the Champions Meeting range; mission sets
   as bars under their event; over the stored
   news: every event post makes dated events of known kinds, every story event has its SSR.
-- `global.test.js`: `applyNews` (news + JP banner → Global banner/releases, idempotent, seeded entries kept but given
+- `global.test.ts`: `applyNews` (news + JP banner → Global banner/releases, idempotent, seeded entries kept but given
   their post and art,
   unknown ids, paid scouts and type mismatches skipped) and `englishNames`.
-- `cards.test.js`: `buildCards()` (merge rules: Global's titles/dates, names by character, group names, the history
+- `cards.test.ts`: `buildCards()` (merge rules: Global's titles/dates, names by character, group names, the history
   only: GameTora's list gives slugs, never a card the history lacks; a card upstream lacks from the history; no
   GameTora, neither), the stats files, and `cards.json` against its schema.
-- `jp-cards.test.js`: `newsCards()` on real posts (story SSRs quoted or not, campaign gifts from their part, scout cards
+- `jp-cards.test.ts`: `newsCards()` on real posts (story SSRs quoted or not, campaign gifts from their part, scout cards
   incl. a select-pickup's R card, first appearance), `applyNewsCards()` (augmenting, gift sources, frozen cards
   untouched, pending, GameTora-only cards listed, idempotent, kept GameTora fields, rarity disagreements); over the
   stored data: nothing to add today, and the frozen cards from 2026-06 on rebuild identically but 30310.
-- `gametora.test.js`: GameTora's URLs built from ids / slugs, `withArt()` (official art kept, item icons: upstream's
+- `gametora.test.ts`: GameTora's URLs built from ids / slugs, `withArt()` (official art kept, item icons: upstream's
   where cards.json has one, else GameTora's).
-- `data.test.js`: generated data rebuilds upstream's lists exactly, carries upstream's events; names present; preset
+- `data.test.ts`: generated data rebuilds upstream's lists exactly, carries upstream's events; names present; preset
   deck cards exist; every scenario (incl. averaged) × stat ranking is non-empty, finite,
   sorted; averaged rankings only use defined scenarios, include the current one, and
   score 0–1000.
-- `calc.test.js`: one known score (Kitasan Black ≈ 372, from upstream's own test).
-- `rank-history.test.js`: `rankHistory()` on a small synthetic ranking.
-- `card-origins.test.js`: `cardOrigins()` (kinds, re-runs, oldest first, `originKinds()`, parts over their event, both servers).
-- `timeline-entries.test.js`: both servers' calendars (real + predicted) as entries: the same fields everywhere, unique
+- `calc.test.ts`: one known score (Kitasan Black ≈ 372, from upstream's own test).
+- `rank-history.test.ts`: `rankHistory()` on a small synthetic ranking.
+- `card-origins.test.ts`: `cardOrigins()` (kinds, re-runs, oldest first, `originKinds()`, parts over their event, both servers).
+- `timeline-entries.test.ts`: both servers' calendars (real + predicted) as entries: the same fields everywhere, unique
   keys, known statuses, relations / parents / parts pointing at entries, art on every banner; re-runs both ways,
   predicted / paid banners, predicted events' card names and JP links, one-day events, `bannerStatus()`.
-- `timeline-sheet.test.jsx`: the sheet's sections, in order, for a predicted banner, a paid scout, a celebration and
+- `timeline-sheet.test.tsx`: the sheet's sections, in order, for a predicted banner, a paid scout, a celebration and
   its part (the sheet's portal mocked away).
-- `timeline-order.test.js`: the lane groups' order (default, dropping among shown groups, groups a saved order lacks).
-- `timeline.test.js`: calendar days in UTC vs. the viewer's timezone (TZ pinned to Europe/Warsaw); end-less entries;
+- `timeline-order.test.ts`: the lane groups' order (default, dropping among shown groups, groups a saved order lacks).
+- `timeline.test.ts`: calendar days in UTC vs. the viewer's timezone (TZ pinned to Europe/Warsaw); end-less entries;
   `laneGroups()` order; `visibleRows()` (compact mode: rows in view, parts by their entry's key, open ends).
-- `global-progress.test.js`: the Global-in-JP estimate, window ends (known vs. predicted), reruns, paid and `-rerun`
+- `global-progress.test.ts`: the Global-in-JP estimate, window ends (known vs. predicted), reruns, paid and `-rerun`
   banners ignored.
-- `scenarios.test.js`: scenario mentions in news (dated vs. not, false positives), `mergeGametora` (JP side only, never Global's dates), `applyScenarioNews`.
-- `timeline-events.test.js`: events in lane groups by type with parts only under their parent (`laneGroups()`, `partCount()`),
+- `scenarios.test.ts`: scenario mentions in news (dated vs. not, false positives), `mergeGametora` (JP side only, never Global's dates), `applyScenarioNews`.
+- `timeline-events.test.ts`: events in lane groups by type with parts only under their parent (`laneGroups()`, `partCount()`),
   item order, sub-events; the data, for both servers: every dated event placed once, only known kinds and groups (the
   app's lists = the build's), every Champions Meeting with its schedule (from round 1 for GameTora-filled cups),
   phase labels, existing parents, named items; `withPredicted()` (stale predictions dropped with their parts) and the
   predicted events file's shape (`test/fixtures/predicted-global-events.json`, and the generated file when present).
-- `event-questions.test.js`: doubts (amounts in sentences, per day, purchases not; copies in several places), the
+- `event-questions.test.ts`: doubts (amounts in sentences, per day, purchases not; copies in several places), the
   questions (only asked fields, every field when comparing, kind only for sub-events), `applyAnswer()` (doubted and
   empty fields, never sure ones; gaps / model modes; invalid answers, generic names, a year off, card copies among
   items, mission sets names only, copies the post gives), per-field re-asking and merging, `parseJson()`.
-- `scenario-strip.test.js`: scenario segments per server, current one, Japanese name fallback.
-- `colors.test.js`: PNG decoding through row filters, main colour (skin/hair left out, fallbacks).
-- `scenario-release.test.js`: launched vs. not per server (predictions never count), unknown keys.
-- `scenario-picker.test.jsx`: the closed Dropdown / ScenarioPicker markup (listbox button, italic + hint when unreleased).
-- `scenario-page.test.jsx`: the scenario page's markup (names, launches, predicted range, links), `isCurrent`, the
+- `scenario-strip.test.ts`: scenario segments per server, current one, Japanese name fallback.
+- `colors.test.ts`: PNG decoding through row filters, main colour (skin/hair left out, fallbacks).
+- `scenario-release.test.ts`: launched vs. not per server (predictions never count), unknown keys.
+- `scenario-picker.test.tsx`: the closed Dropdown / ScenarioPicker markup (listbox button, italic + hint when unreleased).
+- `scenario-page.test.tsx`: the scenario page's markup (names, launches, predicted range, links), `isCurrent`, the
   Scenarios tab's list.
-- `scenario-names.test.js`: `scenarioName()` under the Scenario names setting (Global with JP fallback, JP).
-- `settings-page.test.jsx`: About shows the version, the disclaimer and both credit links.
-- `umapyoi.test.js`: umapyoi.net links from both servers' post URLs.
-- `i18n.test.jsx`: every key used in `src/` exists (literal `t('…')`, `i18nKey="…"`, tab
+- `scenario-names.test.ts`: `scenarioName()` under the Scenario names setting (Global with JP fallback, JP).
+- `settings-page.test.tsx`: About shows the version, the disclaimer and both credit links.
+- `umapyoi.test.ts`: umapyoi.net links from both servers' post URLs.
+- `i18n.test.tsx`: every key used in `src/` exists (literal `t('…')`, `i18nKey="…"`, tab
   labels, and dynamically built ones); other catalogs match `en.json`'s keys; plurals,
   lists and `<Trans>` render as expected.
-- `e2e/` (`pnpm test:e2e`, Playwright, phone + desktop): links into the Timeline open their sheet on the right
-  server (direct, "See banner", the other server's link, back from a card page), what localStorage remembers survives a
-  reload and older stored formats load, every page renders and loads on both servers. Selectors by role and label, not
-  class names; any uncaught page error fails a test. Run after UI or routing changes; deploys run it.
-- `upstream/parity.test.js` (`pnpm test:upstream` only): same upstream commit as
+- `upstream/parity.test.ts` (`pnpm test:upstream` only): same upstream commit as
   `generated/`; same scenarios, default and deck presets; every scenario × stat × preset
   deck ranks exactly like upstream's code on upstream's card lists (75 tests).
 
 ## Code style
 
-- **Biome** (`biome.json`) formats and lints JS/JSX, CSS and JSON; run `pnpm format`
+- **TypeScript** (`tsconfig.json`, strict): `pnpm typecheck` must pass; see "TypeScript everywhere" above. Tests type
+  partial data with `fixture<T>()` and must-exist lookups with `present()` (`test/helpers.ts`).
+- **Biome** (`biome.json`) formats and lints TS/TSX, CSS (CSS Modules parsed) and JSON; run `pnpm format`
   before committing. Style: semicolons at the end of statements, a trailing newline at
   the end of every file, 2-space indent, single quotes in JS (double in JSX attributes),
   ES5 trailing commas, 120 columns.
-  Git-ignored paths (`generated/`, `upstream/`, `dist/`) are skipped.
+  Git-ignored paths (`generated/`, `upstream/`, `dist/`, `.claude/worktrees/`) are skipped.
 - **Pre-commit hook** (husky, `.husky/pre-commit`): applies Biome's formatting + safe
   fixes to the staged files and re-stages them, then blocks the commit if anything that
   can't be auto-fixed remains. Partially staged files are only checked, never fixed (re-
@@ -907,18 +959,29 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   `useTranslation()`, or `<Trans>` for sentences with markup. Catalogs use i18next's
   format: `{{var}}`, plural keys `key_one`/`key_other` (pass `count`), `{{items, list}}`
   for "A, B, and C". Display names for code keys go through the helpers in
-  `src/i18n/index.js` (`statName`, `serverName`, `scenarioName`, `lbName`); `tierlist/`
-  and `src/servers.js` hold keys only. Dates go through `formatDate()` / `formatDateTime()` so they use the
+  `src/i18n/index.ts` (`statName`, `serverName`, `scenarioName`, `lbName`); `tierlist/`
+  and `src/servers.ts` hold keys only. Dates go through `formatDate()` / `formatDateTime()` so they use the
   UI's locale. Banner times (calendar days, bars, sheet) follow the **Settings** timezone: UTC by default, as
   the game announces them, or the viewer's own (`timeZoneOptions()` for Intl, `buildTimeline(…, { utc })` for
-  days). All stored times are UTC. Other settings go in `src/settingsStore.js` (DEFAULTS + OPTIONS) + a row on the Settings page. A new language is a new JSON file registered in `RESOURCES`.
+  days). All stored times are UTC. Other settings go in `src/settingsStore.ts` (DEFAULTS + OPTIONS) + a row on the Settings page. A new language is a new JSON file registered in `RESOURCES`.
 - **Mobile first.** Base CSS targets phones; `@media (min-width: 768px)` adds desktop
   tweaks. Top bar (page title or back button, server switch) always on top; tab bar at
   the bottom on phones, under the top bar on desktop. Pages don't render their own title. Check layouts at 360–390px wide.
-- Colour tokens live on `:root` in `src/App.css`, with a dark-mode override; use them
-  instead of literal colours (tier colours `.tier-0`… are the exception).
-- Hash routing only — GitHub Pages can't serve deep links. `vite.config.js` uses
-  `base: "./"` so the build works under any Pages path.
+- **Styles are CSS Modules**: `X.module.css` beside the component (`import styles from './X.module.css'`,
+  `camelCaseOnly`: `.see-more` → `styles.seeMore`), combined with `clsx`. Global only on purpose:
+  `src/styles/global.css` (tokens, resets, tier colours, tones), `App.css`'s few shared classes, a class other code or
+  CSS looks up by name (keep it a plain class beside the module one, and say why). Code never finds elements by class:
+  `data-*` (`data-scroll-root`, `data-dragging`, `data-testid`) or roles.
+- Colour tokens live on `:root` in `src/styles/global.css`, with a dark-mode override; use them instead of literal
+  colours (tier colours `.tier-0`… are the exception). A Timeline entry's or chip's colour is `data-tone={tone}`
+  (global.css maps tones to `--tone`), the component's CSS reads `var(--tone)`.
+- **Shared components are `src/ui/`** (LinkButton, SeeMore, FoldToggle, Pill, TierChip, Status, Segmented, Section,
+  SearchInput, ToolbarButton, CardRow): use them; where one doesn't fit a page's look exactly, keep the page's markup
+  rather than changing how it looks.
+- Hash routing only (GitHub Pages can't serve deep links), with wouter: every address is built by `src/routes.ts`.
+  `vite.config.ts` uses `base: "./"` so the build works under any Pages path.
+- Data loading in components is `useAsync()` (`src/useAsync.ts`); remembered state is a zustand store persisted
+  through `src/rawStorage.ts` (keys and stored formats never change: people would lose their settings).
 - Icons come from `lucide-react` (the same Lucide set Streamline hosts); don't use text
   symbols as icons.
 - Card and trainee icons are square images; show them uncropped (`object-fit: contain`).
@@ -927,27 +990,28 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 - Charts are hand-written SVG (no chart library): colour tokens for marks and text,
   hairline gridlines, a hover/keyboard crosshair + tooltip. Long time axes scroll
   sideways with `useDragScroll` instead of squeezing labels.
-- Toggle groups are `<fieldset className="segmented">` (shared styles in `App.css`);
-  every `<button>` has an explicit `type`.
-- **Detail sheets are `src/Sheet.jsx`** (vaul's drawer: drag down to close on phones), never a hand-made overlay; nothing may set
+- Toggle groups are `src/ui/Segmented.tsx` (a `<fieldset>` of `aria-pressed` buttons); every `<button>` has an
+  explicit `type`.
+- **Detail sheets are `src/Sheet.tsx`** (vaul's drawer: drag down to close on phones), never a hand-made overlay; nothing may set
   the sheet's `transform` (vaul's drag does).
   Keep it rendered with `open` false while it closes (`onClosed` once it has slid away), or it vanishes instead of
   sliding. Its animation must never share the main thread with heavy work: the Timeline's lanes and axis are `memo`ised
   with stable (`useCallback`) props so opening/closing a sheet doesn't re-render thousands of bars, and the sheet's
   rankings start after `SHEET_ANIMATION_MS`. Class names are built with
   `clsx`.
-- **Dropdowns are `src/Dropdown.jsx`**, never a native `<select>` (phones' native pickers ignore `<option>` styling,
+- **Dropdowns are `src/Dropdown.tsx`** (Radix Select underneath), never a native `<select>` (phones' native pickers ignore `<option>` styling,
   and it looks the same everywhere): options `{ value, label, icon?, group?, note?, badge?, italic?, disabled? }` (icon: an image URL before the label, in the list and on the button; pill: `{ color, ink }`, the label as a pill in that colour) (disabled: greyed, can't be
   chosen, skipped by the keyboard), groups under headings, hover +
-  keyboard-active highlight; opening scrolls the list (not the page) to the selected option, centred. WAI-ARIA select-only combobox pattern (aria-activedescendant; ↑/↓, Home/End,
-  Enter/Space, Esc, type-ahead). Scenario pickers are `src/ScenarioPicker.jsx` on top of it: the real scenarios,
+  keyboard-active highlight; opening scrolls the list (not the page) to the selected option, centred. Radix gives the
+  ARIA combobox, keyboard (↑/↓, Home/End, Enter/Space, Esc, type-ahead) and touch handling; the list is in a portal and
+  modal (the page doesn't scroll behind it). Scenario pickers are `src/ScenarioPicker.tsx` on top of it: the real scenarios,
   then the `COMBINED` ones in an "Averaged" group; display names via `scenarioName()` (short names per the setting; never show a raw key), each a pill in its cover's colour (`color`, text by `ink()`) as on the scenario pages. Scenarios not launched on the
-  selected server (`isReleased()`, `src/scenarioRelease.js`, from `data/scenarios.json`) are in italics with a
+  selected server (`isReleased()`, `src/scenarioRelease.ts`, from `data/scenarios.json`) are in italics with a
   "Not released yet" note, on the button too; the one running now on it (`isCurrent()`) has a "Current" badge
   (none on JP while its newest scenario isn't one the tier list ranks). Every scenario in `data/scenarios.json` is
   listed, newest first; those the tier list doesn't rank yet are disabled with "Not in the tier list yet".
-- `deploy.yml` — on push to main, daily, and manually: install → `pnpm lint` → `update-cards` →
-  `scrape-gametora` → `update-jp` → `update-global` (both not committed) → `setup-ml` + `predict-gl` → `fetch-pull-guide` → `pnpm test` → build → GitHub Pages. If any
+- `deploy.yml` — on push to main, daily, and manually: install → `pnpm lint` → `pnpm typecheck` → `update-cards` →
+  `scrape-gametora` → `update-jp` → `update-global` (both not committed) → `setup-ml` + `predict-gl` → `fetch-pull-guide` → `pnpm test` → `pnpm test:e2e` → build → GitHub Pages. If any
   step fails the job fails and the last good deploy stays live.
 - `upstream-check.yml` — on push to main, daily, and manually: install →
   `clone-upstream` → `update-cards` → `pnpm test:upstream`. A failure (GitHub emails)
