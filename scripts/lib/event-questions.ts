@@ -36,7 +36,11 @@ export type Answer = AiAnswer['answer'];
 
 // The event fragment events.ts passes in (a minimal local type of the fields read here): an event as read so far, plus
 // its post's text, post time, the rules' doubts and the lines elsewhere in the post about its cards.
-export type AskedEvent = Pick<GameEvent, 'id' | 'kind' | 'name' | 'parent' | 'start' | 'end' | 'cards' | 'items'> & {
+export type AskedEvent = Pick<GameEvent, 'id' | 'name' | 'parent' | 'cards' | 'items'> & {
+  // (events.ts' Fragment: a kind and dates as read so far, not yet checked)
+  kind: string;
+  start: string | null;
+  end: string | null;
   text: string;
   posted: string;
   doubts: Record<string, string>;
@@ -540,11 +544,11 @@ type LooseItem = { name?: unknown; each?: unknown; times?: unknown; total?: unkn
 type LooseCard = { title?: unknown; copies?: unknown };
 type LooseAnswer = { name?: unknown; kind?: unknown; start?: unknown; end?: unknown; items?: unknown; cards?: unknown };
 
-export function applyAnswer(
-  event: AskedEvent,
+export function applyAnswer<E extends AskedEvent>(
+  event: E,
   raw: unknown,
   { trustModel = false, lang = en }: { trustModel?: boolean; lang?: Lexicon } = {}
-): AskedEvent {
+): E {
   const q = questionsOf(lang);
   // TODO(ts): the model's JSON isn't validated; every field is checked below before it's used
   const answer = (raw ?? {}) as LooseAnswer;
