@@ -63,24 +63,31 @@ export function FilterSheet({ open, onClose, title, action, children }: FilterSh
   );
 }
 
-export type FilterChip = {
-  key: string | number;
+export type FilterChip<K extends string | number = string> = {
+  key: K;
   label: ReactNode;
   shown: boolean;
   /** A `data-tone` of src/styles/global.css. */
   tone?: string;
 };
 
-export type FilterSectionProps = {
+export type FilterSectionProps<K extends string | number = string> = {
   heading: ReactNode;
   note?: ReactNode;
   off?: boolean;
-  chips: FilterChip[];
-  onToggle: (key: string | number) => void;
+  chips: FilterChip<K>[];
+  onToggle: (key: K) => void;
   onAll: (shown: boolean) => void;
 };
 
-export function FilterSection({ heading, note, off, chips, onToggle, onAll }: FilterSectionProps) {
+export function FilterSection<K extends string | number>({
+  heading,
+  note,
+  off,
+  chips,
+  onToggle,
+  onAll,
+}: FilterSectionProps<K>) {
   const { t } = useTranslation();
   if (!chips.length) return null;
   return (
