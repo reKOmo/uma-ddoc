@@ -1,4 +1,3 @@
-// @ts-nocheck
 // The official news APIs (Global: https://umamusume.com/news/, JP: https://umamusume.jp/news/) and our raw copy of
 // each, data/news/<server>/posts.json.
 //
@@ -25,14 +24,42 @@
 // the one-off archive walk goes faster with setPause().
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import type { NewsPost } from '../../shared/schemas/news.ts';
 import { newsDir } from './paths.ts';
-import { NEWS_SITES, SITE } from './news-text.ts';
+import { NEWS_SITES, type Server, SITE } from './news-text.ts';
 
 export { SITE };
-export const postsFile = (server = 'gl') => `${newsDir(server)}posts.json`;
+export const postsFile = (server: Server = 'gl'): string => `${newsDir(server)}posts.json`;
 export const PAGE_SIZE = 10; // what the news pages themselves ask for
 
-const BROWSER = {
+// An index page's item: the fields the index gives (announce_id, update_at); the rest come from the post's detail.
+export type IndexItem = Pick<NewsPost, 'announce_id' | 'update_at'>;
+
+// What the APIs send, as far as this file reads it. Checked where it's read (response_code, information_list…).
+type ApiJson = {
+  response_code: number;
+  information_list?: IndexItem[];
+  show_more_button?: boolean | number;
+  total_page_count?: number | string;
+  detail?: NewsPost;
+  next_announce_id?: number | null;
+  prev_announce_id?: number | null;
+};
+
+// One request: a POST body (Global) or GET query (JP).
+type Request = { body?: object; query?: Record<string, string | number> };
+
+// How one server's API is called and answers.
+type ServerConfig = {
+  headers: Record<string, string>;
+  index: (page: number) => Request;
+  more: (json: ApiJson, page: number) => boolean;
+  detail: (id: string | number) => Request;
+  ids: (json: ApiJson) => { next_announce_id: number | null; prev_announce_id?: number | null };
+  older: (post: NewsPost) => number | null | undefined;
+};
+
+const BROWSER: Record<string, string> = {
   'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0',
   Accept: '*/*',
   'Sec-Fetch-Dest': 'empty',
@@ -41,53 +68,54 @@ const BROWSER = {
 };
 
 // How each server's API is called.
-const SERVERS = {
+const SERVERS: Record<Server, ServerConfig> = {
   gl: {
     headers: { 'Accept-Language': 'en-US,en;q=0.9', 'Content-Type': 'application/json', Origin: NEWS_SITES.gl.site },
-    index: (page) => ({ body: { announce_label: 0, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE } }),
-    more: (json) => Boolean(json.show_more_button),
-    detail: (id) => ({ body: { announce_id: Number(id) } }),
-    ids: (json) => ({ next_announce_id: json.next_announce_id || null }),
-    older: (post) => post.next_announce_id,
+    index: (page: number) => ({ body: { announce_label: 0, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE } }),
+    more: (json: ApiJson) => Boolean(json.show_more_button),
+    detail: (id: string | number) => ({ body: { announce_id: Number(id) } }),
+    ids: (json: ApiJson) => ({ next_announce_id: json.next_announce_id || null }),
+    older: (post: NewsPost) => post.next_announce_id,
   },
   jp: {
     headers: { 'Accept-Language': 'ja,en-US;q=0.7,en;q=0.3' },
-    index: (page) => ({ query: { announce_label: 0, per_page: PAGE_SIZE, page } }),
-    more: (json, page) => page < Number(json.total_page_count),
-    detail: (id) => ({ query: { announce_id: id } }),
-    ids: (json) => ({
+    index: (page: number) => ({ query: { announce_label: 0, per_page: PAGE_SIZE, page } }),
+    more: (json: ApiJson, page: number) => page < Number(json.total_page_count),
+    detail: (id: string | number) => ({ query: { announce_id: id } }),
+    ids: (json: ApiJson) => ({
       prev_announce_id: json.prev_announce_id || null,
       next_announce_id: json.next_announce_id || null,
     }),
-    older: (post) => post.prev_announce_id,
+    older: (post: NewsPost) => post.prev_announce_id,
   },
 };
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-let pause = [3000, 8000];
+let pause: [number, number] = [3000, 8000];
 // The pause between requests, in ms: a random one between min and max.
-export function setPause(min, max) {
+export function setPause(min: number, max: number): void {
   pause = [min, max];
 }
 
 export let requests = 0;
-async function api(server, endpoint, { body, query }, referer) {
+async function api(server: Server, endpoint: string, { body, query }: Request, referer: string): Promise<ApiJson> {
   if (requests++) await sleep(pause[0] + Math.random() * (pause[1] - pause[0]));
-  const params = new URLSearchParams({ format: 'json', ...query });
+  const params = new URLSearchParams(Object.entries({ format: 'json', ...query }).map(([k, v]) => [k, String(v)]));
   const res = await fetch(`${NEWS_SITES[server].site}/api/ajax/${endpoint}?${params}`, {
     method: body ? 'POST' : 'GET',
     headers: { ...BROWSER, ...SERVERS[server].headers, Referer: referer },
     body: body && JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`${endpoint}: ${res.status} ${res.statusText}`);
-  const json = await res.json();
+  // TODO(ts): res.json() is any; the fields read from it are checked where they're read (response_code, etc.).
+  const json = (await res.json()) as ApiJson;
   if (json.response_code !== 1) throw new Error(`${endpoint}: response_code ${json.response_code}`);
   return json;
 }
 
 // One page of the news index (from 1): { items, more }.
-export async function indexPage(page, server = 'gl') {
+export async function indexPage(page: number, server: Server = 'gl'): Promise<{ items: IndexItem[]; more: boolean }> {
   const config = SERVERS[server];
   const json = await api(server, 'pr_info_index', config.index(page), `${NEWS_SITES[server].site}/news/`);
   if (!Array.isArray(json.information_list)) throw new Error('pr_info_index: no information_list (format changed?)');
@@ -95,29 +123,32 @@ export async function indexPage(page, server = 'gl') {
 }
 
 // One post, as stored in posts.json.
-export async function fetchPost(id, server = 'gl') {
+export async function fetchPost(id: string | number, server: Server = 'gl'): Promise<NewsPost> {
   const config = SERVERS[server];
   const json = await api(server, 'pr_info_detail', config.detail(id), NEWS_SITES[server].post(id));
   const { detail } = json;
-  if (String(detail?.announce_id) !== String(id)) throw new Error(`pr_info_detail ${id}: unexpected response`);
+  if (!detail || String(detail.announce_id) !== String(id))
+    throw new Error(`pr_info_detail ${id}: unexpected response`);
   return { ...detail, ...config.ids(json), fetched_at: new Date().toISOString() };
 }
 
 // The id of the post before this one (Global: by post date, JP: by id), or null at the start of the archive.
-export const olderId = (post, server = 'gl') => {
+export const olderId = (post: NewsPost, server: Server = 'gl'): string | null => {
   const id = SERVERS[server].older(post);
   return id ? String(id) : null;
 };
 
 // Posts by id (a string, as the API sends it).
-export function loadPosts(server = 'gl') {
+export function loadPosts(server: Server = 'gl'): Map<string, NewsPost> {
   const file = postsFile(server);
   if (!existsSync(file)) return new Map();
-  return new Map(JSON.parse(readFileSync(file, 'utf8')).map((p) => [String(p.announce_id), p]));
+  // TODO(ts): JSON.parse is any; posts.json is written by savePosts() below, one NewsPost per post (its schema: news.ts).
+  const list = JSON.parse(readFileSync(file, 'utf8')) as NewsPost[];
+  return new Map(list.map((p): [string, NewsPost] => [String(p.announce_id), p]));
 }
 
 // One post per line, newest first, so commits diff per post.
-export function savePosts(posts, server = 'gl') {
+export function savePosts(posts: Map<string, NewsPost>, server: Server = 'gl'): void {
   const list = [...posts.values()].sort(
     (a, b) => b.post_at.localeCompare(a.post_at) || Number(b.announce_id) - Number(a.announce_id)
   );
@@ -125,10 +156,12 @@ export function savePosts(posts, server = 'gl') {
   writeFileSync(postsFile(server), `[\n${list.map((p) => JSON.stringify(p)).join(',\n')}\n]\n`);
 }
 
+const isServer = (s: string): s is Server => s === 'gl' || s === 'jp';
+
 // `--server gl|jp` from a script's arguments (gl by default).
-export function serverArg(argv = process.argv) {
+export function serverArg(argv: string[] = process.argv): Server {
   const i = argv.indexOf('--server');
   const server = i < 0 ? 'gl' : argv[i + 1];
-  if (!SERVERS[server]) throw new Error(`--server: gl or jp, not ${server}`);
+  if (!isServer(server)) throw new Error(`--server: gl or jp, not ${server}`);
   return server;
 }

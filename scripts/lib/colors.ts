@@ -1,4 +1,3 @@
-// @ts-nocheck
 // The main colour of an image, for the scenario strip (data/scenarios.json `colors`). Node only, no
 // dependencies: decodes 8-bit, non-interlaced PNGs (greyscale, RGB, palette, with or without alpha),
 // which is what GameTora's and the official site's art are.
@@ -10,16 +9,20 @@
 
 import { inflateSync } from 'node:zlib';
 
-const CHANNELS = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 };
+const CHANNELS: Record<number, number> = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 };
+
+type Header = { width: number; height: number; depth: number; colorType: number; interlace: number };
+// An image's pixels, RGBA, row by row.
+export type Image = { width: number; height: number; rgba: Uint8Array };
 
 // PNG bytes → { width, height, rgba: Uint8Array }.
-export function decodePng(buffer) {
+export function decodePng(buffer: Buffer): Image {
   if (buffer.readUInt32BE(0) !== 0x89504e47) throw new Error('not a PNG');
   let offset = 8;
-  let header: { width: number; height: number; depth: number; colorType: number; interlace: number } | undefined;
+  let header: Header | undefined;
   let palette: Buffer | undefined;
   let transparency: Buffer | undefined;
-  const data = [];
+  const data: Buffer[] = [];
   while (offset < buffer.length) {
     const length = buffer.readUInt32BE(offset);
     const type = buffer.toString('latin1', offset + 4, offset + 8);
@@ -38,7 +41,8 @@ export function decodePng(buffer) {
     else if (type === 'IEND') break;
     offset += 12 + length;
   }
-  const { width, height, depth, colorType, interlace } = header;
+  // TODO(ts): undefined without an IHDR chunk; the destructuring throws on it, as it did before typing.
+  const { width, height, depth, colorType, interlace } = header as Header;
   const channels = CHANNELS[colorType];
   if (depth !== 8 || interlace || !channels) throw new Error(`unsupported PNG (depth ${depth}, type ${colorType})`);
 
@@ -67,6 +71,8 @@ export function decodePng(buffer) {
     }
   }
 
+  // TODO(ts): undefined for a palette image without a PLTE chunk; the palette lookup throws on it, as before.
+  const paletteBytes = palette as Buffer;
   const rgba = new Uint8Array(width * height * 4);
   for (let i = 0; i < width * height; i++) {
     const s = i * channels;
@@ -74,7 +80,7 @@ export function decodePng(buffer) {
     let alpha = 255;
     if (colorType === 3) {
       const index = pixels[s];
-      rgb = [palette[index * 3], palette[index * 3 + 1], palette[index * 3 + 2]];
+      rgb = [paletteBytes[index * 3], paletteBytes[index * 3 + 1], paletteBytes[index * 3 + 2]];
       if (transparency && index < transparency.length) alpha = transparency[index];
     } else if (colorType === 0 || colorType === 4) {
       rgb = [pixels[s], pixels[s], pixels[s]];
@@ -88,16 +94,16 @@ export function decodePng(buffer) {
   return { width, height, rgba };
 }
 
-const hex = (rgb) => `#${rgb.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`;
+const hex = (rgb: number[]): string => `#${rgb.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`;
 
-const isSkinOrHair = (hue) => hue < 45 || hue >= 345;
+const isSkinOrHair = (hue: number): boolean => hue < 45 || hue >= 345;
 
 // rgba → "#rrggbb", or null if nothing in it is clearly coloured.
-export function mainColor(image) {
+export function mainColor(image: Image): string | null {
   return dominantHue(image, (hue) => !isSkinOrHair(hue)) ?? dominantHue(image, () => true);
 }
 
-function dominantHue({ rgba }, keep) {
+function dominantHue({ rgba }: Image, keep: (hue: number) => boolean): string | null {
   const BINS = 24;
   const weight = new Float64Array(BINS);
   const sums = Array.from({ length: BINS }, () => [0, 0, 0, 0]);
@@ -127,13 +133,13 @@ function dominantHue({ rgba }, keep) {
 }
 
 // An image URL → its main colour (null if it can't be fetched or decoded; logged).
-export async function imageColor(url, headers = {}) {
+export async function imageColor(url: string, headers: Record<string, string> = {}): Promise<string | null> {
   try {
     const res = await fetch(url, { headers });
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return mainColor(decodePng(Buffer.from(await res.arrayBuffer())));
   } catch (err) {
-    console.warn(`no colour for ${url}: ${err.message}`);
+    console.warn(`no colour for ${url}: ${err instanceof Error ? err.message : String(err)}`);
     return null;
   }
 }
