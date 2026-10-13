@@ -81,7 +81,7 @@ function Rows({ rows, shown, at, format, unfolded, onToggleParts, onSelect, dept
           ))}
         </div>
         {open.map((item) => (
-          <div key={item.entry.key} className={clsx('part-rows', item.entry.tone)}>
+          <div key={item.entry.key} className="part-rows" data-tone={item.entry.tone}>
             <div
               className="part-band"
               style={{ left: at(item.start), width: Math.max(at(item.end) - at(item.start), MIN_WIDTH) }}
@@ -125,14 +125,22 @@ const Bar = memo(function Bar({ item, at, format, open, onToggleParts, onSelect 
   });
   return (
     <div
-      className={clsx('bar', entry.tone, entry.status, {
+      data-tone={entry.tone}
+      className={clsx('bar', entry.status, {
         chip,
         'official-art': entry.art?.official,
         'has-parts': parts > 0,
       })}
       style={{ left, width, ...(entry.art && !chip && { backgroundImage: `url(${entry.art.src})` }) }}
     >
-      <button type="button" className="bar-hit" title={title} aria-label={title} onClick={() => onSelect(entry)} />
+      <button
+        type="button"
+        className="bar-hit"
+        data-testid="bar"
+        title={title}
+        aria-label={title}
+        onClick={() => onSelect(entry)}
+      />
       {!chip && (
         <span className="bar-label" aria-hidden="true">
           <strong>{label}</strong>

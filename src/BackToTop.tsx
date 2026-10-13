@@ -1,6 +1,6 @@
 // @ts-nocheck
 // A floating "back to top" button, shown once the page has scrolled past one screen. Pages scroll inside
-// App's <main class="app-main">, not the window, so it watches the scroll container it sits in.
+// App's <main data-scroll-root>, not the window, so it watches the scroll container it sits in.
 
 import { useEffect, useRef, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
@@ -12,7 +12,7 @@ export default function BackToTop() {
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
-    const scroller = ref.current?.closest('.app-main');
+    const scroller = ref.current?.closest('[data-scroll-root]');
     if (!scroller) return;
     const update = () => setShown(scroller.scrollTop > scroller.clientHeight);
     update();
@@ -22,7 +22,7 @@ export default function BackToTop() {
 
   const toTop = () => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    ref.current?.closest('.app-main')?.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    ref.current?.closest('[data-scroll-root]')?.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
   };
 
   return (

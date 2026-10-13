@@ -27,7 +27,7 @@ export function useDragScroll(ref: RefObject<HTMLElement | null>, enabled = true
       const dy = e.clientY - start.y;
       if (!dragged && Math.hypot(dx, dy) < THRESHOLD) return;
       dragged = true;
-      el.classList.add('dragging');
+      el.dataset.dragging = '';
       el.scrollLeft = start.left - dx;
       el.scrollTop = start.top - dy;
     };
@@ -35,7 +35,7 @@ export function useDragScroll(ref: RefObject<HTMLElement | null>, enabled = true
     const onPointerUp = () => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
-      el.classList.remove('dragging');
+      delete el.dataset.dragging;
       start = null;
     };
 

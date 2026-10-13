@@ -296,7 +296,7 @@
   cursor: grab;
 }
 
-.rank-scroller.dragging {
+.rank-scroller[data-dragging] {
   cursor: grabbing;
   user-select: none;
 }

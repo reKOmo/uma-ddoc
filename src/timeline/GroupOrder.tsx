@@ -82,7 +82,7 @@ function OrderItem({ group, off }) {
       >
         <GripVertical size={20} aria-hidden="true" />
       </button>
-      <span className={clsx('order-dot', `kind-${group.kinds[0]}`)} aria-hidden="true" />
+      <span className="order-dot" data-tone={`kind-${group.kinds[0]}`} aria-hidden="true" />
       <span className="order-name">{name}</span>
       {off && <span className="order-hidden">{t('timeline.filter.hiddenGroup')}</span>}
     </li>

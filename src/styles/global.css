@@ -1,0 +1,196 @@
+/* What every page shares, global on purpose (components' own styles are CSS Modules next to them):
+   colour tokens (light, dark), resets, tier colours, and the tones: an element's colour (--tone) by its
+   `data-tone` (a Timeline entry's `tone`: its kind or main card's type; a filter chip's), so a component sets
+   `data-tone={…}` and its own CSS reads var(--tone). */
+
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --text: #1c1f24;
+  --muted: #69707a;
+  --border: #dde1e6;
+  --accent: #d6457a;
+  --accent-text: #ffffff;
+  --gridline: rgba(0, 0, 0, 0.05);
+  --rank-up: #1f8a4c;
+  --rank-down: #c8372d;
+  --global-line: #2f6fd6;
+  --caution: #a86a00;
+  /* Global's in-game events on the Timeline, by kind. */
+  --event-story: #8e5cd9;
+  --event-champions: #d9a400;
+  --event-legend: #e5484d;
+  --event-campaign: #2fa38a;
+  --event-special: #3b7dd8;
+  --event-celebration: #e07b1a;
+  --event-gift: #d6458f;
+  --event-other: #69707a;
+  /* Text on data-driven colours (scenario covers): pick by the colour's luminance, not the theme. */
+  --ink-dark: #1c1f24;
+  --ink-light: #ffffff;
+  --tabbar-height: 56px;
+  font-family: system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171a;
+    --panel: #1f2226;
+    --text: #e7e9ec;
+    --muted: #9aa1aa;
+    --border: #33373d;
+    --accent: #ef6c9b;
+    --accent-text: #15171a;
+    --gridline: rgba(255, 255, 255, 0.05);
+    --rank-up: #4cc47f;
+    --rank-down: #f07167;
+    --global-line: #6ea8fe;
+    --caution: #e5a93a;
+    --event-story: #a98bf0;
+    --event-champions: #e5bd3a;
+    --event-legend: #f07167;
+    --event-campaign: #4cc4a8;
+    --event-special: #6aa5f0;
+    --event-celebration: #f39a45;
+    --event-gift: #f06fae;
+    --event-other: #9aa1aa;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+button {
+  font: inherit;
+  color: var(--text);
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+}
+
+/* Tier colours (tierlist ranks: S, A, B…), by index. */
+.tier-0 {
+  background: #ff7f7f;
+}
+.tier-1 {
+  background: #ffbf7f;
+}
+.tier-2 {
+  background: #ffdf7f;
+}
+.tier-3 {
+  background: #ffff7f;
+}
+.tier-4 {
+  background: #bfff7f;
+}
+.tier-5 {
+  background: #7fff7f;
+}
+.tier-6 {
+  background: #7fffff;
+}
+.tier-7 {
+  background: #7fbfff;
+}
+
+/* An entry's colour (--tone; entries.js `tone`): the bar's edge, the sheet's kind pill, its parts' dots and band.
+   Banners by what they feature (trainees; a card banner by its main card's type), events by kind, kinds sharing a
+   colour by family: free things (gifts, login bonuses), boosts (campaigns, missions); shops, sales, Transfer Requests
+   and Uma Outings stay neutral. */
+[data-tone] {
+  --tone: var(--event-other);
+}
+[data-tone="kind-characters"] {
+  --tone: #d6457a;
+}
+[data-tone="type-speed"] {
+  --tone: #3d8bfd;
+}
+[data-tone="type-stamina"] {
+  --tone: #e5484d;
+}
+[data-tone="type-power"] {
+  --tone: #f08c00;
+}
+[data-tone="type-guts"] {
+  --tone: #e64980;
+}
+[data-tone="type-intelligence"] {
+  --tone: #2fb344;
+}
+[data-tone="type-friend"],
+[data-tone="type-group"] {
+  --tone: #f5c518;
+}
+[data-tone="kind-story"] {
+  --tone: var(--event-story);
+}
+[data-tone="kind-champions_meeting"],
+[data-tone="kind-league_of_heroes"] {
+  --tone: var(--event-champions);
+}
+[data-tone="kind-legend_race"] {
+  --tone: var(--event-legend);
+}
+[data-tone="kind-special"],
+[data-tone="kind-factor_research"],
+[data-tone="kind-masters_challenge"] {
+  --tone: var(--event-special);
+}
+[data-tone="kind-celebration"] {
+  --tone: var(--event-celebration);
+}
+[data-tone="kind-gift"],
+[data-tone="kind-login_bonus"] {
+  --tone: var(--event-gift);
+}
+[data-tone="kind-campaign"],
+[data-tone="kind-missions"] {
+  --tone: var(--event-campaign);
+}
+
+/* Limit-break chips in their rarity's colour. */
+[data-tone="filter-rarity-SSR"] {
+  --tone: var(--event-champions);
+}
+
+[data-tone="filter-rarity-SR"] {
+  --tone: var(--event-special);
+}
+
+[data-tone="filter-rarity-R"] {
+  --tone: var(--event-other);
+}
+
+/* (Support card banners are coloured by their main card's type; their filter chip and order dot by one of them.) */
+[data-tone="kind-cards"] {
+  --tone: var(--event-special);
+}
+
+[data-tone="filter-pull-yes"] {
+  --tone: var(--rank-up);
+}
+[data-tone="filter-pull-no"] {
+  --tone: var(--rank-down);
+}
+[data-tone="filter-pull-free"] {
+  --tone: var(--global-line);
+}
+[data-tone="filter-pull-whale"] {
+  --tone: var(--caution);
+}
+[data-tone="filter-pull-dolphin"] {
+  --tone: var(--accent);
+}

@@ -55,7 +55,9 @@ function Header({ entry, format }) {
   const days = daysOf(entry);
   return (
     <>
-      <span className={clsx('entry-kind', entry.tone)}>{kindName(entry)}</span>
+      <span className="entry-kind" data-tone={entry.tone}>
+        {kindName(entry)}
+      </span>
       <SheetTitle className="sheet-title">{entryTitle(entry)}</SheetTitle>
       <p className="sheet-dates">
         <StatusBadge status={entry.status} />
@@ -245,7 +247,7 @@ function Parts({ entry, lookup, format, onSelect }) {
         {parts.map((part) => (
           <li key={part.key}>
             <button type="button" className="sheet-part" onClick={() => onSelect(part)}>
-              <span className={clsx('entry-dot', part.tone)} aria-hidden="true" />
+              <span className="entry-dot" data-tone={part.tone} aria-hidden="true" />
               {barLabel(part)}
               {part.featured.length > 0 && <small className="has-cards">{t('timeline.supportCards')}</small>}
             </button>

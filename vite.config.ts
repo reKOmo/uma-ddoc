@@ -26,6 +26,8 @@ export default defineConfig({
     { name: 'ensure-cards', buildStart: ensureCards },
     stripDynamicJsonAttributes,
   ],
+  // CSS Modules (`Component.module.css` beside a component): `.see-more` is `styles.seeMore`.
+  css: { modules: { localsConvention: 'camelCaseOnly' } },
   // Relative asset URLs so the build works under a GitHub Pages project path.
   base: './',
   // The upstream clone (upstream/, for test:upstream) is a whole other app;

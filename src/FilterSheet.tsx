@@ -5,8 +5,8 @@
 //
 // <FilterButton count countTitle onClick disabled />
 // <FilterSheet open onClose title action>…</FilterSheet>
-// <FilterSection heading note off chips onToggle onAll />: `chips` [{ key, label, shown, tone }] (`tone`: a class
-//   setting --tone), `onToggle(key)`, `onAll(shown)` (true: All, false: None); `off` greys the whole section out.
+// <FilterSection heading note off chips onToggle onAll />: `chips` [{ key, label, shown, tone }] (`tone`: its colour,
+//   a `data-tone` of src/styles/global.css), `onToggle(key)`, `onAll(shown)` (true: All, false: None); `off` greys the whole section out.
 
 import { Check, SlidersHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -69,7 +69,8 @@ export function FilterSection({ heading, note, off, chips, onToggle, onAll }) {
           <button
             type="button"
             key={chip.key}
-            className={clsx('filter-chip', chip.tone)}
+            className="filter-chip"
+            data-tone={chip.tone}
             aria-pressed={chip.shown}
             disabled={off}
             onClick={() => onToggle(chip.key)}

@@ -42,27 +42,6 @@
   border-color: var(--accent);
 }
 
-/* (Support card banners are coloured by their main card's type; their chip by one of them.) */
-.filter-chip.kind-cards {
-  --tone: var(--event-special);
-}
-
-.filter-pull-yes {
-  --tone: var(--rank-up);
-}
-.filter-pull-no {
-  --tone: var(--rank-down);
-}
-.filter-pull-free {
-  --tone: var(--global-line);
-}
-.filter-pull-whale {
-  --tone: var(--caution);
-}
-.filter-pull-dolphin {
-  --tone: var(--accent);
-}
-
 /* Show / Order: the sheet's two tabs, full width. */
 .filter-tabs {
   display: flex;
@@ -170,10 +149,6 @@
   opacity: 0.4;
 }
 
-.order-dot.kind-cards {
-  --tone: var(--event-special);
-}
-
 .order-name {
   flex: 1;
   min-width: 0;
@@ -206,7 +181,7 @@
   cursor: grab;
 }
 
-.timeline.dragging {
+.timeline[data-dragging] {
   cursor: grabbing;
   user-select: none;
 }
@@ -361,65 +336,6 @@
   .scenario-arrow.edge {
     display: none;
   }
-}
-
-/* An entry's colour (--tone; entries.js `tone`): the bar's edge, the sheet's kind pill, its parts' dots and band.
-   Banners by what they feature (trainees; a card banner by its main card's type), events by kind, kinds sharing a
-   colour by family: free things (gifts, login bonuses), boosts (campaigns, missions); shops, sales, Transfer Requests
-   and Uma Outings stay neutral. */
-.bar,
-.entry-kind,
-.entry-dot,
-.part-rows {
-  --tone: var(--event-other);
-}
-.kind-characters {
-  --tone: #d6457a;
-}
-.type-speed {
-  --tone: #3d8bfd;
-}
-.type-stamina {
-  --tone: #e5484d;
-}
-.type-power {
-  --tone: #f08c00;
-}
-.type-guts {
-  --tone: #e64980;
-}
-.type-intelligence {
-  --tone: #2fb344;
-}
-.type-friend,
-.type-group {
-  --tone: #f5c518;
-}
-.kind-story {
-  --tone: var(--event-story);
-}
-.kind-champions_meeting,
-.kind-league_of_heroes {
-  --tone: var(--event-champions);
-}
-.kind-legend_race {
-  --tone: var(--event-legend);
-}
-.kind-special,
-.kind-factor_research,
-.kind-masters_challenge {
-  --tone: var(--event-special);
-}
-.kind-celebration {
-  --tone: var(--event-celebration);
-}
-.kind-gift,
-.kind-login_bonus {
-  --tone: var(--event-gift);
-}
-.kind-campaign,
-.kind-missions {
-  --tone: var(--event-campaign);
 }
 
 .axis-months {
@@ -732,7 +648,7 @@
 }
 
 /* Below the .bar rules: Biome wants rules in ascending specificity. */
-.timeline.dragging .bar-hit {
+.timeline[data-dragging] .bar-hit {
   cursor: grabbing;
 }
 

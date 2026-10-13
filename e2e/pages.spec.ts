@@ -63,7 +63,7 @@ test('a scenario page keeps the Scenarios tab and links its neighbours', async (
 
 test('a Timeline sheet opens from a bar and closes', async ({ page }) => {
   await open(page, '#/timeline');
-  await page.getByRole('button', { name: /./ }).and(page.locator('.bar-hit')).first().click();
+  await page.getByTestId('bar').first().click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(page).toHaveURL(/#\/timeline\/(gl|jp)\/.+$/);
   await page.getByRole('button', { name: 'Close' }).click();

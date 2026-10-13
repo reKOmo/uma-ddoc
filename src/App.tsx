@@ -98,7 +98,11 @@ function Shell() {
         </fieldset>
       </header>
       {/* Keyed by route so each page starts scrolled to the top. */}
-      <main key={pageKey} className={tab === TAB_URLS.timeline && !detail ? 'app-main full-height' : 'app-main'}>
+      <main
+        key={pageKey}
+        data-scroll-root
+        className={tab === TAB_URLS.timeline && !detail ? 'app-main full-height' : 'app-main'}
+      >
         <Switch>
           <Route path={ALIAS.from}>
             <Redirect to={ALIAS.to} replace />
