@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Questions for a language model about the fields of an event the rules aren't sure of (its `doubts`, from
 // scripts/lib/events.js) or left empty, and how its answers fill them in. Pure: scripts/ai-events.js asks,
 // buildEvents() applies the stored answers.
@@ -26,24 +25,46 @@
 import { itemName, norm, numberWord } from './event-rewards.ts';
 import { DAY } from './news-text.ts';
 import { en } from './news-lang/en.ts';
+import type { Lexicon } from './news-lang/index.ts';
+import type { JsonSchema, Question } from './ai.ts';
+import type { AiAnswer } from '../../shared/schemas/news.ts';
+import type { EventCard, EventItem, GameEvent } from '../../shared/schemas/event.ts';
+
+export type Field = 'items' | 'cards' | 'name' | 'kind' | 'dates';
+// A model's answer (the fields it was asked), as stored in ai_answers.json.
+export type Answer = AiAnswer['answer'];
+
+// The event fragment events.ts passes in (a minimal local type of the fields read here): an event as read so far, plus
+// its post's text, post time, the rules' doubts and the lines elsewhere in the post about its cards.
+export type AskedEvent = Pick<GameEvent, 'id' | 'kind' | 'name' | 'parent' | 'start' | 'end' | 'cards' | 'items'> & {
+  text: string;
+  posted: string;
+  doubts: Record<string, string>;
+  context?: string[];
+};
 
 // Each question's version: bump one when its wording or examples change, so only stored answers to it are asked
 // again (an answer stored with one `version` for every field, before these, counts as version 1 of each).
-export const FIELD_VERSIONS = { items: 2, cards: 2, name: 1, kind: 1, dates: 1 };
+export const FIELD_VERSIONS: Record<Field, number> = { items: 2, cards: 2, name: 1, kind: 1, dates: 1 };
 
 // A stored answer's question versions per field.
-const versionsOf = (stored) =>
+const versionsOf = (stored: AiAnswer | null | undefined): Record<string, number> =>
   stored?.versions ?? (stored ? Object.fromEntries(Object.keys(FIELD_VERSIONS).map((f) => [f, 1])) : {});
 
 // The asked fields whose stored answer (data/news/gl/ai_answers.json) is missing or for an older question.
-export function staleFields(event, stored) {
+export function staleFields(event: AskedEvent, stored: AiAnswer | null | undefined): Field[] {
   const versions = versionsOf(stored);
   return askedFields(event).filter((f) => versions[f] !== FIELD_VERSIONS[f]);
 }
 
 // A stored answer with a newer answer about `fields` merged in.
-export function mergeAnswer(stored, fields, answer, model) {
-  const keys = (f) => (f === 'dates' ? ['start', 'end'] : [f]);
+export function mergeAnswer(
+  stored: AiAnswer | null | undefined,
+  fields: Field[],
+  answer: Record<string, unknown>,
+  model: string
+): AiAnswer {
+  const keys = (f: Field) => (f === 'dates' ? ['start', 'end'] : [f]);
   const old = stored?.answer ?? {};
   return {
     model,
@@ -68,9 +89,10 @@ const KINDS = SUB_EVENT_KINDS;
 export const UNNAMED_KINDS = ['legend_race', 'transfer_requests', 'league_of_heroes'];
 // JP's sub-events can also be in-game events of their own (news-lang/ja.js subKinds).
 const KINDS_JA = [...SUB_EVENT_KINDS, 'special'];
-const nullable = (type) => ({ type: [type, 'null'] });
+const nullable = (type: string): JsonSchema => ({ type: [type, 'null'] });
 
-const FIELDS = {
+type FieldSpec = { ask: string | ((e: AskedEvent) => string); schema: JsonSchema | null };
+const FIELDS: Record<Field, FieldSpec> = {
   items: {
     ask: [
       'items: every reward this event gives one player. For each:',
@@ -96,8 +118,8 @@ const FIELDS = {
     },
   },
   cards: {
-    ask: (e) =>
-      `cards: for each of these support cards, how many copies one player can get from THIS event itself (adding up its own parts): ${e.cards.map((c) => `[${c.title}] ${c.name}`).join('; ')}. When the text gives copies for several events ("up to two times in the Login Bonus and up to three times in the Missions"), give only this event's share. copies is null if no number of copies is given for this event: naming the card is not "1".`,
+    ask: (e: AskedEvent) =>
+      `cards: for each of these support cards, how many copies one player can get from THIS event itself (adding up its own parts): ${e.cards.map((c: EventCard) => `[${c.title}] ${c.name}`).join('; ')}. When the text gives copies for several events ("up to two times in the Login Bonus and up to three times in the Missions"), give only this event's share. copies is null if no number of copies is given for this event: naming the card is not "1".`,
     schema: {
       type: 'array',
       items: {
@@ -126,7 +148,9 @@ const DATE = { type: ['string', 'null'], pattern: '^\\d{4}-\\d{2}-\\d{2} \\d{2}:
 
 // Worked examples per field, from made-up posts in the news' style (not real ones, so the model learns the pattern,
 // not answers): [text, the part of the answer it gives].
-const EXAMPLES = {
+// (An example with a post date, [text, answer, posted]: JP's, whose dates leave the year out.)
+type Examples = Record<Field, [string, unknown, string?][]>;
+const EXAMPLES: Examples = {
   items: [
     [
       'Each day you log in during the event period, you will receive a gift of 50 carats! This login bonus can be received up to 10 times.',
@@ -200,7 +224,7 @@ const EXAMPLES = {
 };
 
 // (An example with a post date, [text, answer, posted]: JP's, whose dates leave the year out.)
-const examplesFor = (fields, examples = EXAMPLES) =>
+const examplesFor = (fields: Field[], examples: Examples = EXAMPLES) =>
   fields.flatMap((f) =>
     examples[f].map(
       ([text, answer, posted]) =>
@@ -219,7 +243,7 @@ const SYSTEM_JA = [
   'Reply with one JSON object matching the schema, nothing else.',
 ].join(' ');
 
-const FIELDS_JA = {
+const FIELDS_JA: Record<Field, FieldSpec> = {
   items: {
     ask: [
       'items: every reward this event gives one player. For each:',
@@ -232,8 +256,8 @@ const FIELDS_JA = {
     schema: FIELDS.items.schema,
   },
   cards: {
-    ask: (e) =>
-      `cards: for each of these support cards, how many copies (枚) one player can get from THIS event itself (adding up its own parts): ${e.cards.map((c) => `「[${c.title}]${c.name}」`).join('、')}. title: the card's title, the part in [ ]. When the text gives copies for several events (「…ログインボーナス」で最大2枚、「…ミッション」で最大3枚), give only this event's share. copies is null if no number of copies is given for this event: naming the card is not "1".`,
+    ask: (e: AskedEvent) =>
+      `cards: for each of these support cards, how many copies (枚) one player can get from THIS event itself (adding up its own parts): ${e.cards.map((c: EventCard) => `「[${c.title}]${c.name}」`).join('、')}. title: the card's title, the part in [ ]. When the text gives copies for several events (「…ログインボーナス」で最大2枚、「…ミッション」で最大3枚), give only this event's share. copies is null if no number of copies is given for this event: naming the card is not "1".`,
     schema: FIELDS.cards.schema,
   },
   name: {
@@ -252,7 +276,7 @@ const FIELDS_JA = {
 
 // Made-up posts in the JP news' style (not real ones), [text, answer, posted?].
 const CARD = '[ためしの一枚]サンプルウマ娘';
-const EXAMPLES_JA = {
+const EXAMPLES_JA: Examples = {
   items: [
     [
       '開催期間中にログインすると、1日1回ジュエル50個をプレゼントします！\n※最大10日間報酬を獲得できます。',
@@ -334,29 +358,29 @@ const EXAMPLES_JA = {
 // --- per language --------------------------------------------------------------------------------------------------
 
 // A name the text has (singular or plural: "150-carat gifts" has Carats).
-const inText = (event, name) =>
+const inText = (event: AskedEvent, name: unknown): name is string =>
   typeof name === 'string' && name.length <= 80 && norm(event.text).includes(norm(name).replace(/s$/, ''));
-const valid = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s);
-const isoOf = (s, event) => {
+const valid = (s: unknown): s is string => typeof s === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s);
+const isoOf = (s: unknown, event: AskedEvent): string | null => {
   if (!valid(s)) return null;
   const date = new Date(`${s.replace(' ', 'T')}:00Z`);
   if (Number.isNaN(date.getTime())) return null;
-  return Math.abs(date - Date.parse(event.posted)) < 200 * DAY ? date.toISOString() : null; // a year's slip is out
+  return Math.abs(date.getTime() - Date.parse(event.posted)) < 200 * DAY ? date.toISOString() : null; // a year's slip is out
 };
 
 // JP: a JST time, in the year nearest the post (an end before the start: the next year), as ISO UTC.
 const JST = 9 * 3600 * 1000;
-const jst = (iso) => new Date(Date.parse(iso) + JST).toISOString().slice(0, 16).replace('T', ' ');
-function isoOfJst(s, event, after) {
+const jst = (iso: string) => new Date(Date.parse(iso) + JST).toISOString().slice(0, 16).replace('T', ' ');
+function isoOfJst(s: unknown, event: AskedEvent, after?: string | null): string | null {
   if (!valid(s)) return null;
   const [mo, d, h, mi] = s.slice(5).split(/[- :]/).map(Number);
   const posted = Date.parse(event.posted);
-  const at = (y) => Date.UTC(y, mo - 1, d, h, mi) - JST;
+  const at = (y: number) => Date.UTC(y, mo - 1, d, h, mi) - JST;
   const day = new Date(at(2000) + JST); // (2000: a leap year)
   if (h > 23 || mi > 59 || day.getUTCMonth() !== mo - 1 || day.getUTCDate() !== d) return null;
   const ref = new Date(posted + JST).getUTCFullYear();
   let year = [ref - 1, ref + 1].reduce(
-    (best, y) => (Math.abs(at(y) - posted) < Math.abs(at(best) - posted) ? y : best),
+    (best: number, y: number) => (Math.abs(at(y) - posted) < Math.abs(at(best) - posted) ? y : best),
     ref
   );
   if (after && at(year) <= Date.parse(after)) year++;
@@ -369,10 +393,24 @@ const GENERIC =
 const GENERIC_JA =
   /^[「『]?(?:レジェンドレース|特別移籍|チャンピオンズミーティング|リーグ オブ ヒーローズ|ストーリーイベント|イベント|ログインボーナス|キャンペーン|ミッション|プレゼント|セール|ショップ)[」』]?$/;
 
-const isMissionSet = (event) => /-m\d+$/.test(event.id);
+const isMissionSet = (event: AskedEvent) => /-m\d+$/.test(event.id);
 
 // Per server (the lexicon's `server`): what's asked and how answers are checked.
-const QUESTIONS = {
+type Questions = {
+  system: string;
+  fields: Record<Field, FieldSpec>;
+  examples: Examples;
+  kinds: string[];
+  kindAsked: (event: AskedEvent) => boolean;
+  kindTaken: (event: AskedEvent) => boolean;
+  header: (event: AskedEvent) => string[];
+  item: (event: AskedEvent, raw: string, lang: Lexicon) => { name: string; local?: string } | null;
+  copiesLine: RegExp;
+  numberWord: (n: number) => string | null | undefined;
+  generic: RegExp;
+  isoOf: (s: unknown, event: AskedEvent, after?: string | null) => string | null;
+};
+const QUESTIONS: Record<string, Questions> = {
   gl: {
     system: SYSTEM,
     fields: FIELDS,
@@ -428,7 +466,7 @@ const QUESTIONS = {
     isoOf: isoOfJst,
   },
 };
-const questionsOf = (lang = en) => {
+const questionsOf = (lang: Lexicon = en): Questions => {
   const q = QUESTIONS[lang.server];
   if (!q) throw new Error(`no questions for ${lang.server}`);
   return q;
@@ -436,20 +474,23 @@ const questionsOf = (lang = en) => {
 
 // Asked only where the post may hold an answer the rules couldn't read: an item named without an amount ("rewards
 // like carats") or a Legend Race / Transfer Request without a name has none, so they aren't asked.
-export function askedFields(event) {
-  const empty = {
+export function askedFields(event: AskedEvent): Field[] {
+  const empty: Partial<Record<Field, boolean>> = {
     cards: event.cards.some((c) => c.copies == null),
     name: !event.name && !UNNAMED_KINDS.includes(event.kind),
   };
-  return Object.keys(FIELDS).filter((f) => f in event.doubts || empty[f]);
+  return (Object.keys(FIELDS) as Field[]).filter((f) => f in event.doubts || empty[f]);
 }
 
-export function question(event, { all = false, fields: only, lang = en } = {}) {
+export function question(
+  event: AskedEvent,
+  { all = false, fields: only, lang = en }: { all?: boolean; fields?: Field[]; lang?: Lexicon } = {}
+): Question {
   const q = questionsOf(lang);
   // Copies need cards; kinds are asked where a model may correct one.
-  const askable = (f) => (f !== 'cards' || event.cards.length) && (f !== 'kind' || q.kindAsked(event));
-  const fields = all ? Object.keys(q.fields).filter(askable) : (only ?? askedFields(event));
-  const properties = {};
+  const askable = (f: Field) => (f !== 'cards' || event.cards.length) && (f !== 'kind' || q.kindAsked(event));
+  const fields = all ? (Object.keys(q.fields) as Field[]).filter(askable) : (only ?? askedFields(event));
+  const properties: Record<string, unknown> = {};
   for (const f of fields) {
     if (f === 'dates') Object.assign(properties, { start: DATE, end: DATE });
     else properties[f] = q.fields[f].schema;
@@ -478,33 +519,46 @@ export function question(event, { all = false, fields: only, lang = en } = {}) {
 
 // --- checking answers ----------------------------------------------------------------------------------------------
 
-const count = (n, max) => Number.isInteger(n) && n > 0 && n <= max;
+const count = (n: unknown, max: number): n is number =>
+  typeof n === 'number' && Number.isInteger(n) && n > 0 && n <= max;
 
 // A number of copies the post gives for a card: in a line that names the card or talks of copies / times, as a digit
 // or a word ("up to three times"); a "1." list number elsewhere doesn't count. (JP: a digit, in a line naming the card
 // or with 枚 / 回.)
-function copiesGiven(event, card, n, q) {
+function copiesGiven(event: AskedEvent, card: EventCard, n: number, q: Questions): boolean {
   const lines = [...event.text.split('\n'), ...(event.context ?? [])];
   const said = new RegExp(`(^|[^\\d.\\w])${n}(?![\\d.\\w])|\\b${q.numberWord(n) ?? '\\0'}\\b`, 'i'); // not "1st"
   return lines.some((line) => (norm(line).includes(norm(card.title)) || q.copiesLine.test(line)) && said.test(line));
 }
 
 // An item's amount: the total the text states, else each × times.
-const amountOf = (a) =>
+const amountOf = (a: { total?: unknown; each?: unknown; times?: unknown }): number | null =>
   count(a.total, 10_000_000) ? a.total : count(a.each, 10_000_000) && count(a.times, 1000) ? a.each * a.times : null;
 
-export function applyAnswer(event, raw, { trustModel = false, lang = en } = {}) {
+// What a model sent back, not trusted: any field may be missing or of another type.
+type LooseItem = { name?: unknown; each?: unknown; times?: unknown; total?: unknown };
+type LooseCard = { title?: unknown; copies?: unknown };
+type LooseAnswer = { name?: unknown; kind?: unknown; start?: unknown; end?: unknown; items?: unknown; cards?: unknown };
+
+export function applyAnswer(
+  event: AskedEvent,
+  raw: unknown,
+  { trustModel = false, lang = en }: { trustModel?: boolean; lang?: Lexicon } = {}
+): AskedEvent {
   const q = questionsOf(lang);
-  const answer = raw ?? {};
-  const take = (field, empty) => trustModel || field in event.doubts || empty;
+  // TODO(ts): the model's JSON isn't validated; every field is checked below before it's used
+  const answer = (raw ?? {}) as LooseAnswer;
+  const take = (field: Field, empty: boolean) => trustModel || field in event.doubts || empty;
   const next = { ...event };
 
   // Small models put card copies among the items ("SSR Support Card [U & Me] Mihono Bourbon"): an item naming one of
   // the event's cards is its copies.
-  const cardOf = (name) => event.cards.find((c) => norm(name).includes(norm(c.title)));
-  const cards = [...(Array.isArray(answer.cards) ? answer.cards : [])];
-  const items = [];
-  for (const a of Array.isArray(answer.items) ? answer.items : []) {
+  const cardOf = (name: string) => event.cards.find((c) => norm(name).includes(norm(c.title)));
+  // TODO(ts): elements of the model's arrays are checked one by one below
+  const cards = [...(Array.isArray(answer.cards) ? (answer.cards as (LooseCard | null)[]) : [])];
+  const items: (EventItem & { local?: string })[] = [];
+  // TODO(ts): as above
+  for (const a of Array.isArray(answer.items) ? (answer.items as (LooseItem | null)[]) : []) {
     if (typeof a?.name !== 'string') continue;
     const card = cardOf(a.name);
     // A mission set (<event>-m<n>) takes names only: its post's amounts are other things'.
@@ -516,7 +570,7 @@ export function applyAnswer(event, raw, { trustModel = false, lang = en } = {}) 
     } else if (item) {
       // A number that doesn't check out drops the item; an amount the text leaves open (each, but not how many
       // times) lists it without one.
-      const invalid = (n) => n != null && !count(n, 10_000_000);
+      const invalid = (n: unknown) => n != null && !count(n, 10_000_000);
       if (amount != null || !(invalid(a.each) || invalid(a.total) || invalid(a.times)))
         items.push({ ...item, count: amount });
     }
@@ -524,7 +578,7 @@ export function applyAnswer(event, raw, { trustModel = false, lang = en } = {}) 
 
   if (items.length) {
     // Both named by itemName(): the same item, singular or plural ("Alarm Clock" / "Alarm Clocks").
-    const keyOf = (name) => norm(name).replace(/s$/, '');
+    const keyOf = (name: string) => norm(name).replace(/s$/, '');
     const byName = new Map(next.items.map((i) => [keyOf(i.name), i]));
     for (const a of items) {
       const key = keyOf(a.name);
@@ -547,7 +601,9 @@ export function applyAnswer(event, raw, { trustModel = false, lang = en } = {}) 
     });
   if (inText(event, answer.name) && !q.generic.test(answer.name.trim()) && take('name', !next.name))
     next.name = answer.name;
-  if (q.kinds.includes(answer.kind) && q.kindTaken(event) && take('kind', false)) next.kind = answer.kind;
+  if (typeof answer.kind === 'string' && q.kinds.includes(answer.kind) && q.kindTaken(event) && take('kind', false))
+    // TODO(ts): q.kinds holds only EventKinds, but is typed as strings
+    next.kind = answer.kind as GameEvent['kind'];
   const start = q.isoOf(answer.start, event);
   const end = q.isoOf(answer.end, event, start);
   if (start && (!end || start < end)) {

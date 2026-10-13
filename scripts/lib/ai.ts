@@ -1,4 +1,3 @@
-// @ts-nocheck
 // A small language model for the parts of news posts the rules aren't sure about (scripts/lib/events.js `doubts`).
 // One client for both places it runs, as both speak the OpenAI-style chat completions API:
 //   ollama      local (http://localhost:11434), for testing and backfills; no key, no limits
@@ -14,7 +13,21 @@
 // `reasoning`), temperature 0; what comes back is still parsed defensively (code fences, text around it), and callers
 // validate it.
 
-export const DEFAULTS = {
+export type Provider = 'ollama' | 'openrouter';
+// A JSON schema (the model is asked for JSON fitting it).
+export type JsonSchema = { [key: string]: unknown };
+export type Question = { system: string; user: string; schema: JsonSchema };
+export type AiConfig = {
+  provider: Provider;
+  url: string;
+  model: string;
+  key: string | null | undefined;
+  pause: number;
+  think: boolean;
+};
+type Message = { role: 'system' | 'user'; content: string };
+
+export const DEFAULTS: Record<Provider, { url: string; model: string; pause: number }> = {
   ollama: { url: 'http://localhost:11434/api/chat', model: 'gemma4:e4b', pause: 0 },
   openrouter: {
     url: 'https://openrouter.ai/api/v1/chat/completions',
@@ -23,13 +36,16 @@ export const DEFAULTS = {
   },
 };
 
-export function aiConfig(env = process.env, overrides = {}) {
-  const provider = overrides.provider ?? env.AI_PROVIDER ?? (env.OPENROUTER_API_KEY ? 'openrouter' : 'ollama');
-  const defaults = DEFAULTS[provider];
+export function aiConfig(
+  env: NodeJS.ProcessEnv = process.env,
+  overrides: { provider?: string; model?: string; think?: boolean } = {}
+): AiConfig {
+  const provider: string = overrides.provider ?? env.AI_PROVIDER ?? (env.OPENROUTER_API_KEY ? 'openrouter' : 'ollama');
+  const defaults = (DEFAULTS as Record<string, (typeof DEFAULTS)[Provider] | undefined>)[provider];
   if (!defaults) throw new Error(`unknown AI_PROVIDER "${provider}" (ollama or openrouter)`);
   if (provider === 'openrouter' && !env.OPENROUTER_API_KEY) throw new Error('OPENROUTER_API_KEY is not set');
   return {
-    provider,
+    provider: provider as Provider,
     url: provider === 'ollama' && env.OLLAMA_URL ? `${env.OLLAMA_URL}/api/chat` : defaults.url,
     model: overrides.model ?? env.AI_MODEL ?? defaults.model,
     key: provider === 'openrouter' ? env.OPENROUTER_API_KEY : null,
@@ -39,8 +55,8 @@ export function aiConfig(env = process.env, overrides = {}) {
 }
 
 // The request body: Ollama's native chat API, or the OpenAI-style one OpenRouter speaks.
-function body(config, { system, user, schema }) {
-  const messages = [
+function body(config: AiConfig, { system, user, schema }: Question) {
+  const messages: [Message, Message] = [
     { role: 'system', content: system },
     { role: 'user', content: user },
   ];
@@ -69,10 +85,10 @@ function body(config, { system, user, schema }) {
   };
 }
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // The first JSON object in a reply (models sometimes wrap it in ``` fences or a sentence).
-export function parseJson(text) {
+export function parseJson(text: string): unknown {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
   if (start < 0 || end < start) throw new Error(`no JSON object in the reply: ${text.slice(0, 200)}`);
@@ -80,25 +96,26 @@ export function parseJson(text) {
 }
 
 // Ollama's streamed reply (one JSON object per line) as one: { message: { content } }.
-async function streamed(res) {
+async function streamed(res: Response): Promise<{ message: { content: string } }> {
   const text = await res.text();
   const parts = text
     .split('\n')
     .filter((line) => line.trim())
-    .map((line) => JSON.parse(line));
+    .map((line) => JSON.parse(line) as { error?: string; message?: { content?: string } });
   const error = parts.find((p) => p.error);
   if (error) throw new Error(`ollama: ${error.error}`);
   return { message: { content: parts.map((p) => p.message?.content ?? '').join('') } };
 }
 
 let last = 0;
-export async function ask(config, { system, user, schema }) {
+export async function ask(config: AiConfig, { system, user, schema }: Question): Promise<unknown> {
   for (let attempt = 0; ; attempt++) {
     const wait = last + config.pause - Date.now();
     if (wait > 0) await sleep(wait);
     last = Date.now();
     // (A dropped connection, "fetch failed": tried again like a 5xx.)
-    const res = await fetch(config.url, {
+    // TODO(ts): the catch hands back a stand-in with a status and the error, which the code below reads like a Response
+    const res = (await fetch(config.url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -106,7 +123,11 @@ export async function ask(config, { system, user, schema }) {
         ...(config.provider === 'openrouter' && { 'X-Title': 'Umaddoc' }),
       },
       body: JSON.stringify(body(config, { system, user, schema })),
-    }).catch((err) => (attempt < 2 ? { status: 599, dropped: err } : Promise.reject(err)));
+    }).catch((err: Error) =>
+      attempt < 2 ? { status: 599, dropped: err } : Promise.reject(err)
+    )) as unknown as Response & {
+      dropped?: Error & { cause?: { code?: string } };
+    };
     if (res.dropped)
       console.warn(`  ${config.provider}: ${res.dropped.message} (${res.dropped.cause?.code ?? '?'}), again`);
     if ((res.status === 429 || res.status >= 500) && attempt < 5) {
@@ -114,7 +135,10 @@ export async function ask(config, { system, user, schema }) {
       continue;
     }
     if (!res.ok) throw new Error(`${config.provider} ${res.status}: ${(await res.text()).slice(0, 300)}`);
-    const json = config.provider === 'ollama' ? await streamed(res) : await res.json();
+    const json: {
+      message?: { content?: string };
+      choices?: { message?: { content?: string } }[];
+    } = config.provider === 'ollama' ? await streamed(res) : await res.json();
     const content = json.message?.content ?? json.choices?.[0]?.message?.content;
     if (!content) throw new Error(`${config.provider}: empty reply ${JSON.stringify(json).slice(0, 300)}`);
     return parseJson(content);
