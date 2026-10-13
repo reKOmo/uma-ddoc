@@ -1,0 +1,89 @@
+/* The filter's Order tab (GroupOrder.tsx): one row per lane group, its colour, its name and its drag handle. Copied
+   from src/timeline/timeline.css. */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 12px 0 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* The row being dragged: lifted over the others. */
+.dragging {
+  position: relative;
+  z-index: 1;
+  border-color: var(--accent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+/* The drag handle: a full-height target; touch on it never scrolls (a scroll would cancel the drag). */
+.grip {
+  display: grid;
+  flex: none;
+  place-items: center;
+  align-self: stretch;
+  width: 44px;
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-radius: 8px 0 0 8px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.grip:hover {
+  color: var(--text);
+}
+
+.grip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.dragging .grip {
+  cursor: grabbing;
+  color: var(--accent);
+}
+
+.off {
+  color: var(--muted);
+}
+
+.dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--tone, var(--event-other));
+  border-radius: 50%;
+}
+
+.off .dot {
+  opacity: 0.4;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.hiddenNote {
+  font-size: 0.75rem;
+}
