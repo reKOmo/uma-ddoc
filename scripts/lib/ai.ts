@@ -13,6 +13,9 @@
 // `reasoning`), temperature 0; what comes back is still parsed defensively (code fences, text around it), and callers
 // validate it.
 
+import pRetry from 'p-retry';
+import { sleep } from './http.ts';
+
 export type Provider = 'ollama' | 'openrouter';
 // A JSON schema (the model is asked for JSON fitting it).
 export type JsonSchema = { [key: string]: unknown };
@@ -85,8 +88,6 @@ function body(config: AiConfig, { system, user, schema }: Question) {
   };
 }
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 // The first JSON object in a reply (models sometimes wrap it in ``` fences or a sentence).
 export function parseJson(text: string): unknown {
   const start = text.indexOf('{');
@@ -107,15 +108,24 @@ async function streamed(res: Response): Promise<{ message: { content: string } }
   return { message: { content: parts.map((p) => p.message?.content ?? '').join('') } };
 }
 
+// A reply worth trying again (429, 5xx): its message is the error `ask` ends with if the tries run out.
+class Retry extends Error {}
+// A dropped connection ("fetch failed"): tried again like a 5xx, but only for the first two tries.
+class Dropped extends Error {
+  original: Error;
+  constructor(original: Error) {
+    super(original.message);
+    this.original = original;
+  }
+}
+
 let last = 0;
 export async function ask(config: AiConfig, { system, user, schema }: Question): Promise<unknown> {
-  for (let attempt = 0; ; attempt++) {
+  const post = async (): Promise<Response> => {
     const wait = last + config.pause - Date.now();
     if (wait > 0) await sleep(wait);
     last = Date.now();
-    // (A dropped connection, "fetch failed": tried again like a 5xx.)
-    // TODO(ts): the catch hands back a stand-in with a status and the error, which the code below reads like a Response
-    const res = (await fetch(config.url, {
+    const res = await fetch(config.url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -123,24 +133,39 @@ export async function ask(config: AiConfig, { system, user, schema }: Question):
         ...(config.provider === 'openrouter' && { 'X-Title': 'Umaddoc' }),
       },
       body: JSON.stringify(body(config, { system, user, schema })),
-    }).catch((err: Error) =>
-      attempt < 2 ? { status: 599, dropped: err } : Promise.reject(err)
-    )) as unknown as Response & {
-      dropped?: Error & { cause?: { code?: string } };
-    };
-    if (res.dropped)
-      console.warn(`  ${config.provider}: ${res.dropped.message} (${res.dropped.cause?.code ?? '?'}), again`);
-    if ((res.status === 429 || res.status >= 500) && attempt < 5) {
-      await sleep(2 ** attempt * 5000); // 5 s, 10 s, 20 s…
-      continue;
-    }
-    if (!res.ok) throw new Error(`${config.provider} ${res.status}: ${(await res.text()).slice(0, 300)}`);
-    const json: {
-      message?: { content?: string };
-      choices?: { message?: { content?: string } }[];
-    } = config.provider === 'ollama' ? await streamed(res) : await res.json();
-    const content = json.message?.content ?? json.choices?.[0]?.message?.content;
-    if (!content) throw new Error(`${config.provider}: empty reply ${JSON.stringify(json).slice(0, 300)}`);
-    return parseJson(content);
+    }).catch((err: Error) => {
+      throw new Dropped(err);
+    });
+    if (res.status === 429 || res.status >= 500)
+      throw new Retry(`${config.provider} ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    return res;
+  };
+  // Up to 5 retries after 5 s, 10 s, 20 s, 40 s, 80 s (each try waits for the provider's pacing first).
+  let res: Response;
+  try {
+    res = await pRetry(post, {
+      retries: 5,
+      minTimeout: 5000,
+      factor: 2,
+      randomize: false,
+      shouldRetry: ({ error, attemptNumber }) =>
+        error instanceof Retry || (error instanceof Dropped && attemptNumber <= 2),
+      onFailedAttempt: ({ error, attemptNumber }) => {
+        if (error instanceof Dropped && attemptNumber <= 2)
+          console.warn(
+            `  ${config.provider}: ${error.message} (${(error.original as Error & { cause?: { code?: string } }).cause?.code ?? '?'}), again`
+          );
+      },
+    });
+  } catch (err) {
+    throw err instanceof Dropped ? err.original : err;
   }
+  if (!res.ok) throw new Error(`${config.provider} ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  const json: {
+    message?: { content?: string };
+    choices?: { message?: { content?: string } }[];
+  } = config.provider === 'ollama' ? await streamed(res) : await res.json();
+  const content = json.message?.content ?? json.choices?.[0]?.message?.content;
+  if (!content) throw new Error(`${config.provider}: empty reply ${JSON.stringify(json).slice(0, 300)}`);
+  return parseJson(content);
 }

@@ -18,6 +18,8 @@
 //
 // Usage: pnpm news:umapyoi [--server jp] [--refresh-images]   (pnpm news:umapyoi:jp)
 
+import { parseArgs } from 'node:util';
+import { paced } from './lib/http.ts';
 import { loadPosts, savePosts, serverArg } from './lib/news-api.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 
@@ -39,7 +41,8 @@ const API = server === 'jp' ? 'https://umapyoi.net/api/v1/news' : 'https://umapy
 const OFFSET = server === 'jp' ? 9 * 3600 : 0; // the official API's times: UTC on Global, JST on JP
 const HEADERS = { 'User-Agent': 'uma-ddoc scraper (Umaddoc, static tier list site)' };
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+// 0.1 s before every request.
+const pace = paced({ pause: [100, 100], first: true });
 async function get(url: string): Promise<unknown> {
   const res = await fetch(url, { headers: HEADERS });
   if (!res.ok) throw new Error(`${url}: ${res.status} ${res.statusText}`);
@@ -84,13 +87,16 @@ export const fromUmapyoi = (p: UmapyoiPost): NewsPost => {
 
 const posts = loadPosts(server);
 
-if (process.argv.includes('--refresh-images')) {
+if (
+  parseArgs({ args: process.argv.slice(2), options: { 'refresh-images': { type: 'boolean' } }, strict: false }).values[
+    'refresh-images'
+  ]
+) {
   const todo = [...posts.values()].filter((p) => p.source === 'umapyoi' && !p.image_big?.includes('/Thumbnail/'));
   console.log(`${todo.length} umapyoi posts' images to refresh`);
   let changed = 0;
   for (const [i, post] of todo.entries()) {
-    await sleep(100);
-    const image_big = image(await getPost(post.announce_id));
+    const image_big = image(await pace(() => getPost(post.announce_id)));
     if (image_big && image_big !== post.image_big) changed++;
     posts.set(String(post.announce_id), { ...post, image_big: image_big || post.image_big });
     if ((i + 1) % 100 === 0) {
@@ -108,8 +114,7 @@ if (!Array.isArray(list)) throw new Error(`${API}: not a list of ids`);
 const ids = list.map(Number).filter((id) => !posts.has(String(id)));
 console.log(`${ids.length} posts to fetch from umapyoi.net`);
 for (const [i, id] of ids.entries()) {
-  await sleep(100);
-  const post = fromUmapyoi(await getPost(id));
+  const post = fromUmapyoi(await pace(() => getPost(id)));
   posts.set(String(id), post);
   console.log(`${post.post_at}  ${id}  ${post.title}`);
   if ((i + 1) % 20 === 0) savePosts(posts, server);

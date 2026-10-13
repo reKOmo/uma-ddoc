@@ -24,7 +24,9 @@
 // the one-off archive walk goes faster with setPause().
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { parseArgs } from 'node:util';
 import type { NewsPost } from '../../shared/schemas/news.ts';
+import { paced } from './http.ts';
 import { newsDir } from './paths.ts';
 import { NEWS_SITES, type Server, SITE } from './news-text.ts';
 
@@ -90,17 +92,18 @@ const SERVERS: Record<Server, ServerConfig> = {
   },
 };
 
-const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
-
-let pause: [number, number] = [3000, 8000];
+// One request at a time; a random pause (3–8 s) before every request but the first.
+const pace = paced({ pause: [3000, 8000] });
 // The pause between requests, in ms: a random one between min and max.
 export function setPause(min: number, max: number): void {
-  pause = [min, max];
+  pace.pause = [min, max];
 }
 
 export let requests = 0;
-async function api(server: Server, endpoint: string, { body, query }: Request, referer: string): Promise<ApiJson> {
-  if (requests++) await sleep(pause[0] + Math.random() * (pause[1] - pause[0]));
+const api = (server: Server, endpoint: string, request: Request, referer: string): Promise<ApiJson> =>
+  pace(() => call(server, endpoint, request, referer));
+async function call(server: Server, endpoint: string, { body, query }: Request, referer: string): Promise<ApiJson> {
+  requests++;
   const params = new URLSearchParams(Object.entries({ format: 'json', ...query }).map(([k, v]) => [k, String(v)]));
   const res = await fetch(`${NEWS_SITES[server].site}/api/ajax/${endpoint}?${params}`, {
     method: body ? 'POST' : 'GET',
@@ -160,8 +163,9 @@ const isServer = (s: string): s is Server => s === 'gl' || s === 'jp';
 
 // `--server gl|jp` from a script's arguments (gl by default).
 export function serverArg(argv: string[] = process.argv): Server {
-  const i = argv.indexOf('--server');
-  const server = i < 0 ? 'gl' : argv[i + 1];
-  if (!isServer(server)) throw new Error(`--server: gl or jp, not ${server}`);
+  // strict: false: scripts get flags they don't read (pnpm passes them through).
+  const { values } = parseArgs({ args: argv.slice(2), options: { server: { type: 'string' } }, strict: false });
+  const server = values.server ?? 'gl';
+  if (typeof server !== 'string' || !isServer(server)) throw new Error(`--server: gl or jp, not ${server}`);
   return server;
 }

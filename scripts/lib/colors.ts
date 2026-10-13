@@ -1,97 +1,20 @@
-// The main colour of an image, for the scenario strip (data/scenarios.json `colors`). Node only, no
-// dependencies: decodes 8-bit, non-interlaced PNGs (greyscale, RGB, palette, with or without alpha),
-// which is what GameTora's and the official site's art are.
+// The main colour of an image, for the scenario strip (data/scenarios.json `colors`). Node only. The decoder is pngjs
+// (greyscale, RGB, palette, with or without alpha: GameTora's and the official site's art).
 //
 // "Main colour": among clearly coloured pixels (opaque, not near-white/grey/black), the most common
 // hue (24 bins, weighted by saturation²), averaged over that bin's pixels. Skin and hair hues
 // (reds/oranges/browns, < 45° or ≥ 345°) are left out first: the art is mostly characters, and with them
 // every cover comes out brown. Only if nothing else is coloured are they counted.
 
-import { inflateSync } from 'node:zlib';
+import { PNG } from 'pngjs';
 
-const CHANNELS: Record<number, number> = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 };
-
-type Header = { width: number; height: number; depth: number; colorType: number; interlace: number };
 // An image's pixels, RGBA, row by row.
 export type Image = { width: number; height: number; rgba: Uint8Array };
 
-// PNG bytes → { width, height, rgba: Uint8Array }.
+// PNG bytes → { width, height, rgba: Uint8Array } (chunk checksums aren't checked, as before).
 export function decodePng(buffer: Buffer): Image {
-  if (buffer.readUInt32BE(0) !== 0x89504e47) throw new Error('not a PNG');
-  let offset = 8;
-  let header: Header | undefined;
-  let palette: Buffer | undefined;
-  let transparency: Buffer | undefined;
-  const data: Buffer[] = [];
-  while (offset < buffer.length) {
-    const length = buffer.readUInt32BE(offset);
-    const type = buffer.toString('latin1', offset + 4, offset + 8);
-    const chunk = buffer.subarray(offset + 8, offset + 8 + length);
-    if (type === 'IHDR') {
-      header = {
-        width: chunk.readUInt32BE(0),
-        height: chunk.readUInt32BE(4),
-        depth: chunk[8],
-        colorType: chunk[9],
-        interlace: chunk[12],
-      };
-    } else if (type === 'PLTE') palette = chunk;
-    else if (type === 'tRNS') transparency = chunk;
-    else if (type === 'IDAT') data.push(chunk);
-    else if (type === 'IEND') break;
-    offset += 12 + length;
-  }
-  // TODO(ts): undefined without an IHDR chunk; the destructuring throws on it, as it did before typing.
-  const { width, height, depth, colorType, interlace } = header as Header;
-  const channels = CHANNELS[colorType];
-  if (depth !== 8 || interlace || !channels) throw new Error(`unsupported PNG (depth ${depth}, type ${colorType})`);
-
-  const raw = inflateSync(Buffer.concat(data));
-  const stride = width * channels;
-  const pixels = new Uint8Array(stride * height);
-  for (let y = 0; y < height; y++) {
-    const filter = raw[y * (stride + 1)];
-    const line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
-    const out = pixels.subarray(y * stride, (y + 1) * stride);
-    const prev = y ? pixels.subarray((y - 1) * stride, y * stride) : null;
-    for (let x = 0; x < stride; x++) {
-      const a = x >= channels ? out[x - channels] : 0;
-      const b = prev ? prev[x] : 0;
-      const c = prev && x >= channels ? prev[x - channels] : 0;
-      let v = line[x];
-      if (filter === 1) v += a;
-      else if (filter === 2) v += b;
-      else if (filter === 3) v += (a + b) >> 1;
-      else if (filter === 4) {
-        const p = a + b - c;
-        const [pa, pb, pc] = [Math.abs(p - a), Math.abs(p - b), Math.abs(p - c)];
-        v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
-      }
-      out[x] = v & 0xff;
-    }
-  }
-
-  // TODO(ts): undefined for a palette image without a PLTE chunk; the palette lookup throws on it, as before.
-  const paletteBytes = palette as Buffer;
-  const rgba = new Uint8Array(width * height * 4);
-  for (let i = 0; i < width * height; i++) {
-    const s = i * channels;
-    let rgb: number[];
-    let alpha = 255;
-    if (colorType === 3) {
-      const index = pixels[s];
-      rgb = [paletteBytes[index * 3], paletteBytes[index * 3 + 1], paletteBytes[index * 3 + 2]];
-      if (transparency && index < transparency.length) alpha = transparency[index];
-    } else if (colorType === 0 || colorType === 4) {
-      rgb = [pixels[s], pixels[s], pixels[s]];
-      if (colorType === 4) alpha = pixels[s + 1];
-    } else {
-      rgb = [pixels[s], pixels[s + 1], pixels[s + 2]];
-      if (colorType === 6) alpha = pixels[s + 3];
-    }
-    rgba.set([...rgb, alpha], i * 4);
-  }
-  return { width, height, rgba };
+  const { width, height, data } = PNG.sync.read(buffer, { checkCRC: false });
+  return { width, height, rgba: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
 }
 
 const hex = (rgb: number[]): string => `#${rgb.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`;

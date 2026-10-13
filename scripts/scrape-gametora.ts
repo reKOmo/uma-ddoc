@@ -24,7 +24,9 @@
 //        pnpm scrape-gametora --events   only the event history (the manifest + 3 files)
 
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
+import { paced } from './lib/http.ts';
 import { DATA_DIR, GENERATED_DIR } from './lib/paths.ts';
 import { type GametoraScenario, fillColors, mergeGametora, readScenarios, writeScenarios } from './lib/scenarios.ts';
 import { writeSources } from './lib/sources.ts';
@@ -70,14 +72,14 @@ function dataUrl(manifest: Manifest, name: string): string {
   return `${SITE}/data/umamusume/${name}.${manifest[name]}.json`;
 }
 
-const pause = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+// One file at a time, 2 s before each.
+const pace = paced({ pause: [2000, 2000], first: true });
 
 // One file at a time, 2 s apart.
 async function loadData(names: string[], manifest: Manifest): Promise<Record<string, unknown>> {
   const files: Record<string, unknown> = {};
   for (const name of names) {
-    await pause(2000);
-    files[name] = await getJson(dataUrl(manifest, name));
+    files[name] = await pace(() => getJson(dataUrl(manifest, name)));
   }
   return files;
 }
@@ -87,9 +89,8 @@ async function loadData(names: string[], manifest: Manifest): Promise<Record<str
 export async function scrapeEvents(manifest: Manifest): Promise<ReturnType<typeof cutEvents>> {
   const files: Record<string, GametoraRecord[]> = {};
   for (const { file } of Object.values(GAMETORA_EVENT_FILES)) {
-    await pause(2000);
     // TODO(ts): GameTora's JSON, trusted as a list of records (cutEvents() reads only the fields it knows)
-    files[file] = (await getJson(dataUrl(manifest, file))) as GametoraRecord[];
+    files[file] = (await pace(() => getJson(dataUrl(manifest, file)))) as GametoraRecord[];
   }
   const events = cutEvents(files);
   mkdirSync(`${GENERATED_DIR}raw`, { recursive: true });
@@ -161,7 +162,10 @@ export async function scrapeGametora(): Promise<void> {
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    if (process.argv.includes('--events')) await scrapeEvents(await getManifest());
+    if (
+      parseArgs({ args: process.argv.slice(2), options: { events: { type: 'boolean' } }, strict: false }).values.events
+    )
+      await scrapeEvents(await getManifest());
     else await scrapeGametora();
   } catch (err) {
     console.error(`GameTora scrape failed: ${err instanceof Error ? err.message : String(err)}`);

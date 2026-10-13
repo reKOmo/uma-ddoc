@@ -15,15 +15,15 @@
 //       generated/ai-compare-<model>.json (JP: ai-compare-<model>-jp.json)
 // Environment: see scripts/lib/ai.js (AI_PROVIDER, AI_MODEL, OPENROUTER_API_KEY, OLLAMA_URL).
 
+import { parseArgs } from 'node:util';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { GENERATED_DIR } from './lib/paths.ts';
-import { loadPosts } from './lib/news-api.ts';
+import { loadPosts, serverArg } from './lib/news-api.ts';
 import { aiConfig, ask } from './lib/ai.ts';
 import { type Field, applyAnswer, mergeAnswer, question, staleFields } from './lib/event-questions.ts';
 import { type Fragment, eventFragments, readAnswers, writeAnswers } from './lib/events.ts';
 import { norm } from './lib/event-rewards.ts';
 import { lexicon } from './lib/news-lang/index.ts';
-import type { Server } from './lib/news-text.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { AiAnswer } from '../shared/schemas/news.ts';
 
@@ -31,19 +31,32 @@ import type { AiAnswer } from '../shared/schemas/news.ts';
 type QuestionOptions = { all?: boolean; fields?: Field[] };
 type ModelAnswer = AiAnswer['answer'];
 
-const arg = (name: string, fallback?: string): string | undefined => {
-  const i = process.argv.indexOf(`--${name}`);
-  return i > 0 ? process.argv[i + 1] : fallback;
-};
+// strict: false: pnpm passes flags through that this script doesn't read.
+const { values: flags } = parseArgs({
+  args: process.argv.slice(2),
+  options: {
+    server: { type: 'string', default: 'gl' },
+    model: { type: 'string' },
+    provider: { type: 'string' },
+    limit: { type: 'string' },
+    sample: { type: 'string', default: '20' },
+    ids: { type: 'string' },
+    think: { type: 'boolean' },
+    compare: { type: 'boolean' },
+  },
+  strict: false,
+});
+// A flag's value, or undefined (a flag given without one is `true`).
+const arg = (value: string | boolean | undefined): string | undefined =>
+  typeof value === 'string' ? value : undefined;
 const config = aiConfig(process.env, {
-  model: arg('model'),
-  provider: arg('provider'),
-  ...(process.argv.includes('--think') && { think: true }),
+  model: arg(flags.model),
+  provider: arg(flags.provider),
+  ...(flags.think && { think: true }),
 });
 const cardsFile = `${GENERATED_DIR}cards.json`;
 const cards: CardsFile = existsSync(cardsFile) ? JSON.parse(readFileSync(cardsFile, 'utf8')) : {};
-// TODO(ts): --server is read as a string here; it's gl or jp (flags move to parseArgs later).
-const server = arg('server', 'gl') as Server;
+const server = serverArg();
 const lang = lexicon(server);
 const posts = [...loadPosts(server).values()];
 const fragments = eventFragments(posts, cards, lang);
@@ -58,10 +71,10 @@ async function timed(event: Fragment, options: QuestionOptions): Promise<{ answe
   return { answer, ms: Date.now() - t };
 }
 
-if (!process.argv.includes('--compare')) {
+if (!flags.compare) {
   const answers = readAnswers(server);
   const todo = fragments.filter((f) => staleFields(f, answers[f.aiKey]).length);
-  const limit = Number(arg('limit', String(todo.length)));
+  const limit = Number(arg(flags.limit) ?? todo.length);
   console.log(
     `${todo.length} events with doubted or empty fields and no answer; asking ${Math.min(limit, todo.length)}`
   );
@@ -81,12 +94,12 @@ if (!process.argv.includes('--compare')) {
   console.log(`done, ${failed} failed`);
 } else {
   // Half doubted, half not, spread over the archive.
-  const n = Number(arg('sample', '20'));
+  const n = Number(arg(flags.sample) ?? '20');
   const spread = <T>(list: T[], k: number): T[] =>
     list.filter((_, i) => i % Math.max(1, Math.floor(list.length / k)) === 0).slice(0, k);
   const doubted = fragments.filter((f) => Object.keys(f.doubts).length);
   const sure = fragments.filter((f) => !Object.keys(f.doubts).length);
-  const ids = arg('ids')?.split(',');
+  const ids = arg(flags.ids)?.split(',');
   const sample = ids
     ? fragments.filter((f) => ids.includes(f.id))
     : [...spread(doubted, Math.ceil(n / 2)), ...spread(sure, Math.floor(n / 2))];

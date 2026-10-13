@@ -3,6 +3,7 @@
 //
 // Usage: pnpm news:categories [--server jp]   (--counts: only the number of posts per category / kind)
 
+import { parseArgs } from 'node:util';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import { loadPosts, serverArg } from './lib/news-api.ts';
 import { lexicon } from './lib/news-lang/index.ts';
@@ -10,7 +11,8 @@ import { type Categorized, categorize, plain } from './lib/post-categories.ts';
 
 const server = serverArg();
 const lang = lexicon(server);
-const counts = process.argv.includes('--counts');
+const counts = parseArgs({ args: process.argv.slice(2), options: { counts: { type: 'boolean' } }, strict: false })
+  .values.counts;
 
 const groups = new Map<string, { c: Categorized; post: NewsPost }[]>();
 for (const post of loadPosts(server).values()) {

@@ -18,6 +18,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import { paced } from './lib/http.ts';
 import { BANNERS_FILE } from './lib/global.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { writeSources } from './lib/sources.ts';
@@ -40,7 +41,8 @@ function readBanners(): BannerFile['cards'] {
   return [...read(BANNERS_FILE), ...(existsSync(PREDICTED_BANNERS_FILE) ? read(PREDICTED_BANNERS_FILE) : [])];
 }
 
-const pause = () => new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 1000));
+// One tab at a time, 1–2 s before each.
+const pace = paced({ pause: [1000, 2000], first: true });
 
 async function getText(url: string): Promise<string> {
   const res = await fetch(url, { headers: HEADERS });
@@ -54,8 +56,7 @@ export async function fetchPullGuide() {
   let updated: string | null = null;
   const pages: { name: string; gid: string; html: string }[] = [];
   for (const { name, gid } of sheets) {
-    await pause();
-    const html = await getText(tabUrl(gid));
+    const html = await pace(() => getText(tabUrl(gid)));
     updated ??= parseUpdated(html);
     pages.push({ name, gid, html });
   }

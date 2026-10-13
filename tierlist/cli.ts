@@ -1,8 +1,11 @@
 // Prints the usefulness ranking:  node tierlist/cli.js gl GL speed
+import { parseArgs } from 'node:util';
 import { type Stat, rankByUsefulness } from './index.ts';
 import type { Server } from './cards.ts';
 
-const [server = 'gl', scenario = 'GL', stat = 'speed'] = process.argv.slice(2);
+const {
+  positionals: [server = 'gl', scenario = 'GL', stat = 'speed'],
+} = parseArgs({ allowPositionals: true });
 // TODO(ts): command-line arguments are not checked (as before); a bad one fails in the ranking.
 const ranking = await rankByUsefulness(server as Server, scenario, stat as Stat);
 for (const r of ranking) {
