@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import type { BaseLocationHook } from 'wouter';
 import { navigate } from 'wouter/use-hash-location';
 import type { Server } from './servers.ts';
@@ -45,18 +45,28 @@ export const isServer = (value: string | undefined): value is Server => value ==
 
 const currentLocation = (): string => `/${window.location.hash.replace(/^#?\/?/, '')}`;
 
-/**
- * wouter's hash location, but it only follows `hashchange`. The Timeline puts the open sheet in the address with
- * `history.replaceState`, which fires none: the page must not be routed again for it (wouter's own hook reads the
- * address on every render, which would).
- */
-export const useHashLocation: BaseLocationHook = () => {
-  const [location, setLocation] = useState(currentLocation);
-  useEffect(() => {
-    const onChange = () => setLocation(currentLocation());
-    window.addEventListener('hashchange', onChange);
-    onChange();
-    return () => window.removeEventListener('hashchange', onChange);
-  }, []);
-  return [location, navigate];
-};
+// One location for the whole app, changed only by `hashchange`. The Timeline puts the open sheet in the address with
+// `history.replaceState`, which fires none: the app must not be routed again for it. (wouter's own hash hook reads
+// the address on every render, and a hook with its own state per component reads it whenever that component mounts:
+// after the Timeline has replaced it, so a link's entry got lost.)
+// (Listening from the first read on, for good: React's StrictMode unsubscribes and subscribes again on mount, and a
+// location read again then would be the Timeline's replaced one.)
+let shared: string | null = null;
+const listeners = new Set<() => void>();
+function snapshot(): string {
+  if (shared === null) {
+    shared = currentLocation();
+    window.addEventListener('hashchange', () => {
+      shared = currentLocation();
+      for (const listener of listeners) listener();
+    });
+  }
+  return shared;
+}
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/** wouter's location hook: the app's one location (above), and wouter's hash navigation. */
+export const useHashLocation: BaseLocationHook = () => [useSyncExternalStore(subscribe, snapshot), navigate];
