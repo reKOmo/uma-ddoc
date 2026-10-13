@@ -49,8 +49,11 @@ files**: `package.json`, `pnpm-lock.yaml`, `tsconfig*.json`, `biome.json`, `vite
   (`/tmp/events-before.txt`: the same `pnpm -s news:events` run on `ts-migration` before the task started; `-s`, or
   pnpm's header lines differ.)
   For `tierlist/` tasks, also `pnpm test:upstream` (needs `pnpm clone-upstream` once).
-- **CHECK-UI** (any task touching `src/**/*.tsx` or CSS): `pnpm build` passes; the worker lists the screens it touched
-  in its report and the lead looks at them (`pnpm dev`, 360 px and desktop widths, light + dark).
+- **CHECK-UI** (any task touching `src/**/*.tsx` or CSS): `pnpm build` and `pnpm test:e2e` pass (Playwright, e2e/:
+  links, stored state, every page; selectors by role and label: keep them working, and `e2e/pages.spec.ts`' one class
+  selector, `.bar-hit`, when the Timeline's bars move to CSS Modules: give the bar a stable `data-testid` instead). The
+  worker lists the screens it touched in its report and the lead looks at them (headless Chromium: Playwright's,
+  `pnpm exec playwright install chromium`; 360 px and desktop widths, light + dark).
 
 ## Worker brief (give this to every worker, with its task card)
 
