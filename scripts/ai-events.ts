@@ -19,19 +19,16 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { loadPosts } from './lib/news-api.ts';
 import { aiConfig, ask } from './lib/ai.ts';
-import { applyAnswer, mergeAnswer, question, staleFields } from './lib/event-questions.ts';
-import { eventFragments, readAnswers, writeAnswers } from './lib/events.ts';
+import { type Field, applyAnswer, mergeAnswer, question, staleFields } from './lib/event-questions.ts';
+import { type Fragment, eventFragments, readAnswers, writeAnswers } from './lib/events.ts';
 import { norm } from './lib/event-rewards.ts';
 import { lexicon } from './lib/news-lang/index.ts';
 import type { Server } from './lib/news-text.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
-import type { GameEvent } from '../shared/schemas/event.ts';
 import type { AiAnswer, AiAnswersFile, NewsPost } from '../shared/schemas/news.ts';
 
-// An event fragment (events.ts' eventFragments()): an event with its doubts, text and aiKey.
-type Fragment = GameEvent & { doubts: Record<string, string>; text: string; aiKey: string };
 // What question() takes: the fields to ask about (all of them when comparing), the posts' lexicon.
-type QuestionOptions = { all?: boolean; fields?: string[] };
+type QuestionOptions = { all?: boolean; fields?: Field[] };
 type ModelAnswer = AiAnswer['answer'];
 
 const arg = (name: string, fallback?: string): string | undefined => {
@@ -50,8 +47,7 @@ const server = arg('server', 'gl') as Server;
 const lang = lexicon(server);
 // TODO(ts): loadPosts() (news-api.ts, not typed yet) gives an untyped Map; the file is the stored NewsPost list.
 const posts: NewsPost[] = [...loadPosts(server).values()];
-// TODO(ts): eventFragments() (events.ts, not typed yet) returns the fragments untyped; they're Fragment.
-const fragments: Fragment[] = eventFragments(posts, cards, lang);
+const fragments = eventFragments(posts, cards, lang);
 console.log(
   `${server}: ${config.provider} ${config.model}${config.think ? ' (thinking)' : ''}: ${fragments.length} events`
 );

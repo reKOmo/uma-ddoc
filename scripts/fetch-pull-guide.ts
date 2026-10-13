@@ -81,8 +81,7 @@ export async function fetchPullGuide() {
   mkdirSync(GENERATED_DIR, { recursive: true });
   writeFileSync(PULL_GUIDE_FILE, `${JSON.stringify({ $schema: SCHEMA, banners, noBanner }, null, 1)}\n`);
   writeSources({
-    // TODO(ts): sources.ts' schema makes `updated` optional, but parseUpdated() gives null when the sheet has no date.
-    'pull_guide.json': { url: SHEET_URL, updated: updated as string | undefined, fetched_at: new Date().toISOString() },
+    'pull_guide.json': { url: SHEET_URL, updated, fetched_at: new Date().toISOString() },
   });
   console.log(
     `${Object.keys(banners).length} banners, ${Object.keys(noBanner).length} cards on none (updated ${updated ?? 'unknown'}) → ${PULL_GUIDE_FILE}`
