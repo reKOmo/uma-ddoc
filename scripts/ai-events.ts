@@ -92,7 +92,7 @@ if (!flags.compare) {
   const rows: Record<string, unknown>[] = [];
   const tally: Record<string, Record<string, number>> = {};
   const mark = (field: string, verdict: string) => {
-    tally[field] ??= { same: 0, different: 0, 'model only': 0, 'rules only': 0, 'both empty': 0 };
+    tally[field] ??= { 'same': 0, 'different': 0, 'model only': 0, 'rules only': 0, 'both empty': 0 };
     tally[field][verdict]++;
   };
   const verdict = (rules: unknown, model: unknown): string =>

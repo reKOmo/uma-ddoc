@@ -3,6 +3,7 @@
 // Read from the sheet's HTML view: its CSV export has no hyperlinks, and each row's card id is only in its GameTora link
 // ("…/supports/30087-mejiro-bright"; GameTora's ids are ours). Cell comments are in neither view, so they're left out.
 
+import Fuse from 'fuse.js';
 import type { Banner } from '../../shared/schemas/banner.ts';
 import type { Advice, PullGuide, Release } from '../../shared/schemas/pullGuide.ts';
 
@@ -12,7 +13,7 @@ export const tabUrl = (gid: string): string => `${SHEET_URL}/htmlview/sheet?head
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
-const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+const ENTITIES: Record<string, string> = { 'amp': '&', 'lt': '<', 'gt': '>', 'quot': '"', 'apos': "'", 'nbsp': ' ' };
 const decode = (s: string): string =>
   s.replace(/&(#x?[0-9a-f]+|\w+);/gi, (m: string, e: string) =>
     e[0] === '#' ? String.fromCodePoint(Number(e[1] === 'x' ? `0${e.slice(1)}` : e.slice(1))) : (ENTITIES[e] ?? m)
@@ -283,5 +284,38 @@ export function byBanner(tabs: Tab[], banners: Banner[]): Pick<PullGuide, 'banne
       } else result.noBanner[id] = { ...advice, release };
     }
   }
+  for (const banner of banners) if (result.banners[banner.id]) withCompanions(result.banners[banner.id], banner);
   return result;
+}
+
+// "With Kitasan" / "With free pulls or With Top Road": the names after each "With", up to "or", "and", "If" or a
+// sentence's end.
+const companions = (text: string | null): string[] =>
+  [...(text ?? '').matchAll(/\bWith ([^.,;:!?]+?)(?=\s+(?:or|and|if)\b|[.,;:!?]|$)/gi)].map((m) => m[1].trim());
+
+// Community nicknames that aren't part of the name (those that are, "Spe", "Hishiama", match it fuzzily), by the
+// character's English name. Add one when the sheet uses a new one.
+const NICKNAMES: Record<string, string[]> = {
+  'Matikanetannhauser': ['Mambo'],
+  'Dream Journey': ['Dorija'],
+  'Stay Gold': ['Stego'],
+  'Gold Ship': ['Golshi'],
+  'Symboli Rudolf': ['Kaichou', 'Kaicho'],
+};
+
+// A card without a pill whose advice says to pull it "With X" takes X's pill, when X is on the same banner (fuzzy, on
+// its name and NICKNAMES) and has one.
+function withCompanions(advice: Record<string, Advice>, banner: Banner): void {
+  for (const [id, entry] of Object.entries(advice)) {
+    if (entry.shouldPull) continue;
+    const others = banner.featured
+      .filter((item) => item.id != null && item.id !== Number(id))
+      .map((item) => ({ ...item, nicknames: NICKNAMES[item.name] ?? [] }));
+    const fuse = new Fuse(others, { keys: ['name', 'nicknames'], ignoreLocation: true, threshold: 0.3 });
+    const pill = [...companions(entry.comment), ...companions(entry.advice)]
+      .map((name) => fuse.search(name)[0]?.item)
+      .map((item) => item?.id != null && advice[item.id]?.shouldPull)
+      .find(Boolean);
+    if (pill) entry.shouldPull = pill;
+  }
 }

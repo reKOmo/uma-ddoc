@@ -8,6 +8,9 @@
   record, an active but calm project.
 - **Keep it simple:** the least code that does the job clearly. No speculative abstractions, options or layers; delete
   rather than work around.
+- **Object keys that are data** (names, titles, ids, labels: a lookup table) are all quoted, even those that don't
+  need it (`{ 'Matikanetannhauser': […], 'Stay Gold': […] }`); keys that are fields or code identifiers stay bare.
+  Biome keeps quotes as written (`quoteProperties: "preserve"`) but can't check this.
 - **Comments: as few as possible.** A comment only says why, where that isn't obvious (a workaround, a data quirk, a
   trap someone would fall into). No file headers restating what a file is or exports, no comments narrating the code,
   no section banners. Keep licence / attribution headers, `biome-ignore` reasons and `TODO(ts)` notes.

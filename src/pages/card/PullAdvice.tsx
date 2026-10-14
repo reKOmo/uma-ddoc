@@ -15,20 +15,10 @@ import StatusBadge from '../../timeline/StatusBadge.tsx';
 import { useAsync } from '../../useAsync.ts';
 import LinkButton from '../../ui/LinkButton.tsx';
 import Pill from '../../ui/Pill.tsx';
+import ShouldPullChip from '../../ui/ShouldPullChip.tsx';
 import Status from '../../ui/Status.tsx';
 import { formatDay } from '../RankChart.tsx';
 import styles from './PullAdvice.module.css';
-
-// The "Should pull?" pill: "whale++" → "If Whale++".
-function ShouldPullChip({ pill }: { pill: string }) {
-  const { t } = useTranslation();
-  const [, kind, plus] = pill.match(/^(\w+)(\+*)$/) ?? [];
-  return (
-    <Pill variant="verdict" tone={kind}>
-      {t(`pullGuide.verdict.${kind}`) + plus}
-    </Pill>
-  );
-}
 
 function BannerDates({ banner, timeZone }: { banner: ArtBanner; timeZone: 'utc' | 'local' }) {
   return (

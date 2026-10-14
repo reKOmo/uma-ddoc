@@ -85,6 +85,11 @@ const prediction = (x: Banner | GameEvent): Prediction | null =>
 const news = (x: { news_url?: string | null }): NewsLink | null =>
   x.news_url ? { url: x.news_url, site: new URL(x.news_url).hostname.replace(/^www\./, '') } : null;
 
+// An item without an id matches by title and name.
+const isMain = (banner: ArtBanner, item: ArtBanner['featured'][number]): boolean =>
+  banner.main != null &&
+  (item.id != null ? item.id === banner.main.id : item.title === banner.main.title && item.name === banner.main.name);
+
 function bannerEntry(
   banner: ArtBanner,
   group: 'characters' | 'cards',
@@ -125,19 +130,22 @@ function bannerEntry(
     parent: null,
     parts: [],
     note: banner.note ?? null,
-    featured: banner.featured.map(
-      (item): Featured => ({
-        key: item.id ?? `${item.title}|${item.name}`,
-        id: item.id,
-        name: item.name ?? `#${item.id}`,
-        title: item.title ?? null,
-        icon: item.icon ?? null,
-        card: group === 'cards',
-        isNew: !!item.new,
-        stars: group === 'characters' ? item.rarity : null,
-        copies: null,
-      })
-    ),
+    // The card the banner is named after first; the rest as the banner lists them (a stable sort).
+    featured: banner.featured
+      .toSorted((a, b) => Number(isMain(banner, b)) - Number(isMain(banner, a)))
+      .map(
+        (item): Featured => ({
+          key: item.id ?? `${item.title}|${item.name}`,
+          id: item.id,
+          name: item.name ?? `#${item.id}`,
+          title: item.title ?? null,
+          icon: item.icon ?? null,
+          card: group === 'cards',
+          isNew: !!item.new,
+          stars: group === 'characters' ? item.rarity : null,
+          copies: null,
+        })
+      ),
     items: [],
     phases: [],
     titles: [],

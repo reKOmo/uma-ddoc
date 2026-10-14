@@ -110,6 +110,10 @@
   margin-left: auto;
 }
 
+.pull {
+  margin-top: 6px;
+}
+
 .badge {
   padding: 2px 8px;
   font-size: 0.7rem;

@@ -65,11 +65,11 @@ type ScenarioNames = [key: string, jp: string, en: string | null];
 export const SCENARIO_NAMES: Partial<Record<string, ScenarioNames>> = {
   'ura-finals': ['URA', 'URA', 'URA'],
   'unity-cup': ['Aoharu', 'Aoharu', 'Unity'],
-  trackblazer: ['MANT', 'MANT', 'TB'],
+  'trackblazer': ['MANT', 'MANT', 'TB'],
   'our-grand-concert': ['GL', 'GL', 'GC'],
   'grand-masters': ['GM', 'GM', null],
   'project-larc': ['LArc', "L'Arc", null],
-  uaf: ['UAF', 'UAF', null],
+  'uaf': ['UAF', 'UAF', null],
   'great-food-festival': ['GFF', 'GFF', null],
   'run-mecha-umamusume': ['Mecha', 'Mecha', null],
   'the-twinkle-legends': ['TL', 'TL', null],

@@ -17,7 +17,9 @@
   "Rerun" labels match the banners' `new` flags exactly. `pull_guide.json` (shape: `schemas/pull_guide.schema.json`; keep it in step): `{ banners:
   { [banner id]: { [card id]: advice } }, noBanner: { [card id]: advice + release } }`, advice = `{ googleSheetsSrc:
   { gid, row } (the card page links to the row), freePulls, shouldPull (the pill: yes/no/free/whale/dolphin + the
-  advice's "+"s, or null), comment (the line under it), advice (the notes as one paragraph) }`; `noBanner` holds
+  advice's "+"s, or null; a card without one whose comment/notes say "With X" takes X's pill when X is on the same
+  banner and has one: `withCompanions()`, fuse.js on the banner's card names, so nicknames inside a name match, "Spe",
+  "Hishiama", and on `NICKNAMES`, a hand table of those that aren't, "Mambo" for Matikanetannhauser), comment (the line under it), advice (the notes as one paragraph) }`; `noBanner` holds
   event/story/shop cards (free, on no gacha banner) with `release: { label, date | month + part | dateText }` from
   the sheet (the script warns about any other card that maps to no banner). The sheet's
   content is the author's English text, shown as is; credited (with a disclaimer) in About. ~15 requests with 1–2 s pauses; the script fails loudly if no cards are found.

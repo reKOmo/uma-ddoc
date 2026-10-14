@@ -29,7 +29,8 @@
       "quoteStyle": "single",
       "jsxQuoteStyle": "double",
       "trailingCommas": "es5",
-      "arrowParentheses": "always"
+      "arrowParentheses": "always",
+      "quoteProperties": "preserve"
     }
   },
   "linter": {

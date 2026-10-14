@@ -37,7 +37,7 @@
   - The box's footer (under both halves): a centred "See more on Luh's encyclopedia" (the card's row in the sheet). The guide's disclaimer (with a link
     to the sheet) is in About, not on the card page.
   - "Available on" (`Origins`, `src/cardOrigins.ts`): every banner featuring the card and event giving it on the
-    selected server (a card not on Global yet: Global's predicted ones and JP's, JP's tagged), oldest first (a toggle
+    selected server only (a card not on Global yet: Global's predicted ones), oldest first (a toggle
     reverses it), the first shown and the rest folded; a kind pill (Banner / Paid banner / Story event / Gift: gifts,
     login bonuses, missions, campaigns / Shop; else the event's own kind) in one colour per kind (not the Timeline's: a banner there takes its main card's type), Re-run when the card
     isn't new on it, status + dates, and a link to it on the Timeline (`#/timeline/<server>/<id>`). A part giving it

@@ -73,7 +73,7 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
           <h1>{name}</h1>
           {title && <p className={styles.title}>{title}</p>}
           <p className={styles.tags}>
-            {origins && origins.list.length > 0 && <OriginPill origins={origins.list} />}
+            {origins && origins.length > 0 && <OriginPill origins={origins} />}
             <Pill variant="tag">{t(`rarity.${card.rarity}`)}</Pill>
             {stat && <Pill variant="tag">{statName(stat)}</Pill>}
             {card.type === 'group' && <Pill variant="tag">{t('card.group')}</Pill>}

@@ -7,12 +7,14 @@ import type { Card } from '../../../shared/schemas/card.ts';
 import type { Server } from '../../../tierlist/cards.ts';
 import { originKinds } from '../../cardOrigins.ts';
 import type { OriginKind } from '../../cardOrigins.ts';
-import { serverName } from '../../i18n/index.ts';
+import { loadPullGuide } from '../../pullGuide.ts';
 import { useSettings } from '../../settings.tsx';
+import { useAsync } from '../../useAsync.ts';
 import { dateFormats, dateRange, entryTitle, kindName } from '../../timeline/format.ts';
 import StatusBadge from '../../timeline/StatusBadge.tsx';
 import FoldToggle from '../../ui/FoldToggle.tsx';
 import Pill from '../../ui/Pill.tsx';
+import ShouldPullLine from '../../ui/ShouldPullLine.tsx';
 import { Section } from '../../ui/Section.tsx';
 import Status from '../../ui/Status.tsx';
 import { timelineUrl } from '../../routes.ts';
@@ -58,9 +60,13 @@ export default function Origins({ card, server, origins }: OriginsProps) {
   const { timeZone } = useSettings().settings;
   const [newestFirst, setNewestFirst] = useState(false);
   const [unfolded, setUnfolded] = useState(false);
-  const list = origins ? (newestFirst ? origins.list.toReversed() : origins.list) : undefined;
+  const list = origins ? (newestFirst ? origins.toReversed() : origins) : undefined;
   const shown = list && (unfolded ? list : list.slice(0, 1));
   const format = dateFormats(timeZone).long;
+  // The guide is advice for Global's banners (JP's share their ids, so it would match there too).
+  const guide = useAsync(loadPullGuide, []).data;
+  const shouldPull = (origin: EntryOrigin) =>
+    server === 'gl' && origin.entry.group === 'cards' ? guide?.banners[origin.entry.id]?.[card.id]?.shouldPull : null;
 
   const order = list && list.length > 1 && (
     <button
@@ -76,10 +82,10 @@ export default function Origins({ card, server, origins }: OriginsProps) {
 
   return (
     <Section title={t('card.origins.heading')} action={order}>
-      {!list || !origins ? (
+      {!list ? (
         <Status>{t('common.loading')}</Status>
       ) : list.length === 0 ? (
-        origins.servers.some((s) => card.release[s]) && (
+        card.release[server] && (
           <p className={styles.tags}>
             {card.source.map((source) => (
               <Pill key={source} variant="tag">
@@ -93,12 +99,12 @@ export default function Origins({ card, server, origins }: OriginsProps) {
           <ol className={styles.list}>
             {shown?.map((origin) => {
               const { entry, server: on, rerun } = origin;
+              const pill = shouldPull(origin);
               return (
                 <li key={`${on}:${entry.key}`}>
                   <a className={styles.origin} href={timelineUrl(on, entry.id)}>
                     <span className={styles.head}>
                       <span className={clsx(styles.kind, KIND_CLASS[origin.kind])}>{originLabel(origin, t)}</span>
-                      {on !== server && <Pill variant="tag">{serverName(on)}</Pill>}
                       {rerun && <Pill variant="tag">{t('card.origins.rerun')}</Pill>}
                     </span>
                     <span className={styles.name}>{entryTitle(entry)}</span>
@@ -106,6 +112,7 @@ export default function Origins({ card, server, origins }: OriginsProps) {
                       <StatusBadge status={entry.status} />
                       {dateRange(entry, format)}
                     </span>
+                    {pill && <ShouldPullLine pill={pill} className={styles.pull} />}
                     <ChevronRight className={styles.open} size={18} aria-hidden="true" />
                   </a>
                 </li>

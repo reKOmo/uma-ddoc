@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { rankByUsefulness, scenarioOptions } from '../../../tierlist/index.ts';
 import type { Ranked, Stat } from '../../../tierlist/index.ts';
-import { cards } from '../../../tierlist/cards.ts';
 import type { Server } from '../../../tierlist/cards.ts';
 import type { PredictionsFile } from '../../../shared/schemas/predictions.ts';
 import type { Entry } from '../../timeline/entries.ts';
@@ -61,21 +60,14 @@ export function useScenarioRankings(server: Server, stat: Stat | undefined, enab
   return rankings;
 }
 
-// The servers whose banners and events say where a card comes from: the selected one, and JP's too for a card not on
-// Global yet.
-const originServers = (card: (typeof cards)[number] | undefined, server: Server): Server[] =>
-  server === 'gl' && !card?.release.gl ? ['gl', 'jp'] : [server];
-
 export type EntryOrigin = Origin<Entry, Server>;
-export type Origins = { servers: Server[]; list: EntryOrigin[] };
+export type Origins = EntryOrigin[];
 
-// Where the card comes from (cardOrigins(), oldest first) on originServers(): { servers, list }, null while loading.
+// Where the card comes from on the selected server (cardOrigins(), oldest first), null while loading.
 export function useOrigins(cardId: number, server: Server): Origins | null | undefined {
-  const { data, pending } = useAsync(async () => {
-    const servers = originServers(cards[cardId], server);
-    const lists = await Promise.all(servers.map((s) => loadEntries(s)));
-    const byServer: Partial<Record<Server, Entry[]>> = Object.fromEntries(servers.map((s, i) => [s, lists[i] ?? []]));
-    return { servers, list: cardOrigins(cardId, byServer) };
-  }, [cardId, server]);
+  const { data, pending } = useAsync(
+    async () => cardOrigins<Entry, Server>(cardId, { [server]: await loadEntries(server) }),
+    [cardId, server]
+  );
   return pending ? null : data;
 }

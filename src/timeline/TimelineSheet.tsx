@@ -4,16 +4,20 @@ import clsx from 'clsx';
 import Sheet, { SheetTitle } from '../Sheet.tsx';
 import Pill from '../ui/Pill.tsx';
 import SeeMore from '../ui/SeeMore.tsx';
+import ShouldPullLine from '../ui/ShouldPullLine.tsx';
 import StatusBadge from './StatusBadge.tsx';
 import { TIER_NAMES } from '../tiers.ts';
 import { formatNumber, scenarioName, serverName, statName } from '../i18n/index.ts';
 import { umapyoiUrl } from '../umapyoi.ts';
 import { useSettings } from '../settings.tsx';
+import { loadPullGuide } from '../pullGuide.ts';
+import { useAsync } from '../useAsync.ts';
 import { itemList } from './events.ts';
 import { type DateFormats, barLabel, dateRange, daysOf, entryTitle, kindName } from './format.ts';
 import { type CardRank as CardRankValue, type RankResult, useRankings } from './useRankings.ts';
 import type { Entry, EntryGroup } from './entries.ts';
 import type { EventItem, Phase } from '../../shared/schemas/event.ts';
+import type { PullGuide } from '../../shared/schemas/pullGuide.ts';
 import { cardUrl, timelineUrl } from '../routes.ts';
 import type { SERVERS } from '../servers.ts';
 import styles from './TimelineSheet.module.css';
@@ -55,6 +59,9 @@ export default function TimelineSheet({
   const { t } = useTranslation();
   const cardIds = entry.featured.flatMap((item) => (item.card && item.id != null ? [item.id] : []));
   const rankings = useRankings(server, scenario, cardIds);
+  // The guide is advice for Global's banners (JP's share their ids, so it would match there too).
+  const guide = useAsync(loadPullGuide, []).data;
+  const advice = server === 'gl' ? guide?.banners[entry.id] : undefined;
   const nothing = !entry.featured.length && !entry.items.length && !entry.titles.length && !entry.phases.length;
   return (
     <Sheet open={open} onClose={onClose} onClosed={onClosed}>
@@ -64,7 +71,7 @@ export default function TimelineSheet({
       <Header entry={entry} format={format} />
       <Provenance entry={entry} format={format} />
       <Relations entry={entry} lookup={lookup} format={format} onSelect={onSelect} />
-      <Featured entry={entry} rankings={rankings} />
+      <Featured entry={entry} rankings={rankings} advice={advice} />
       <Rewards items={entry.items} />
       <Schedule phases={entry.phases} format={format} />
       <Titles titles={entry.titles} />
@@ -148,7 +155,9 @@ function Relations({
   });
 }
 
-function Featured({ entry, rankings }: { entry: Entry; rankings: RankResult | null }) {
+type BannerAdvice = PullGuide['banners'][string] | undefined;
+
+function Featured({ entry, rankings, advice }: { entry: Entry; rankings: RankResult | null; advice: BannerAdvice }) {
   const { t } = useTranslation();
   if (!entry.featured.length) return null;
   return (
@@ -156,7 +165,7 @@ function Featured({ entry, rankings }: { entry: Entry; rankings: RankResult | nu
       <h3 className={styles.heading}>{t(FEATURED_HEADING[entry.group])}</h3>
       <ul className={styles.featured}>
         {entry.featured.map((item) => (
-          <FeaturedItem key={item.key} item={item} rankings={rankings} />
+          <FeaturedItem key={item.key} item={item} rankings={rankings} advice={advice} />
         ))}
       </ul>
     </>
@@ -165,8 +174,17 @@ function Featured({ entry, rankings }: { entry: Entry; rankings: RankResult | nu
 
 type FeaturedEntry = Entry['featured'][number];
 
-function FeaturedItem({ item, rankings }: { item: FeaturedEntry; rankings: RankResult | null }) {
+function FeaturedItem({
+  item,
+  rankings,
+  advice,
+}: {
+  item: FeaturedEntry;
+  rankings: RankResult | null;
+  advice: BannerAdvice;
+}) {
   const { t } = useTranslation();
+  const shouldPull = item.id != null ? advice?.[item.id]?.shouldPull : undefined;
   return (
     <li>
       {/* NEW sits on the icon, leaving the rank row room for "See more". */}
@@ -192,6 +210,8 @@ function FeaturedItem({ item, rankings }: { item: FeaturedEntry; rankings: RankR
             </SeeMore>
           )}
         </span>
+        {/* Its own row: next to the rank it pushed "See more" to a second line on a phone. */}
+        {shouldPull && <ShouldPullLine pill={shouldPull} className={styles.pull} />}
       </div>
     </li>
   );

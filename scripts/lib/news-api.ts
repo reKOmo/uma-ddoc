@@ -51,7 +51,7 @@ type ServerConfig = {
 
 const BROWSER: Record<string, string> = {
   'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0',
-  Accept: '*/*',
+  'Accept': '*/*',
   'Sec-Fetch-Dest': 'empty',
   'Sec-Fetch-Mode': 'cors',
   'Sec-Fetch-Site': 'same-origin',
@@ -59,7 +59,7 @@ const BROWSER: Record<string, string> = {
 
 const SERVERS: Record<Server, ServerConfig> = {
   gl: {
-    headers: { 'Accept-Language': 'en-US,en;q=0.9', 'Content-Type': 'application/json', Origin: NEWS_SITES.gl.site },
+    headers: { 'Accept-Language': 'en-US,en;q=0.9', 'Content-Type': 'application/json', 'Origin': NEWS_SITES.gl.site },
     index: (page: number) => ({ body: { announce_label: 0, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE } }),
     more: (json: ApiJson) => Boolean(json.show_more_button),
     detail: (id: string | number) => ({ body: { announce_id: Number(id) } }),

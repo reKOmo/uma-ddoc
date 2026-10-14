@@ -1,0 +1,13 @@
+.line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* The card page's pill is a headline; in a list it's one line of an item. */
+.chip {
+  padding: 1px 10px;
+  font-size: 0.85rem;
+}

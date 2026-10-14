@@ -43,9 +43,14 @@
   font-weight: 600;
 }
 
+.pull {
+  grid-column: 1;
+  margin-top: 2px;
+}
+
 .open {
   grid-column: 2;
-  grid-row: 1 / span 3;
+  grid-row: 1 / span 4;
   color: var(--muted);
 }
 

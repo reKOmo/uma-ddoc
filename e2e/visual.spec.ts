@@ -6,7 +6,7 @@ import { expect, test } from './fixtures.ts';
 
 const options = (p: Page) => p.getByRole('button', { name: /Options/ });
 const SCREENS: Record<string, { hash: string; act?: (page: Page) => Promise<void> }> = {
-  cards: { hash: '#/' },
+  'cards': { hash: '#/' },
   'cards-filter': { hash: '#/', act: (p) => options(p).click() },
   // (the dropdown's button: today's custom one, or a combobox once it's Radix Select)
   'cards-scenario-open': {
@@ -28,11 +28,11 @@ const SCREENS: Record<string, { hash: string; act?: (page: Page) => Promise<void
   },
   'banner-sheet': { hash: '#/timeline/gl/30003' },
   'event-sheet': { hash: '#/timeline/gl/1076' },
-  card: { hash: '#/card/30126' },
+  'card': { hash: '#/card/30126' },
   'card-full': { hash: '#/card/30001' },
-  scenarios: { hash: '#/scenarios' },
-  scenario: { hash: '#/scenario/URA' },
-  settings: { hash: '#/settings' },
+  'scenarios': { hash: '#/scenarios' },
+  'scenario': { hash: '#/scenario/URA' },
+  'settings': { hash: '#/settings' },
 };
 
 for (const scheme of ['light', 'dark'] as const) {

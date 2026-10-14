@@ -293,6 +293,59 @@ describe('the banner an entry is about', () => {
   });
 });
 
+describe('a card pulled "With" another', () => {
+  const banner = fixture<Banner>({
+    id: 1,
+    start: '2026-05-10T22:00:00.000Z',
+    featured: [
+      { id: 10, name: 'Special Week' },
+      { id: 11, name: 'Hishi Amazon' },
+      { id: 12, name: 'Narita Top Road' },
+      { id: 13, name: 'Matikanetannhauser' },
+      { id: 14, name: 'Stay Gold' },
+      { id: 20, name: 'Seiun Sky' },
+    ],
+  });
+  const entry = (id: string, shouldPull: string | null, comment: string | null, advice: string | null) => ({
+    id,
+    name: '',
+    row: 1,
+    banner: { label: null, date: '2026-05-10' },
+    freePulls: null,
+    shouldPull,
+    comment,
+    advice,
+  });
+  const pills = (entries: ReturnType<typeof entry>[]) => {
+    const guide = byBanner([{ gid: '1', entries }], [banner]);
+    return Object.fromEntries(Object.entries(guide.banners[1]).map(([id, a]) => [id, a.shouldPull]));
+  };
+
+  it("takes that card's pill when it's on the same banner, by nickname too", () => {
+    expect(
+      pills([
+        entry('10', 'whale+', null, null),
+        entry('12', 'dolphin', null, null),
+        entry('20', null, null, 'With Spe. Wit card for ends.'),
+        entry('11', null, 'With free pulls or With Top Road', 'Strong guts card.'),
+        entry('13', 'yes', null, null),
+        entry('14', null, null, 'With Mambo. A nickname not in the name.'),
+      ])
+    ).toMatchObject({ 20: 'whale+', 11: 'dolphin', 14: 'yes' });
+  });
+
+  it("stays without one when that card isn't found or has none", () => {
+    expect(
+      pills([
+        entry('13', null, null, null),
+        entry('10', null, null, 'With Kitasan. Off this banner.'),
+        entry('20', null, null, 'With Golshi. Off this banner too.'),
+        entry('11', null, null, 'With Matikanetannhauser. She has no pill.'),
+      ])
+    ).toEqual({ 13: null, 10: null, 20: null, 11: null });
+  });
+});
+
 describe('the notes shown', () => {
   it('are one paragraph, with full stops where sentences have none', () => {
     expect(

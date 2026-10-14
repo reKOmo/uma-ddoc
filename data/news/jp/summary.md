@@ -15,3 +15,10 @@
 - [トレーナーアビリティの最小発動時間変更について](https://umamusume.jp/news/detail/?id=3497) — other / update
 - [現在確認している不具合について](https://umamusume.jp/news/detail/?id=155) — other / issue
 
+
+## JP record
+
+- JP cards: 563 (0 from the news), 0 pending (not on GameTora yet), nothing changed.
+- JP banners: 299 banners from the news on GameTora's, 281 banners made from it (23 re-runs).
+- JP events: 1149, 5 added or changed.
+- From GameTora where the news has none: 12 story, 12 champions_meeting, 10 legend_race; dated by GameTora: 1 champions_meeting.
