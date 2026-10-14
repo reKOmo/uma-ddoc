@@ -1,5 +1,21 @@
 {
-  "dates": [],
+  "dates": [
+    {
+      "release_jp": "2022-12-25",
+      "release_gl": "2026-10-19",
+      "source": "October 2026 release schedule (official socials): Race the legends now!"
+    },
+    {
+      "release_jp": "2022-12-29",
+      "release_gl": "2026-10-20",
+      "source": "October 2026 release schedule (official socials): Happy New Future story event, New Beginnings Part 1, New Trainees and Support Cards"
+    },
+    {
+      "release_jp": "2023-01-10",
+      "release_gl": "2026-10-27",
+      "source": "October 2026 release schedule (official socials): New Beginnings Part 2, Champions Meeting Capricorn Cup, Spotlight Support Card Scout"
+    }
+  ],
   "banners": [
     {
       "id": 30138,
