@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import type { GlobalCardsFile } from '../shared/schemas/card.ts';
+import type { PredictionsFile } from '../shared/schemas/predictions.ts';
 import { activeTab, expect, open, server, test } from './fixtures.ts';
 
 const TABS = [
@@ -42,8 +45,14 @@ for (const name of ['Global', 'Japan']) {
   });
 }
 
+// Picked from the data: a hard-coded card stops being "not on Global yet" the day it comes out.
+// TODO(ts): JSON.parse is any; both files are checked against their schemas in test/schemas.test.ts.
+const predictions = JSON.parse(readFileSync('generated/predicted_gl_releases.json', 'utf8')) as PredictionsFile;
+const releasedGl = JSON.parse(readFileSync('data/global_cards.json', 'utf8')) as GlobalCardsFile;
+const notOnGlobal = Object.keys(predictions.cards).find((id) => !releasedGl[id]?.release_gl);
+
 test('a card not on Global yet says so and shows its predicted rank', async ({ page }) => {
-  await open(page, '#/card/30126');
+  await open(page, `#/card/${notOnGlobal}`);
   await expect(page.getByRole('heading', { name: 'Rank over time' })).toBeVisible();
 });
 
