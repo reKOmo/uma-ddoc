@@ -19,3 +19,6 @@ if [ -n "$fixable" ]; then
 fi
 
 pnpm exec biome check --staged --no-errors-on-unmatched
+
+# The whole project (~1s): a type error anywhere blocks the commit.
+pnpm typecheck

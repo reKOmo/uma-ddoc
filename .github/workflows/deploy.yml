@@ -34,10 +34,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Lint and format check
         run: pnpm lint
-      - name: Type check
-        run: pnpm typecheck
       - name: Generate card data
         run: pnpm update-cards
+      # After update-cards: the code imports generated/ (card data, sources.json), which a fresh checkout lacks.
+      - name: Type check
+        run: pnpm typecheck
       - name: Scrape new cards, scenarios and JP's event history from GameTora
         run: pnpm scrape-gametora
       # Normally already done and committed by news.yml; rerun so a news commit made any other way

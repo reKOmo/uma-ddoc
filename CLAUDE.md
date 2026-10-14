@@ -959,7 +959,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   Git-ignored paths (`generated/`, `upstream/`, `dist/`, `.claude/worktrees/`) are skipped.
 - **Pre-commit hook** (husky, `.husky/pre-commit`): applies Biome's formatting + safe
   fixes to the staged files and re-stages them, then blocks the commit if anything that
-  can't be auto-fixed remains. Partially staged files are only checked, never fixed (re-
+  can't be auto-fixed remains, or if `pnpm typecheck` fails. Partially staged files are only checked, never fixed (re-
   staging would commit their unstaged changes); fix those with `pnpm format` + re-stage.
   `pnpm install` sets it up (the `prepare` script). Bypass in an emergency with
   `git commit --no-verify`.
@@ -1027,7 +1027,7 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
   "Not released yet" note, on the button too; the one running now on it (`isCurrent()`) has a "Current" badge
   (none on JP while its newest scenario isn't one the tier list ranks). Every scenario in `data/scenarios.json` is
   listed, newest first; those the tier list doesn't rank yet are disabled with "Not in the tier list yet".
-- `deploy.yml` — on push to main, daily, and manually: install → `pnpm lint` → `pnpm typecheck` → `update-cards` →
+- `deploy.yml` — on push to main, daily, and manually: install → `pnpm lint` → `update-cards` → `pnpm typecheck` (needs `generated/`) →
   `scrape-gametora` → `update-jp` → `update-global` (both not committed) → `setup-ml` + `predict-gl` → `fetch-pull-guide` → `pnpm test` → `pnpm test:e2e` → build → GitHub Pages. If any
   step fails the job fails and the last good deploy stays live.
 - `upstream-check.yml` — on push to main, daily, and manually: install →
