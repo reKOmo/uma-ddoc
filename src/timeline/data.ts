@@ -41,9 +41,12 @@ const loadPredictedBanners = (name: BannerName): Promise<ArtBannerFile> | null =
 export async function loadBanners(name: BannerName): Promise<Banners> {
   const [real, predicted] = await Promise.all([loadRealBanners(name), loadPredictedBanners(name)]);
   if (!predicted) return real;
+  // A banner the news announced after the last predict-gl run is in both: the real one wins.
+  const known = bannerIds(real);
+  const unknown = <T extends { id: string | number }>(list: T[]): T[] => list.filter((b) => !known.has(String(b.id)));
   return {
-    characters: [...real.characters, ...predicted.characters],
-    cards: [...real.cards, ...predicted.cards],
+    characters: [...real.characters, ...unknown(predicted.characters)],
+    cards: [...real.cards, ...unknown(predicted.cards)],
   };
 }
 

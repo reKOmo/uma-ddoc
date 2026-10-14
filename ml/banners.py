@@ -5,7 +5,7 @@ the same shape as data/global_banners.json, so the Banners page can draw them al
   { source: { predicted_from, fitted_at }, characters: [banner…], cards: [banner…] }
 
 Each banner is the JP one (featured items; no art URL: the app shows JP's GameTora art, built from the id, or the
-official art a news-made JP banner keeps as `image` + `news_image`) with Global start / end, plus
+JP's official art as `news_image` when the JP news showed it) with Global start / end, plus
   predicted: true, jp_start, jp_end, margin_days (± range of the start, from the backtest), news_url (JP's post, when
   the JP news showed it).
 Banners Global already has (data/global_banners.json, ours: seeded from GameTora, kept up from the
@@ -67,11 +67,11 @@ JP_NEWS_KEYS = ('announced', 'news_url', 'news_image', 'from_news', 'rerun', 're
 
 
 def jp_banner(banner):
-    """The JP banner without what the JP news added. One only the news has keeps `news_image`: its `image` is the
-    post's official art, which the Timeline crops differently from GameTora's (which the app builds from the id)."""
+    """The JP banner without what the JP news added, but its official art (`news_image`, or a news-made banner's
+    `image`): the Timeline shows it over GameTora's, which the app builds from the id."""
     out = {k: v for k, v in banner.items() if k not in JP_NEWS_KEYS}
-    if banner.get('from_news'):
-        out['news_image'] = banner['image']
+    if art := banner.get('news_image') or banner.get('image'):
+        out['news_image'] = art
     return out
 
 

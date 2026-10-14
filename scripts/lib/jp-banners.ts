@@ -1,5 +1,5 @@
 // JP's banners (data/jp_banners.json, committed): GameTora's history, seeded once (2026-10; GameTora's banners aren't
-// scraped any more), with the JP news merged over it (docs/jp-news-plan.md, decision 2). No GameTora URLs are stored:
+// scraped any more), with the JP news merged over it. No GameTora URLs are stored:
 // the app builds art and icons from ids. A banner's `image` is only a news-made banner's official art.
 // A banner GameTora has keeps its dates (the news agrees on all of them) and gets news_url / news_image.
 // Re-runs (decision 6): the original keeps its dates and gets `rerun`. A re-run GameTora already has is its `rerunOf`,
@@ -242,7 +242,13 @@ export function applyJpNews({
     );
     let rerun: Draft;
     if (twin) {
-      twin.rerunOf = id;
+      // GameTora's re-run has no post of its own: it shows its original's.
+      Object.assign(twin, {
+        rerunOf: id,
+        announced: true,
+        news_url: post.url,
+        news_image: banner.news_image ?? banner.image,
+      });
       rerun = twin;
     } else {
       rerun = {

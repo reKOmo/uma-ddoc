@@ -2,12 +2,13 @@
 // Needs JP's banners (their items) and generated/cards.json (English names). Idempotent: the news-made entries are
 // rebuilt from every post each time, the seeded ones are left alone.
 
-import { appendFileSync, existsSync } from 'node:fs';
+import { appendFileSync, existsSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import type { BannerFile, BannerItem } from '../shared/schemas/banner.ts';
 import type { CardsFile, GlobalCard } from '../shared/schemas/card.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
-import { GENERATED_DIR, newsDir } from './lib/paths.ts';
+import type { KnownDatesFile } from '../shared/schemas/predictions.ts';
+import { DATA_DIR, GENERATED_DIR, newsDir } from './lib/paths.ts';
 import { bannerPost } from './lib/banner-posts.ts';
 import { loadPosts } from './lib/news-api.ts';
 import { scenarioPost } from './lib/news.ts';
@@ -27,6 +28,7 @@ import { ensureCards } from './update-cards.ts';
 import { buildCardFiles } from './build-cards.ts';
 
 const SUMMARY_FILE = `${newsDir('gl')}summary.md`;
+const KNOWN_DATES_FILE = `${DATA_DIR}known_dates.json`;
 
 const day = (iso: string): string => iso.slice(0, 10);
 const when = (iso: string): string => `${iso.slice(0, 16).replace('T', ' ')} UTC`;
@@ -38,6 +40,7 @@ export type GlobalUpdate = ReturnType<typeof applyNews> & {
   released: [string, Released][];
   scenarios: ReturnType<typeof applyScenarioNews>;
   events: GameEvent[];
+  unconfirmed: KnownDatesFile['banners'];
   summary: string;
 };
 
@@ -55,6 +58,15 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   const result = applyNews({ posts: scouts, global, cards, jp, names: englishNames(global, cardData) });
   writeGlobal(result);
   await buildCardFiles();
+
+  // A confirmed banner the news has announced is Global's own now: its known_dates.json entry has done its job.
+  const known = readJson<KnownDatesFile>(KNOWN_DATES_FILE);
+  const announced = new Set([...result.global.characters, ...result.global.cards].map((b) => Number(b.id)));
+  const unconfirmed = known.banners.filter((b) => announced.has(b.id));
+  if (unconfirmed.length) {
+    known.banners = known.banners.filter((b) => !announced.has(b.id));
+    writeFileSync(KNOWN_DATES_FILE, `${JSON.stringify(known, null, 2)}\n`);
+  }
 
   // Scenarios: JP's side comes from scrape-gametora; nothing to apply the news to before it ran.
   const stored = readScenarios();
@@ -92,6 +104,8 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   }
   for (const [id, c] of released)
     lines.push(`- Card ${id} ${c.title_en ?? ''} out on Global ${c.release_gl}`.replace('  ', ' '));
+  for (const b of unconfirmed)
+    lines.push(`- Banner ${b.id} is out of known_dates.json: the news has it (was confirmed by ${b.source})`);
   for (const s of result.skipped) lines.push(`- Skipped banner ${s.id} (${s.post}): ${s.reason}`);
   for (const s of scenarios.changed) {
     const start =
@@ -112,7 +126,7 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   for (const name of scenarios.unmatched) lines.push(`- Scenario "${name}" doesn't match any JP scenario`);
 
   const summary = lines.length ? `## Global repository (data/)\n\n${lines.join('\n')}\n` : '';
-  return { ...result, changed, released, scenarios, events: changedEvents, summary };
+  return { ...result, changed, released, scenarios, events: changedEvents, unconfirmed, summary };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

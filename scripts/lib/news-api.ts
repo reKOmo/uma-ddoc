@@ -85,6 +85,14 @@ export function setPause(min: number, max: number): void {
   pace.pause = [min, max];
 }
 
+export class ApiError extends Error {
+  readonly code: number;
+  constructor(endpoint: string, code: number) {
+    super(`${endpoint}: response_code ${code}`);
+    this.code = code;
+  }
+}
+
 export let requests = 0;
 const api = (server: Server, endpoint: string, request: Request, referer: string): Promise<ApiJson> =>
   pace(() => call(server, endpoint, request, referer));
@@ -99,7 +107,7 @@ async function call(server: Server, endpoint: string, { body, query }: Request, 
   if (!res.ok) throw new Error(`${endpoint}: ${res.status} ${res.statusText}`);
   // TODO(ts): res.json() is any; the fields read from it are checked where they're read (response_code, etc.).
   const json = (await res.json()) as ApiJson;
-  if (json.response_code !== 1) throw new Error(`${endpoint}: response_code ${json.response_code}`);
+  if (json.response_code !== 1) throw new ApiError(endpoint, json.response_code);
   return json;
 }
 
@@ -117,6 +125,16 @@ export async function fetchPost(id: string | number, server: Server = 'gl'): Pro
   if (!detail || String(detail.announce_id) !== String(id))
     throw new Error(`pr_info_detail ${id}: unexpected response`);
   return { ...detail, ...config.ids(json), fetched_at: new Date().toISOString() };
+}
+
+// A post by id, or null when the site serves none with it (Global answers an unknown id with response_code 500).
+export async function probePost(id: string | number, server: Server = 'gl'): Promise<NewsPost | null> {
+  try {
+    return await fetchPost(id, server);
+  } catch (e) {
+    if (e instanceof ApiError && e.code === 500) return null;
+    throw e;
+  }
 }
 
 // The id of the post before this one (Global: by post date, JP: by id), or null at the start of the archive.

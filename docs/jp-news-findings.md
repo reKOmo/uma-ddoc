@@ -1,7 +1,7 @@
 # JP news: what the posts look like (phase 2 findings)
 
-Studied 2026-10-11 over all 2,663 stored JP posts (`data/news/jp/posts.json`), before writing any JP parser. Read
-with [jp-news-plan.md](jp-news-plan.md); sample ids per kind are in `test/fixtures/jp-news-samples.json`.
+Studied 2026-10-11 over all 2,663 stored JP posts (`data/news/jp/posts.json`), before writing any JP parser.
+Sample ids per kind are in `test/fixtures/jp-news-samples.json`.
 
 ## Coverage
 

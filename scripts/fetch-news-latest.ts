@@ -4,15 +4,30 @@
 
 import { appendFileSync, existsSync, writeFileSync } from 'node:fs';
 import { newsDir } from './lib/paths.ts';
-import { fetchPost, indexPage, loadPosts, postsFile, requests, savePosts, serverArg } from './lib/news-api.ts';
+import {
+  fetchPost,
+  indexPage,
+  loadPosts,
+  postsFile,
+  probePost,
+  requests,
+  savePosts,
+  serverArg,
+} from './lib/news-api.ts';
 import { categorize, plain } from './lib/post-categories.ts';
 import { lexicon } from './lib/news-lang/index.ts';
 import { newsUrl } from './lib/news-text.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import type { Categorized } from './lib/post-categories.ts';
 
-const MAX_PAGES = 5; // more than that and something's off
 const server = serverArg();
+const MAX_PAGES = 5; // more than that and something's off
+// Global serves some posts before its index lists them (1094, a 1,500-carat gift, sat 3 below the newest in-game
+// post), so each id series is probed from a little below its newest id before this run to a little above its newest
+// now. JP too, in case it does the same.
+const PROBE_BELOW = 8;
+const PROBE_ABOVE = 4;
+const SERIES = { gl: [0, 100000, 200000], jp: [0] }[server];
 
 if (!existsSync(postsFile(server))) {
   console.error(`No ${postsFile(server)} yet: run \`pnpm news:all --server ${server}\` first.`);
@@ -20,6 +35,9 @@ if (!existsSync(postsFile(server))) {
 }
 
 const posts = loadPosts(server);
+const newestIn = (start: number): number =>
+  Math.max(...[...posts.keys()].map(Number).filter((id) => id > start && id < start + 100000));
+const newestBefore = SERIES.map(newestIn);
 // An index entry: the fields this script reads.
 type IndexItem = { announce_id: number; update_at: string | null };
 const fresh: IndexItem[] = [];
@@ -42,7 +60,18 @@ for (const item of fresh) {
   (posts.has(id) ? edited : added).push(id);
   posts.set(id, await fetchPost(id, server));
 }
-if (fresh.length) savePosts(posts, server);
+
+for (const [i, start] of SERIES.entries()) {
+  const last = newestIn(start) + PROBE_ABOVE;
+  for (let id = Math.max(start + 1, newestBefore[i] - PROBE_BELOW); id <= last; id++) {
+    if (posts.has(String(id))) continue;
+    const post = await probePost(id, server);
+    if (!post) continue;
+    added.push(String(id));
+    posts.set(String(id), post);
+  }
+}
+if (added.length || edited.length) savePosts(posts, server);
 
 const lang = lexicon(server);
 // Every id here was stored just above.
@@ -77,4 +106,4 @@ console.log(`${posts.size} stored (${requests} requests).`);
 const update = [...categories.values()].some((c) => c.category !== 'other' || c.kind === 'scenario');
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);
 if (process.env.GITHUB_OUTPUT)
-  appendFileSync(process.env.GITHUB_OUTPUT, `changed=${fresh.length > 0}\nupdate=${update}\n`);
+  appendFileSync(process.env.GITHUB_OUTPUT, `changed=${added.length + edited.length > 0}\nupdate=${update}\n`);
