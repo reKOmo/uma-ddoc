@@ -49,8 +49,8 @@ export const en: Lexicon = {
     [/Legend Race/i, 'event', 'legend_race'],
     [/Transfer Requests/i, 'event', 'transfer_requests'],
     [/Uma Outing/i, 'event', 'uma_outing', () => 'Uma Outing'],
-    [/^The event "?(.+?)"? (?:is here|is coming|has ended)/i, 'event', 'special', 1],
-    [/^An? (.+?) event (?:is here|is coming)/i, 'event', 'special', 1],
+    [/^The (?:collab(?:oration)? )?event "?(.+?)"? (?:is here|is coming|has ended)/i, 'event', 'special', 1],
+    [/^(?:An?|The) (.+?)(?: collab(?:oration)?)? event (?:is here|is coming)/i, 'event', 'special', 1],
     [/Showtime/i, 'event', 'special', (m) => campaignName(m.input)],
     [/new Career scenario "(.+?)"/i, 'other', 'scenario', 1],
     [/WebStore|Starter Packs/i, 'other', 'sale'],
@@ -173,7 +173,7 @@ export const en: Lexicon = {
   timing: /timing/i,
   // "As of 10:00 p.m., Oct 7, 2026 (UTC), …", "From 3:00 p.m., Oct 8, 2026 (UTC), we're kicking off …",
   // "… has begun as of 10:00 p.m., Jul 22, 2026 (UTC)!", "… is set to begin at 3:00 p.m., Jul 23, 2026 (UTC)!"
-  starts: /\b(?:as of|from|starting)\b|^at\b|set to begin at|will begin at/i,
+  starts: /\b(?:as of|from|starting)\b|^at\b|set to (?:begin|kick off) at|will begin at/i,
   opening: (line) => /\(UTC\)/.test(line),
   // A period line: short, not a bullet point (bullets in period sections are fine print with other dates).
   periodLine: (line) => line.length < 90 && !/^[•・*]/.test(line),
@@ -186,6 +186,14 @@ export const en: Lexicon = {
     ['final_matching', /^final round: matching period$/i],
     ['final_race', /^final round: race period$/i],
   ],
+  eventPhases: [
+    ['event', /^(?:event )?availability period$|^event period$/i],
+    ['tallying', /^tallying period$/i],
+    ['results', /^results announcement period$/i],
+    ['reward_collection', /^reward collection\b/i],
+  ],
+  // "The in-game collaboration event with Tokyo Mega Illumination, Sparkly Magic Show, is set to kick off at …"
+  inGameEvent: /^The in-game (?:collaboration )?event\b.*?, (.+?), is set to (?:begin|kick off)/i,
   // A celebration's sub-event: its opening sentence without its date, the names in it, else a heading that names it.
   subOpening: /^(?:As of|From|At|Starting(?: from)?)\s.*?\(UTC\),\s*/i,
   subNames: [

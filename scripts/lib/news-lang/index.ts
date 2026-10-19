@@ -177,9 +177,13 @@ export type Lexicon = {
   race: RaceLexicon;
   // JP: other kinds' schedules (League of Heroes), by event kind.
   schedules?: Record<string, [string, RegExp][]>;
+  // Any other kind's schedule (a story event's period, then its reward collection): kept when a post gives two or more.
+  eventPhases: [string, RegExp][];
   // A celebration's sub-event: its opening sentence without its date, the names in it.
   subOpening: RegExp;
   subNames: RegExp[];
+  // An in-game event a celebration's first block announces, its name captured (a sub-event of kind special).
+  inGameEvent?: RegExp;
   // JP: picks among the names a sentence quotes.
   subName?: (sentence: string) => string | null;
   cleanName: (s: string) => string;

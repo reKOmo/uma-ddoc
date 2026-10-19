@@ -1,6 +1,6 @@
 // Career scenarios and when they launched on each server: data/scenarios.json (committed), in JP launch order.
-// A start date is { date, tag } (or null while unknown): tag 'out' (launched), 'confirmed' (known, still ahead), or
-// 'predicted' (ml/scenarios.py, with lo / hi: a rough 90% range). Known dates are re-tagged every time the file is written.
+// A start date is { date, status } (or null while unknown): status 'news' (Global's launch post), 'gametora' (JP's
+// launch, from GameTora) or 'predicted' (ml/scenarios.py, with lo / hi: a rough 90% range).
 // key: the tier list's where it ranks the scenario, else ours (an id, never shown). short: names per server, by hand
 // (SCENARIO_NAMES); Global's null until it has one. full_en: Global's official name once the news gives it, else GameTora's.
 // color: the cover's main colour, computed once and kept.
@@ -8,6 +8,7 @@
 // Global dates seeded them once), its predictions from predict-gl. Global releases JP's scenarios in JP's order.
 
 import { readFileSync, writeFileSync } from 'node:fs';
+import { dated } from '../../shared/schemas/common.ts';
 import type { Scenario, ScenariosFile, StartDate } from '../../shared/schemas/scenario.ts';
 import type { ScenarioMention } from './news.ts';
 import { imageColor } from './colors.ts';
@@ -43,14 +44,14 @@ export type GametoraScenario = {
 // A scenario post (news.ts' scenarioPost()): the Global launches read here.
 type ScenarioPost = { id: number; posted: string | null; scenarios: ScenarioMention[] };
 
-// The shape of a file on disk: older ones have dates as plain ISO strings and one `full` name.
+// The shape of a file on disk: older ones have one `full` name.
 type ScenarioOnDisk = {
   key: string;
   full?: string;
   full_en?: string | null;
   full_jp?: string | null;
-  en_start_date: StartDate | string | null;
-  jp_start_date: StartDate | string | null;
+  en_start_date: StartDate | null;
+  jp_start_date: StartDate | null;
   links: { gametora: string; cover?: string | null; umapyoi_jp?: number; umapyoi_gl?: number };
   color?: string | null;
 };
@@ -94,26 +95,14 @@ export const norm = (s: string | null | undefined): string =>
     .replace(/[^a-z0-9]/g, '');
 const slugOf = (scenario: { links: { gametora: string } }) => scenario.links.gametora.slice(GAMETORA.length);
 
-export const known = (date: string | null | undefined, now = Date.now()): StartDate | null =>
-  date ? { date, tag: Date.parse(date) <= now ? 'out' : 'confirmed' } : null;
 // Global's launch isn't known yet: none, or only a prediction.
-const unknownOnGlobal = (s: ScenarioDraft) => !s.en_start_date || s.en_start_date.tag === 'predicted';
-
-// Re-tags every known date against `now` (a confirmed date that has passed is out). Pure.
-export function retag(scenarios: ScenarioDraft[], now = Date.now()): ScenarioDraft[] {
-  const again = (d: StartDate | null): StartDate | null => (d && d.tag !== 'predicted' ? known(d.date, now) : d);
-  return scenarios.map((s) => ({ ...s, en_start_date: again(s.en_start_date), jp_start_date: again(s.jp_start_date) }));
-}
+const unknownOnGlobal = (s: ScenarioDraft) => !s.en_start_date || s.en_start_date.status === 'predicted';
 const byJpStart = (a: ScenarioDraft, b: ScenarioDraft) =>
   (a.jp_start_date?.date ?? '9').localeCompare(b.jp_start_date?.date ?? '9');
 
 // Merges GameTora's scenarios (its `scenarios` data file) into ours: JP launch times, Japanese names
 // and links always, new scenarios added, GameTora's English name where we have none. Never Global's dates. Pure.
-export function mergeGametora(
-  scenarios: ScenarioDraft[],
-  raws: GametoraScenario[],
-  { now = Date.now() }: { now?: number } = {}
-): ScenarioDraft[] {
+export function mergeGametora(scenarios: ScenarioDraft[], raws: GametoraScenario[]): ScenarioDraft[] {
   const result = scenarios.map((s) => ({ ...s, links: { ...s.links } }));
   for (const raw of raws) {
     const english = raw.name_en_full ?? raw.name_en ?? null;
@@ -132,7 +121,8 @@ export function mergeGametora(
       };
       result.push(entry);
     }
-    entry.jp_start_date = known(iso(raw.start_ja), now);
+    const start = iso(raw.start_ja);
+    entry.jp_start_date = start ? dated(start, 'gametora') : null;
     entry.short = shortNames(raw.url_name);
     entry.full_jp = raw.name_ja ?? null;
     // An "English" name that is just the Japanese one (older files) isn't one.
@@ -157,21 +147,17 @@ function matchScenario(name: string, scenarios: ScenarioDraft[]) {
 }
 
 // Applies the scenario launches the news mentions (posts' `scenarios`: [{ full, start }]): a dated
-// mention sets en_start_date (confirmed / out; it replaces a prediction) and the official name; an
+// mention sets en_start_date (news; it replaces a prediction) and the official name; an
 // undated one only names a scenario whose launch isn't known yet. Oldest post first, so the newest
 // dated mention wins. Pure. Returns { scenarios, changed: [scenario…], unmatched: [name…] }.
-export function applyScenarioNews({
-  posts,
-  scenarios,
-  now = Date.now(),
-}: {
-  posts: ScenarioPost[];
+export function applyScenarioNews({ posts, scenarios }: { posts: ScenarioPost[]; scenarios: ScenarioDraft[] }): {
   scenarios: ScenarioDraft[];
-  now?: number;
-}): { scenarios: ScenarioDraft[]; changed: ScenarioDraft[]; unmatched: string[] } {
+  changed: ScenarioDraft[];
+  unmatched: string[];
+} {
   const result = scenarios.map((s) => ({ ...s, links: { ...s.links } }));
   const state = (s: ScenarioDraft) =>
-    `${s.full_en}|${s.en_start_date?.tag === 'predicted' ? '' : s.en_start_date?.date}`;
+    `${s.full_en}|${s.en_start_date?.status === 'predicted' ? '' : s.en_start_date?.date}`;
   const before = new Map(scenarios.map((s): [string, string] => [s.key, state(s)]));
   const unmatched: string[] = [];
   for (const post of [...posts].sort((a, b) => (a.posted ?? '').localeCompare(b.posted ?? ''))) {
@@ -182,7 +168,7 @@ export function applyScenarioNews({
         continue;
       }
       if (mention.start) {
-        entry.en_start_date = known(mention.start, now);
+        entry.en_start_date = dated(mention.start, 'news');
         entry.full_en = mention.full;
         if (post.id) entry.links.umapyoi_gl = post.id; // the post that dates the launch
       } else if (unknownOnGlobal(entry)) {
@@ -233,8 +219,7 @@ export function readScenarios(): ScenariosRead {
       source: ScenariosFile['source'];
       scenarios: ScenarioOnDisk[];
     };
-    // Older files: dates as plain ISO strings; one `full` name (English, or Japanese when GameTora had none).
-    const upgrade = (d: StartDate | string | null): StartDate | null => (typeof d === 'string' ? known(d) : d);
+    // Older files: one `full` name (English, or Japanese when GameTora had none).
     const japanese = (name: string | undefined) => /[\u3040-\u30ff\u4e00-\u9fff\uff00-\uffef]/.test(name ?? '');
     const scenarios = file.scenarios.map(
       ({ full, ...x }): ScenarioDraft => ({
@@ -242,8 +227,8 @@ export function readScenarios(): ScenariosRead {
         short: shortNames(x.links.gametora.slice(GAMETORA.length)),
         full_en: x.full_en ?? (full && !japanese(full) ? full : null),
         full_jp: x.full_jp ?? (full && japanese(full) ? full : null),
-        en_start_date: upgrade(x.en_start_date),
-        jp_start_date: upgrade(x.jp_start_date),
+        en_start_date: x.en_start_date,
+        jp_start_date: x.jp_start_date,
         links: {
           ...x.links, // umapyoi_jp / umapyoi_gl when the news has them
           gametora: x.links.gametora,
@@ -259,11 +244,9 @@ export function readScenarios(): ScenariosRead {
   }
 }
 
-// One scenario per line, so commits diff per scenario (the file is excluded from Biome). Known dates
-// are re-tagged on the way out. ml/scenarios.py writes the same format.
+// One scenario per line, so commits diff per scenario (the file is excluded from Biome). ml/scenarios.py writes the
+// same format.
 export function writeScenarios(source: ScenariosRead['source'], scenarios: ScenarioDraft[]) {
-  const lines = retag(scenarios)
-    .map((s) => JSON.stringify(s))
-    .join(',\n');
+  const lines = scenarios.map((s) => JSON.stringify(s)).join(',\n');
   writeFileSync(SCENARIOS_FILE, `{\n"source": ${JSON.stringify(source)},\n"scenarios": [\n${lines}\n]\n}\n`);
 }

@@ -5,7 +5,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { rarityOf } from '../../tierlist/join-cards.ts';
-import type { CardSource, Rarity } from '../../shared/schemas/common.ts';
+import { type CardSource, type Rarity, dated } from '../../shared/schemas/common.ts';
 import type { JpCard, JpCardsFile, JpPendingCard } from '../../shared/schemas/card.ts';
 import type { GametoraCard } from '../../shared/schemas/gametora.ts';
 import type { NewsPost } from '../../shared/schemas/news.ts';
@@ -192,7 +192,7 @@ export function applyNewsCards({
         rarity: card.rarity,
         name: { en: null, jp: card.name },
         title: { en: null, jp: card.title },
-        release: card.release,
+        release: dated(card.release, 'news'),
         source: [card.source === 'gift' ? 'promo' : card.source],
         news_url: card.news_url,
       });
@@ -234,7 +234,7 @@ function entry(
     rarity: news.rarity,
     name: { en: g.name?.en ?? null, jp: news.jp.name },
     title: { en: g.title?.en ?? null, jp: news.jp.title },
-    release: news.release,
+    release: dated(news.release, 'news'),
     source: [source],
     slug: g.slug ?? null,
     news_url: news.news_url,

@@ -4,8 +4,8 @@ Global runs JP's events in JP's order, years later (data/global_events.json, fro
 from the JP news + GameTora's history, `pnpm update-jp`). Top-level events are paired, in this order of trust:
 
   post   the same post: Global's in-game news reuses JP's post ids (Global's 1076 "Illuminate the Heart" is JP's 1076),
-         so an event and the JP one sharing a post id (its id, or its news_url's) are one. Global's own posts (100001…
-         series) never match.
+         so an event and the JP one sharing a post id (its id, or its news_url's) are one; a JP celebration's part too
+         (Global's own posts are JP's parts at times). Global's own posts (100001… series) never match.
   card   the same support card given (story events' SSRs; a celebration's card; JP's GameTora fills give theirs)
   name   the same name across the languages (NAMES: Champions Meeting cups, recurring specials, celebrations by
          anniversary / season and part, recurring campaigns); names repeat (cups every year), so the one whose date
@@ -30,8 +30,12 @@ Predicted events → generated/predicted_global_events.json (optional for the si
   (kind, name in Japanese, cards, items, titles, phases, races, image, news_url = the JP post, source) and
   id 'jp-<JP id>', parent 'jp-<JP parent id>' | null, start / end: the top-level event's predicted Global start (its JST
   start day through predict(), 22:00 UTC like banners, never a Japanese weekend), its parts and phases moved by the
-  same amount (JP's lengths kept), predicted: true, confirmed: true (only when known_dates.json's `dates` give its JP day),
-  jp_id, jp_start, jp_end, margin_days (± days of the top-level event's start).
+  same amount (JP's lengths kept); every date status predicted (the start with lo / hi), a start confirmed when
+  known_dates.json's `dates` give its JP day; predicted: true, jp_id, jp_start, jp_end.
+
+Fills → data/global_events.json (write_fills()): a paired Global event's dates its news doesn't give yet (a "coming
+soon" cup's end and later phases), JP's moved by the pair's offset, status predicted. Each run drops the old fills
+first, so a date the news has given since is the news' alone. (Not a gift's end: JP's are the deadline of who gets it.)
 """
 
 import json
@@ -44,7 +48,7 @@ import pandas as pd
 
 from adjust import hand_known_days, snap_weekday
 from banners import GLOBAL_START_HOUR, epoch_days, iso_at
-from data import DATA, GENERATED, to_date
+from data import DATA, FILLS, GENERATED, dated, day_range, read, to_date
 
 PAIRS_OUTPUT = GENERATED / 'event_pairs.json'
 EVENTS_OUTPUT = GENERATED / 'predicted_global_events.json'
@@ -130,8 +134,13 @@ def utc_day(iso):
     return float(np.floor(epoch_days(iso)))
 
 
+def events_file(server):
+    return DATA / f'{"global" if server == "gl" else server}_events.json'
+
+
 def load(server):
-    events = json.loads((DATA / f'{"global" if server == "gl" else server}_events.json').read_text())
+    # (Global's: only what its news says, without the fills of an earlier run)
+    events = read(events_file(server), fills=server != 'gl')
     parts = defaultdict(list)
     for e in events:
         if e['parent']:
@@ -157,8 +166,8 @@ def lis_keep(pairs):
 
 def pair_events(ref):
     """ref: JP days (array) → expected Global days. Returns { pairs, rejected }."""
-    _, gl_top, gl_parts = load('gl')
-    _, jp_top, jp_parts = load('jp')
+    gl_all, gl_top, gl_parts = load('gl')
+    jp_all, jp_top, jp_parts = load('jp')
     jp_days = np.array([jst_day(e['start']) for e in jp_top])
     expected = dict(zip((e['id'] for e in jp_top), ref(jp_days)))
     pairs, rejected = [], []
@@ -186,12 +195,15 @@ def pair_events(ref):
         paired_gl.add(gl['id'])
         paired_jp.add(jp['id'])
         if abs(pair['dev_days']) > TOL:
-            rejected.append({**pair, 'why': f'{pair["dev_days"]:+.0f} days off the expected Global day'})
+            rejected.append({**{k: v for k, v in pair.items() if k != 'anchor'},
+                             'why': f'{pair["dev_days"]:+.0f} days off the expected Global day'})
         else:
             pairs.append(pair)
 
+    # (JP's parts too, after its top-level events: an event Global runs on its own can be part of a JP celebration,
+    # Global's 1109 Sparkly Magic Show JP's 1093-1 KIRARI MAGIC SHOW, from the same post)
     by_post = defaultdict(list)
-    for jp in jp_top:
+    for jp in jp_top + [e for e in jp_all if e['parent']]:
         for i in post_ids(jp):
             by_post[i].append(jp)
     jp_cards = {jp['id']: cards_of(jp, jp_parts) for jp in jp_top}
@@ -218,6 +230,16 @@ def pair_events(ref):
         if found:
             jp = next((j for j in found.values() if j['kind'] == gl['kind']), next(iter(found.values())))
             take(record(gl, jp, 'post'), gl, jp)
+    # a Global part with a post of its own (Global's 1109 Sparkly Magic Show, merged into its celebration's 1093-0): by
+    # that post, never an anchor (a part's dates follow its celebration's)
+    by_id = {e['id']: e for e in gl_all}
+    own_post = [e for e in gl_all if e['parent'] and post_ids(e) - post_ids(by_id[e['parent']])]
+    for gl in sorted(own_post, key=lambda e: e['start']):
+        found = [jp for i in post_ids(gl) - post_ids(by_id[gl['parent']]) for jp in by_post.get(i, [])
+                 if jp['id'] not in paired_jp]
+        if found:
+            jp = next((j for j in found if j['kind'] == gl['kind']), found[0])
+            take(record(gl, jp, 'post', anchor=False), gl, jp)
     # card: a support card both give (the nearest such JP event)
     for gl in gl_sorted:
         ids = gl['id'] not in paired_gl and cards_of(gl, gl_parts)
@@ -326,14 +348,16 @@ def predict_events(predict, anchor_jp, known, pairs, fitted_at):
 
         def emit(e, offset, root, m, confirmed):
             fields = {k: v for k, v in e.items() if k not in ('id', 'parent', 'start', 'end', 'phases', 'news_url', 'image', 'source')}
+            moved = lambda iso: dated(shift(iso, offset), 'predicted')  # noqa: E731
+            start = shift(e['start'], offset)
             event = {
                 'id': f'jp-{e["id"]}',
                 **{k: fields[k] for k in ('kind', 'name')},
                 'parent': f'jp-{e["parent"]}' if e['parent'] else None,
-                'start': shift(e['start'], offset),
-                'end': shift(e['end'], offset),
+                'start': dated(start, 'confirmed') if confirmed else dated(start, 'predicted', **day_range(utc_day(start), m)),
+                'end': moved(e['end']),
                 **{k: fields[k] for k in ('cards', 'items', 'titles')},
-                **({'phases': [{**p, 'start': shift(p['start'], offset), 'end': shift(p['end'], offset)}
+                **({'phases': [{**p, 'start': moved(p['start']), 'end': moved(p['end'])}
                                for p in e['phases']]} if e.get('phases') is not None else {}),
                 # JP's race conditions: Global has mostly reused them (the sheet says whose they are).
                 **({'races': e['races']} if e.get('races') else {}),
@@ -341,11 +365,9 @@ def predict_events(predict, anchor_jp, known, pairs, fitted_at):
                 'image': e['image'],
                 'source': e['source'],
                 'predicted': True,
-                **({'confirmed': True} if confirmed else {}),
                 'jp_id': e['id'],
                 'jp_start': e['start'],
                 'jp_end': e['end'],
-                'margin_days': 0 if confirmed else round(float(m)),
             }
             out.append(event)
             for part in parts.get(e['id'], []):
@@ -356,12 +378,71 @@ def predict_events(predict, anchor_jp, known, pairs, fitted_at):
             offset = pd.Timestamp(start).value // 1_000_000 - pd.Timestamp(e['start']).value // 1_000_000
             # confirmed: only a JP day known_dates.json's `dates` give (hand_known_days()), not one known otherwise
             emit(e, offset, e, m, jst_day(e['start']) in confirmed_days)
-    out.sort(key=lambda e: (e['start'], e['id']), reverse=True)
+    out.sort(key=lambda e: (e['start']['date'], e['id']), reverse=True)
     result = {'source': {'predicted_from': 'jp_events.json', 'fitted_at': fitted_at}, 'events': out}
     lines = ',\n'.join(json.dumps(e, ensure_ascii=False) for e in out)
     source = json.dumps(result['source'])
     EVENTS_OUTPUT.write_text(f'{{\n"source": {source},\n"events": [\n{lines}\n]\n}}\n')
     return result
+
+
+def write_fills(pairs):
+    """Fills the dates paired Global events' news lacks (see the top) into data/global_events.json; returns how many
+    events have fills."""
+    events = json.loads(events_file('gl').read_text())
+    jp = {e['id']: e for e in read(events_file('jp'))}
+    gl_plain = {e['id']: e for e in plain_gl(events)}
+    by_gl = {p['gl']: jp[p['jp']] for p in pairs['pairs'] + pairs['rejected'] if p['jp'] in jp}
+    filled = 0
+    for e in events:
+        strip_fills(e)
+        source = by_gl.get(e['id'])
+        if not source:
+            continue
+        gl = gl_plain[e['id']]
+        # moved as the pair compares them: both cups' round 1, else the starts
+        r1 = lambda x: next((p['start'] for p in x.get('phases') or [] if p['key'] == 'round_1'), None)  # noqa: E731
+        a, b = (r1(gl), r1(source)) if r1(gl) and r1(source) else (gl['start'], source['start'])
+        offset = pd.Timestamp(a).value // 1_000_000 - pd.Timestamp(b).value // 1_000_000
+        moved = lambda iso: dated(shift(iso, offset), 'predicted')  # noqa: E731
+        before = json.dumps(e)
+        if not e['end'] and source['end'] and e['kind'] != 'gift':
+            e['end'] = moved(source['end'])
+        own = {p['key']: p for p in e.get('phases') or []}
+        added = False
+        for p in source.get('phases') or []:
+            if p['key'] not in own:
+                own[p['key']] = {'key': p['key'], 'start': moved(p['start']), 'end': moved(p['end'])}
+                added = True
+            elif not own[p['key']]['end'] and p['end']:
+                own[p['key']]['end'] = moved(p['end'])
+        if own:
+            phases = list(own.values())
+            # (the news' order is the schedule's; phases only a fill has go in by start)
+            e['phases'] = sorted(phases, key=lambda p: p['start']['date']) if added else phases
+            # (in the news events' key order: phases after titles)
+            for key in ('races', 'news_url', 'image', 'source'):
+                if key in e:
+                    e[key] = e.pop(key)
+        filled += json.dumps(e) != before
+    lines = ',\n'.join(json.dumps(e, ensure_ascii=False, separators=(',', ':')) for e in events)
+    events_file('gl').write_text(f'[\n{lines}\n]\n')
+    return filled
+
+
+def plain_gl(events):
+    return [{**e, 'start': e['start']['date']} | {'phases': [{**p, 'start': p['start']['date']} for p in e.get('phases') or []
+                                                             if p['start']['status'] not in FILLS]}
+            for e in events]
+
+
+def strip_fills(e):
+    """An event as its news gives it (an earlier run's fills taken off)."""
+    fill = lambda d: d and d['status'] in FILLS  # noqa: E731
+    if fill(e['end']):
+        e['end'] = None
+    if 'phases' in e:
+        e['phases'] = [{**p, 'end': None if fill(p['end']) else p['end']} for p in e['phases'] if not fill(p['start'])]
 
 
 def summary(pairs, predicted):
@@ -379,4 +460,4 @@ def summary(pairs, predicted):
     return '\n'.join(lines)
 
 
-__all__ = ['pair_events', 'write_pairs', 'anchor_points', 'past_ref', 'predict_events', 'summary', 'to_date']
+__all__ = ['pair_events', 'write_pairs', 'write_fills', 'anchor_points', 'past_ref', 'predict_events', 'summary', 'to_date']

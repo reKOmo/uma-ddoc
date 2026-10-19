@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CardSource, CardType, Day, IdKey, Rarity, Texts } from './common.ts';
+import { CardSource, CardType, DatedDay, IdKey, Rarity, Texts } from './common.ts';
 
 export const CardSchema = z
   .strictObject({
@@ -19,7 +19,7 @@ export const CardSchema = z
       "The card's title, e.g. \"[Tracen Academy]\". en: Global's (data/global_cards.json), else GameTora's."
     ),
     release: z
-      .strictObject({ gl: Day.nullable(), jp: Day.nullable() })
+      .strictObject({ gl: DatedDay.nullable(), jp: DatedDay.nullable() })
       .describe(
         'Release dates per server (gl: data/global_cards.json, jp: data/jp_cards.json), null when not out (or unknown).'
       ),
@@ -106,7 +106,7 @@ export const JpCardSchema = z.strictObject({
   rarity: Rarity,
   name: z.strictObject({ en: z.string(), jp: z.string() }),
   title: z.strictObject({ en: z.string().nullable(), jp: z.string() }),
-  release: Day,
+  release: DatedDay,
   source: z.array(CardSource),
   slug: z.string(),
   news_url: z.string().optional(),
@@ -120,7 +120,7 @@ export const JpPendingCardSchema = z.strictObject({
   rarity: Rarity,
   name: z.strictObject({ en: z.null(), jp: z.string() }),
   title: z.strictObject({ en: z.null(), jp: z.string() }),
-  release: Day,
+  release: DatedDay,
   source: z.array(CardSource),
   news_url: z.string(),
 });
@@ -131,7 +131,7 @@ export const JpPendingFileSchema = z.array(JpPendingCardSchema);
 // `title_en` null when the post's list doesn't name it).
 export const GlobalCardSchema = z.strictObject({
   title_en: z.string().nullable(),
-  release_gl: Day,
+  release_gl: DatedDay,
   news_url: z.string().optional(),
 });
 export type GlobalCard = z.infer<typeof GlobalCardSchema>;

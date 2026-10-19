@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { GametoraType, Moment } from './common.ts';
+import { DatedMoment, GametoraType, Moment } from './common.ts';
 
 // A featured trainee or card. `id` / `char_id` null: a card or trainee not resolved yet (a JP news card GameTora
 // doesn't list, a debuting trainee). `type`: cards only (null: a JP news card the data doesn't type yet). `rate` null where the post gives none. `from_news`: an R card
@@ -23,16 +23,15 @@ export type BannerId = z.infer<typeof BannerIdSchema>;
 
 export const BannerSchema = z.strictObject({
   id: BannerIdSchema,
-  start: Moment,
+  start: DatedMoment,
   // null: open-ended (JP's 終了日時未定).
-  end: Moment.nullable(),
+  end: DatedMoment.nullable(),
   // The highest rarity, then highest rate featured item (pickMain()); null with no featured list (JP's paid scouts).
   main: BannerItemSchema.nullable(),
   featured: z.array(BannerItemSchema),
   // A news-made banner's official art.
   image: z.string().optional(),
-  // From the news: the post, its art; `announced` a news-made or news-confirmed entry; `from_news` made from the post.
-  announced: z.boolean().optional(),
+  // From the news: the post, its art; `from_news` made from the post.
   news_url: z.string().optional(),
   news_image: z.string().optional(),
   from_news: z.boolean().optional(),
@@ -42,15 +41,11 @@ export const BannerSchema = z.strictObject({
   paid: z.boolean().optional(),
   rerunOf: z.int().optional(),
   // (end null: an open-ended re-run)
-  rerun: z.strictObject({ id: BannerIdSchema, start: Moment, end: Moment.nullable() }).optional(),
-  // Predicted (generated/predicted_global_banners.json): JP's dates it's predicted from, the margin, and `confirmed`
-  // when data/known_dates.json gives its Global dates (`confirmed_source`: where from).
+  rerun: z.strictObject({ id: BannerIdSchema, start: DatedMoment, end: DatedMoment.nullable() }).optional(),
+  // Predicted (generated/predicted_global_banners.json): JP's dates it's predicted from.
   predicted: z.boolean().optional(),
   jp_start: Moment.optional(),
   jp_end: Moment.optional(),
-  margin_days: z.int().optional(),
-  confirmed: z.boolean().optional(),
-  confirmed_source: z.string().optional(),
 });
 export type Banner = z.infer<typeof BannerSchema>;
 

@@ -21,7 +21,7 @@ const day = (iso: string | null): string => (iso ? iso.slice(0, 16).replace('T',
 const count = (c: EventItem['count']): string =>
   c == null ? '?' : typeof c === 'number' ? c.toLocaleString('en') : `${c.min}–${c.max}`;
 for (const e of events) {
-  const head = `${day(e.start)} → ${day(e.end)}  ${e.kind.padEnd(17)} ${e.parent ? '  ' : ''}${e.name ?? '—'}  [${e.id}]`;
+  const head = `${day(e.start.date)} → ${day(e.end?.date ?? null)}  ${e.kind.padEnd(17)} ${e.parent ? '  ' : ''}${e.name ?? '—'}  [${e.id}]`;
   console.log(head);
   for (const c of e.cards)
     console.log(`      CARD ${c.rarity} [${c.title}] ${c.name} (${c.id ?? 'no id'})${c.copies ? ` ×${c.copies}` : ''}`);

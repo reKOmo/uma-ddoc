@@ -24,9 +24,9 @@ export function upcomingBanner(banners: Banner[], cardId: number, now: number): 
     banners
       .filter(
         (banner) =>
-          banner.end != null && Date.parse(banner.end) >= now && banner.featured.some((item) => item.id === cardId)
+          banner.end != null && Date.parse(banner.end.date) >= now && banner.featured.some((item) => item.id === cardId)
       )
-      .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))[0] ?? null
+      .sort((a, b) => Date.parse(a.start.date) - Date.parse(b.start.date))[0] ?? null
   );
 }
 

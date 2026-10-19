@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { scenarioPost } from '../scripts/lib/news.ts';
-import { applyJpScenarioNews, applyScenarioNews, mergeGametora, retag } from '../scripts/lib/scenarios.ts';
+import { applyJpScenarioNews, applyScenarioNews, mergeGametora } from '../scripts/lib/scenarios.ts';
 import type { ScenarioMention } from '../scripts/lib/news.ts';
 import type { GametoraScenario, ScenarioDraft } from '../scripts/lib/scenarios.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import type { StartDate } from '../shared/schemas/scenario.ts';
-import { fixture, present } from './helpers.ts';
+import { at, fixture, present } from './helpers.ts';
 
 const post = (id: number, posted: string, title: string, lines: string[]) =>
   fixture<NewsPost>({
@@ -59,18 +59,17 @@ const GAMETORA = [
   raw('project-larc', 1692846000),
 ];
 const iso = (s: number) => new Date(s * 1000).toISOString();
-const NOW = Date.parse('2026-10-08T00:00:00Z');
-const out = (date: string): StartDate => ({ date, tag: 'out' });
+const fromGametora = (date: string): StartDate => at(date, 'gametora');
 const PREDICTED_GM: StartDate = {
   date: '2026-11-25T22:00:00.000Z',
-  tag: 'predicted',
+  status: 'predicted',
   lo: '2026-11-21',
   hi: '2026-11-29',
 };
 
 describe('mergeGametora', () => {
   it("adds JP's scenarios with key, name, tagged JP launch and link; never Global's launch", () => {
-    const merged = mergeGametora([], GAMETORA, { now: NOW });
+    const merged = mergeGametora([], GAMETORA);
     const row = (s: ScenarioDraft) => [s.key, s.full_en, s.full_jp, s.en_start_date, s.jp_start_date, s.links.gametora];
     expect(merged.map(row)).toEqual([
       [
@@ -78,24 +77,31 @@ describe('mergeGametora', () => {
         'Brighter Together Our Grand Concert',
         'JP our-grand-concert',
         null,
-        out(iso(1661310000)),
+        fromGametora(iso(1661310000)),
         `${GT}our-grand-concert`,
       ],
-      ['GM', 'Grandmasters Legacies Immortal', 'JP grand-masters', null, out(iso(1677207600)), `${GT}grand-masters`],
-      ['LArc', null, 'JP project-larc', null, out(iso(1692846000)), `${GT}project-larc`],
+      [
+        'GM',
+        'Grandmasters Legacies Immortal',
+        'JP grand-masters',
+        null,
+        fromGametora(iso(1677207600)),
+        `${GT}grand-masters`,
+      ],
+      ['LArc', null, 'JP project-larc', null, fromGametora(iso(1692846000)), `${GT}project-larc`],
     ]);
   });
 
   it("keeps our names and Global launches, takes GameTora's English once it has one", () => {
-    const ours = mergeGametora([], GAMETORA, { now: NOW }).map((s) =>
+    const ours = mergeGametora([], GAMETORA).map((s) =>
       s.key === 'GL'
-        ? { ...s, full_en: 'Brighter Together! Our Grand Concert', en_start_date: out('2026-07-22T22:00:00.000Z') }
+        ? { ...s, full_en: 'Brighter Together! Our Grand Concert', en_start_date: at('2026-07-22T22:00:00.000Z') }
         : s
     );
     const translated = GAMETORA.map((r) => (r.url_name === 'project-larc' ? { ...r, name_en: "Project L'Arc" } : r));
-    const merged = mergeGametora(ours, translated, { now: NOW });
+    const merged = mergeGametora(ours, translated);
     expect(merged[0].full_en).toBe('Brighter Together! Our Grand Concert');
-    expect(merged[0].en_start_date).toEqual(out('2026-07-22T22:00:00.000Z'));
+    expect(merged[0].en_start_date).toEqual(at('2026-07-22T22:00:00.000Z'));
     expect(merged[2]).toMatchObject({ full_en: "Project L'Arc", full_jp: 'JP project-larc' });
   });
 });
@@ -107,8 +113,8 @@ describe('applyScenarioNews', () => {
     posted,
     scenarios,
   });
-  const base = mergeGametora([], GAMETORA, { now: NOW }).map((s) => {
-    if (s.key === 'GL') return { ...s, en_start_date: out('2026-07-22T22:00:00.000Z') };
+  const base = mergeGametora([], GAMETORA).map((s) => {
+    if (s.key === 'GL') return { ...s, en_start_date: at('2026-07-22T22:00:00.000Z') };
     if (s.key === 'GM') return { ...s, en_start_date: PREDICTED_GM };
     return s;
   });
@@ -120,7 +126,6 @@ describe('applyScenarioNews', () => {
         news(200013, '2026-07-23', [{ full: 'Brighter Together: Our Grand Concert', start: null }]),
       ],
       scenarios: base,
-      now: NOW,
     });
     expect(scenarios[0].full_en).toBe('Brighter Together! Our Grand Concert');
     expect(changed.map((s) => s.key)).toEqual(['GL']);
@@ -133,7 +138,6 @@ describe('applyScenarioNews', () => {
         news(904, '2026-07-21', [{ full: 'Brighter Together! Our Grand Concert', start: '2026-07-22T22:00:00.000Z' }]),
       ],
       scenarios: base,
-      now: NOW,
     });
     expect(scenarios[0].links.umapyoi_gl).toBe(904);
   });
@@ -142,7 +146,6 @@ describe('applyScenarioNews', () => {
     const named = applyScenarioNews({
       posts: [news(1200, '2026-12-01', [{ full: 'Grandmasters: Legacies Immortal', start: null }])],
       scenarios: base,
-      now: NOW,
     }).scenarios;
     // Undated: named, still predicted.
     expect(named[1]).toMatchObject({
@@ -154,12 +157,11 @@ describe('applyScenarioNews', () => {
     const dated = applyScenarioNews({
       posts: [news(1201, '2026-12-02', [{ full: 'Some New Official Name', start: '2027-01-10T22:00:00.000Z' }])],
       scenarios: base,
-      now: NOW,
     }).scenarios;
     expect(dated[1]).toMatchObject({
       key: 'GM',
       full_en: 'Some New Official Name',
-      en_start_date: { date: '2027-01-10T22:00:00.000Z', tag: 'confirmed' },
+      en_start_date: at('2027-01-10T22:00:00.000Z'),
     });
   });
 });
@@ -196,24 +198,11 @@ describe('applyJpScenarioNews', () => {
 
 describe('covers', () => {
   it("links each scenario's GameTora key art as its cover", () => {
-    const merged = mergeGametora([], [{ ...GAMETORA[0], id: 3 }], { now: NOW });
+    const merged = mergeGametora([], [{ ...GAMETORA[0], id: 3 }]);
     expect(merged[0].links).toEqual({
       gametora: `${GT}our-grand-concert`,
       cover: 'https://media.gametora.com/umamusume/scenarios/hero/3.png',
     });
     expect(merged[0].color).toBeNull(); // filled by fillColors
-  });
-});
-
-describe('retag', () => {
-  it('turns a confirmed date out once it has passed, and leaves predictions alone', () => {
-    const scenario = fixture<ScenarioDraft>({
-      key: 'GM',
-      en_start_date: { date: '2027-01-10T22:00:00.000Z', tag: 'confirmed' },
-      jp_start_date: PREDICTED_GM,
-    });
-    const [later] = retag([scenario], Date.parse('2027-01-11T00:00:00Z'));
-    expect(present(later.en_start_date, 'launch').tag).toBe('out');
-    expect(later.jp_start_date).toBe(PREDICTED_GM);
   });
 });

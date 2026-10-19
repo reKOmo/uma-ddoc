@@ -1,5 +1,6 @@
 // Each scenario runs from its launch to the next one's (end null for the newest); times in ms.
-import type { Scenario, StartDate } from '../../shared/schemas/scenario.ts';
+import type { Scenario } from '../../shared/schemas/scenario.ts';
+import { type LaunchTag, launchTag } from '../scenarioRelease.ts';
 
 const DATE_FIELD = { gl: 'en_start_date', jp: 'jp_start_date' } as const;
 
@@ -10,7 +11,7 @@ export type ScenarioSegment = {
   name: string;
   start: number;
   end: number | null;
-  tag: StartDate['tag'];
+  tag: LaunchTag;
   color: string | null;
   current: boolean;
   ink: Ink | null;
@@ -41,7 +42,7 @@ export function scenarioSegments(
               key: s.key,
               name: s.full_en ?? s.full_jp ?? s.key,
               start: Date.parse(launch.date),
-              tag: launch.tag,
+              tag: launchTag(launch, now),
               color: s.color ?? null,
             },
           ]

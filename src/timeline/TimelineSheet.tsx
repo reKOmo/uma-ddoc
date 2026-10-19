@@ -109,7 +109,8 @@ function Header({ entry, format }: { entry: Entry; format: DateFormats }) {
         {/* One item, so the (i) wraps with the text's end, not onto a line of its own. */}
         <span>
           {dateRange(entry, format.time)}
-          {days != null && ` · ${t('timeline.days', { count: days })}`} <Provenance entry={entry} format={format} />
+          {days != null && ` · ${t('timeline.days', { count: days })}`}
+          {entry.endPredicted && ` · ${t('timeline.endPredicted')}`} <Provenance entry={entry} format={format} />
         </span>
       </div>
     </>
@@ -364,12 +365,17 @@ function Schedule({ phases, format }: { phases: Phase[]; format: DateFormats }) 
     <>
       <h3 className={styles.heading}>{t('timeline.schedule')}</h3>
       <ul className={clsx(styles.list, styles.schedule)}>
-        {phases.map((phase) => (
-          <li key={phase.key}>
-            <span>{t(`events.phase.${phase.key}`)}</span>
-            <small>{dateRange(phase, format.time)}</small>
-          </li>
-        ))}
+        {phases.map((phase) => {
+          // (a "coming soon" post's schedule: what it doesn't give yet is the prediction's)
+          const predicted = [phase.start, phase.end].some((d) => d?.status === 'predicted');
+          const dates = dateRange({ start: phase.start.date, end: phase.end?.date ?? null }, format.time);
+          return (
+            <li key={phase.key} className={clsx(predicted && styles.predicted)}>
+              <span>{t(`events.phase.${phase.key}`)}</span>
+              <small>{predicted ? `${dates} · ${t('timeline.status.predicted')}` : dates}</small>
+            </li>
+          );
+        })}
       </ul>
     </>
   );

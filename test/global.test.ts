@@ -3,7 +3,7 @@ import { applyNews, englishNames } from '../scripts/lib/global.ts';
 import type { BannerPost } from '../scripts/lib/banner-posts.ts';
 import type { BannerFile, BannerItem } from '../shared/schemas/banner.ts';
 import type { CardsFile, GlobalCardsFile } from '../shared/schemas/card.ts';
-import { fixture, present } from './helpers.ts';
+import { at, fixture, present } from './helpers.ts';
 
 const item = (
   id: number,
@@ -29,8 +29,8 @@ const JP = fixture<BannerFile>({
     {
       id: 30134,
       image: 'jp-30134.png',
-      start: '2022-12-12T03:00:00.000Z',
-      end: '2022-12-20T02:59:59.000Z',
+      start: at('2022-12-12T03:00:00.000Z', 'gametora'),
+      end: at('2022-12-20T02:59:59.000Z', 'gametora'),
       featured: [item(104701, 1047, 'ゼンノロブロイ', '[英雄譚]', 3)],
     },
   ],
@@ -38,8 +38,8 @@ const JP = fixture<BannerFile>({
     {
       id: 30135,
       image: 'jp-30135.png',
-      start: '2022-12-12T03:00:00.000Z',
-      end: '2022-12-20T02:59:59.000Z',
+      start: at('2022-12-12T03:00:00.000Z', 'gametora'),
+      end: at('2022-12-20T02:59:59.000Z', 'gametora'),
       featured: [
         item(30072, 1024, 'マヤノトップガン', '[フォーメーション：PARTY]', 3, { type: 'speed' }),
         item(30126, 1068, 'ヤマニンゼファー', '[JP title]', 3, { type: 'friend', rate: 5000 }),
@@ -56,14 +56,14 @@ const SEEDED = fixture<BannerFile>({
     {
       id: 30001,
       image: 'old.png',
-      start: '2026-01-04T22:00:00.000Z',
-      end: '2026-01-12T21:59:59.000Z',
+      start: at('2026-01-04T22:00:00.000Z', 'gametora'),
+      end: at('2026-01-12T21:59:59.000Z', 'gametora'),
       main: null,
       featured: [item(30072, 1024, 'Mayano Top Gun', '[Party Formation]', 3, { type: 'speed' })],
     },
   ],
 });
-const CARDS: GlobalCardsFile = { 30072: { title_en: '[Party Formation]', release_gl: '2026-01-05' } };
+const CARDS: GlobalCardsFile = { 30072: { title_en: '[Party Formation]', release_gl: at('2026-01-05', 'gametora') } };
 const CARD_DATA = fixture<CardsFile>({
   30126: { charId: 1068, type: 'friend', name: { en: 'Yamanin Zephyr', jp: 'ヤマニンゼファー' } },
 });
@@ -110,9 +110,8 @@ describe('applyNews', () => {
   it("makes Global banners from JP's of the same id, with the post's dates, art and English names", () => {
     expect(cardBanner).toMatchObject({
       image: 'official-30135.png',
-      start: '2026-10-07T22:00:00.000Z',
-      end: '2026-10-15T21:59:59.000Z',
-      announced: true,
+      start: at('2026-10-07T22:00:00.000Z'),
+      end: at('2026-10-15T21:59:59.000Z'),
       news_url: 'https://umamusume.com/news/1089/',
     });
     expect(cardBanner.featured.map((i) => [i.id, i.name, i.title, i.new])).toEqual([
@@ -127,7 +126,7 @@ describe('applyNews', () => {
   it("records the cards' Global releases, leaving the seeded ones alone", () => {
     expect(result.cards).toEqual({
       30072: CARDS[30072],
-      30126: { title_en: '[Calm Breeze]', release_gl: '2026-10-07', news_url: 'https://umamusume.com/news/1089/' },
+      30126: { title_en: '[Calm Breeze]', release_gl: at('2026-10-07'), news_url: 'https://umamusume.com/news/1089/' },
     });
     // (A copy: what an earlier run took from the posts is taken again.)
     expect(result.global.cards.at(-1)).toEqual(SEEDED.cards[0]);
@@ -150,9 +149,9 @@ describe('applyNews', () => {
       present(
         moved.global.cards.find((b) => b.id === 30135),
         'banner'
-      ).start
+      ).start.date
     ).toBe('2026-10-08T22:00:00.000Z');
-    expect(moved.cards[30126].release_gl).toBe('2026-10-08');
+    expect(moved.cards[30126].release_gl.date).toBe('2026-10-08');
   });
 
   it("keeps a seeded banner's dates and items, adding its post and official art, and skips ids JP doesn't have", () => {

@@ -1,12 +1,13 @@
 // JP's banners (data/jp_banners.json, committed): GameTora's history, seeded once (2026-10; GameTora's banners aren't
 // scraped any more), with the JP news merged over it. No GameTora URLs are stored:
 // the app builds art and icons from ids. A banner's `image` is only a news-made banner's official art.
-// A banner GameTora has keeps its dates (the news agrees on all of them) and gets news_url / news_image.
+// A banner GameTora has keeps its dates (the news agrees on all of them: those it gives are then the news', status
+// `news`) and gets news_url / news_image.
 // Re-runs (decision 6): the original keeps its dates and gets `rerun`. A re-run GameTora already has is its `rerunOf`,
 // else a news-made entry with id `<original id>-rerun` (the only string ids).
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import type { GametoraType } from '../../shared/schemas/common.ts';
+import { type GametoraType, dated } from '../../shared/schemas/common.ts';
 import type { Banner, BannerFile, BannerId, BannerItem } from '../../shared/schemas/banner.ts';
 import type { Card, CardsFile } from '../../shared/schemas/card.ts';
 import type { GametoraTrainee } from '../../shared/schemas/gametora.ts';
@@ -32,7 +33,7 @@ const RARITY: Record<string, number> = { R: 1, SR: 2, SSR: 3 };
 // cards.json's readable types → GameTora's, as the seeded banners have them.
 const GAMETORA_TYPE: Record<string, string> = { wisdom: 'intelligence' };
 // The keys the news adds to a seeded banner (taken off before each rebuild).
-const NEWS_KEYS = ['announced', 'news_url', 'news_image', 'rerun', 'rerunOf', 'paid', 'name', 'note'] as const;
+const NEWS_KEYS = ['news_url', 'news_image', 'rerun', 'rerunOf', 'paid', 'name', 'note'] as const;
 
 // A featured item while the news is merged in: `new` is set on every item once the banners are (the end of
 // applyJpNews()).
@@ -151,7 +152,12 @@ export function applyJpNews({
     kinds[kind] = jp[kind]
       .filter((b) => !b.from_news)
       .map((b) => {
-        const draft: Draft = { ...b, featured: gametoraItems(b.featured) };
+        const draft: Draft = {
+          ...b,
+          start: dated(b.start.date, 'gametora'),
+          end: b.end && dated(b.end.date, 'gametora'),
+          featured: gametoraItems(b.featured),
+        };
         for (const k of NEWS_KEYS) delete draft[k];
         return draft;
       });
@@ -177,7 +183,6 @@ export function applyJpNews({
   const byId = new Map<BannerId, { kind: Kind; banner: Draft }>();
   for (const [id, { post, b }] of latest) {
     const news = {
-      announced: true,
       news_url: post.url,
       news_image: b.image,
       ...(b.paid && { paid: true }),
@@ -189,10 +194,13 @@ export function applyJpNews({
       const { kind, banner } = known;
       const what = [];
       if (b.type && KIND_OF_TYPE[b.type] !== kind) what.push(`type ${b.type}`);
-      if (b.start !== banner.start) what.push(`start ${b.start} (GameTora ${banner.start})`);
-      if (b.end && endOfMinute(b.end) !== banner.end) what.push(`end ${endOfMinute(b.end)} (GameTora ${banner.end})`);
+      if (b.start !== banner.start.date) what.push(`start ${b.start} (GameTora ${banner.start.date})`);
+      if (b.end && endOfMinute(b.end) !== banner.end?.date)
+        what.push(`end ${endOfMinute(b.end)} (GameTora ${banner.end?.date})`);
       if (what.length) mismatches.push({ id, post: post.url, what: what.join(', ') });
       Object.assign(banner, news);
+      if (b.start === banner.start.date) banner.start.status = 'news';
+      if (banner.end && endOfMinute(b.end) === banner.end.date) banner.end.status = 'news';
       // The R cards GameTora leaves out (decision 1: kept where the post lists them).
       if (kind === 'cards')
         for (const entry of b.featured.filter((f) => f.rarity === 'R')) {
@@ -212,8 +220,8 @@ export function applyJpNews({
     const banner: Draft = {
       id,
       image: b.image,
-      start: b.start,
-      end: endOfMinute(b.end) ?? null,
+      start: dated(b.start, 'news'),
+      end: b.end ? dated(endOfMinute(b.end) as string, 'news') : null,
       main: null,
       featured: b.featured.map((f) => resolve(f, kind)),
       from_news: true,
@@ -237,7 +245,7 @@ export function applyJpNews({
       (o) =>
         o !== banner &&
         !o.from_news &&
-        o.start === start &&
+        o.start.date === start &&
         sameItems(gametoraItems(o.featured), gametoraItems(banner.featured))
     );
     let rerun: Draft;
@@ -245,21 +253,20 @@ export function applyJpNews({
       // GameTora's re-run has no post of its own: it shows its original's.
       Object.assign(twin, {
         rerunOf: id,
-        announced: true,
         news_url: post.url,
         news_image: banner.news_image ?? banner.image,
       });
+      twin.start.status = 'news';
       rerun = twin;
     } else {
       rerun = {
         id: `${id}-rerun`,
         ...(banner.image && { image: banner.image }),
-        start,
-        end,
+        start: dated(start, 'news'),
+        end: end ? dated(end, 'news') : null,
         main: null,
         featured: banner.featured.map((f) => ({ ...f })),
         from_news: true,
-        announced: true,
         news_url: post.url,
         news_image: banner.news_image,
         ...(banner.paid && { paid: true }),
@@ -270,8 +277,7 @@ export function applyJpNews({
       kinds[kind].push(rerun);
       made.push(rerun);
     }
-    // TODO(ts): `end` is null for an open-ended re-run, which BannerSchema's rerun.end (a Moment) doesn't allow.
-    banner.rerun = { id: rerun.id, start, end } as Banner['rerun'];
+    banner.rerun = { id: rerun.id, start: dated(start, 'news'), end: end ? dated(end, 'news') : null };
     reruns.push(rerun);
   }
 
@@ -282,18 +288,18 @@ export function applyJpNews({
       if (!b.rerunOf)
         // TODO(ts): undefined before an id's first sight: `undefined <= start` is false, so it's set then, as before.
         for (const f of b.featured)
-          if (f.id != null && !((first.get(f.id) as string) <= b.start)) first.set(f.id, b.start);
+          if (f.id != null && !((first.get(f.id) as string) <= b.start.date)) first.set(f.id, b.start.date);
     for (const b of kinds[kind].filter((x) => x.from_news)) {
-      for (const f of b.featured) f.new = !b.rerunOf && f.id != null && first.get(f.id) === b.start;
+      for (const f of b.featured) f.new = !b.rerunOf && f.id != null && first.get(f.id) === b.start.date;
       b.main = pickMain(b.featured);
     }
     // the R cards added to GameTora's banners
     for (const b of kinds[kind].filter((x) => !x.from_news))
-      for (const f of b.featured) if (f.from_news) f.new = !b.rerunOf && first.get(f.id) === b.start;
+      for (const f of b.featured) if (f.from_news) f.new = !b.rerunOf && first.get(f.id) === b.start.date;
   }
 
   const num = (id: BannerId): number => Number.parseInt(String(id), 10);
-  const newestFirst = (a: Draft, b: Draft): number => b.start.localeCompare(a.start) || num(b.id) - num(a.id);
+  const newestFirst = (a: Draft, b: Draft): number => b.start.date.localeCompare(a.start.date) || num(b.id) - num(a.id);
   // TODO(ts): every featured item has `new` once the loop above has set it (Item's `new` is optional until then).
   const done = (list: Draft[]): Banner[] => list as Banner[];
   return {

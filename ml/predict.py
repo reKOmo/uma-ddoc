@@ -6,10 +6,10 @@ generated/event_pairs.json: see events.py; the pairs are known dates too). Write
 
   { model, fitted_at, anchor: { release_jp, release_gl }, global_days_per_jp_day,
     known_dates: [{ release_jp, release_gl }], backtest: { "<lo>-<hi>": [median, p90, n] },
-    cards: { id: { release_jp, predicted_gl, lo, hi, confirmed } } }
+    cards: { id: { release_jp, release_gl: { date, status: predicted (lo, hi) | confirmed } } } }
 
-`confirmed` comes only from known_dates.json: a card on a JP day its `dates` give, or on one of its confirmed `banners`.
-A card on another known day (from Global's banners or paired events) has that day's Global date but isn't `confirmed`.
+Status `confirmed` comes only from known_dates.json: a card on a JP day its `dates` give, or on one of its confirmed `banners`.
+A card on another known day (from Global's banners or paired events) has that day's Global date but is `predicted`.
 Predictions go through the known dates in data/known_dates.json and never fall on a Japanese
 weekend (see adjust.py). lo / hi is a rough 90% range: the backtest's 90th-percentile error, scaled
 with how many JP days the card is from the nearest fixed point (the last release or a known date).
@@ -28,10 +28,10 @@ import numpy as np
 from adjust import confirmed_cards, hand_known_days, load_known_dates, snap_weekday, with_known_dates
 from backtest import errors, run
 from banners import BANNERS_OUTPUT, predict_banners
-from events import EVENTS_OUTPUT, PAIRS_OUTPUT, anchor_points, pair_events, past_ref, predict_events, write_pairs
+from events import EVENTS_OUTPUT, PAIRS_OUTPUT, anchor_points, pair_events, past_ref, predict_events, write_fills, write_pairs
 from events import summary as events_summary
 from scenarios import SCENARIOS, predict_scenarios
-from data import GENERATED, batches, load_cards, to_date
+from data import GENERATED, batches, dated, load_cards, to_date
 
 OUTPUT = GENERATED / 'predicted_gl_releases.json'
 
@@ -96,10 +96,9 @@ def main():
         'cards': {
             row.id: {
                 'release_jp': row.release_jp,
-                'predicted_gl': to_date(row.predicted_gl),
-                'lo': to_date(row.lo),
-                'hi': to_date(row.hi),
-                'confirmed': row.jp in confirmed_days or int(row.id) in confirmed_ids,
+                'release_gl': dated(to_date(row.predicted_gl), 'confirmed')
+                if row.jp in confirmed_days or int(row.id) in confirmed_ids
+                else dated(to_date(row.predicted_gl), 'predicted', lo=to_date(row.lo), hi=to_date(row.hi)),
             }
             for row in upcoming.itertuples()
         },
@@ -108,6 +107,7 @@ def main():
     banners = predict_banners(predict, model.anchor[0], result['fitted_at'])
     scenarios = predict_scenarios(predict)
     events = predict_events(predict, model.anchor[0], known, pairs, result['fitted_at'])
+    filled = write_fills(pairs)
 
     skipped = cards[cards['status'] == 'skipped']
     print(f'model: {model.name}, {model.slope:.3f} Global days per JP day, anchored at '
@@ -119,7 +119,7 @@ def main():
     for row in upcoming.itertuples():
         card = result['cards'][row.id]
         print(f'{row.id:<7}{row.name[:25]:<26}{(row.title or "")[:33]:<34}{row.release_jp:<12}'
-              f'{card["predicted_gl"]:<20}{card["lo"]} – {card["hi"]}')
+              f'{card["release_gl"]["date"]:<20}{card["release_gl"].get("lo", "")} – {card["release_gl"].get("hi", "")}')
     print(f'\n{len(upcoming)} cards → {OUTPUT.relative_to(GENERATED.parent)}')
     print(f'{len(banners["characters"])} character + {len(banners["cards"])} card banners → '
           f'{BANNERS_OUTPUT.relative_to(GENERATED.parent)}')
@@ -130,6 +130,7 @@ def main():
     print(f'{len(scenarios)} scenario launches → {SCENARIOS.relative_to(GENERATED.parent)}')
     print(f'\n{events_summary(pairs, events)}')
     print(f'→ {PAIRS_OUTPUT.relative_to(GENERATED.parent)}, {EVENTS_OUTPUT.relative_to(GENERATED.parent)}')
+    print(f'{filled} paired Global events with dates filled in → data/global_events.json')
 
 
 if __name__ == '__main__':

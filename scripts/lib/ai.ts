@@ -22,7 +22,7 @@ export type AiConfig = {
 type Message = { role: 'system' | 'user'; content: string };
 
 export const DEFAULTS: Record<Provider, { url: string; model: string; pause: number }> = {
-  ollama: { url: 'http://localhost:11434/api/chat', model: 'gemma4:e4b', pause: 0 },
+  ollama: { url: 'http://localhost:11434/api/chat', model: 'gemma4:26b', pause: 0 },
   openrouter: {
     url: 'https://openrouter.ai/api/v1/chat/completions',
     model: 'google/gemma-4-26b-a4b-it:free',

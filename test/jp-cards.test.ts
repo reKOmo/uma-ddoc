@@ -7,7 +7,7 @@ import type { NewsCard } from '../scripts/lib/jp-cards.ts';
 import type { JpCard, JpCardsFile } from '../shared/schemas/card.ts';
 import type { GametoraCard } from '../shared/schemas/gametora.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
-import { present } from './helpers.ts';
+import { at, present } from './helpers.ts';
 
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8'));
 const posts = existsSync(postsFile('jp')) ? readJson<NewsPost[]>(postsFile('jp')) : [];
@@ -99,7 +99,7 @@ const old: JpCard = {
   rarity: 'SSR',
   name: { en: 'Old', jp: '古い' },
   title: { en: null, jp: '[掲げよ、燃え盛る灯を]' },
-  release: '2021-02-24',
+  release: at('2021-02-24', 'gametora'),
   source: ['gacha'],
   slug: '30001-old',
 };
@@ -144,7 +144,7 @@ describe('applyNewsCards', () => {
       rarity: 'SSR',
       name: { en: 'Newbie', jp: '新人' },
       title: { en: '[GT 30400]', jp: '[新しい札]' },
-      release: '2026-10-01',
+      release: at('2026-10-01'),
       source: ['gacha'],
       slug: '30400-x',
       news_url: 'u1',
@@ -153,7 +153,11 @@ describe('applyNewsCards', () => {
   });
 
   it("gives a gift card GameTora's source", () => {
-    expect(result.history[30401]).toMatchObject({ type: 'friend', source: ['limited_quest'], release: '2026-10-02' });
+    expect(result.history[30401]).toMatchObject({
+      type: 'friend',
+      source: ['limited_quest'],
+      release: at('2026-10-02'),
+    });
   });
 
   it('never changes a frozen card', () => {
@@ -166,7 +170,7 @@ describe('applyNewsCards', () => {
         rarity: 'SR',
         name: { en: null, jp: '未定' },
         title: { en: null, jp: '[まだ]' },
-        release: '2026-10-03',
+        release: at('2026-10-03'),
         source: ['story_event'],
         news_url: 'u3',
       },
@@ -194,7 +198,7 @@ describe('applyNewsCards', () => {
     expect(applyNewsCards({ history: result.history, found, gametora: [] }).history).toEqual(result.history);
     // the news' fields are rebuilt from the posts each time
     const moved = found.map((c) => (c.news_url === 'u1' ? { ...c, release: '2026-09-30' } : c));
-    expect(applyNewsCards({ history: result.history, found: moved, gametora }).history[30400].release).toBe(
+    expect(applyNewsCards({ history: result.history, found: moved, gametora }).history[30400].release.date).toBe(
       '2026-09-30'
     );
   });
@@ -220,7 +224,7 @@ describe.skipIf(!stored)('the stored news, history and GameTora list', () => {
 
   it('rebuild the newest cards from the news + GameTora exactly as the frozen history has them', () => {
     // the frozen cards from 2026-06 on, removed and rebuilt
-    const frozen = Object.entries(jpCards).filter(([, c]) => !c.news_url && c.release >= '2026-06-01');
+    const frozen = Object.entries(jpCards).filter(([, c]) => !c.news_url && c.release.date >= '2026-06-01');
     const trimmed = Object.fromEntries(Object.entries(jpCards).filter(([id]) => !frozen.some(([f]) => f === id)));
     const r = applyNewsCards({ history: trimmed, found: all, gametora: gtCards });
     // (30310, a KFC collab's serial code card, is only in a ぱかライブTV summary post: not an event post)
@@ -228,7 +232,8 @@ describe.skipIf(!stored)('the stored news, history and GameTora list', () => {
     for (const [id, card] of frozen) {
       if (Number(id) === 30310) continue;
       const { news_url, ...rebuilt } = r.history[id];
-      expect(rebuilt, id).toEqual(card);
+      // (the same day, the news' now)
+      expect(rebuilt, id).toEqual({ ...card, release: { ...card.release, status: 'news' } });
     }
   });
 });

@@ -13,7 +13,7 @@ import type { Entry } from '../src/timeline/entries.ts';
 import type { BannerFile } from '../shared/schemas/banner.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { GameEvent, PredictedEvent, PredictedEventsFile } from '../shared/schemas/event.ts';
-import { fixture, present } from './helpers.ts';
+import { at, fixture, present } from './helpers.ts';
 
 // Typed as the schemas describe them: JSON imports are typed more loosely (schemas.test.ts checks the files).
 const cards = fixture<CardsFile>(cardsJson);
@@ -89,24 +89,24 @@ describe('bannerEntries', () => {
       file([
         {
           id: 1,
-          start: '2026-01-01T00:00:00Z',
-          end: '2026-01-08T00:00:00Z',
+          start: at('2026-01-01T00:00:00Z'),
+          end: at('2026-01-08T00:00:00Z'),
           main: featured,
           featured: [featured],
-          rerun: { id: '1-rerun', start: '2026-02-01T00:00:00Z', end: '2026-02-03T00:00:00Z' },
+          rerun: { id: '1-rerun', start: at('2026-02-01T00:00:00Z'), end: at('2026-02-03T00:00:00Z') },
         },
         {
           id: 2,
-          start: '2026-03-01T00:00:00Z',
-          end: '2026-03-08T00:00:00Z',
+          start: at('2026-03-01T00:00:00Z'),
+          end: at('2026-03-08T00:00:00Z'),
           main: featured,
           featured: [featured],
-          rerun: { id: '2-rerun', start: '2026-04-01T00:00:00Z', end: '2026-04-03T00:00:00Z' },
+          rerun: { id: '2-rerun', start: at('2026-04-01T00:00:00Z'), end: at('2026-04-03T00:00:00Z') },
         },
         {
           id: '1-rerun',
-          start: '2026-02-01T00:00:00Z',
-          end: '2026-02-03T00:00:00Z',
+          start: at('2026-02-01T00:00:00Z'),
+          end: at('2026-02-03T00:00:00Z'),
           main: featured,
           featured: [featured],
           rerunOf: 1,
@@ -126,19 +126,18 @@ describe('bannerEntries', () => {
       file([
         {
           id: 3,
-          start: '2026-11-01T22:00:00Z',
-          end: '2026-11-08T21:59:59Z',
+          start: at('2026-11-01T22:00:00Z', 'predicted', { lo: '2026-10-28', hi: '2026-11-05' }),
+          end: at('2026-11-08T21:59:59Z', 'predicted'),
           main: featured,
           featured: [featured],
           predicted: true,
           jp_start: '2025-05-01T03:00:00Z',
           jp_end: '2025-05-08T02:59:59Z',
-          margin_days: 4,
           news_image: 'post.png',
         },
         {
           id: 50001,
-          start: '2026-01-01T00:00:00Z',
+          start: at('2026-01-01T00:00:00Z'),
           end: null,
           main: null,
           featured: [],
@@ -179,11 +178,10 @@ describe('eventEntries', () => {
           kind: 'story',
           name: 'X',
           parent: null,
-          start: '2026-12-01T00:00:00Z',
+          start: at('2026-12-01T00:00:00Z', 'predicted', { lo: '2026-11-29', hi: '2026-12-03' }),
           end: null,
           predicted: true,
           jp_start: '2025-12-01T00:00:00Z',
-          margin_days: 2,
           news_url: 'https://umamusume.jp/news/detail/?id=2',
           cards: [{ id, rarity: 'SSR', title: 'T', name: cards[id].name.jp, copies: 3 }],
           items: [],
@@ -202,7 +200,7 @@ describe('eventEntries', () => {
       id: '1',
       kind: 'gift',
       parent: null,
-      start: '2026-10-12T12:00:00Z',
+      start: at('2026-10-12T12:00:00Z'),
       end: null,
       cards: [],
       items: [],
@@ -213,13 +211,18 @@ describe('eventEntries', () => {
 
 describe('bannerStatus', () => {
   it('reads predicted and confirmed first, then the dates', () => {
-    const at = (start: string, end: string | null) => bannerStatus({ start, end }, now);
-    expect(at('2026-10-01T00:00:00Z', '2026-10-20T00:00:00Z')).toBe('live');
-    expect(at('2026-10-20T00:00:00Z', '2026-10-27T00:00:00Z')).toBe('upcoming');
-    expect(at('2026-09-01T00:00:00Z', '2026-09-08T00:00:00Z')).toBe('ended');
-    expect(at('2026-09-01T00:00:00Z', null)).toBe('live'); // until further notice
-    expect(bannerStatus({ start: '2026-12-01T00:00:00Z', end: null, predicted: true, confirmed: true }, now)).toBe(
+    const status = (start: string, end: string | null) =>
+      bannerStatus({ start: at(start), end: end ? at(end) : null }, now);
+    expect(status('2026-10-01T00:00:00Z', '2026-10-20T00:00:00Z')).toBe('live');
+    expect(status('2026-10-20T00:00:00Z', '2026-10-27T00:00:00Z')).toBe('upcoming');
+    expect(status('2026-09-01T00:00:00Z', '2026-09-08T00:00:00Z')).toBe('ended');
+    expect(status('2026-09-01T00:00:00Z', null)).toBe('live'); // until further notice
+    expect(bannerStatus({ start: at('2026-12-01T00:00:00Z', 'confirmed'), end: null, predicted: true }, now)).toBe(
       'confirmed'
+    );
+    // An announced event whose end is only a prediction: the news', by its dates.
+    expect(bannerStatus({ start: at('2026-10-20T00:00:00Z'), end: at('2026-10-27T00:00:00Z', 'predicted') }, now)).toBe(
+      'upcoming'
     );
   });
 });

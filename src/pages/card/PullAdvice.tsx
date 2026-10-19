@@ -24,7 +24,9 @@ function BannerDates({ banner, timeZone }: { banner: ArtBanner; timeZone: 'utc' 
   return (
     <>
       <StatusBadge status={bannerStatus(banner)} />
-      <span className={styles.dates}>{dateRange(banner, dateFormats(timeZone).long)}</span>
+      <span className={styles.dates}>
+        {dateRange({ start: banner.start.date, end: banner.end?.date ?? null }, dateFormats(timeZone).long)}
+      </span>
     </>
   );
 }

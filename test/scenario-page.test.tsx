@@ -42,7 +42,7 @@ describe('ScenarioPage', () => {
   it('shows a predicted launch with its range, and links to the scenarios around it', () => {
     const gm = scenarioByKey('GM');
     renderScenario('GM');
-    if (gm?.en_start_date?.tag === 'predicted') {
+    if (gm?.en_start_date?.status === 'predicted') {
       expect(screen.getByText('Predicted')).toBeTruthy();
       expect(screen.getByText(/Could be /)).toBeTruthy();
       expect(screen.getByText(/Expected after /)).toBeTruthy();

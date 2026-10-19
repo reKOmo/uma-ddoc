@@ -30,8 +30,9 @@
   (seeded once, 366 banners) with the JP news merged over it, rebuilt from every post each time (idempotent; seeded
   entries never lost; GameTora's banners aren't scraped any more). No GameTora URLs (seeded banners have no `image`,
   items no `icon`: the app builds them, `src/gametora.ts`); `image` is only a news-made banner's official art. A
-  banner GameTora has gets `announced`, `news_url`, `news_image` (official art, shown over GameTora's; dates stay
-  GameTora's: all 574 post/GameTora pairs agree on start, end and type) and the R cards the post lists,
+  banner GameTora has gets `news_url`, `news_image` (official art, shown over GameTora's; dates stay
+  GameTora's: all 574 post/GameTora pairs agree on start, end and type, so the dates a post gives are status `news`, the
+  rest `gametora`) and the R cards the post lists,
   as `from_news` featured items (GameTora leaves R cards out). Banners GameTora lacks (select-pickup supports, Twinkle
   Collection 30xxx, paid 50xxx) are made from the post (`from_news: true`, featured resolved: supports by cards.json
   title.jp + name.jp, trainees by title + name on the items of data/jp_banners.json and data/global_banners.json, and

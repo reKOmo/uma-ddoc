@@ -164,6 +164,11 @@
   transition: opacity 0.15s;
 }
 
+/* Only its end is a prediction (an announced event): the bar fades out there. */
+.bar.endPredicted {
+  mask-image: linear-gradient(to right, #000 calc(100% - 3rem), rgb(0 0 0 / 0.35));
+}
+
 .bar.predicted:hover,
 .bar.predicted:focus-within {
   opacity: 0.85;

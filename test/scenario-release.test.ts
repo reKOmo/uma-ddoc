@@ -14,9 +14,9 @@ describe('isReleased', () => {
     expect(isReleased('GL', 'gl', now)).toBe(true);
     expect(isReleased('GM', 'jp', now)).toBe(true);
     expect(isReleased('GM', 'gl', now)).toBe(
-      gm.en_start_date?.tag !== 'predicted' && Date.parse(present(gm.en_start_date, 'GM launch').date) <= now
+      gm.en_start_date?.status !== 'predicted' && Date.parse(present(gm.en_start_date, 'GM launch').date) <= now
     );
-    expect(isReleased('GM', 'gl', Date.parse('2030-01-01T00:00:00Z'))).toBe(gm.en_start_date?.tag !== 'predicted');
+    expect(isReleased('GM', 'gl', Date.parse('2030-01-01T00:00:00Z'))).toBe(gm.en_start_date?.status !== 'predicted');
   });
 
   it("counts keys it doesn't know as launched", () => {

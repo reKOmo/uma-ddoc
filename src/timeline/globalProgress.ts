@@ -29,10 +29,12 @@ export function globalProgress({
   const pairs = [
     ...all(global).flatMap((b) => {
       const jpStart = jpBanners.get(b.id);
-      return jpStart ? [{ gl: Date.parse(b.start), jp: Date.parse(jpStart.start), known: true }] : [];
+      return jpStart ? [{ gl: Date.parse(b.start.date), jp: Date.parse(jpStart.start.date), known: true }] : [];
     }),
     ...all(predicted).flatMap((b) =>
-      b.jp_start ? [{ gl: Date.parse(b.start), jp: Date.parse(b.jp_start), known: !b.predicted || !!b.confirmed }] : []
+      b.jp_start
+        ? [{ gl: Date.parse(b.start.date), jp: Date.parse(b.jp_start), known: b.start.status !== 'predicted' }]
+        : []
     ),
   ].sort((a, b) => a.gl - b.gl || a.jp - b.jp);
 
@@ -44,8 +46,8 @@ export function globalProgress({
 
   if (!next) {
     // No later banner known at all: the window is the JP banner Global is running.
-    const current = regular(jp).find((b) => Date.parse(b.start) === prev.jp);
-    const to = current ? (current.end ? Date.parse(current.end) : Number.NaN) : prev.jp;
+    const current = regular(jp).find((b) => Date.parse(b.start.date) === prev.jp);
+    const to = current ? (current.end ? Date.parse(current.end.date) : Number.NaN) : prev.jp;
     return { estimate: prev.jp, from: prev.jp, to, toKnown: false };
   }
   const progress = Math.min(1, Math.max(0, (now - prev.gl) / (next.gl - prev.gl)));

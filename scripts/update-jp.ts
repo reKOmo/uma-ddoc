@@ -54,7 +54,7 @@ export async function updateJp(): Promise<JpUpdate> {
     console.log('no generated/raw/gametora_events.json (pnpm scrape-gametora): GameTora fills kept as they are');
   const events: GameEvent[] = gametora
     ? fill.events
-    : [...fill.events, ...kept].sort((a, b) => b.start.localeCompare(a.start) || b.id.localeCompare(a.id));
+    : [...fill.events, ...kept].sort((a, b) => b.start.date.localeCompare(a.start.date) || b.id.localeCompare(a.id));
   writeEvents(events, 'jp');
   const changed = events.filter((e: GameEvent) => old.get(e.id) !== JSON.stringify(e));
 

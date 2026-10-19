@@ -73,8 +73,30 @@
           "gl": {
             "anyOf": [
               {
-                "type": "string",
-                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["news", "confirmed", "predicted", "gametora"]
+                  },
+                  "lo": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "hi": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "source": {
+                    "type": "string"
+                  }
+                },
+                "required": ["date", "status"],
+                "additionalProperties": false
               },
               {
                 "type": "null"
@@ -84,8 +106,30 @@
           "jp": {
             "anyOf": [
               {
-                "type": "string",
-                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["news", "confirmed", "predicted", "gametora"]
+                  },
+                  "lo": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "hi": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "source": {
+                    "type": "string"
+                  }
+                },
+                "required": ["date", "status"],
+                "additionalProperties": false
               },
               {
                 "type": "null"

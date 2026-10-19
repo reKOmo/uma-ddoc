@@ -4,7 +4,7 @@
   GameTora; Global's upcoming ones are predicted from JP's: "Global ↔ JP events" below). **Everything with dates of its
   own is a bar** (except inside one event: Champions Meeting rounds, reward collection, repeated windows stay in its
   bar), newest first: `{ id, kind, name, parent, start, end, cards, items, titles, phases?, races?, news_url, image, source }`
-  (`phases`: Champions Meetings only). `races` (`scripts/lib/event-races.ts`, wording in `lang.race`): every event whose
+  (`phases`: a Champions Meeting's, JP League of Heroes', else any event whose post gives two or more of `lang.eventPhases`: event, tallying, results, reward collection). `races` (`scripts/lib/event-races.ts`, wording in `lang.race`): every event whose
   post has a "Race Condition(s)" section (Champions Meetings, Legend Races, the Racing Carnival, Dream Team), `{ name,
   opponent, track, surface, distance, category, direction, course, season, weather, ground, time, variable }` as keys
   the app translates; read word by word from "Tenno Sho (Spring) / Kyoto / Turf / 3,200m (Long) / Right-Handed / Outer
@@ -32,7 +32,11 @@
   each later block with a period heading or gift/reward contents of its own is a sub-event (id `<post>-<block>`,
   `parent` = the celebration; name from its opening sentence, `subEventName()`; kind from name + opening sentence,
   then headings, `subEventKind()`; a gift without a period starts when its sentence says, else when posted); other
-  blocks (a new song, stamps, a dated "has been added" sentence) belong to the block before. A celebration without a
+  blocks (a new song, stamps, a dated "has been added" sentence) belong to the block before. A block 0 whose period
+  starts with a later opening sentence, not the celebration's own, announces an included event: from that sentence on
+  it's a sub-event `<post>-0` (Holiday Celebration Part 2's "The in-game collaboration event …, Sparkly Magic Show, is
+  set to kick off at …": kind special, `lang.inGameEvent`; 1st Anniversary Part 3's login bonus), and the event's own
+  post merges into it (Global's 1109 → `1093-0`). A celebration without a
   period of its own runs from its opening sentence's date to its last sub-event's end. Dates (`blockPeriod()`): the
   block's period headings (main ones first: availability / event / sale / league selection; never reward collection, expiry,
   registration, matching, sneak peek, ranking, exchange), every short non-bullet line under them; "Gift Timing" lists
@@ -42,7 +46,9 @@
   to its final race (the post's "Event Availability Period" and GameTora's dates start at round 1, 3–4 days later; the
   league selection is the event's start) and has `phases` [{ key, start, end }] from its
   schedule headings (`cmPhases()`, `CM_PHASES`: league_selection, round_1, round_2, final_registration,
-  final_matching, final_race; from the latest post that has them, "coming soon" posts only give rough starts).
+  final_matching, final_race; from the latest post that has them; a "coming soon" post's "League Selection: From …"
+  lines give their starts, and `predict-gl` fills the rest from JP's cup, status `predicted`: [pipeline](pipeline.md#dates)).
+  Every date is `{ date, status }` ([pipeline](pipeline.md#dates)): `news` here, `gametora` for GameTora's.
   Mission sets get the reward names of their post's sentence about the missions ("rewards including carats, monies
   and Support Points"), never amounts (posts don't give per-set amounts).
   Merging (`buildEvents()`): same kind + name and overlapping dates (a cup counts from its league selection, so a

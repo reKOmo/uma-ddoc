@@ -66,17 +66,22 @@ export function blockRaces(block: Block, lang: Lexicon, names: Map<string, strin
   const r = lang.race;
   const section = block.sections.find((s) => r.heading.test(s.heading));
   if (!section) return [];
-  const variable = section.lines.some((line) => r.variable.test(line));
-  const lines = section.lines.filter((line) => HAS_DISTANCE.test(line)).map((line) => raceConditions(line, r));
+  // (A line broken after a slash goes on in the next: "Chukyo / … / Winter /", "Sunny / Firm".)
+  const joined: string[] = [];
+  for (const line of section.lines)
+    if (/[/／]\s*$/.test(joined.at(-1) ?? '')) joined[joined.length - 1] += ` ${line}`;
+    else joined.push(line);
+  const variable = joined.some((line) => r.variable.test(line));
+  const lines = joined.filter((line) => HAS_DISTANCE.test(line)).map((line) => raceConditions(line, r));
   const raceName = (c: Conditions) => (c.name && (r.name?.(c.name) ?? c.name)) || null;
 
   if (!lines.length) {
-    const tracks = r.tracks && section.lines.map((line) => line.match(r.tracks as RegExp)?.[1]).find(Boolean);
+    const tracks = r.tracks && joined.map((line) => line.match(r.tracks as RegExp)?.[1]).find(Boolean);
     if (!tracks) return [];
     // Lines of known words only ("Season: Fall") apply to every racecourse.
     const shared = Object.assign(
       {},
-      ...section.lines
+      ...joined
         .map((line) => raceConditions(line, r))
         .filter((c) => !c.name && !c.unknown.length)
         .map((c) => c.fields)

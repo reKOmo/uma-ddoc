@@ -381,12 +381,19 @@ export const ja: JapaneseLexicon = {
     league_of_heroes: [
       ['team_formation', /^チーム編成期間$/],
       ['main_stage', /^メインステージ開催期間$/],
+      ['main_tallying', /^メインステージ\s*ランキング集計期間$/],
       ['extra_registration', /^エクストラステージ\s*出走登録期間$/],
       ['extra_matching', /^エクストラステージ\s*マッチング期間$/],
       ['extra_voting', /^エクストラステージ\s*ウマいね！?受付期間$/],
       ['extra_race', /^エクストラステージ\s*レース開催期間$/],
     ],
   },
+  eventPhases: [
+    ['event', /^(?:イベント)?開催期間$/],
+    ['tallying', /集計期間$/],
+    ['results', /^結果発表(?:期間)?$/],
+    ['reward_collection', /^報酬受け?取/],
+  ],
   // Story events with a typo in one post's name ("白焔の乱華" / "白焔の爛華"): the same dates make them one.
   sameDates: ['story'],
   // Posts at the same stage about one event each give some of its windows: their dates add up.

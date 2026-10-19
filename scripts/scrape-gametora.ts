@@ -126,7 +126,7 @@ export async function scrapeGametora(): Promise<void> {
   const colored = await fillColors(scenarios, HEADERS);
   if (colored) console.log(`scenario colours: ${colored} computed from their covers`);
   writeScenarios({ jp: `${SITE}/umamusume/scenarios`, en: 'official news (pnpm update-global)' }, scenarios);
-  const onGlobal = scenarios.filter((s) => s.en_start_date && s.en_start_date.tag !== 'predicted').length;
+  const onGlobal = scenarios.filter((s) => s.en_start_date && s.en_start_date.status !== 'predicted').length;
   console.log(`scenarios: ${scenarios.length} on JP, ${onGlobal} with a known Global launch`);
 
   await scrapeEvents(manifest);

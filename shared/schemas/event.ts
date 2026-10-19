@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Day, Moment, Rarity } from './common.ts';
+import { DatedMoment, Day, Moment, Rarity } from './common.ts';
 
 export const EVENT_KINDS = [
   'story',
@@ -42,7 +42,7 @@ export const EventItemSchema = z.strictObject({
 export type EventItem = z.infer<typeof EventItemSchema>;
 
 // A step of a cup's schedule (Champions Meetings: league_selection … final_race; League of Heroes its own).
-export const PhaseSchema = z.strictObject({ key: z.string(), start: Moment, end: Moment.nullable() });
+export const PhaseSchema = z.strictObject({ key: z.string(), start: DatedMoment, end: DatedMoment.nullable() });
 export type Phase = z.infer<typeof PhaseSchema>;
 
 // A race the event is run on, from its post's race conditions (keys: the app translates them). A Legend Race has one per
@@ -75,8 +75,8 @@ export const GameEventSchema = z.strictObject({
   // null for Legend Races and Transfer Requests (the UI shows the kind).
   name: z.string().nullable(),
   parent: z.string().nullable(),
-  start: Moment,
-  end: Moment.nullable(),
+  start: DatedMoment,
+  end: DatedMoment.nullable(),
   cards: z.array(EventCardSchema),
   items: z.array(EventItemSchema),
   titles: z.array(z.string()),
@@ -96,8 +96,6 @@ export const PredictedEventSchema = GameEventSchema.extend({
   jp_id: z.string(),
   jp_start: Moment,
   jp_end: Moment.nullable(),
-  margin_days: z.int(),
-  confirmed: z.boolean().optional(),
 });
 export type PredictedEvent = z.infer<typeof PredictedEventSchema>;
 export const PredictedEventsFileSchema = z.strictObject({

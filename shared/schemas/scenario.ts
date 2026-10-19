@@ -1,14 +1,9 @@
 import { z } from 'zod';
-import { Day, Moment } from './common.ts';
+import { DatedMoment } from './common.ts';
 
-// A launch: out (launched), confirmed (known, still ahead) or predicted (with a lo–hi range of days, ml/scenarios.py).
-export const StartDateSchema = z.strictObject({
-  date: Moment,
-  tag: z.enum(['out', 'confirmed', 'predicted']),
-  lo: Day.optional(),
-  hi: Day.optional(),
-});
-export type StartDate = z.infer<typeof StartDateSchema>;
+// A launch: from its post (news), known still ahead (confirmed) or predicted (with a lo–hi range, ml/scenarios.py).
+export const StartDateSchema = DatedMoment;
+export type StartDate = DatedMoment;
 
 export const ScenarioSchema = z.strictObject({
   // The tier list's key where it ranks the scenario, else ours: an id, never shown.

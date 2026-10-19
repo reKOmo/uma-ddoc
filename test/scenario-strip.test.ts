@@ -3,14 +3,14 @@ import { scenarioSegments } from '../src/timeline/scenarioStrip.ts';
 import type { Scenario, StartDate } from '../shared/schemas/scenario.ts';
 import { fixture } from './helpers.ts';
 
-const date = (iso: string, tag: StartDate['tag']) => ({ date: iso, tag });
+const date = (iso: string, status: StartDate['status']) => ({ date: iso, status });
 const SCENARIOS = fixture<Scenario[]>([
   {
     key: 'GL',
     full_en: 'Brighter Together! Our Grand Concert',
     full_jp: 'グランドライブ',
-    en_start_date: date('2026-07-22T22:00:00.000Z', 'out'),
-    jp_start_date: date('2022-08-24T03:00:00.000Z', 'out'),
+    en_start_date: date('2026-07-22T22:00:00.000Z', 'news'),
+    jp_start_date: date('2022-08-24T03:00:00.000Z', 'gametora'),
     color: '#8c4f75',
   },
   {
@@ -18,7 +18,7 @@ const SCENARIOS = fixture<Scenario[]>([
     full_en: null,
     full_jp: 'グランドマスターズ',
     en_start_date: date('2026-11-25T22:00:00.000Z', 'predicted'),
-    jp_start_date: date('2023-02-24T03:00:00.000Z', 'out'),
+    jp_start_date: date('2023-02-24T03:00:00.000Z', 'gametora'),
     color: '#fae15a',
   },
   {
@@ -26,7 +26,7 @@ const SCENARIOS = fixture<Scenario[]>([
     full_en: null,
     full_jp: 'L’Arc',
     en_start_date: null,
-    jp_start_date: date('2023-08-24T03:00:00.000Z', 'out'),
+    jp_start_date: date('2023-08-24T03:00:00.000Z', 'gametora'),
   },
 ]);
 

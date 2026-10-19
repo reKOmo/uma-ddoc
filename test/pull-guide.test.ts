@@ -16,7 +16,7 @@ import { bannerVerdicts, currentAdvice, latestAdvice, sheetLink, upcomingBanner,
 import type { Listed } from '../scripts/lib/pull-guide.ts';
 import type { Banner } from '../shared/schemas/banner.ts';
 import type { Advice, PullGuide } from '../shared/schemas/pullGuide.ts';
-import { fixture, present } from './helpers.ts';
+import { at, fixture, present } from './helpers.ts';
 
 const link = (url: string) => `<a href="https://www.google.com/url?q=${url}&amp;sa=D&amp;usg=x">`;
 let rowIndex = 0;
@@ -86,7 +86,7 @@ describe('a tab', () => {
 
   it('maps entries to banners, and cards on none to noBanner', () => {
     const banners = fixture<Banner[]>([
-      { id: 30120, start: '2026-03-11T22:00:00Z', featured: [{ id: 30086, new: true }] },
+      { id: 30120, start: at('2026-03-11T22:00:00Z'), featured: [{ id: 30086, new: true }] },
     ]);
     const tab = { name: 'Trackblazer', gid: '557481421', ...parseTab(TAB) };
     expect(byBanner([tab], banners)).toEqual({
@@ -201,7 +201,7 @@ describe('cells', () => {
 
 describe('the advice shown', () => {
   const banner = (id: number, start: string, end: string, isNew: boolean) =>
-    fixture<Banner>({ id, start, end, featured: [{ id: 30078, new: isNew }] });
+    fixture<Banner>({ id, start: at(start), end: at(end), featured: [{ id: 30078, new: isNew }] });
   const banners = [
     banner(3, '2026-11-24T22:00:00Z', '2026-12-03T21:59:59Z', false),
     banner(1, '2026-01-28T22:00:00Z', '2026-02-06T21:59:59Z', true),
@@ -261,7 +261,7 @@ describe('the banner an entry is about', () => {
   const banner = (id: number, start: string, cards: number[]) =>
     fixture<Banner>({
       id,
-      start: `${start}T22:00:00.000Z`,
+      start: at(`${start}T22:00:00.000Z`),
       featured: cards.map((c) => ({ id: c })),
     });
   const banners = [
@@ -296,7 +296,7 @@ describe('the banner an entry is about', () => {
 describe('a card pulled "With" another', () => {
   const banner = fixture<Banner>({
     id: 1,
-    start: '2026-05-10T22:00:00.000Z',
+    start: at('2026-05-10T22:00:00.000Z'),
     featured: [
       { id: 10, name: 'Special Week' },
       { id: 11, name: 'Hishi Amazon' },
@@ -361,7 +361,7 @@ describe('the schema', () => {
 
   it('fits what the script writes', () => {
     const banners = fixture<Banner[]>([
-      { id: 30120, start: '2026-03-11T22:00:00Z', featured: [{ id: 30086, new: true }] },
+      { id: 30120, start: at('2026-03-11T22:00:00Z'), featured: [{ id: 30086, new: true }] },
     ]);
     const guide = byBanner([{ gid: '557481421', ...parseTab(TAB) }], banners);
     check({ $schema: '../schemas/pull_guide.schema.json', ...guide });

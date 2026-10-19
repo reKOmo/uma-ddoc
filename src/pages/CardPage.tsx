@@ -96,10 +96,13 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
       ) : !released && predicted ? (
         <>
           <Status>
-            {t(predicted.confirmed ? 'card.notReleasedConfirmed' : 'card.notReleasedPredicted', {
-              server: serverName(server),
-              date: formatDay(predicted.predicted_gl),
-            })}
+            {t(
+              predicted.release_gl.status === 'confirmed' ? 'card.notReleasedConfirmed' : 'card.notReleasedPredicted',
+              {
+                server: serverName(server),
+                date: formatDay(predicted.release_gl.date),
+              }
+            )}
           </Status>
           {rankOverTime}
         </>

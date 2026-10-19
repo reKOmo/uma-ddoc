@@ -13,9 +13,15 @@ import type { Entry } from '../src/timeline/entries.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { EventCard, GameEvent } from '../shared/schemas/event.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
-import { fixture, present } from './helpers.ts';
+import { at, fixture, present } from './helpers.ts';
 
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8'));
+const plainDates = (e: GameEvent) => ({
+  ...e,
+  start: e.start.date,
+  end: e.end?.date ?? null,
+  ...(e.phases && { phases: e.phases.map((p) => ({ ...p, start: p.start.date, end: p.end?.date ?? null })) }),
+});
 const cardsFile = `${GENERATED_DIR}cards.json`;
 const cards: CardsFile = existsSync(cardsFile) ? read<CardsFile>(cardsFile) : {};
 // Card lookups need GameTora's Japanese titles (pnpm scrape-gametora).
@@ -33,7 +39,8 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
     expect(events).toHaveLength(1);
     return events[0];
   };
-  const build = (...ids: number[]) => buildEvents(ids.map(post), { cards, lang: ja });
+  // (the dates alone: every one here is the news')
+  const build = (...ids: number[]) => buildEvents(ids.map(post), { cards, lang: ja }).map(plainDates);
   const copies = (e: { cards: EventCard[] }) => e.cards.map((c) => [c.id, c.copies]);
 
   it('reads a story event: dates in JST, its SSR and its title', () => {
@@ -195,7 +202,9 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
         'event'
       ).items
     ).toEqual([{ name: 'Monies', count: 600000, local: 'マニー' }]);
-    const [missions] = buildEvents([post(3233)], { lang: ja }).filter((e) => e.parent === '3233-1');
+    const [missions] = buildEvents([post(3233)], { lang: ja })
+      .filter((e) => e.parent === '3233-1')
+      .map(plainDates);
     expect(missions).toMatchObject({
       kind: 'missions',
       name: '帝王賞応援の期間限定ミッション',
@@ -322,8 +331,8 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
       kind: 'story',
       name: 'シーク・ソルヴ・サマーウォーク！',
       parent: null,
-      start: '2022-06-30T03:00:00.000Z',
-      end: '2022-07-11T02:59:00.000Z',
+      start: at('2022-06-30T03:00:00.000Z'),
+      end: at('2022-07-11T02:59:00.000Z'),
       cards: [],
       items: [],
       titles: [],
@@ -336,7 +345,7 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
       kind: 'champions_meeting',
       name: 'カプリコーン杯',
       parent: null,
-      start: '2022-01-01T03:00:00.000Z',
+      start: at('2022-01-01T03:00:00.000Z'),
       end: null,
       cards: [],
       items: [],
@@ -371,8 +380,8 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
       kind: 'story',
       name: '花咲く乙女のJunePride',
       parent: null,
-      start: '2021-05-28T03:00:00.000Z',
-      end: '2021-06-10T02:59:00.000Z',
+      start: at('2021-05-28T03:00:00.000Z', 'gametora'),
+      end: at('2021-06-10T02:59:00.000Z', 'gametora'),
       cards: [{ id: 30041, rarity: 'SSR', title: 'おもい、ねがう', name: 'メジロドーベル', copies: null }],
       items: [],
       titles: [],
@@ -385,9 +394,13 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
       'cup'
     );
     const phases = present(cup.phases, 'phases');
-    expect(cup.start).toBe('2022-02-18T03:00:00.000Z');
+    expect(cup.start).toEqual(at('2022-02-18T03:00:00.000Z', 'gametora'));
     expect(phases.map((p) => p.key)).toEqual(CM_PHASES.map(([key]) => key).filter((k) => k !== 'league_selection'));
-    expect(phases.at(-1)).toEqual({ key: 'final_race', start: '2022-02-23T03:00:00.000Z', end: cup.end });
+    expect(phases.at(-1)).toEqual({
+      key: 'final_race',
+      start: at('2022-02-23T03:00:00.000Z', 'gametora'),
+      end: cup.end,
+    });
     expect(events.find((e) => e.kind === 'legend_race')).toMatchObject({ id: 'gt-lr-20261008', name: null });
   });
 
@@ -399,7 +412,13 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
       phases.find((p) => p.key === 'round_1'),
       'round 1'
     );
-    expect(cmPhasesFrom(Date.parse(round1.start), Date.parse(present(e.end, 'end')))).toEqual(phases.slice(1));
+    // (the same dates, GameTora's)
+    const gametora = phases.slice(1).map((p) => ({
+      ...p,
+      start: { ...p.start, status: 'gametora' },
+      end: p.end && { ...p.end, status: 'gametora' },
+    }));
+    expect(cmPhasesFrom(Date.parse(round1.start.date), Date.parse(present(e.end, 'end').date))).toEqual(gametora);
   });
 
   it('fills only before mid-2022 where the news has nothing of the kind, and dates a cup the news only announced', () => {
@@ -409,8 +428,8 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
     expect(events.some((e) => e.id === 'gt-lr-20261008')).toBe(false);
     expect(dated).toHaveLength(1);
     expect(events.find((e) => e.id === '526')).toMatchObject({
-      start: '2022-01-22T03:00:00.000Z',
-      end: '2022-01-28T02:59:00.000Z',
+      start: at('2022-01-22T03:00:00.000Z', 'gametora'),
+      end: at('2022-01-28T02:59:00.000Z', 'gametora'),
       news_url: 'https://umamusume.jp/news/detail/?id=526',
       source: 'news',
     });
@@ -423,11 +442,11 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
 const stored = eventsFile('jp');
 describe.skipIf(!existsSync(stored))('the stored JP events', () => {
   const events = read<GameEvent[]>(stored);
-  const since = (kind: string, date: string) => events.filter((e) => e.kind === kind && e.start >= date);
+  const since = (kind: string, date: string) => events.filter((e) => e.kind === kind && e.start.date >= date);
 
   it('only uses kinds the app styles and labels, with dates in order', () => {
     expect(events.filter((e) => !EVENT_KINDS.includes(e.kind))).toEqual([]);
-    expect(events.filter((e) => !e.start || (e.end && e.end < e.start)).map((e) => e.id)).toEqual([]);
+    expect(events.filter((e) => e.end && e.end.date < e.start.date).map((e) => e.id)).toEqual([]);
   });
 
   it.skipIf(!withJp)('gives every story event since mid-2022 its SSR', () => {
@@ -455,11 +474,11 @@ describe.skipIf(!existsSync(stored))('the stored JP events', () => {
   it("fills GameTora's events only before mid-2022, where the news has none of the kind, marked as GameTora's", () => {
     const filled = events.filter((e) => e.source === 'gametora');
     expect(filled.length).toBeGreaterThan(20);
-    expect(filled.filter((e) => e.start >= '2022-07' || e.news_url || e.parent)).toEqual([]);
+    expect(filled.filter((e) => e.start.date >= '2022-07' || e.news_url || e.parent)).toEqual([]);
     const news = events.filter((e) => e.source === 'news' && !e.parent && e.end);
     // (an open end never overlaps, as comparing with null never did)
     const overlaps = (a: GameEvent, b: GameEvent) =>
-      a.kind === b.kind && b.end != null && a.end != null && a.start <= b.end && b.start <= a.end;
+      a.kind === b.kind && b.end != null && a.end != null && a.start.date <= b.end.date && b.start.date <= a.end.date;
     expect(filled.filter((g) => news.some((e) => overlaps(e, g))).map((e) => e.id)).toEqual([]);
     // With them, every story event since the launch has its SSR (but one the 2021 news names none for).
     expect(events.filter((e) => e.kind === 'story' && !e.cards.some((c) => c.rarity === 'SSR')).length).toBeLessThan(2);

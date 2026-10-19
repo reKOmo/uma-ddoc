@@ -48,17 +48,18 @@
   (`.event-parts-band`), nested parts the same way. Bars: the post's art covering the bar
   (`background-size: cover`, like banners' official art) behind the banners' gradient, edge coloured by kind family; under 64px a bar is a chip
   (no label, no art; name in the tooltip and sheet); an event run on a race shows its first one's course after its
-  name ("Sagittarius Cup · Nakayama 2500m", `raceLabel()`). A bar opens a sheet: dates, "Part of <event>" (opens it), the
+  name ("Sagittarius Cup · Nakayama 2500m", `raceLabel()`); a bar whose end is only predicted (an announced cup)
+  fades out at its end, its sheet saying "end predicted" and marking its schedule's predicted rows. A bar opens a sheet: dates, "Part of <event>" (opens it), the
   support cards it gives first (to their card page, copies), its races (course, distance, turns; season, weather,
   ground, JP's time of day; "vary from race to race" for League of Heroes / Dream Team; a predicted event's marked as
   JP's), other rewards (carats, monies, shards first; ranges for
-  Champions Meetings), a cup's schedule (league selection, rounds, final round steps), titles, its parts (open them; a
+  Champions Meetings), its schedule (a cup's league selection, rounds, final round steps; a story event's period and reward collection…), titles, its parts (open them; a
   "Support cards" pill on those giving one), the news post and umapyoi.net's copy of it (`src/umapyoi.ts`: JP's in
   Japanese, `news/<id>?lang=jp`; Global's `en/news/<id>`; every event with a post has both, GameTora-filled ones none).
   News-made banners' sheets link both too.
   Global's calendar also shows **predicted events** (`generated/predicted_global_events.json`, optional like the
   predicted banners): every JP event Global hasn't had yet at its predicted Global date, in the same groups,
-  half-transparent (nearly solid when confirmed), with JP's names and art; the sheet says "Predicted from the JP event
+  half-transparent (nearly solid when its start is confirmed), with JP's names and art; the sheet says "Predicted from the JP event
   of … ± N days" and links JP's announcement. A prediction is dropped when Global's real events already have a newer
   event of its kind (`withPredicted()`, `src/timeline/events.ts`).
   JP's calendar marks where Global is: a window from the JP banner Global is running to its next banner's

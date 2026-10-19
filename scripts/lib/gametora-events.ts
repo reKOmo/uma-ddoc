@@ -10,6 +10,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import type { CardsFile } from '../../shared/schemas/card.ts';
+import { dated } from '../../shared/schemas/common.ts';
 import type { EventCard, EventKind, GameEvent, Phase } from '../../shared/schemas/event.ts';
 import type { GametoraEventsFile } from '../../shared/schemas/gametora.ts';
 import { DAY } from './news-text.ts';
@@ -76,8 +77,8 @@ function cardOf(cards: CardsFile, id: string): EventCard {
 export function cmPhasesFrom(start: number, end: number): Phase[] {
   return CM_SCHEDULE.map(([key, from, to]) => ({
     key,
-    start: iso(start + from),
-    end: iso(to == null ? end : start + to - 60_000),
+    start: dated(iso(start + from), 'gametora'),
+    end: dated(iso(to == null ? end : start + to - 60_000), 'gametora'),
   }));
 }
 
@@ -103,8 +104,8 @@ const event = ({
   kind,
   name,
   parent: null,
-  start,
-  end,
+  start: dated(start, 'gametora'),
+  end: dated(end, 'gametora'),
   cards,
   items: [],
   titles: [],
@@ -147,12 +148,15 @@ export function gametoraEvents(raw: GametoraEventsFile, cards: CardsFile = {}): 
       end: iso(minute(e.end)),
     })
   );
-  return [...story, ...cups, ...races].sort((a, b) => b.start.localeCompare(a.start) || b.id.localeCompare(a.id));
+  return [...story, ...cups, ...races].sort(
+    (a, b) => b.start.date.localeCompare(a.start.date) || b.id.localeCompare(a.id)
+  );
 }
 
-const endOf = (e: Pick<GameEvent, 'start' | 'end'>) => Date.parse(e.end ?? e.start) || Date.parse(e.start) + DAY;
+const endOf = (e: Pick<GameEvent, 'start' | 'end'>) =>
+  Date.parse((e.end ?? e.start).date) || Date.parse(e.start.date) + DAY;
 const overlap = (a: Pick<GameEvent, 'start' | 'end'>, b: Pick<GameEvent, 'start' | 'end'>) =>
-  Date.parse(a.start) <= endOf(b) && Date.parse(b.start) <= endOf(a);
+  Date.parse(a.start.date) <= endOf(b) && Date.parse(b.start.date) <= endOf(a);
 
 // events (data/jp_events.json's, from the news) + GameTora's → events with GameTora's filled in where the news has
 // no event of the kind at the time; returns { events, filled, dated } (dated: undated news events given GameTora's
@@ -174,18 +178,18 @@ export function fillFromGametora(
         !e.end &&
         !dated.has(e.id) &&
         norm(e.name ?? '') === norm(g.name ?? '') &&
-        Date.parse(e.start) <= Date.parse(g.start) &&
-        Date.parse(g.start) - Date.parse(e.start) <= SAME_EVENT_DAYS * DAY
+        Date.parse(e.start.date) <= Date.parse(g.start.date) &&
+        Date.parse(g.start.date) - Date.parse(e.start.date) <= SAME_EVENT_DAYS * DAY
     );
     if (announced) {
       const { start, end, phases, cards: given } = g;
       const out: GameEvent = { ...announced, start, end, cards: announced.cards.length ? announced.cards : given };
       if (phases) out.phases = phases;
       dated.set(announced.id, out);
-    } else if (g.start < FILL_BEFORE) filled.push(g);
+    } else if (g.start.date < FILL_BEFORE) filled.push(g);
   }
   const all = [...news.map((e) => dated.get(e.id) ?? e), ...filled].sort(
-    (a, b) => b.start.localeCompare(a.start) || b.id.localeCompare(a.id)
+    (a, b) => b.start.date.localeCompare(a.start.date) || b.id.localeCompare(a.id)
   );
   return { events: all, filled, dated: [...dated.values()] };
 }

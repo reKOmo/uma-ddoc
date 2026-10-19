@@ -5,12 +5,12 @@ the same shape as data/global_banners.json, so the Banners page can draw them al
   { source: { predicted_from, fitted_at }, characters: [banner…], cards: [banner…] }
 
 Each banner is the JP one (featured items; no art URL: the app shows JP's GameTora art, built from the id, or the
-JP's official art as `news_image` when the JP news showed it) with Global start / end, plus
-  predicted: true, jp_start, jp_end, margin_days (± range of the start, from the backtest), news_url (JP's post, when
-  the JP news showed it).
+JP's official art as `news_image` when the JP news showed it) with Global start / end (status predicted, the start
+with lo / hi: its range from the backtest), plus predicted: true, jp_start, jp_end, news_url (JP's post, when the JP
+news showed it).
 Banners Global already has (data/global_banners.json, ours: seeded from GameTora, kept up from the
 official news) are left out, whatever their dates. Banners with confirmed dates (data/known_dates.json
-`banners`) take them: start, end, confirmed: true, confirmed_source, margin_days 0.
+`banners`) take them: start and end with status confirmed and its source.
 Names and titles are swapped for English ones where we have them (Global banners, our cards in
 generated/cards.json); the rest stay Japanese.
 """
@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 
 from adjust import confirmed_banners, snap_weekday
-from data import DATA, GENERATED, jp_banners, promo_ids
+from data import DATA, GENERATED, dated, day_range, jp_banners, promo_ids, read
 
 BANNERS_OUTPUT = GENERATED / 'predicted_global_banners.json'
 GLOBAL_START_HOUR = 22  # UTC; 07:00 JST the next day
@@ -40,8 +40,7 @@ def iso_at(day, hour, minus_ms=0):
 def english_names():
     """JP's banners, char_id → English name (our cards' then Global's banners'), card id → English
     name and title (for support cards; a group card's name is the group's)."""
-    read = lambda name: json.loads((GENERATED / name).read_text())  # noqa: E731
-    glob, jp, cards = json.loads((DATA / 'global_banners.json').read_text()), jp_banners(), read('cards.json')
+    glob, jp, cards = read(DATA / 'global_banners.json'), jp_banners(), read(GENERATED / 'cards.json')
     # Group cards are named after the group, not their character.
     chars = {c['charId']: c['name']['en'] for c in cards.values() if c['charId'] and c['name']['en'] and c['type'] != 'group'}
     for banner in glob['characters'] + glob['cards']:
@@ -63,7 +62,7 @@ def translate(item, chars, titles, is_card):
 
 
 # What the JP news adds to a JP banner (data/jp_banners.json): not Global's.
-JP_NEWS_KEYS = ('announced', 'news_url', 'news_image', 'from_news', 'rerun', 'rerunOf', 'paid', 'name', 'note')
+JP_NEWS_KEYS = ('news_url', 'news_image', 'from_news', 'rerun', 'rerunOf', 'paid', 'name', 'note')
 
 
 def jp_banner(banner):
@@ -81,18 +80,15 @@ def confirmation(known):
         return {}
     iso = lambda t: pd.Timestamp(t).strftime('%Y-%m-%dT%H:%M:%S.000Z')  # noqa: E731
     return {
-        'start': iso(known['start']),
-        'end': iso(known['end']),
-        'confirmed': True,
-        'confirmed_source': known.get('source'),
-        'margin_days': 0,
+        'start': dated(iso(known['start']), 'confirmed', source=known.get('source')),
+        'end': dated(iso(known['end']), 'confirmed', source=known.get('source')),
     }
 
 
 def predict_banners(predict, anchor_jp, fitted_at):
     """predict: JP days (sorted) → (Global days, ± days); anchor_jp: last JP day Global has released."""
     jp, chars, titles = english_names()
-    glob = json.loads((DATA / 'global_banners.json').read_text())
+    glob = read(DATA / 'global_banners.json')
     on_global = {b['id'] for b in glob['characters'] + glob['cards']}
     confirmed = confirmed_banners()
     # Global doesn't get promo cards: they're left out of a banner, and a banner of nothing else isn't predicted.
@@ -125,14 +121,13 @@ def predict_banners(predict, anchor_jp, fitted_at):
                 'featured': [
                     translate(item, chars, titles, kind == 'cards') for item in banner['featured'] if item['id'] not in promo
                 ],
-                'start': iso_at(start, GLOBAL_START_HOUR),
-                'end': iso_at(end, GLOBAL_START_HOUR, minus_ms=1000),
+                'start': dated(iso_at(start, GLOBAL_START_HOUR), 'predicted', **day_range(start, m)),
+                'end': dated(iso_at(end, GLOBAL_START_HOUR, minus_ms=1000), 'predicted'),
                 'predicted': True,
                 # JP's post about it (the Timeline links it, as it does a predicted event's).
                 **({'news_url': banner['news_url']} if banner.get('news_url') else {}),
                 'jp_start': banner['start'],
                 'jp_end': banner['end'],
-                'margin_days': round(float(m)),
                 **confirmation(confirmed.get(banner['id'])),
             }
             for banner, start, end, m in zip(todo, starts, ends, margin)

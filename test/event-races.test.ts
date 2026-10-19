@@ -64,6 +64,14 @@ describe('race conditions', () => {
     expect(blockRaces(block(['Race Condition', 'Tokyo / Turf / 1600 m / Left-Handed']), en)[0].category).toBe('mile');
   });
 
+  it('reads a line the post breaks after a slash as one (Capricorn Cup 2026)', () => {
+    const [race] = blockRaces(
+      block(['Race Conditions', 'Chukyo / Turf / 1,200m (Sprint) / Left-Handed / Winter /', 'Sunny / Firm']),
+      en
+    );
+    expect(race).toMatchObject({ track: 'chukyo', distance: 1200, season: 'winter', weather: 'sunny', ground: 'firm' });
+  });
+
   it("splits a Legend Race by opponent when their weather differs, keeping the race's name", () => {
     const races = blockRaces(
       block(

@@ -18,7 +18,7 @@ import type { Banner, BannerFile, BannerId, BannerItem } from '../shared/schemas
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { GametoraTrainee } from '../shared/schemas/gametora.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
-import { fixture, present } from './helpers.ts';
+import { at, fixture, present } from './helpers.ts';
 
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8'));
 const posts = existsSync(postsFile('jp')) ? readJson<NewsPost[]>(postsFile('jp')) : [];
@@ -113,8 +113,8 @@ describe('applyJpNews', () => {
   });
   const seeded = (id: number, start: string, end: string, featured: BannerItem[]): Banner => ({
     id,
-    start,
-    end,
+    start: at(start, 'gametora'),
+    end: at(end, 'gametora'),
     main: featured[0],
     featured,
   });
@@ -198,10 +198,12 @@ describe('applyJpNews', () => {
   it("enriches GameTora's banner, keeping its dates and art", () => {
     expect(find('characters', 1)).toEqual({
       ...jp.characters[1],
-      announced: true,
+      // (the post's dates are GameTora's: the news' now)
+      start: at('2025-03-21T03:00:00.000Z'),
+      end: at('2025-03-31T02:59:59.000Z'),
       news_url: post.url,
       news_image: 'official/1.png',
-      rerun: { id: 2, ...rerun, end: '2025-04-17T02:59:59.000Z' },
+      rerun: { id: 2, start: at(rerun.start), end: at('2025-04-17T02:59:59.000Z') },
     });
     expect(result.mismatches).toEqual([]);
   });
@@ -211,9 +213,8 @@ describe('applyJpNews', () => {
     expect(made).toMatchObject({
       image: 'official/3.png',
       news_image: 'official/3.png',
-      end: '2025-03-31T02:59:59.000Z',
+      end: at('2025-03-31T02:59:59.000Z'),
       from_news: true,
-      announced: true,
     });
     expect(made.featured.map((f) => [f.id, f.rarity, f.type, f.new])).toEqual([
       [30001, 3, 'intelligence', true],
@@ -229,7 +230,11 @@ describe('applyJpNews', () => {
 
   it("pairs re-runs: GameTora's re-run banner, else one of our own", () => {
     expect(find('characters', 2).rerunOf).toBe(1);
-    expect(find('cards', '3-rerun')).toMatchObject({ rerunOf: 3, ...rerun, end: '2025-04-17T02:59:59.000Z' });
+    expect(find('cards', '3-rerun')).toMatchObject({
+      rerunOf: 3,
+      start: at(rerun.start),
+      end: at('2025-04-17T02:59:59.000Z'),
+    });
     expect(find('cards', '3-rerun').featured.every((f) => !f.new)).toBe(true);
     expect(present(find('cards', 3).rerun, 're-run').id).toBe('3-rerun');
   });
@@ -297,8 +302,8 @@ describe.skipIf(!posts.length || !existsSync(JP_BANNERS_FILE))('the stored JP ba
         const known = gametora.get(b.gachaId);
         if (!known) continue;
         checked++;
-        expect([b.gachaId, b.type, b.start], post.url).toEqual([b.gachaId, known.type, known.b.start]);
-        expect(present(b.end, 'end').replace(/:00\.000Z$/, ':59.000Z'), post.url).toBe(known.b.end);
+        expect([b.gachaId, b.type, b.start], post.url).toEqual([b.gachaId, known.type, known.b.start.date]);
+        expect(present(b.end, 'end').replace(/:00\.000Z$/, ':59.000Z'), post.url).toBe(known.b.end?.date);
       }
     expect(checked).toBeGreaterThanOrEqual(574);
   });

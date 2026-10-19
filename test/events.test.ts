@@ -316,7 +316,7 @@ describe('buildEvents', () => {
         '2026-09-19 22:00:00'
       ),
     ]);
-    expect(events.map((e) => [e.id, e.kind, e.name, e.start, e.end, e.news_url])).toEqual([
+    expect(events.map((e) => [e.id, e.kind, e.name, e.start.date, e.end?.date ?? null, e.news_url])).toEqual([
       [
         '1022',
         'story',
@@ -374,7 +374,7 @@ describe('buildEvents', () => {
       { cmTable: table }
     );
     expect(events.map((e) => [e.id, e.source])).toEqual([['991', 'news']]);
-    expect(events[0].items).toEqual(cmItems(table, events[0].start));
+    expect(events[0].items).toEqual(cmItems(table, events[0].start.date));
   });
 });
 
@@ -394,31 +394,49 @@ describe('mission sets', () => {
       ].join(''),
       '2026-08-12 22:00:00'
     );
-    expect(buildEvents([fall]).map((e) => [e.id, e.kind, e.name, e.parent, e.start, e.end])).toEqual([
-      ['948-m2', 'missions', 'Shuka Sho Missions', '948', '2026-08-25T15:00:00.000Z', '2026-09-01T14:59:00.000Z'],
+    expect(buildEvents([fall]).map((e) => [e.id, e.kind, e.name, e.parent, e.start.date, e.end?.date ?? null])).toEqual(
       [
-        '948-m1',
-        'missions',
-        'Sprinters Stakes Missions',
-        '948',
-        '2026-08-12T22:00:00.000Z',
-        '2026-08-19T14:59:00.000Z',
-      ],
-      [
-        '948',
-        'celebration',
-        'Fall G1 Celebration Part 1',
-        null,
-        '2026-08-12T22:00:00.000Z',
-        '2026-09-01T14:59:00.000Z',
-      ],
-    ]);
+        ['948-m2', 'missions', 'Shuka Sho Missions', '948', '2026-08-25T15:00:00.000Z', '2026-09-01T14:59:00.000Z'],
+        [
+          '948-m1',
+          'missions',
+          'Sprinters Stakes Missions',
+          '948',
+          '2026-08-12T22:00:00.000Z',
+          '2026-08-19T14:59:00.000Z',
+        ],
+        [
+          '948',
+          'celebration',
+          'Fall G1 Celebration Part 1',
+          null,
+          '2026-08-12T22:00:00.000Z',
+          '2026-09-01T14:59:00.000Z',
+        ],
+      ]
+    );
   });
 });
 
 describe.skipIf(!existsSync(postsFile('gl')))('the stored news', () => {
   const posts = JSON.parse(readFileSync(postsFile('gl'), 'utf8'));
   const events = buildEvents(posts);
+
+  it("gives an event a celebration's first block opens a part of its own, which its own post then joins", () => {
+    const byId = new Map(events.map((e) => [e.id, e]));
+    // "The in-game collaboration event …, Sparkly Magic Show, is set to kick off at …" in Holiday Celebration Part 2's
+    // first block; post 1109 ("…collaboration event is here!") is the same event.
+    if (byId.has('1093')) {
+      expect(byId.get('1093-0')).toMatchObject({ kind: 'special', name: 'Sparkly Magic Show', parent: '1093' });
+      expect(byId.get('1093')?.start.date).toBe('2026-10-07T22:00:00.000Z');
+      expect(byId.has('1109')).toBe(false);
+    }
+    // A login bonus opened the same way: the celebration starts when its own sentence says.
+    if (byId.has('657')) {
+      expect(byId.get('657-0')).toMatchObject({ kind: 'login_bonus', parent: '657' });
+      expect(byId.get('657')?.start.date).toBe('2026-03-22T15:00:00.000Z');
+    }
+  });
 
   it('makes every event post into dated events of known kinds', () => {
     for (const p of posts) {
@@ -433,7 +451,12 @@ describe.skipIf(!existsSync(postsFile('gl')))('the stored news', () => {
     const cardsFile = new URL('../generated/cards.json', import.meta.url);
     if (!existsSync(cardsFile)) return;
     const withCards = buildEvents(posts, { cards: JSON.parse(readFileSync(cardsFile, 'utf8')) });
-    const stories = withCards.filter((e) => e.kind === 'story');
+    // A story's "coming soon" post doesn't name its card; the one when it begins does.
+    const newest = posts
+      .map((p: { post_at: string }) => p.post_at.replace(' ', 'T'))
+      .sort()
+      .at(-1);
+    const stories = withCards.filter((e) => e.kind === 'story' && e.start.date <= `${newest}Z`);
     expect(stories.length).toBeGreaterThan(0);
     expect(stories.filter((e) => !e.cards.some((c) => c.id && c.rarity === 'SSR')).map((e) => e.name)).toEqual([]);
   });

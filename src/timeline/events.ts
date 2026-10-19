@@ -44,8 +44,8 @@ export function itemList(items: EventItem[]): EventItem[] {
 export function withPredicted(real: GameEvent[], predicted: PredictedEvent[]): GameEvent[] {
   const latest = new Map<string, number>();
   for (const event of real)
-    if (event.start && !event.parent) {
-      const start = Date.parse(event.start);
+    if (!event.parent) {
+      const start = Date.parse(event.start.date);
       if (!((latest.get(event.kind) ?? Number.NEGATIVE_INFINITY) >= start)) latest.set(event.kind, start);
     }
   const byId = new Map(predicted.map((event) => [event.id, event] as const));
@@ -55,7 +55,7 @@ export function withPredicted(real: GameEvent[], predicted: PredictedEvent[]): G
   };
   const kept = predicted.filter((event) => {
     const root = top(event);
-    return !root.start || !((latest.get(root.kind) ?? Number.NEGATIVE_INFINITY) >= Date.parse(root.start));
+    return !((latest.get(root.kind) ?? Number.NEGATIVE_INFINITY) >= Date.parse(root.start.date));
   });
   return [...real, ...kept];
 }

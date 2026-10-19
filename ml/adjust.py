@@ -16,7 +16,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from data import DATA, jp_banners, to_date, to_days
+from data import DATA, jp_banners, read, to_date, to_days
 
 KNOWN_DATES = DATA / 'known_dates.json'
 
@@ -94,7 +94,8 @@ def load_known_dates(after_jp, events=()):
     if not in_order(known):
         raise ValueError(f'{KNOWN_DATES.name}: Global dates must be in the same order as the JP dates')
     by_hand = {jp for jp, _ in known}
-    glob = json.loads((DATA / 'global_banners.json').read_text())
+    # (only the news' starts: a confirmed or predicted date isn't a known one)
+    glob = read(DATA / 'global_banners.json', fills=False)
     from_banners = {}
     for jp, gl in banner_dates(glob['characters'] + glob['cards']):
         if jp > after_jp and jp not in by_hand:

@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { globalProgress } from '../src/timeline/globalProgress.ts';
 import type { Banner, BannerId } from '../shared/schemas/banner.ts';
-import { fixture, present } from './helpers.ts';
+import type { DateStatus } from '../shared/schemas/common.ts';
+import { at, fixture, present } from './helpers.ts';
 
 const day = (d: string) => Date.parse(`${d}T00:00:00Z`);
-const banner = (id: BannerId, start: string, end = start) =>
-  fixture<Banner>({ id, start: `${start}T00:00:00Z`, end: `${end}T00:00:00Z` });
+const banner = (id: BannerId, start: string, end = start, status: DateStatus = 'news') =>
+  fixture<Banner>({ id, start: at(`${start}T00:00:00Z`, status), end: at(`${end}T00:00:00Z`, status) });
 
 const jp = {
   characters: [],
@@ -17,7 +18,9 @@ describe('globalProgress', () => {
   it("estimates linearly between the banner Global is running and its next one's JP start", () => {
     const predicted = {
       characters: [],
-      cards: [{ ...banner(2, '2026-01-11'), jp_start: '2022-01-11T00:00:00Z', predicted: true }],
+      cards: [
+        { ...banner(2, '2026-01-11', '2026-01-11', 'predicted'), jp_start: '2022-01-11T00:00:00Z', predicted: true },
+      ],
     };
     const p = globalProgress({ global, jp, predicted, now: day('2026-01-06') });
     expect(p).toEqual({ estimate: day('2022-01-06'), from: day('2022-01-01'), to: day('2022-01-11'), toKnown: false });
@@ -26,7 +29,9 @@ describe('globalProgress', () => {
   it('marks the window end as known for confirmed or announced banners', () => {
     const confirmed = {
       characters: [],
-      cards: [{ ...banner(2, '2026-01-11'), jp_start: '2022-01-11T00:00:00Z', predicted: true, confirmed: true }],
+      cards: [
+        { ...banner(2, '2026-01-11', '2026-01-11', 'confirmed'), jp_start: '2022-01-11T00:00:00Z', predicted: true },
+      ],
     };
     expect(
       present(globalProgress({ global, jp, predicted: confirmed, now: day('2026-01-06') }), 'progress').toKnown

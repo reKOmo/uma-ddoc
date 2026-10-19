@@ -6,6 +6,7 @@ import { appendFileSync, existsSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import type { BannerFile, BannerItem } from '../shared/schemas/banner.ts';
 import type { CardsFile, GlobalCard } from '../shared/schemas/card.ts';
+import { type DatedMoment, dated } from '../shared/schemas/common.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
 import type { KnownDatesFile } from '../shared/schemas/predictions.ts';
 import { DATA_DIR, GENERATED_DIR, newsDir } from './lib/paths.ts';
@@ -24,6 +25,7 @@ import {
 import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.ts';
 import { readJpBanners, regularBanners } from './lib/jp-banners.ts';
 import { buildEvents, readAnswers, readCmTable, readEvents, writeEvents } from './lib/events.ts';
+import { keepEventFills } from './lib/dates.ts';
 import { ensureCards } from './update-cards.ts';
 import { buildCardFiles } from './build-cards.ts';
 
@@ -56,11 +58,17 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
 
   const scouts = raw.map((post) => bannerPost(post)).filter((scout) => scout !== null);
   const result = applyNews({ posts: scouts, global, cards, jp, names: englishNames(global, cardData) });
+  // A confirmed banner the news has announced is Global's own now: its known_dates.json entry has done its job, but
+  // for an end the post doesn't give (kept as a confirmed date from then on).
+  const known = readJson<KnownDatesFile>(KNOWN_DATES_FILE);
+  for (const b of [...result.global.characters, ...result.global.cards]) {
+    const k = known.banners.find((x) => x.id === b.id);
+    if (k && b.end?.status !== 'news')
+      b.end = { ...dated(new Date(k.end).toISOString(), 'confirmed'), source: k.source };
+  }
   writeGlobal(result);
   await buildCardFiles();
 
-  // A confirmed banner the news has announced is Global's own now: its known_dates.json entry has done its job.
-  const known = readJson<KnownDatesFile>(KNOWN_DATES_FILE);
   const announced = new Set([...result.global.characters, ...result.global.cards].map((b) => Number(b.id)));
   const unconfirmed = known.banners.filter((b) => announced.has(b.id));
   if (unconfirmed.length) {
@@ -79,38 +87,45 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
 
   const storedEvents: GameEvent[] = readEvents();
   const oldEvents = new Map(storedEvents.map((e) => [e.id, JSON.stringify(e)]));
-  const events = buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers() });
+  const events = keepEventFills(
+    buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers() }),
+    storedEvents
+  );
   writeEvents(events);
   const changedEvents = events.filter((e) => oldEvents.get(e.id) !== JSON.stringify(e));
 
   const before = new Map(
-    [...global.characters, ...global.cards].filter((b) => b.announced).map((b) => [b.id, `${b.start} ${b.end}`])
+    [...global.characters, ...global.cards]
+      .filter((b) => b.start.status === 'news')
+      .map((b) => [b.id, `${b.start.date} ${b.end?.date}`])
   );
-  const changed = result.banners.filter(({ banner }) => before.get(banner.id) !== `${banner.start} ${banner.end}`);
+  const changed = result.banners.filter(
+    ({ banner }) => before.get(banner.id) !== `${banner.start.date} ${banner.end?.date}`
+  );
   const released = Object.entries(result.cards).filter(
-    ([id, c]) => c.news_url && cards[id]?.release_gl !== c.release_gl
+    ([id, c]) => c.news_url && cards[id]?.release_gl.date !== c.release_gl.date
   );
 
   const lines: string[] = [];
   for (const { banner, kind, unmatched } of changed) {
     const verb = before.has(banner.id) ? 'Moved' : 'Added';
     // TODO(ts): Global's scouts always end (only JP has open-ended ones)
-    const end = banner.end as string;
+    const end = (banner.end as DatedMoment).date;
     const items = banner.featured.map((i: BannerItem) => `${i.title} ${i.name}`).join(', ');
     lines.push(
-      `- ${verb} ${kind === 'cards' ? 'support card' : 'trainee'} banner ${banner.id}: ${when(banner.start)} → ${when(end)} — ${items}`
+      `- ${verb} ${kind === 'cards' ? 'support card' : 'trainee'} banner ${banner.id}: ${when(banner.start.date)} → ${when(end)} — ${items}`
     );
     if (unmatched.length) lines.push(`  - No English name in the post for: ${unmatched.join(', ')}`);
   }
   for (const [id, c] of released)
-    lines.push(`- Card ${id} ${c.title_en ?? ''} out on Global ${c.release_gl}`.replace('  ', ' '));
+    lines.push(`- Card ${id} ${c.title_en ?? ''} out on Global ${c.release_gl.date}`.replace('  ', ' '));
   for (const b of unconfirmed)
     lines.push(`- Banner ${b.id} is out of known_dates.json: the news has it (was confirmed by ${b.source})`);
   for (const s of result.skipped) lines.push(`- Skipped banner ${s.id} (${s.post}): ${s.reason}`);
   for (const s of scenarios.changed) {
     const start =
-      s.en_start_date && s.en_start_date.tag !== 'predicted'
-        ? `starts on Global ${when(s.en_start_date.date)} (${s.en_start_date.tag})`
+      s.en_start_date && s.en_start_date.status !== 'predicted'
+        ? `starts on Global ${when(s.en_start_date.date)} (${s.en_start_date.status})`
         : 'announced, no Global date yet';
     lines.push(`- Scenario ${s.key}: "${s.full_en}" ${start}`);
   }
@@ -120,7 +135,7 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
       .filter(Boolean)
       .join('; ');
     lines.push(
-      `- ${oldEvents.has(e.id) ? 'Updated' : 'Added'} ${e.kind} event "${e.name ?? e.kind}" (${e.start ? day(e.start) : '?'})${extra ? ` — ${extra}` : ''}`
+      `- ${oldEvents.has(e.id) ? 'Updated' : 'Added'} ${e.kind} event "${e.name ?? e.kind}" (${day(e.start.date)})${extra ? ` — ${extra}` : ''}`
     );
   }
   for (const name of scenarios.unmatched) lines.push(`- Scenario "${name}" doesn't match any JP scenario`);

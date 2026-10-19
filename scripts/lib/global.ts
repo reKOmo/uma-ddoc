@@ -1,5 +1,6 @@
 // Global's banners and card releases in data/ (committed). Seeded once from GameTora (2026-10), then kept up from the
-// official news by pnpm update-global. News-made entries carry `news_url` (banners also `announced`). A seeded banner
+// official news by pnpm update-global. News-made entries carry `news_url` and start as the news' (status `news`;
+// seeded ones `gametora`). A seeded banner
 // the news shows keeps its dates and items, and gets that post's `news_url` and official art (`news_image`).
 // A scout post names banners by gacha id, which Global shares with JP: a news banner is JP's banner with that id
 // (featured ids, rates) under Global's dates and art, with the English names and titles the post lists.
@@ -7,7 +8,9 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import type { Banner, BannerFile, BannerId, BannerItem } from '../../shared/schemas/banner.ts';
 import type { CardsFile, GlobalCardsFile } from '../../shared/schemas/card.ts';
+import { dated } from '../../shared/schemas/common.ts';
 import type { BannerPost } from './banner-posts.ts';
+import { keepBannerFills } from './dates.ts';
 import { DATA_DIR } from './paths.ts';
 import { norm } from './news-text.ts';
 
@@ -78,7 +81,7 @@ export function applyNews({
 }): NewsResult {
   // Seeded banners, without what an earlier run took from the posts (taken again below: idempotent).
   const seeded = (list: Banner[]): Banner[] =>
-    list.filter((b) => !b.announced).map(({ news_url, news_image, ...b }) => b);
+    list.filter((b) => b.start.status !== 'news').map(({ news_url, news_image, ...b }) => b);
   const kinds: Record<Kind, Banner[]> = { characters: seeded(global.characters), cards: seeded(global.cards) };
   const seededById = new Map<BannerId, Banner>(
     [...kinds.characters, ...kinds.cards].map((b): [BannerId, Banner] => [b.id, b])
@@ -124,16 +127,18 @@ export function applyNews({
       name: entry?.name ?? names.get(item.char_id) ?? item.name,
       title: entry ? `[${entry.title}]` : item.title,
     }));
-    const lengthMs = Date.parse(jpBanner.end ?? '') - Date.parse(jpBanner.start);
+    const lengthMs = Date.parse(jpBanner.end?.date ?? '') - Date.parse(jpBanner.start.date);
     const image = a.image ?? jpBanner.image;
     const banner: Banner = {
       id,
       ...(image && { image }),
-      start: isoMs(a.start),
-      end: a.end ? endOfMinute(isoMs(a.end)) : new Date(Date.parse(a.start) + lengthMs).toISOString(),
+      start: dated(isoMs(a.start), 'news'),
+      // Without an end in the post: as long as JP's.
+      end: a.end
+        ? dated(endOfMinute(isoMs(a.end)), 'news')
+        : dated(new Date(Date.parse(a.start) + lengthMs).toISOString(), 'predicted'),
       main: null,
       featured,
-      announced: true,
       news_url: post.url,
     };
     made.push({
@@ -147,29 +152,36 @@ export function applyNews({
   // Card releases: the seeded ones, then each news-made card banner's cards that weren't out yet.
   const nextCards: CardRecords = Object.fromEntries(Object.entries(cards).filter(([, c]) => !c.news_url));
   const firstOutfit = new Map<BannerItem['id'], string>();
-  for (const b of kinds.characters) for (const item of b.featured) firstOutfit.set(item.id, b.start);
-  made.sort((x, y) => x.banner.start.localeCompare(y.banner.start) || Number(x.banner.id) - Number(y.banner.id));
+  for (const b of kinds.characters) for (const item of b.featured) firstOutfit.set(item.id, b.start.date);
+  made.sort(
+    (x, y) => x.banner.start.date.localeCompare(y.banner.start.date) || Number(x.banner.id) - Number(y.banner.id)
+  );
   for (const { banner, kind } of made) {
-    const day = banner.start.slice(0, 10);
+    const day = banner.start.date.slice(0, 10);
     for (const item of banner.featured) {
       if (kind === 'cards') {
         const key = String(item.id);
-        const known = nextCards[key]?.release_gl;
+        const known = nextCards[key]?.release_gl.date;
         item.new = !known || known >= day;
-        if (!known) nextCards[key] = { title_en: item.title ?? null, release_gl: day, news_url: banner.news_url };
+        if (!known)
+          nextCards[key] = { title_en: item.title ?? null, release_gl: dated(day, 'news'), news_url: banner.news_url };
       } else {
         const first = firstOutfit.get(item.id);
-        item.new = !first || first >= banner.start;
-        if (!first) firstOutfit.set(item.id, banner.start);
+        item.new = !first || first >= banner.start.date;
+        if (!first) firstOutfit.set(item.id, banner.start.date);
       }
     }
     banner.main = pickMain(banner.featured);
     kinds[kind].push(banner);
   }
 
-  const newestFirst = (a: Banner, b: Banner) => b.start.localeCompare(a.start) || Number(b.id) - Number(a.id);
+  const newestFirst = (a: Banner, b: Banner) => b.start.date.localeCompare(a.start.date) || Number(b.id) - Number(a.id);
   return {
-    global: { ...global, characters: kinds.characters.sort(newestFirst), cards: kinds.cards.sort(newestFirst) },
+    global: {
+      ...global,
+      characters: keepBannerFills(kinds.characters.sort(newestFirst), global.characters),
+      cards: keepBannerFills(kinds.cards.sort(newestFirst), global.cards),
+    },
     cards: Object.fromEntries(Object.entries(nextCards).sort(([a], [b]) => Number(a) - Number(b))),
     banners: made,
     skipped,

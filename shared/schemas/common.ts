@@ -5,6 +5,21 @@ export const Day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 // A moment, ISO 8601 in UTC: "2026-10-13T22:00:00.000Z" (also without milliseconds, or with an offset as Python writes
 // it: "2026-10-13T00:42:30+00:00").
 export const Moment = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/);
+// Where a date came from: an official post (`news`), Global's release schedule (`confirmed`, data/known_dates.json),
+// a prediction from JP's (`predicted`, ml/) or GameTora's history (`gametora`). Whether it's upcoming, live or over is
+// the app's to work out from today.
+export const DATE_STATUSES = ['news', 'confirmed', 'predicted', 'gametora'] as const;
+export const DateStatus = z.enum(DATE_STATUSES);
+export type DateStatus = z.infer<typeof DateStatus>;
+// Every date an item has, with its status: `lo`–`hi` a predicted date's range, `source` what confirmed it.
+const datedSchema = <T extends z.ZodType>(date: T) =>
+  z.strictObject({ date, status: DateStatus, lo: Day.optional(), hi: Day.optional(), source: z.string().optional() });
+export const DatedMoment = datedSchema(Moment);
+export type DatedMoment = z.infer<typeof DatedMoment>;
+export const DatedDay = datedSchema(Day);
+export type DatedDay = z.infer<typeof DatedDay>;
+export const dated = (date: string, status: DateStatus) => ({ date, status });
+
 // A record's key that is a numeric id ("30321").
 export const IdKey = z.string().regex(/^\d+$/);
 

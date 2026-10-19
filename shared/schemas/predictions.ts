@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Day, Moment } from './common.ts';
+import { DatedDay, Day, Moment } from './common.ts';
 
 // `dates`: a JP release day → its announced Global day (everything on it); `banners`: a JP banner's announced Global
 // dates, by gacha id.
@@ -11,10 +11,8 @@ export type KnownDatesFile = z.infer<typeof KnownDatesFileSchema>;
 
 export const PredictedCardSchema = z.strictObject({
   release_jp: Day,
-  predicted_gl: Day,
-  lo: Day,
-  hi: Day,
-  confirmed: z.boolean(),
+  // predicted (lo–hi), or confirmed by data/known_dates.json
+  release_gl: DatedDay,
 });
 export type PredictedCard = z.infer<typeof PredictedCardSchema>;
 

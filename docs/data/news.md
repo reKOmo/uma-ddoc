@@ -57,9 +57,10 @@
   `gacha_banner_<id>_….png`, and `<id>` is the game's gacha id, which Global shares with JP (Global reruns JP's
   banners under JP's ids; 130/132 seeded Global banners match JP's id and cards). So a news banner is JP's banner
   of that id (featured ids, rates, types) with the post's dates and official art, names/titles paired with
-  the banner's own English list (by character name, else the one leftover), `announced: true`, `news_url`. Its cards
+  the banner's own English list (by character name, else the one leftover), `news_url`; its dates status `news` (an
+  end the post doesn't give: JP's length, `predicted`). Its cards
   not yet out get `release_gl` = its start's UTC date (+ `news_url`). `applyNews` rebuilds every news-made entry
-  (`announced`) from all posts (idempotent; a later post about a banner wins); a seeded one keeps its dates and items
+  (start status `news`) from all posts (idempotent; a later post about a banner wins); a seeded one keeps its dates and items
   and gets the post that shows it (`news_url`) and its official art (`news_image`), as JP's GameTora banners do
   (132 of 134 on 2026-10-13). Predicted banners keep JP's post as `news_url` (the sheet: "Read JP's announcement"). Verified: from the
   news alone it rebuilt 30134/30135 identical to GameTora's. A banner whose id JP lacks, or whose type (from the post)

@@ -4,7 +4,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Trophy } from 'luc
 import { useTranslation } from 'react-i18next';
 import { getServerConfig } from '../../tierlist/scenarios.ts';
 import { formatDateRange, formatDateTime, formatDuration, scenarioName, serverName } from '../i18n/index.ts';
-import { DATE_FIELD, SCENARIOS, isCurrent, scenarioByKey } from '../scenarioRelease.ts';
+import { DATE_FIELD, SCENARIOS, isCurrent, launchTag, scenarioByKey } from '../scenarioRelease.ts';
 import type { Scenario, StartDate } from '../../shared/schemas/scenario.ts';
 import type { Server } from '../servers.ts';
 import { Section } from '../ui/Section.tsx';
@@ -110,10 +110,12 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
       <span className={styles.serverName}>{serverName(server)}</span>
       {start ? (
         <>
-          <span className={clsx(styles.launchStatus, styles[start.tag])}>{t(`scenarioPage.status.${start.tag}`)}</span>
+          <span className={clsx(styles.launchStatus, styles[launchTag(start)])}>
+            {t(`scenarioPage.status.${launchTag(start)}`)}
+          </span>
           <strong>{longTime(start.date)}</strong>
           <span className={styles.relative}>{relative(start.date)}</span>
-          {start.tag === 'predicted' && start.lo && (
+          {start.status === 'predicted' && start.lo && (
             <span className={styles.range}>
               {t('scenarioPage.range', {
                 dates: dayRange(start.lo, start.hi ?? start.lo),
@@ -172,7 +174,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
                     <ArrowRight size={20} aria-hidden="true" />
                     {jp && en && (
                       <small>
-                        {t(en.tag === 'out' ? 'scenarioPage.lag' : 'scenarioPage.lagExpected', {
+                        {t(launchTag(en) === 'out' ? 'scenarioPage.lag' : 'scenarioPage.lagExpected', {
                           duration: formatDuration(day(Date.parse(jp.date)), day(Date.parse(en.date))),
                         })}
                       </small>

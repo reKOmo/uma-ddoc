@@ -4,9 +4,10 @@
   `{ key, full_en, full_jp, en_start_date, jp_start_date, links: { gametora, cover, umapyoi_jp?, umapyoi_gl? }, color }`
   (`umapyoi_*`: the launch post's id in that server's news, the page builds the umapyoi.net URL: JP's from `update-jp`,
   `applyJpScenarioNews()`, by the Japanese name of 育成シナリオ「X」公開！; Global's from `update-global`, the post that
-  dates the launch); a start date is `{ date, tag }` (or null):
-  tag `out` (launched), `confirmed` (known, still ahead), `predicted` (+ `lo`/`hi` range, from `ml/scenarios.py`).
-  Known dates are re-tagged (confirmed → out) whenever the file is written, by JS or Python (same format). `key` is the tier list's where it ranks the
+  dates the launch); a start date is `{ date, status }` (or null, [pipeline](pipeline.md#dates)):
+  status `news` (Global's launch post), `gametora` (JP's launch; Global's seeded ones), `predicted` (+ `lo`/`hi` range,
+  from `ml/scenarios.py`). The app shows them as out / confirmed (still ahead) / predicted (`launchTag()`,
+  `src/scenarioRelease.ts`). JS and Python write the same format. `key` is the tier list's where it ranks the
   scenario (URA, Aoharu, MANT, GL, GM, DYI), else ours — an id (URLs, lookups), never shown. `short: { jp, en }`: the
   names shown, via `scenarioName()` and the Scenario names setting (JP's from upstream's en-jp locale + GameTora's
   "for short"; Global's from upstream's en-gl locale, null until Global has one). Both from the hand table

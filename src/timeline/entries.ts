@@ -1,5 +1,6 @@
 import type { Banner, BannerId } from '../../shared/schemas/banner.ts';
 import type { CardsFile } from '../../shared/schemas/card.ts';
+import { type DatedMoment, dated } from '../../shared/schemas/common.ts';
 import type { EventItem, EventKind, GameEvent, Phase, PredictedEvent, Race } from '../../shared/schemas/event.ts';
 import { type ArtBanner, type ArtBannerFile, type ArtItem, cardIcon } from '../gametora.ts';
 import { DAY } from './layout.ts';
@@ -48,6 +49,8 @@ export type Entry = {
   start: string;
   end: string | null;
   openEnded: boolean;
+  // Only a prediction: an announced event's end its news doesn't give yet (the bar fades out there).
+  endPredicted: boolean;
   status: EntryStatus;
   art: Art | null;
   paid: boolean;
@@ -67,21 +70,32 @@ export type Entry = {
   titles: string[];
 };
 
-type StatusDates = Pick<Banner, 'start' | 'end' | 'confirmed' | 'predicted'>;
+type StatusDates = Pick<Banner, 'start' | 'end' | 'predicted'>;
 
+// Where the start comes from first (a confirmed or predicted one), else where today is.
 export function bannerStatus(banner: StatusDates, now: number = Date.now()): EntryStatus {
-  if (banner.confirmed) return 'confirmed';
-  if (banner.predicted) return 'predicted';
-  if (now < Date.parse(banner.start)) return 'upcoming';
-  if (banner.end && now > Date.parse(banner.end)) return 'ended';
+  if (banner.start.status === 'confirmed') return 'confirmed';
+  if (banner.predicted || banner.start.status === 'predicted') return 'predicted';
+  if (now < Date.parse(banner.start.date)) return 'upcoming';
+  if (banner.end && now > Date.parse(banner.end.date)) return 'ended';
   return 'live';
 }
 
+const endPredicted = (x: Pick<Banner, 'start' | 'end'>): boolean =>
+  x.end?.status === 'predicted' && x.start.status !== 'predicted';
+
 const isPredicted = (x: Banner | GameEvent): x is Banner | PredictedEvent => 'predicted' in x && Boolean(x.predicted);
 
+// ± days: half the start's lo–hi range.
+const margin = ({ lo, hi }: DatedMoment): number | undefined =>
+  lo && hi ? Math.round((Date.parse(hi) - Date.parse(lo)) / DAY / 2) : undefined;
 const prediction = (x: Banner | GameEvent): Prediction | null =>
   isPredicted(x)
-    ? { from: { start: x.jp_start, end: x.jp_end ?? null }, margin: x.margin_days, confirmed: !!x.confirmed }
+    ? {
+        from: { start: x.jp_start, end: x.jp_end ?? null },
+        margin: margin(x.start) ?? 0,
+        confirmed: x.start.status === 'confirmed',
+      }
     : null;
 const news = (x: { news_url?: string | null }): NewsLink | null =>
   x.news_url ? { url: x.news_url, site: new URL(x.news_url).hostname.replace(/^www\./, '') } : null;
@@ -99,7 +113,7 @@ function bannerEntry(
 ): Entry {
   const key = (id: BannerId) => `${group}:${id}`;
   const relation = (type: Relation['type'], other: ArtBanner | false | undefined): Relation | false | undefined =>
-    other && { type, target: key(other.id), start: other.start, end: other.end };
+    other && { type, target: key(other.id), start: other.start.date, end: other.end?.date ?? null };
   return {
     key: key(banner.id),
     id: banner.id,
@@ -108,9 +122,10 @@ function bannerEntry(
     tone: group === 'cards' ? `type-${banner.main?.type ?? 'none'}` : 'kind-characters',
     name: banner.name ?? null,
     main: banner.main ? { name: banner.main.name, others: banner.featured.length - 1 } : null,
-    start: banner.start,
-    end: banner.end ?? null,
+    start: banner.start.date,
+    end: banner.end?.date ?? null,
     openEnded: !banner.end,
+    endPredicted: endPredicted(banner),
     status: bannerStatus(banner, now),
     art: { src: banner.image, official: !!banner.officialArt },
     paid: !!banner.paid,
@@ -124,8 +139,8 @@ function bannerEntry(
       banner.rerun && {
         type: 'reheld' as const,
         target: byId.has(banner.rerun.id) ? key(banner.rerun.id) : null,
-        start: banner.rerun.start,
-        end: banner.rerun.end,
+        start: banner.rerun.start.date,
+        end: banner.rerun.end?.date ?? null,
       },
     ].filter((r): r is Relation => Boolean(r)),
     parent: null,
@@ -174,7 +189,7 @@ export function eventEntries(
     events.filter((e) => e.parent && e.start),
     (e) => e.parent
   );
-  for (const list of parts.values()) list.sort((a, b) => a.start.localeCompare(b.start));
+  for (const list of parts.values()) list.sort((a, b) => a.start.date.localeCompare(b.start.date));
   return events.map((event): Entry => {
     const parent = event.parent && byId.get(event.parent);
     return {
@@ -185,20 +200,22 @@ export function eventEntries(
       tone: `kind-${event.kind}`,
       name: event.name ?? null,
       main: null,
-      start: event.start,
-      end: event.end ?? null,
+      start: event.start.date,
+      end: event.end?.date ?? null,
       openEnded: false,
+      endPredicted: endPredicted(event),
       // A one-day event (no end) runs the whole day.
-      status: event.start
-        ? bannerStatus({ ...event, end: event.end ?? new Date(Date.parse(event.start) + DAY).toISOString() }, now)
-        : 'upcoming',
+      status: bannerStatus(
+        { ...event, end: event.end ?? dated(new Date(Date.parse(event.start.date) + DAY).toISOString(), 'news') },
+        now
+      ),
       art: event.image ? { src: event.image, official: true } : null,
       paid: false,
       prediction: prediction(event),
       news: news(event),
       counterpart: null,
       relations: parent
-        ? [{ type: 'partOf' as const, target: key(parent.id), start: parent.start, end: parent.end }]
+        ? [{ type: 'partOf' as const, target: key(parent.id), start: parent.start.date, end: parent.end?.date ?? null }]
         : [],
       parent: parent ? key(parent.id) : null,
       parts: (parts.get(event.id) ?? []).map((part) => key(part.id)),

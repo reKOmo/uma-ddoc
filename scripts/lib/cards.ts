@@ -1,7 +1,7 @@
 // Pure. No image URLs but upstream's icons: the app builds GameTora's from the id and the slug.
 
 import { isDeepStrictEqual } from 'node:util';
-import type { CardType, Rarity } from '../../shared/schemas/common.ts';
+import { type CardType, type Rarity, dated } from '../../shared/schemas/common.ts';
 import type {
   CardsFile,
   CardStatsFile,
@@ -39,7 +39,7 @@ export const fromGametora = (g: GametoraCard): HistoryEntry => ({
   rarity: rarityOf(g.rarity) ?? null,
   name: { en: g.char_name ?? null, jp: g.name_jp ?? null },
   title: { en: g.title_en ?? null, jp: g.title_ja ?? null },
-  release: g.release ?? null,
+  release: dated(g.release, 'gametora'),
   source: g.obtained ? [g.obtained] : [],
   slug: g.url_name ?? null,
 });

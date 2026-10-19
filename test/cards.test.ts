@@ -7,7 +7,7 @@ import type { UpstreamCard } from '../scripts/lib/cards.ts';
 import type { GametoraType } from '../shared/schemas/common.ts';
 import type { GametoraCard } from '../shared/schemas/gametora.ts';
 import type { JpCard, JpCardsFile } from '../shared/schemas/card.ts';
-import { fixture, present } from './helpers.ts';
+import { at, fixture, present } from './helpers.ts';
 
 // Upstream's card objects for one card at every limit break.
 const levels = (id: number, type: number, rarity: number, char_name: string, group = false) =>
@@ -51,7 +51,7 @@ const gametora = [
   gt(30126, 1015, 'TM Opera O', 'テイエムオペラオー', 'guts'),
   gt(30200, 1099, 'New Girl', '新人', 'intelligence', { obtained: 'story_event' }),
 ];
-const globalCards = { 30001: { title_en: '[Our title]', release_gl: '2026-01-01' } };
+const globalCards = { 30001: { title_en: '[Our title]', release_gl: at('2026-01-01') } };
 // The history: everything GameTora has but its newest card (30200), which the news hasn't shown.
 // A history entry from GameTora's (its rarity known: these are all SSRs).
 const historyEntry = (g: GametoraCard): JpCard => {
@@ -71,7 +71,7 @@ describe('cards.json', () => {
       rarity: 'SSR',
       name: { en: 'T.M. Opera O', jp: 'テイエムオペラオー' },
       title: { en: '[Our title]', jp: '[JP 30001]' },
-      release: { gl: '2026-01-01', jp: '2022-01-01' },
+      release: { gl: at('2026-01-01'), jp: at('2022-01-01', 'gametora') },
       source: ['gacha'],
       links: { gametora: '30001-x' },
       images: { icon: 'https://up/support_card_s_30001.png' },
@@ -106,7 +106,7 @@ describe('cards.json', () => {
     expect(withNew[30200]).toMatchObject({
       type: 'wisdom',
       name: { en: 'New Girl', jp: '新人' },
-      release: { gl: null, jp: '2022-01-01' },
+      release: { gl: null, jp: at('2022-01-01', 'gametora') },
       source: ['story_event'],
       links: { gametora: '30200-x' },
       images: { icon: null }, // the app builds GameTora's

@@ -240,7 +240,7 @@ const PART_DAY: Record<Part, number> = { early: 5, mid: 15, late: 25 };
 export function findBanner(banners: Banner[], cardId: number, entries: Listed[], entry: Listed): Banner | null {
   const featuring = banners
     .filter((banner) => banner.featured.some((item) => item.id === cardId))
-    .sort((a, b) => Date.parse(a.start) - Date.parse(b.start));
+    .sort((a, b) => Date.parse(a.start.date) - Date.parse(b.start.date));
   if (entry === entries[0]) return featuring[0] ?? null;
   const { date, month, part }: { date?: string; month?: string; part?: Part | null; dateText?: string | null } =
     entry.banner;
@@ -253,7 +253,7 @@ export function findBanner(banners: Banner[], cardId: number, entries: Listed[],
   const within = (date ? 21 : 42) * 86400000;
   let best: { banner: Banner; distance: number } | null = null;
   for (const banner of featuring) {
-    const distance = Math.abs(Date.parse(banner.start) - target);
+    const distance = Math.abs(Date.parse(banner.start.date) - target);
     if (distance <= within && (!best || distance < best.distance)) best = { banner, distance };
   }
   return best?.banner ?? null;

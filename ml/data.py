@@ -17,10 +17,44 @@ GENERATED = ROOT / 'generated'
 DATA = ROOT / 'data'
 
 
+FILLS = ('confirmed', 'predicted')
+
+
+def plain(x, fills=True):
+    """A file's dates as plain strings: every { date, status, … } (shared/schemas/common.ts' Dated) → its date, as ml/
+    models on the dates alone (what it writes is dated again, dated()). fills=False leaves out the dates predict-gl
+    filled in (confirmed / predicted: None, a phase without its start dropped), for what only Global's news says."""
+    if isinstance(x, list):
+        return [plain(v, fills) for v in x]
+    if not isinstance(x, dict):
+        return x
+    if 'date' in x and 'status' in x:
+        return x['date'] if fills or x['status'] not in FILLS else None
+    out = {k: plain(v, fills) for k, v in x.items()}
+    if out.get('phases'):
+        out['phases'] = [p for p in out['phases'] if p['start']]
+    return out
+
+
+def read(path, fills=True):
+    return plain(json.loads(path.read_text()), fills)
+
+
+def dated(date, status, **more):
+    """A date as the files have it (Dated): more = lo / hi (a predicted date's range), source (what confirmed it)."""
+    return {'date': date, 'status': status, **{k: v for k, v in more.items() if v is not None}} if date else None
+
+
+def day_range(day, margin):
+    """A predicted date's lo / hi: its Global day ± the margin (days)."""
+    m = round(float(margin))
+    return {'lo': to_date(day - m), 'hi': to_date(day + m)}
+
+
 def jp_banners():
     """JP's banners (data/jp_banners.json: GameTora's history + the JP news, `pnpm update-jp`) that Global could run:
     without paid scouts (`paid`, gacha ids 50000+) and our own re-run entries (string ids, "<id>-rerun")."""
-    jp = json.loads((DATA / 'jp_banners.json').read_text())
+    jp = read(DATA / 'jp_banners.json')
     regular = lambda b: not b.get('paid') and isinstance(b['id'], int)  # noqa: E731
     # as GameTora lists them: without the R cards the news adds to its banners (`from_news` items)
     gametora = lambda b: b if b.get('from_news') else {**b, 'featured': [f for f in b['featured'] if not f.get('from_news')]}  # noqa: E731
@@ -43,14 +77,14 @@ def is_promo(card):
 
 def promo_ids():
     """Ids of the promo cards in generated/cards.json."""
-    return {int(i) for i, card in json.loads((GENERATED / 'cards.json').read_text()).items() if is_promo(card)}
+    return {int(i) for i, card in read(GENERATED / 'cards.json').items() if is_promo(card)}
 
 
 def load_cards():
     """One row per JP-released card (generated/cards.json, `pnpm build-cards`): id, name, title, rarity,
     jp, gl (days; gl NaN if not on Global), status: 'released' | 'skipped' (older than Global's progress
     but never released) | 'upcoming' | 'promo' (not on Global, never predicted: is_promo())."""
-    data = json.loads((GENERATED / 'cards.json').read_text())
+    data = read(GENERATED / 'cards.json')
     rows = [
         {
             'id': card_id,

@@ -81,8 +81,8 @@ export default function RankOverTime({
   const upcoming = useUpcomingRanking(server, shown, stat, !!predictions);
   const ranking = predictions === undefined ? null : predictions ? upcoming : (rankings[shown] ?? null);
 
-  const released = (id: number) => cards[id]?.release[server] ?? null;
-  const releaseOf = (id: number) => released(id) ?? predictions?.cards[id]?.predicted_gl ?? null;
+  const released = (id: number) => cards[id]?.release[server]?.date ?? null;
+  const releaseOf = (id: number) => released(id) ?? predictions?.cards[id]?.release_gl.date ?? null;
   const isPredicted = (id: number) => !released(id) && !!predictions?.cards[id];
   const history = ranking && rankHistory(ranking, cardId, lb, releaseOf, isPredicted);
   const passes = history ? history.filter((p) => p.overtakenBy.length > 0) : [];

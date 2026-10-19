@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatDate, scenarioName, serverName } from '../i18n/index.ts';
-import { DATE_FIELD, SCENARIOS, isCurrent } from '../scenarioRelease.ts';
+import { DATE_FIELD, SCENARIOS, isCurrent, launchTag } from '../scenarioRelease.ts';
 import type { StartDate } from '../../shared/schemas/scenario.ts';
 import type { Server } from '../servers.ts';
 import { ink } from '../timeline/scenarioStrip.ts';
@@ -26,7 +26,7 @@ export default function ScenariosPage({ server }: { server: Server }) {
 
   const when = (start: StartDate | null) =>
     start
-      ? t('scenarioList.when', { status: t(`scenarioPage.status.${start.tag}`), date: date(start.date) })
+      ? t('scenarioList.when', { status: t(`scenarioPage.status.${launchTag(start)}`), date: date(start.date) })
       : t('scenarioList.noDate');
 
   return (
@@ -58,7 +58,7 @@ export default function ScenariosPage({ server }: { server: Server }) {
                   {SERVER_ORDER.map((on) => {
                     const start = s[DATE_FIELD[on]];
                     return (
-                      <span key={on} className={clsx(styles.when, styles[start?.tag ?? 'none'])}>
+                      <span key={on} className={clsx(styles.when, styles[start ? launchTag(start) : 'none'])}>
                         {serverName(on)}: {when(start)}
                       </span>
                     );

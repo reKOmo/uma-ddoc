@@ -179,6 +179,7 @@ const Bar = memo(function Bar({
       className={clsx(
         styles.bar,
         styles[entry.status],
+        entry.endPredicted && styles.endPredicted,
         chip && styles.chip,
         entry.art?.official && styles.officialArt,
         parts > 0 && styles.hasParts

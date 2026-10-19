@@ -11,6 +11,7 @@ import { type Entry, bannerEntries, eventEntries } from '../src/timeline/entries
 import { dateFormats, entryTitle, kindName } from '../src/timeline/format.ts';
 import { type ArtBannerFile, withArt } from '../src/gametora.ts';
 import cardsJson from '../generated/cards.json' with { type: 'json' };
+import { at } from './helpers.ts';
 
 // The sheet (vaul's drawer) renders into a portal: the sheet's content inline instead.
 vi.mock('../src/Sheet.tsx', () => ({
@@ -51,18 +52,17 @@ const [predicted, paid] = bannerEntries(
   file([
     {
       id: 1,
-      start: '2026-11-01T22:00:00Z',
-      end: '2026-11-08T21:59:59Z',
+      start: at('2026-11-01T22:00:00Z', 'predicted', { lo: '2026-10-28', hi: '2026-11-05' }),
+      end: at('2026-11-08T21:59:59Z', 'predicted'),
       main: card(ids[0]),
       featured: [card(ids[0])],
       predicted: true,
       jp_start: '2025-05-01T03:00:00Z',
       jp_end: '2025-05-08T02:59:59Z',
-      margin_days: 4,
     },
     {
       id: 50001,
-      start: '2026-01-01T00:00:00Z',
+      start: at('2026-01-01T00:00:00Z'),
       end: null,
       main: null,
       featured: [],
@@ -81,8 +81,8 @@ const events = eventEntries(
       kind: 'celebration',
       name: 'Anniversary',
       parent: null,
-      start: '2026-10-01T00:00:00Z',
-      end: '2026-10-20T00:00:00Z',
+      start: at('2026-10-01T00:00:00Z'),
+      end: at('2026-10-20T00:00:00Z'),
       cards: [],
       items: [{ name: 'Carats', count: 3000 }],
       titles: ['Champion'],
@@ -96,12 +96,40 @@ const events = eventEntries(
       kind: 'gift',
       name: 'Gift',
       parent: '10',
-      start: '2026-10-02T00:00:00Z',
+      start: at('2026-10-02T00:00:00Z'),
       end: null,
       cards: [{ id: ids[1], rarity: 'SSR', title: 'T', name: 'N', copies: 2 }],
       items: [],
       titles: [],
       news_url: null,
+      image: null,
+      source: 'news',
+    },
+    // A cup its "coming soon" post gives two starts of: the rest is the prediction's.
+    {
+      id: '1100',
+      kind: 'champions_meeting',
+      name: 'Capricorn Cup',
+      parent: null,
+      start: at('2026-10-27T22:00:00.000Z'),
+      end: at('2026-11-06T21:59:00.000Z', 'predicted'),
+      cards: [],
+      items: [],
+      titles: [],
+      phases: [
+        {
+          key: 'league_selection',
+          start: at('2026-10-27T22:00:00.000Z'),
+          end: at('2026-11-04T21:59:00.000Z', 'predicted'),
+        },
+        { key: 'round_1', start: at('2026-10-31T22:00:00.000Z'), end: at('2026-11-02T21:59:00.000Z') },
+        {
+          key: 'round_2',
+          start: at('2026-11-02T22:00:00.000Z', 'predicted'),
+          end: at('2026-11-04T21:59:00.000Z', 'predicted'),
+        },
+      ],
+      news_url: 'https://umamusume.com/news/1100',
       image: null,
       source: 'news',
     },
@@ -201,5 +229,16 @@ describe('TimelineSheet', () => {
     ]);
     expect(screen.getByText(/Part of Anniversary/)).toBeTruthy();
     expect(screen.getByText('2 copies')).toBeTruthy();
+  });
+
+  it("marks the schedule's predicted dates, and an announced event's predicted end", () => {
+    const cup = events[2];
+    expect(cup.endPredicted).toBe(true);
+    renderSheet(cup);
+    const row = (key: string) => screen.getByText(i18n.t(`events.phase.${key}`)).closest('li');
+    expect(row('league_selection')?.textContent).toMatch(/· predicted$/);
+    expect(row('round_2')?.textContent).toMatch(/· predicted$/);
+    expect(row('round_1')?.textContent).not.toMatch(/predicted/);
+    expect(events[0].endPredicted).toBe(false);
   });
 });

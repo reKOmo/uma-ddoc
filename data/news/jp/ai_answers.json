@@ -282,6 +282,8 @@
 "3466-1:5vvx": {"model":"gemma4:26b","at":"2026-10-11T22:12:26.222Z","versions":{"cards":2,"dates":1},"answer":{"cards":[{"title":"めぐるぐるぐるトレセン日和","copies":5}],"start":"2026-09-27 23:00","end":"2026-10-26 05:00"}},
 "3466-2:82jwk9": {"model":"gemma4:26b","at":"2026-10-11T22:12:45.885Z","versions":{"items":2},"answer":{"items":[{"name":"ジュエル","each":150,"times":26,"total":3900}]}},
 "3481:xlxtjo": {"model":"gemma4:26b","at":"2026-10-11T22:11:59.004Z","versions":{"cards":2},"answer":{"cards":[{"title":"“最強”なる眷属","copies":null}]}},
+"3491-1:1uaqubb": {"model":"gemma4:26b","at":"2026-10-19T20:09:01.273Z","versions":{"name":1},"answer":{"name":null}},
+"3491-3:w3qv9p": {"model":"gemma4:26b","at":"2026-10-19T20:09:07.390Z","versions":{"name":1},"answer":{"name":"レンタル回数増加キャンペーン"}},
 "383:6ma5v2": {"model":"gemma4:26b","at":"2026-10-11T23:00:58.542Z","versions":{"dates":1},"answer":{"start":"2021-08-28 19:30","end":null}},
 "399:fa54ch": {"model":"gemma4:26b","at":"2026-10-11T23:00:50.632Z","versions":{"dates":1},"answer":{"start":null,"end":null}},
 "400:1ov8nbh": {"model":"gemma4:26b","at":"2026-10-11T23:00:28.037Z","versions":{"dates":1},"answer":{"start":"2021-09-03 19:51","end":null}},

@@ -120,6 +120,7 @@
       "predicted": "predicted"
     },
     "since": "from {{date}}",
+    "endPredicted": "end predicted",
     "zoom": "Zoom",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
@@ -257,10 +258,15 @@
       "final_race": "Final round: race",
       "team_formation": "Team formation",
       "main_stage": "Main stage",
+      "main_tallying": "Main stage: ranking tally",
       "extra_registration": "Extra stage: registration",
       "extra_matching": "Extra stage: matching",
       "extra_voting": "Extra stage: votes",
-      "extra_race": "Extra stage: race"
+      "extra_race": "Extra stage: race",
+      "event": "Event",
+      "tallying": "Tallying",
+      "results": "Results",
+      "reward_collection": "Reward collection"
     },
     "race": {
       "heading_one": "Race",

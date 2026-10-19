@@ -8,6 +8,7 @@ import { COMBINED, STATS } from '../tierlist/index.ts';
 import { SERVERS } from '../src/servers.ts';
 import { CM_PHASES, EVENT_KINDS } from '../scripts/lib/events.ts';
 import { ja } from '../scripts/lib/news-lang/ja.ts';
+import { en as enLexicon } from '../scripts/lib/news-lang/en.ts';
 import { EVENT_GROUPS } from '../src/timeline/events.ts';
 import { LANE_GROUPS } from '../src/timeline/layout.ts';
 import { ORIGIN_KINDS } from '../src/cardOrigins.ts';
@@ -79,6 +80,7 @@ describe('catalogs', () => {
       ...EVENT_GROUPS.map(([k]) => `events.group.${k}`),
       ...CM_PHASES.map(([k]) => `events.phase.${k}`),
       ...present(ja.schedules, 'JP schedules').league_of_heroes.map(([k]) => `events.phase.${k}`),
+      ...[...enLexicon.eventPhases, ...ja.eventPhases].map(([k]) => `events.phase.${k}`),
       ...['show', 'order'].map((k) => `timeline.filter.tab.${k}`),
       ...[1, 2, 3, 4].map((n) => `tierList.size.${n}`),
       ...ORIGIN_KINDS.filter((k) => k !== 'other').map((k) => `card.origins.kind.${k}`),

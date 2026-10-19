@@ -28,6 +28,27 @@ Upstream card data, GameTora, and an upstream clone used only by tests:
 | Upstream code (for comparison only) | `upstream/` | no | `pnpm clone-upstream` (manual locally; CI clones it) |
 
 
+## Dates
+
+Every date an item has, in every file (events' start / end / phases, banners' start / end / `rerun`, card release
+days, scenario launches, predictions), is `{ date, status, lo?, hi?, source? }` (`Dated` in
+`shared/schemas/common.ts`; `date` a moment, or a day for card releases):
+
+- `status`: where the date came from: `news` (an official post), `confirmed` (`data/known_dates.json`, Global's release
+  schedule), `predicted` (from JP's, `ml/`), `gametora` (GameTora's history). Whether it's upcoming, live or over is the
+  app's to work out from today (`bannerStatus()`, `launchTag()`); it's never stored.
+- `lo` / `hi`: a predicted date's range (days). `source`: what confirmed it.
+- Plain strings stay for what isn't the item's own date: `jp_start` / `jp_end` (what a prediction is from), event pairs'
+  dates, post times, and `known_dates.json` (the hand input itself).
+- **Per date, the news wins**: news > confirmed > predicted. `data/global_events.json` / `global_banners.json` hold what
+  Global's news has plus fills for the dates it lacks: `predict-gl` fills a paired event's end and missing phases from its
+  JP pair (status `predicted`, `ml/events.py` `write_fills()`, recomputed each run); `update-global` keeps a banner's end
+  `confirmed` from `known_dates.json` when the post gives none, and gives a news banner without an end JP's length
+  (`predicted`). A rebuild from the news carries the fills over for the dates the news still lacks
+  (`scripts/lib/dates.ts`). Pure predictions (nothing on Global yet) stay in `generated/predicted_global_*.json`.
+- The Timeline fades a bar whose end is only predicted (`Entry.endPredicted`); the sheet says "end predicted" and marks
+  schedule rows with a predicted date.
+
 - `ensureCards()` fetches upstream's card data if it's missing and builds the card data if that's missing; it runs
   from a Vite plugin (dev/build) and from `test/global-setup.ts`.
 
