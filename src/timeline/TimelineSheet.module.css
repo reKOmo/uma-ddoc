@@ -375,3 +375,60 @@
   color: var(--accent-text);
   background: var(--accent);
 }
+
+.phaseName {
+  display: flex;
+  gap: 6px;
+}
+
+.endsIn {
+  margin-left: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.schedule .ended {
+  color: var(--muted);
+}
+
+/* One line tall: the dot sits by a wrapped name's first line. */
+.dot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 8px;
+  height: 1lh;
+}
+
+/* The phase running now: a dot with a ring pinging out of it. */
+.ping {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.ping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ping::after {
+    animation: none;
+  }
+}

@@ -67,6 +67,24 @@ export const formatDateRange = (
 ): string => dateTimeFormat(options).formatRange(new Date(start), new Date(end));
 export const formatNumber = (value: number): string => new Intl.NumberFormat(locale()).format(value);
 
+// A short span's two largest units, in the UI's locale: "2 days, 5 hours", "3 hours, 20 minutes", "20 minutes".
+export function formatTimeLeft(ms: number): string {
+  const minutes = Math.max(1, Math.round(ms / 60000));
+  const units: [number, string][] = [
+    [Math.floor(minutes / 1440), 'day'],
+    [Math.floor(minutes / 60) % 24, 'hour'],
+    [minutes % 60, 'minute'],
+  ];
+  const first = units.findIndex(([value]) => value > 0);
+  const parts = units
+    .slice(first, first + 2)
+    .filter(([value]) => value > 0)
+    .map(([value, name]) =>
+      new Intl.NumberFormat(locale(), { style: 'unit', unit: name, unitDisplay: 'long' }).format(value)
+    );
+  return new Intl.ListFormat(locale(), { style: 'narrow', type: 'unit' }).format(parts);
+}
+
 // How long from one "YYYY-MM-DD" date to a later one, in the UI's locale: "1 year, 2 months",
 // "5 months", or days when it's under a month.
 export function formatDuration(from: string, to: string): string {

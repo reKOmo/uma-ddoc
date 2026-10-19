@@ -12,7 +12,7 @@ import RaceTrack from './RaceTrack.tsx';
 import { DistanceBars, GroundDrops, SeasonIcon, TimeIcon, TurnArrow, WeatherIcon } from './RaceIcons.tsx';
 import { TIER_NAMES } from '../tiers.ts';
 import { STAT_ICONS } from '../statIcons.ts';
-import { formatNumber, scenarioName, serverName, statName } from '../i18n/index.ts';
+import { formatNumber, formatTimeLeft, scenarioName, serverName, statName } from '../i18n/index.ts';
 import { umapyoiUrl } from '../umapyoi.ts';
 import { useSettings } from '../settings.tsx';
 import { loadPullGuide } from '../pullGuide.ts';
@@ -83,7 +83,7 @@ export default function TimelineSheet({
       <Featured entry={entry} rankings={rankings} advice={advice} />
       <Races races={entry.races} predicted={!!entry.prediction} />
       <Rewards items={entry.items} />
-      <Schedule phases={entry.phases} format={format} />
+      <Schedule entry={entry} format={format} />
       <Titles titles={entry.titles} />
       {nothing && <p className={styles.empty}>{entry.note ?? t('timeline.nothingListed')}</p>}
       <Parts entry={entry} lookup={lookup} format={format} onSelect={onSelect} />
@@ -358,20 +358,57 @@ function Rewards({ items }: { items: EventItem[] }) {
   );
 }
 
-function Schedule({ phases, format }: { phases: Phase[]; format: DateFormats }) {
+// When a phase ends: its own end, else when the next one starts, else the event's end.
+const phaseEnd = (phases: Phase[], i: number, eventEnd: string | null): string | null =>
+  phases[i].end?.date ??
+  phases.slice(i + 1).find((p) => Date.parse(p.start.date) > Date.parse(phases[i].start.date))?.start.date ??
+  eventEnd;
+
+function Schedule({ entry, format }: { entry: Entry; format: DateFormats }) {
   const { t } = useTranslation();
+  const { phases } = entry;
   if (!phases.length) return null;
+  const now = Date.now();
+  // The phase running now; of overlapping ones, the one that started last.
+  // (only while the event is live: an ended event's phases all ended, nothing to tell apart)
+  const live = entry.status === 'live';
+  const ends = phases.map((_, i) => phaseEnd(phases, i, entry.end));
+  const ended = (i: number): boolean => live && ends[i] != null && Date.parse(ends[i]) <= now;
+  let current = -1;
+  if (live)
+    phases.forEach((phase, i) => {
+      const start = Date.parse(phase.start.date);
+      if (start <= now && !ended(i) && (current < 0 || start >= Date.parse(phases[current].start.date))) current = i;
+    });
+  const currentEnd = current >= 0 ? ends[current] : null;
   return (
     <>
       <h3 className={styles.heading}>{t('timeline.schedule')}</h3>
       <ul className={clsx(styles.list, styles.schedule)}>
-        {phases.map((phase) => {
+        {phases.map((phase, i) => {
           // (a "coming soon" post's schedule: what it doesn't give yet is the prediction's)
           const predicted = [phase.start, phase.end].some((d) => d?.status === 'predicted');
           const dates = dateRange({ start: phase.start.date, end: phase.end?.date ?? null }, format.time);
           return (
-            <li key={phase.key} className={clsx(predicted && styles.predicted)}>
-              <span>{t(`events.phase.${phase.key}`)}</span>
+            <li key={phase.key} className={clsx(predicted && styles.predicted, ended(i) && styles.ended)}>
+              <span className={styles.phaseName}>
+                {/* Every row keeps the dot's room, so the names line up. */}
+                {current >= 0 && (
+                  <span className={styles.dot}>
+                    {i === current && (
+                      <span className={styles.ping} role="img" aria-label={t('timeline.status.live')} />
+                    )}
+                  </span>
+                )}
+                <span>
+                  {t(`events.phase.${phase.key}`)}
+                  {i === current && currentEnd && (
+                    <span className={styles.endsIn}>
+                      {t('timeline.endsIn', { duration: formatTimeLeft(Date.parse(currentEnd) - now) })}
+                    </span>
+                  )}
+                </span>
+              </span>
               <small>{predicted ? `${dates} · ${t('timeline.status.predicted')}` : dates}</small>
             </li>
           );

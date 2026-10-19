@@ -188,6 +188,7 @@
     "itemCount": "{{name}} × {{count}}",
     "includes": "Includes",
     "schedule": "Schedule",
+    "endsIn": "ends in {{duration}}",
     "showParts_one": "Show {{count}} part of {{name}}",
     "showParts_other": "Show {{count}} parts of {{name}}",
     "hideParts": "Hide the parts of {{name}}",
