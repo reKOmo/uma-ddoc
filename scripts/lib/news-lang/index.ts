@@ -1,5 +1,6 @@
 import { en } from './en.ts';
 import { ja } from './ja.ts';
+import type { Race } from '../../../shared/schemas/event.ts';
 
 export type PostLike = { announce_id: number; announce_label: number; message?: string };
 // A post cut at its header art (event-blocks.ts' eventBlocks()): intro lines + headed sections.
@@ -23,6 +24,27 @@ export type Rule = [
   string | ((post: PostLike) => string),
   (number | ((m: Match) => string | null))?,
 ];
+
+// An event's race conditions (event-races.ts): "Nakayama / Turf / 2,500m (Long) / Right-Handed / …".
+export type RaceLexicon = {
+  // The heading the race lines sit under; a line with a distance is a race.
+  heading: RegExp;
+  // A line's parts, and a part's words ("2,500m (Long)" → 2,500m, Long).
+  parts: (line: string) => string[];
+  words: (part: string) => string[];
+  // What a word sets, by key(word); a race's first part that isn't a word is its name ("Arima Kinen").
+  key: (word: string) => string;
+  vocabulary: Record<string, Partial<Race>>;
+  // Per-opponent conditions: their heading, and a line of it (name, conditions).
+  opponents: RegExp;
+  opponent: RegExp;
+  // A note that weather and ground change from race to race.
+  variable: RegExp;
+  // Global (Dream Team): a list of racecourses instead of a race line.
+  tracks?: RegExp;
+  // JP: a race's name as Global calls it, or undefined.
+  name?: (name: string) => string | undefined;
+};
 
 // Every pattern and hook the news parsers (post-categories, banner-posts, event-blocks, event-rewards, events,
 // jp-cards) read a post with. Required keys are what Global's English lexicon (en.ts) has; the optional ones are
@@ -151,6 +173,8 @@ export type Lexicon = {
   periodLine: (line: string) => boolean;
   // A Champions Meeting's schedule headings: [phase key (CM_PHASES), heading].
   cmPhases: [string, RegExp][];
+  // An event's race conditions.
+  race: RaceLexicon;
   // JP: other kinds' schedules (League of Heroes), by event kind.
   schedules?: Record<string, [string, RegExp][]>;
   // A celebration's sub-event: its opening sentence without its date, the names in it.

@@ -3,8 +3,16 @@
 - **Events** (`scripts/lib/events.ts` → `data/global_events.json`): Global's in-game events from the news alone (no
   GameTora; Global's upcoming ones are predicted from JP's: "Global ↔ JP events" below). **Everything with dates of its
   own is a bar** (except inside one event: Champions Meeting rounds, reward collection, repeated windows stay in its
-  bar), newest first: `{ id, kind, name, parent, start, end, cards, items, titles, phases?, news_url, image, source }`
-  (`phases`: Champions Meetings only). What matters most is whether an event gives a **support card**: `cards` `[{ id, rarity,
+  bar), newest first: `{ id, kind, name, parent, start, end, cards, items, titles, phases?, races?, news_url, image, source }`
+  (`phases`: Champions Meetings only). `races` (`scripts/lib/event-races.ts`, wording in `lang.race`): every event whose
+  post has a "Race Condition(s)" section (Champions Meetings, Legend Races, the Racing Carnival, Dream Team), `{ name,
+  opponent, track, surface, distance, category, direction, course, season, weather, ground, time, variable }` as keys
+  the app translates; read word by word from "Tenno Sho (Spring) / Kyoto / Turf / 3,200m (Long) / Right-Handed / Outer
+  / Spring" (older posts' "2000 m", "Weather: Sunny", "Outer→Inner" too; a missing category from the metres; a first
+  part that isn't a word is a Legend Race's name). One race per line; a Legend Race's "Weather / Track Condition" list
+  splits it by opponent; Dream Team's "Racecourse: A, B" one per racecourse with its season (`variable`: weather and
+  ground change between races). The latest post's races win, its blanks filled from an earlier post's same races (the
+  Pisces Cup's last post dropped its season). A test checks every word of every stored race line is known. What matters most is whether an event gives a **support card**: `cards` `[{ id, rarity,
   title, name, copies }]`, found by looking every "[Title] Name" up in `generated/cards.json` (English title + name;
   however the post words it, trainees never match; lines about bonus cards/boosts/rankings skipped), `copies` from "a
   total of five copies" / "up to two times". Everything else it gives is secondary: `items` `[{ name, count }]` as the

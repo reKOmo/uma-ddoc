@@ -3,6 +3,7 @@
 
 import { norm, parsePeriodJa } from '../news-text.ts';
 import { jaBanners } from './ja-banners.ts';
+import { jaRace } from './ja-races.ts';
 import type { Block, JapaneseLexicon, PostLike } from './index.ts';
 
 // Marks that aren't part of a name: 【予告】, 【重要】, 【修正済み】, 【9/30 11:00公開】.
@@ -242,7 +243,8 @@ export const ja: JapaneseLexicon = {
   artId: /(?:header|banner)_(?:(?:CP|EV)_\d{8}_(\d+)|(\d{4,10}))/,
 
   numbers: {},
-  // Items Global has too go by Global's names (both servers' events read and sort alike); the rest stay Japanese.
+  // Items Global has too go by Global's names, as Global's posts spell them (both servers' events read, sort and show
+  // alike); the rest stay Japanese.
   aliases: {
     ジュエル: 'Carats',
     無料ジュエル: 'Carats',
@@ -254,13 +256,25 @@ export const ja: JapaneseLexicon = {
     虹の結晶片: 'Rainbow Crystal Shards',
     サポートカードガチャチケット: 'Support Card Scout Tickets',
     育成ウマ娘ガチャチケット: 'Trainee Scout Tickets',
-    ニンジンゼリーミニ: 'にんじんゼリーミニ',
+    金の結晶片: 'Gold Crystal Shards',
+    タフネス30: 'Toughness 30',
+    目覚まし時計: 'Alarm Clock',
+    夢の煌めき: 'Dream Glimmer',
+    ヒント本: 'Book of Hints',
+    ヒント専門書: 'Textbook of Hints',
+    レアヒント本: 'Rare Book of Hints',
+    レアヒント専門書: 'Rare Textbook of Hints',
+    にんじんゼリーミニ: 'Carrot Jelly Mini',
+    ニンジンゼリーミニ: 'Carrot Jelly Mini',
+    女神像: 'Goddess Statue',
+    東京大賞典優勝レイ: "Tokyo Daishoten Winner's Sash",
   },
   itemAmountPrefix: ITEM_QUOTES,
   itemNameChar: /[\p{L}]/u,
   // (norm() leaves kana decomposed: "ジ" is "シ" + a mark.)
   aliasKey: (key) => key.normalize('NFC'),
-  showItem: jaItem,
+  // "5.5th Anniversary SSR引換券" → Global's "5.5th Anniversary SSR Voucher".
+  showItem: (name) => jaItem(name).replace(/^(.*Anniversary SSR)引換券$/, '$1 Voucher'),
   // The Japanese name of an item shown by Global's (decision 5 of docs/jp-news-findings.md).
   localName: (raw, shown) => {
     const local = jaItem(raw);
@@ -413,4 +427,5 @@ export const ja: JapaneseLexicon = {
   // Parts that don't stretch their celebration: sales (a starter pack stays on sale for a year or more after it).
   notSpanning: (event) => event.kind === 'sale',
   missionRewards: (line) => /ミッション/.test(line) && /報酬/.test(line),
+  race: jaRace,
 };

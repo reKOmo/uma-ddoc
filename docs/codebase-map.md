@@ -33,10 +33,11 @@ scripts/
   lib/jp-banners.ts  pure: applyJpNews() (JP news → data/jp_banners.json), regularBanners() (what Global and ml/ read),
                      reader / writer
   lib/news-lang/     the news' wording per language, read by every parser below (`lang`, English by default):
-                     en.ts (Global), ja.ts + ja-banners.ts (JP), index.ts (lexicon(server))
+                     en.ts (Global), ja.ts + ja-banners.ts + ja-races.ts (JP), index.ts (lexicon(server))
   lib/global.ts      pure: applyNews() (news posts + JP banners → Global banners/releases), data/ reader/writer
   lib/event-blocks.ts  pure: eventBlocks() (a post cut at its header art into blocks: intro + h2–h4 sections)
   lib/event-rewards.ts pure: cardsIn() (cards by lookup), itemsIn(), titlesIn(), missionsIn()
+  lib/event-races.ts pure: blockRaces() (an event's races from its race conditions), raceConditions() (one line)
   lib/events.ts      pure: postEvents() (a post → its events, with doubts), eventFragments(), buildEvents() (mission
                      sets as bars, merged over posts, answers applied), cmPhases() (a cup's schedule), cmItems()
                      (Champions Meeting range from the hand table), data/ readers/writers (events, answers)

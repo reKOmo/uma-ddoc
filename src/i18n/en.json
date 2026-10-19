@@ -131,6 +131,8 @@
     "characters": "Trainees",
     "supportCards": "Support cards",
     "barLabel": "{{name}} +{{count}}",
+    "withRace": "{{label}} · {{race}}",
+    "aboutDates": "About these dates",
     "status": {
       "live": "live",
       "upcoming": "upcoming",
@@ -260,6 +262,49 @@
       "extra_matching": "Extra stage: matching",
       "extra_voting": "Extra stage: votes",
       "extra_race": "Extra stage: race"
+    },
+    "race": {
+      "heading_one": "Race",
+      "heading_other": "Races",
+      "vs": "vs {{name}}",
+      "turns": "{{direction}}, {{course}}",
+      "varies": "Varies by race",
+      "label": {
+        "category": "Distance",
+        "turns": "Turns",
+        "season": "Season",
+        "weather": "Weather",
+        "ground": "Ground",
+        "time": "Time of day"
+      },
+      "fromJp": "JP's race conditions; Global's may differ.",
+      "track": {
+        "tokyo": "Tokyo",
+        "nakayama": "Nakayama",
+        "kyoto": "Kyoto",
+        "hanshin": "Hanshin",
+        "chukyo": "Chukyo",
+        "sapporo": "Sapporo",
+        "hakodate": "Hakodate",
+        "fukushima": "Fukushima",
+        "niigata": "Niigata",
+        "kokura": "Kokura",
+        "oi": "Oi",
+        "kawasaki": "Kawasaki",
+        "funabashi": "Funabashi",
+        "morioka": "Morioka",
+        "longchamp": "Longchamp",
+        "santa_anita": "Santa Anita Park",
+        "del_mar": "Del Mar"
+      },
+      "surface": { "turf": "Turf", "dirt": "Dirt" },
+      "category": { "sprint": "Sprint", "mile": "Mile", "medium": "Medium", "long": "Long" },
+      "direction": { "right": "Right-handed", "left": "Left-handed", "straight": "Straight" },
+      "course": { "inner": "inner", "outer": "outer", "outer_to_inner": "outer → inner" },
+      "season": { "spring": "Spring", "summer": "Summer", "autumn": "Autumn", "winter": "Winter" },
+      "weather": { "sunny": "Sunny", "cloudy": "Cloudy", "rainy": "Rainy", "snowy": "Snowy" },
+      "ground": { "firm": "Firm", "good": "Good", "soft": "Soft", "heavy": "Heavy" },
+      "time": { "day": "Daytime", "evening": "Evening", "night": "Night" }
     }
   },
   "card": {

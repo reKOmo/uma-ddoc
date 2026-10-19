@@ -1,0 +1,92 @@
+// The Japanese posts' race conditions ("天皇賞（春） 京都 芝 3200m（長距離） 右・外 春 晴 良 昼"), and Legend Races'
+// names as Global calls them.
+
+import type { RaceLexicon } from './index.ts';
+
+// JP's name → Global's (hand table; a race missing here keeps its JP name, and the race test lists it).
+const RACE_NAMES: Record<string, string> = {
+  有馬記念: 'Arima Kinen',
+  ジャパンカップ: 'Japan Cup',
+  日本ダービー: 'Japanese Derby',
+  皐月賞: 'Satsuki Sho',
+  菊花賞: 'Kikuka Sho',
+  桜花賞: 'Oka Sho',
+  秋華賞: 'Shuka Sho',
+  宝塚記念: 'Takarazuka Kinen',
+  '天皇賞（春）': 'Tenno Sho (Spring)',
+  '天皇賞（秋）': 'Tenno Sho (Autumn)',
+  大阪杯: 'Osaka Hai',
+  安田記念: 'Yasuda Kinen',
+  高松宮記念: 'Takamatsunomiya Kinen',
+  スプリンターズS: 'Sprinters Stakes',
+  スプリンターズステークス: 'Sprinters Stakes',
+  エリザベス女王杯: 'Queen Elizabeth II Cup',
+  朝日杯フューチュリティステークス: 'Asahi Hai Futurity Stakes',
+  阪神ジュベナイルフィリーズ: 'Hanshin Juvenile Fillies',
+  フェブラリーステークス: 'February Stakes',
+  帝王賞: 'Teio Sho',
+  スワンステークス: 'Swan Stakes',
+  アメリカJCC: 'American Jockey Club Cup',
+};
+
+export const jaRace: RaceLexicon = {
+  heading: /^対象レース$/,
+  // "3200m（長距離）右・外": a closing bracket ends a part.
+  parts: (line) =>
+    line
+      .replace(/）(?=\S)/g, '） ')
+      .trim()
+      .split(/\s+/),
+  words: (part) => part.split(/[（）・]/).filter(Boolean),
+  key: (word) => word,
+  vocabulary: {
+    東京: { track: 'tokyo' },
+    中山: { track: 'nakayama' },
+    京都: { track: 'kyoto' },
+    阪神: { track: 'hanshin' },
+    中京: { track: 'chukyo' },
+    札幌: { track: 'sapporo' },
+    函館: { track: 'hakodate' },
+    福島: { track: 'fukushima' },
+    新潟: { track: 'niigata' },
+    小倉: { track: 'kokura' },
+    大井: { track: 'oi' },
+    川崎: { track: 'kawasaki' },
+    船橋: { track: 'funabashi' },
+    盛岡: { track: 'morioka' },
+    ロンシャン: { track: 'longchamp' },
+    サンタアニタパーク: { track: 'santa_anita' },
+    デルマー: { track: 'del_mar' },
+    芝: { surface: 'turf' },
+    ダート: { surface: 'dirt' },
+    短距離: { category: 'sprint' },
+    マイル: { category: 'mile' },
+    中距離: { category: 'medium' },
+    長距離: { category: 'long' },
+    右: { direction: 'right' },
+    左: { direction: 'left' },
+    直線: { direction: 'straight' },
+    内: { course: 'inner' },
+    外: { course: 'outer' },
+    '外→内': { course: 'outer_to_inner' },
+    春: { season: 'spring' },
+    夏: { season: 'summer' },
+    秋: { season: 'autumn' },
+    冬: { season: 'winter' },
+    晴: { weather: 'sunny' },
+    曇: { weather: 'cloudy' },
+    雨: { weather: 'rainy' },
+    雪: { weather: 'snowy' },
+    良: { ground: 'firm' },
+    稍重: { ground: 'good' },
+    重: { ground: 'soft' },
+    不良: { ground: 'heavy' },
+    昼: { time: 'day' },
+    夕: { time: 'evening' },
+    夜: { time: 'night' },
+  },
+  opponents: /^天候・バ場/,
+  opponent: /^[・•]\s*(?:VS)?(.+?)[：:]\s*(.+)$/,
+  variable: /天候とバ場状態はランダム/,
+  name: (name) => RACE_NAMES[name],
+};

@@ -1,6 +1,6 @@
 import type { Banner, BannerId } from '../../shared/schemas/banner.ts';
 import type { CardsFile } from '../../shared/schemas/card.ts';
-import type { EventItem, EventKind, GameEvent, Phase, PredictedEvent } from '../../shared/schemas/event.ts';
+import type { EventItem, EventKind, GameEvent, Phase, PredictedEvent, Race } from '../../shared/schemas/event.ts';
 import { type ArtBanner, type ArtBannerFile, type ArtItem, cardIcon } from '../gametora.ts';
 import { DAY } from './layout.ts';
 
@@ -63,6 +63,7 @@ export type Entry = {
   featured: Featured[];
   items: EventItem[];
   phases: Phase[];
+  races: Race[];
   titles: string[];
 };
 
@@ -148,6 +149,7 @@ function bannerEntry(
       ),
     items: [],
     phases: [],
+    races: [],
     titles: [],
   };
 }
@@ -217,6 +219,7 @@ export function eventEntries(
       ),
       items: event.items,
       phases: event.phases ?? [],
+      races: event.races ?? [],
       titles: event.titles,
     };
   });

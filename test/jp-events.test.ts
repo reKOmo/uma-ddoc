@@ -67,8 +67,8 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
     expect(e.end).toBe(present(present(e.phases, 'phases').at(-1), 'last phase').end);
     expect(e.titles).toEqual(['ジェミニ杯プラチナ', 'ジェミニ杯ゴールド', 'ジェミニ杯シルバー', 'ジェミニ杯ブロンズ']);
     expect(e.items).toEqual([
-      { name: 'タフネス30', count: 3 },
-      { name: '目覚まし時計', count: 3 },
+      { name: 'Toughness 30', count: 3, local: 'タフネス30' },
+      { name: 'Alarm Clock', count: 3, local: '目覚まし時計' },
     ]);
     const [cup] = build(3463, 3464);
     expect(cup).toMatchObject({ id: '3463', name: 'CLASSIC', start: '2026-09-26T03:00:00.000Z' });
@@ -87,7 +87,7 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
     const e = one(806);
     expect(e).toMatchObject({ start: '2022-06-24T03:00:00.000Z', end: '2022-06-29T19:59:00.000Z' });
     expect(e.items).toContainEqual({ name: 'Rainbow Crystal Shards', count: null, local: '虹の結晶片' });
-    expect(e.items).toContainEqual({ name: '金の結晶片', count: null });
+    expect(e.items).toContainEqual({ name: 'Gold Crystal Shards', count: null, local: '金の結晶片' });
     expect(one(3426)).toMatchObject({ start: '2026-09-06T03:00:00.000Z', end: '2026-09-11T19:59:00.000Z' });
   });
 
@@ -165,8 +165,9 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
         'event'
       ).items
     ).toContainEqual({
-      name: '1st Anniversary SSR引換券',
+      name: '1st Anniversary SSR Voucher',
       count: null,
+      local: '1st Anniversary SSR引換券',
     });
   });
 
@@ -208,8 +209,8 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
         'event'
       ).items
     ).toEqual([
-      { name: '目覚まし時計', count: 500 },
-      { name: 'タフネス30', count: 100 },
+      { name: 'Alarm Clock', count: 500, local: '目覚まし時計' },
+      { name: 'Toughness 30', count: 100, local: 'タフネス30' },
     ]);
   });
 

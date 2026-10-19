@@ -45,6 +45,28 @@ export type EventItem = z.infer<typeof EventItemSchema>;
 export const PhaseSchema = z.strictObject({ key: z.string(), start: Moment, end: Moment.nullable() });
 export type Phase = z.infer<typeof PhaseSchema>;
 
+// A race the event is run on, from its post's race conditions (keys: the app translates them). A Legend Race has one per
+// race line, or per opponent when their weather differs; Dream Team one per racecourse, with only the track and season.
+export const RaceSchema = z.strictObject({
+  // A Legend Race's race ("Arima Kinen"; JP's untranslated ones as JP names them).
+  name: z.string().nullable(),
+  opponent: z.string().nullable(),
+  track: z.string(),
+  surface: z.enum(['turf', 'dirt']).nullable(),
+  distance: z.int().nullable(),
+  category: z.enum(['sprint', 'mile', 'medium', 'long']).nullable(),
+  direction: z.enum(['right', 'left', 'straight']).nullable(),
+  course: z.enum(['inner', 'outer', 'outer_to_inner']).nullable(),
+  season: z.enum(['spring', 'summer', 'autumn', 'winter']).nullable(),
+  weather: z.enum(['sunny', 'cloudy', 'rainy', 'snowy']).nullable(),
+  ground: z.enum(['firm', 'good', 'soft', 'heavy']).nullable(),
+  // Only JP's posts give it.
+  time: z.enum(['day', 'evening', 'night']).nullable(),
+  // Weather and ground change from race to race (League of Heroes, Dream Team).
+  variable: z.boolean(),
+});
+export type Race = z.infer<typeof RaceSchema>;
+
 // Ids: the post's id; "<post>-<block>" for a celebration's sub-event, "<event>-m<n>" for a mission set,
 // "gt-…" for JP's GameTora fills, "jp-<jp id>" for a predicted event.
 export const GameEventSchema = z.strictObject({
@@ -59,6 +81,7 @@ export const GameEventSchema = z.strictObject({
   items: z.array(EventItemSchema),
   titles: z.array(z.string()),
   phases: z.array(PhaseSchema).optional(),
+  races: z.array(RaceSchema).optional(),
   news_url: z.string().nullable(),
   image: z.string().nullable(),
   source: z.enum(['news', 'gametora']),

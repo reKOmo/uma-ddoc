@@ -17,6 +17,9 @@ export type RankResult = { ranks: Map<number, CardRank | null>; upcoming: boolea
 // TODO(ts): cards.json's type (a JSON import) is wider than the schema (strings for enums); test/schemas.test.ts checks it
 const CARDS = cards as CardsFile;
 
+// A card's stat (from its type), known before any ranking is; undefined for a card the data lacks.
+export const cardStat = (id: number): Stat | undefined => STAT_OF_TYPE[CARDS[id]?.type];
+
 export function useRankings(server: keyof typeof SERVERS, scenario: string, ids: number[]): RankResult | null {
   const [result, setResult] = useState<RankResult | null>(null);
   const key = ids.join();
@@ -27,9 +30,10 @@ export function useRankings(server: keyof typeof SERVERS, scenario: string, ids:
       ? key
           .split(',')
           .map(Number)
-          .filter((id) => STAT_OF_TYPE[CARDS[id]?.type])
+          .filter((id) => cardStat(id))
       : [];
-    const statOf = (id: number): Stat => STAT_OF_TYPE[CARDS[id].type];
+    // TODO(ts): `wanted` holds only cards with a stat
+    const statOf = (id: number): Stat => cardStat(id) as Stat;
     const stats = [...new Set(wanted.map(statOf))];
     const rank = async (options?: { upcoming: boolean }): Promise<Map<number, CardRank | null>> => {
       const rankings = await Promise.all(stats.map((stat) => rankByUsefulness(server, scenario, stat, options)));

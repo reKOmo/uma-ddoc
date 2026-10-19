@@ -1,0 +1,40 @@
+.track {
+  flex: none;
+  width: 64px;
+  height: 44px;
+}
+
+.lane,
+.run {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.lane {
+  stroke: var(--border);
+}
+
+.run {
+  stroke: var(--accent);
+}
+
+.start {
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+.pole {
+  stroke: var(--text);
+  stroke-width: 1.25;
+}
+
+.flagLight {
+  fill: var(--panel);
+  stroke: var(--text);
+  stroke-width: 0.5;
+}
+
+.flagDark {
+  fill: var(--text);
+}

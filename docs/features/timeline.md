@@ -22,7 +22,7 @@
   dashed (predicted), with a line down the calendar where each begins; labels stick to the left edge while scrolling, with a › arrow (it opens the scenario page) right after the
   name on desktop and at the segment's right edge on phones (`overflow: clip`, not hidden, keeps sticky working).
   Events under the banners on both servers (`data/global_events.json` / `data/jp_events.json`, loaded per server by
-  `loadEvents()` in `src/timeline/data.ts`; JP's names as the posts give them, items by their Japanese `local` name;
+  `loadEvents()` in `src/timeline/data.ts`; JP's names as the posts give them, items by Global's name where Global has the item (else Japanese);
   `src/timeline/events.ts`) in labelled groups by type
   (`EVENT_GROUPS`, after the support card then trainee banners: story & special, celebrations, gifts & login bonuses,
   bonuses, missions, Champions Meetings, League of Heroes (JP), Legend Races, shops & sales, transfers & outings: what
@@ -47,8 +47,11 @@
   button (`.bar-fold`); unfolded, its parts' rows open under its row over a band tinted in its colour
   (`.event-parts-band`), nested parts the same way. Bars: the post's art covering the bar
   (`background-size: cover`, like banners' official art) behind the banners' gradient, edge coloured by kind family; under 64px a bar is a chip
-  (no label, no art; name in the tooltip and sheet). A bar opens a sheet: dates, "Part of <event>" (opens it), the
-  support cards it gives first (to their card page, copies), other rewards (carats, monies, shards first; ranges for
+  (no label, no art; name in the tooltip and sheet); an event run on a race shows its first one's course after its
+  name ("Sagittarius Cup · Nakayama 2500m", `raceLabel()`). A bar opens a sheet: dates, "Part of <event>" (opens it), the
+  support cards it gives first (to their card page, copies), its races (course, distance, turns; season, weather,
+  ground, JP's time of day; "vary from race to race" for League of Heroes / Dream Team; a predicted event's marked as
+  JP's), other rewards (carats, monies, shards first; ranges for
   Champions Meetings), a cup's schedule (league selection, rounds, final round steps), titles, its parts (open them; a
   "Support cards" pill on those giving one), the news post and umapyoi.net's copy of it (`src/umapyoi.ts`: JP's in
   Japanese, `news/<id>?lang=jp`; Global's `en/news/<id>`; every event with a post has both, GameTora-filled ones none).

@@ -20,7 +20,7 @@ through an `import.meta.glob`, so it's optional: without `pnpm predict-gl` there
   20/20, LR 15/15, …); unpaired: mostly 2025 gifts/campaigns whose 2021 JP posts aren't in the archive, Transfer
   Requests (GameTora has none). Predicted events: every JP event (all kinds, user decision) after the JP date Global
   has caught up to with no pair, at the same predicted Global date as banners (22:00 UTC, no JP weekend; a known date
-  exactly), JP's durations, parts and phases shifted with their top-level event; `generated/predicted_global_events.json`
+  exactly), JP's durations, parts and phases shifted with their top-level event, JP's races as they are; `generated/predicted_global_events.json`
   `{ source, events: [JP event fields + id 'jp-<jp id>', parent 'jp-…', predicted, jp_id, jp_start, jp_end, margin_days,
   confirmed?] }`. 368 top-level + 616 parts on 2026-10-12.
   **`confirmed` comes only from `data/known_dates.json`** (`ml/adjust.py`: `hand_known_days()`, `confirmed_cards()`):

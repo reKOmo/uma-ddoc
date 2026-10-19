@@ -17,11 +17,20 @@ import { DATA_DIR, newsDir } from './paths.ts';
 import { DAY, apiDate, newsUrl } from './news-text.ts';
 import { en } from './news-lang/en.ts';
 import { blockLines, eventBlocks, joinBlocks } from './event-blocks.ts';
+import { blockRaces } from './event-races.ts';
 import { cardIndex, cardsIn, copiesDoubt, itemDoubt, itemsIn, missionsIn, norm, titlesIn } from './event-rewards.ts';
 import { SUB_EVENT_KINDS, UNNAMED_KINDS, applyAnswer } from './event-questions.ts';
 import { categorize, plain } from './post-categories.ts';
 import { EVENT_KINDS } from '../../shared/schemas/event.ts';
-import type { CmRewardsFile, EventCard, EventItem, EventsFile, GameEvent, Phase } from '../../shared/schemas/event.ts';
+import type {
+  CmRewardsFile,
+  EventCard,
+  EventItem,
+  EventsFile,
+  GameEvent,
+  Phase,
+  Race,
+} from '../../shared/schemas/event.ts';
 import type { AiAnswersFile, NewsPost } from '../../shared/schemas/news.ts';
 import type { Block, DateRef, Lexicon } from './news-lang/index.ts';
 import type { Server } from './news-text.ts';
@@ -40,6 +49,7 @@ export type Fragment = {
   items: EventItem[];
   titles: string[];
   phases?: Phase[];
+  races?: Race[];
   news_url: string;
   image: string | null;
   source: 'news';
@@ -219,7 +229,8 @@ function rewards(lines: string[], index: ReturnType<typeof cardIndex>, year: Dat
 export function postEvents(
   post: NewsPost,
   index: ReturnType<typeof cardIndex> = new Map(),
-  lang: Lexicon = en
+  lang: Lexicon = en,
+  names: Map<string, string> = new Map()
 ): Fragment[] {
   const c = categorize(post, lang);
   if (c.category !== 'event' || c.phase === 'ending') return [];
@@ -244,6 +255,7 @@ export function postEvents(
     const whole = joinBlocks(blocks);
     const lines = blockLines(whole);
     const headed = headingPeriod(whole, year, lang);
+    const races = blockRaces(whole, lang, names);
     // (JP: a gift sent without a period runs from when it was posted to the deadline of who gets it.)
     const sent = lang.deadline && kind === 'gift' ? { start: posted, end: null } : null;
     const period = dated(withEnd(headed ?? openingPeriod(whole, year, lang) ?? sent, whole));
@@ -260,6 +272,7 @@ export function postEvents(
       image: post.image_big || blocks.find((b) => b.art)?.art || null,
       ...rewards(lines, index, year, lang),
       ...(schedule && c.phase !== 'ended' && { phases: cmPhases(whole, year, lang, schedule) }),
+      ...(races.length && { races }),
     };
     return [
       withDoubts(event, lines, lang, {
@@ -396,6 +409,18 @@ function mergeItems(a: EventItem[], b: EventItem[]): EventItem[] {
   return [...items.values()];
 }
 
+// A later post's races, with what it leaves out ("Outer → Inner / Rain / Heavy", no season) from an earlier post's same
+// races.
+function laterRaces(old: Race[] = [], next: Race[]): Race[] {
+  if (old.length !== next.length || old.some((race, i) => race.track !== next[i].track)) return next;
+  return next.map((race, i) => {
+    const filled = { ...race };
+    for (const [key, value] of Object.entries(old[i]) as [keyof Race, Race[keyof Race]][])
+      if (filled[key] == null) Object.assign(filled, { [key]: value });
+    return filled;
+  });
+}
+
 function merge(event: Fragment, next: Fragment, lang: Lexicon = en): Fragment {
   const later = (STAGE[next.phase ?? ''] ?? 0) >= (STAGE[event.phase ?? ''] ?? 0) && next.start;
   // (JP: posts at the same stage each give some of an event's windows, `lang.unionDates`: one race weekend's piece
@@ -408,6 +433,8 @@ function merge(event: Fragment, next: Fragment, lang: Lexicon = en): Fragment {
     ...event,
     // A cup's schedule from the latest post that has one ("coming soon" posts give only rough starts).
     ...(next.phases?.length && { phases: next.phases }),
+    // Race conditions too (a cup's can change after it's announced).
+    ...(next.races?.length && { races: laterRaces(event.races, next.races) }),
     ...(later && {
       start: next.start,
       end: next.end ?? event.end,
@@ -442,7 +469,7 @@ export function cmItems(table: CmRewardsFile, start: string | null): EventItem[]
   });
 }
 
-const FIELDS = ['id', 'kind', 'name', 'parent', 'start', 'end', 'cards', 'items', 'titles', 'phases'] as const;
+const FIELDS = ['id', 'kind', 'name', 'parent', 'start', 'end', 'cards', 'items', 'titles', 'phases', 'races'] as const;
 const output = (e: Fragment): GameEvent => ({
   // TODO(ts): fromEntries() loses the keys; FIELDS are GameEvent's, and the merged fragments have them all (dated, kind known)
   ...(Object.fromEntries(FIELDS.map((f) => [f, e[f]])) as Pick<GameEvent, (typeof FIELDS)[number]>),
@@ -458,7 +485,13 @@ const output = (e: Fragment): GameEvent => ({
 // and aiKey, before posts about the same event are merged: what the model is asked about (news:ai).
 export function eventFragments(posts: NewsPost[], cards: BuildOptions['cards'] = {}, lang: Lexicon = en): Fragment[] {
   const index = cardIndex(cards, lang);
-  return posts.flatMap((post) => postEvents(post, index, lang)).flatMap((f) => missionBars(f, lang));
+  // (JP: a Legend Race's opponents by Global's name for them, where a card of theirs has one.)
+  const names = new Map(
+    Object.values(cards).flatMap((card) =>
+      card.name?.jp && card.name.en && lang.cardLang !== 'en' ? [[card.name.jp, card.name.en] as const] : []
+    )
+  );
+  return posts.flatMap((post) => postEvents(post, index, lang, names)).flatMap((f) => missionBars(f, lang));
 }
 
 // Every event the news describes, newest first. `answers` fill in the fields the rules doubted or left empty

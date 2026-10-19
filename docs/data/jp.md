@@ -55,7 +55,10 @@
   intro is its own block; scout links and paid gachas, card-copy summaries and feature news aren't parts). Periods are
   JST; gifts run to their 対象のトレーナー deadline; Champions Meetings have Global's phases (the headings never changed
   since 2022), League of Heroes its own (team formation, main stage, extra stage registration / matching / votes /
-  race). Items: Global's canonical name where Global has the item (Carats, Monies, Support Points, shards, tickets) with
+  race). Races from 対象レース (with 昼/夕/夜; a Legend Race's 天候・バ場 list splits it by opponent, named as Global's
+  cards name them; race names Global's from the hand table in `news-lang/ja-races.ts`: the race test lists a missing
+  one). Items: Global's canonical name where Global has the item (Carats, Monies, Support Points, shards, tickets, Toughness 30,
+  Alarm Clock, hint books, "N Anniversary SSR Voucher": `aliases` + `showItem` in `news-lang/ja.ts`) with
   the Japanese one in `local`, else the Japanese name; paid packs, costs and exchanges excluded. Cards by title.jp +
   name.jp; campaign copies per part from the post's summary (「…」で最大2枚). A sale part doesn't stretch its
   celebration (`notSpanning`: a pack stays on sale a year or more). Before mid-2022, where the news archive is thin,

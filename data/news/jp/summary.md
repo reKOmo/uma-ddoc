@@ -22,3 +22,38 @@
 - JP banners: 299 banners from the news on GameTora's, 281 banners made from it (23 re-runs).
 - JP events: 1149, 5 added or changed.
 - From GameTora where the news has none: 12 story, 12 champions_meeting, 10 legend_race; dated by GameTora: 1 champions_meeting.
+
+## JP record
+
+- JP cards: 563 (0 from the news), 0 pending (not on GameTora yet), nothing changed.
+- JP banners: 299 banners from the news on GameTora's, 281 banners made from it (23 re-runs), nothing changed.
+- JP events: 1149, 103 added or changed.
+- From GameTora where the news has none: 12 story, 12 champions_meeting, 10 legend_race; dated by GameTora: 1 champions_meeting.
+
+## JP record
+
+- JP cards: 563 (0 from the news), 0 pending (not on GameTora yet), nothing changed.
+- JP banners: 299 banners from the news on GameTora's, 281 banners made from it (23 re-runs), nothing changed.
+- JP events: 1149, 0 added or changed.
+- From GameTora where the news has none: 12 story, 12 champions_meeting, 10 legend_race; dated by GameTora: 1 champions_meeting.
+
+## JP record
+
+- JP cards: 563 (0 from the news), 0 pending (not on GameTora yet), nothing changed.
+- JP banners: 299 banners from the news on GameTora's, 281 banners made from it (23 re-runs), nothing changed.
+- JP events: 1149, 0 added or changed.
+- From GameTora where the news has none: 12 story, 12 champions_meeting, 10 legend_race; dated by GameTora: 1 champions_meeting.
+
+## JP record
+
+- JP cards: 563 (0 from the news), 0 pending (not on GameTora yet), nothing changed.
+- JP banners: 299 banners from the news on GameTora's, 281 banners made from it (23 re-runs), nothing changed.
+- JP events: 1149, 150 added or changed.
+- From GameTora where the news has none: 12 story, 12 champions_meeting, 10 legend_race; dated by GameTora: 1 champions_meeting.
+
+## JP record
+
+- JP cards: 563 (0 from the news), 0 pending (not on GameTora yet), nothing changed.
+- JP banners: 299 banners from the news on GameTora's, 281 banners made from it (23 re-runs), nothing changed.
+- JP events: 1149, 1 added or changed.
+- From GameTora where the news has none: 12 story, 12 champions_meeting, 10 legend_race; dated by GameTora: 1 champions_meeting.

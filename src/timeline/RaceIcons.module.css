@@ -1,0 +1,77 @@
+.icon,
+.drops,
+.spring,
+.summer,
+.autumn,
+.winter,
+.sunny,
+.cloudy,
+.rainy,
+.snowy,
+.day,
+.evening,
+.night {
+  flex: none;
+}
+
+.icon {
+  color: var(--accent);
+}
+
+.on {
+  fill: var(--accent);
+}
+
+.off {
+  fill: var(--border);
+}
+
+/* Fixed colours, readable on the light and the dark theme alike. */
+.spring {
+  color: #e8649a;
+}
+
+.summer,
+.sunny,
+.day {
+  color: #f0a000;
+}
+
+.autumn {
+  color: #d9620f;
+}
+
+.winter,
+.snowy {
+  color: #3f9fe0;
+}
+
+.cloudy {
+  color: #8a94a3;
+}
+
+.rainy {
+  color: #3b74d8;
+}
+
+.wet,
+.dry {
+  stroke: #3b74d8;
+  stroke-width: 1;
+}
+
+.wet {
+  fill: #3b74d8;
+}
+
+.dry {
+  fill: none;
+}
+
+.evening {
+  color: #e2603a;
+}
+
+.night {
+  color: #6a5fd0;
+}
