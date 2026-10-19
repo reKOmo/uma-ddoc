@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { afterEach, describe, it, expect, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import i18n, { scenarioName } from '../src/i18n/index.ts';
 import type { Banner, BannerItem } from '../shared/schemas/banner.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
@@ -136,10 +136,13 @@ function expectInOrder(nodes: (Element | null)[]): void {
 
 // The art: the only picture without `loading` (the item icons are lazy).
 const art = (container: HTMLElement) => container.querySelector('img:not([loading])');
+// Where the dates come from is behind the (i) after them.
+const openDatesInfo = () => fireEvent.click(screen.getByRole('button', { name: i18n.t('timeline.aboutDates') }));
 
 describe('TimelineSheet', () => {
   it('shows a predicted banner: art, kind, status, where its dates come from, its cards ranked', () => {
     const { container } = renderSheet(predicted);
+    openDatesInfo();
     expectInOrder([
       art(container),
       screen.getByText(kindName(predicted)),
@@ -147,13 +150,15 @@ describe('TimelineSheet', () => {
       screen.getByText(i18n.t('timeline.status.predicted')),
       screen.getByText(/^Predicted from JP's dates \(May 1, 2025 - May 8, 2025\); could be 4 days earlier/),
       screen.getByRole('heading', { level: 3, name: i18n.t('timeline.featuredCards') }),
-      screen.getByText(i18n.t('common.ranking')),
+      // "Ranking…", then the card's stat.
+      screen.getByText(new RegExp(`^${i18n.t('common.ranking')}`)),
       screen.getByText(i18n.t('timeline.rankNote', { scenario: scenarioName('GL') })),
     ]);
   });
 
   it('shows a paid scout: its name, since when, its note in place of items, and its post', () => {
     const { container } = renderSheet(paid);
+    openDatesInfo();
     expectInOrder([
       art(container),
       screen.getByText(kindName(paid)),
