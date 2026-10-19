@@ -17,38 +17,63 @@ const CREDITS: readonly (readonly [string, string])[] = [
   ['umapyoi', 'https://umapyoi.net/'],
 ];
 
-type SettingProps<K extends SettingName> = {
+type ToggleProps<K extends SettingName> = {
   name: K;
-  title: string;
-  hint: string;
   options: readonly Settings[K][];
   labels: Record<Settings[K], string>;
   details: Record<Settings[K], string>;
 };
+type SettingProps<K extends SettingName> = ToggleProps<K> & { title: string; hint: string };
 
-function Setting<K extends SettingName>({ name, title, hint, options, labels, details }: SettingProps<K>) {
-  const { settings, setSetting } = useSettings();
-  const headingId = `setting-${name}`;
+// A setting of its own: a heading, a hint, its options.
+function Setting<K extends SettingName>({ title, hint, ...toggle }: SettingProps<K>) {
+  const headingId = `setting-${toggle.name}`;
   return (
     <section className={styles.setting}>
       <h2 id={headingId}>{title}</h2>
       <p className={styles.hint}>{hint}</p>
-      <Segmented<Settings[K]>
-        labelledBy={headingId}
-        className={styles.toggle}
-        options={options.map((option) => ({
-          value: option,
-          label: (
-            <>
-              <span className={styles.optionLabel}>{labels[option]}</span>
-              {details[option] && <small className={styles.optionDetail}>{details[option]}</small>}
-            </>
-          ),
-        }))}
-        value={settings[name]}
-        onChange={(value) => setSetting(name, value)}
-      />
+      <Toggle {...toggle} labelledBy={headingId} />
     </section>
+  );
+}
+
+// One of a section's settings: its own label, then its options.
+function SubSetting<K extends SettingName>({ label, ...toggle }: ToggleProps<K> & { label: string }) {
+  const labelId = `setting-${toggle.name}`;
+  return (
+    <div className={styles.subSetting}>
+      <span id={labelId} className={styles.subLabel}>
+        {label}
+      </span>
+      <Toggle {...toggle} labelledBy={labelId} />
+    </div>
+  );
+}
+
+function Toggle<K extends SettingName>({
+  name,
+  options,
+  labels,
+  details,
+  labelledBy,
+}: ToggleProps<K> & { labelledBy: string }) {
+  const { settings, setSetting } = useSettings();
+  return (
+    <Segmented<Settings[K]>
+      labelledBy={labelledBy}
+      className={styles.toggle}
+      options={options.map((option) => ({
+        value: option,
+        label: (
+          <>
+            <span className={styles.optionLabel}>{labels[option]}</span>
+            {details[option] && <small className={styles.optionDetail}>{details[option]}</small>}
+          </>
+        ),
+      }))}
+      value={settings[name]}
+      onChange={(value) => setSetting(name, value)}
+    />
   );
 }
 
@@ -57,14 +82,24 @@ export default function SettingsPage() {
   return (
     <div className={clsx('page', styles.settingsPage)}>
       <div className={styles.group}>
-        <Setting
-          name="timeZone"
-          options={SETTING_OPTIONS.timeZone}
-          title={t('settings.timeZone')}
-          hint={t('settings.timeZoneHint')}
-          labels={{ utc: t('settings.utc'), local: t('settings.local') }}
-          details={{ utc: t('settings.utcDetail'), local: t('settings.localDetail', { zone: localTimeZone() }) }}
-        />
+        <section className={styles.setting}>
+          <h2>{t('settings.times')}</h2>
+          <p className={styles.hint}>{t('settings.timesHint')}</p>
+          <SubSetting
+            name="timeZone"
+            options={SETTING_OPTIONS.timeZone}
+            label={t('settings.timeZone')}
+            labels={{ utc: t('settings.utc'), local: t('settings.local') }}
+            details={{ utc: t('settings.utcDetail'), local: t('settings.localDetail', { zone: localTimeZone() }) }}
+          />
+          <SubSetting
+            name="clock"
+            options={SETTING_OPTIONS.clock}
+            label={t('settings.clock')}
+            labels={{ '12h': t('settings.clock12'), '24h': t('settings.clock24') }}
+            details={{ '12h': '10:00 PM', '24h': '22:00' }}
+          />
+        </section>
         <Setting
           name="scenarioNames"
           options={SETTING_OPTIONS.scenarioNames}

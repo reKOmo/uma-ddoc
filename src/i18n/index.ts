@@ -59,6 +59,12 @@ export const formatDate = (date: Date | string | number, options: Intl.DateTimeF
   dateTimeFormat(options).format(new Date(date));
 export const formatDateTime = (date: Date | string | number, options: Intl.DateTimeFormatOptions): string =>
   dateTimeFormat(options).format(new Date(date));
+// A range with what its ends share written once: "Oct 7 – 16, 2026", "Oct 7, 10:00 PM – Oct 16, 9:59 PM UTC".
+export const formatDateRange = (
+  start: Date | string | number,
+  end: Date | string | number,
+  options: Intl.DateTimeFormatOptions = {}
+): string => dateTimeFormat(options).formatRange(new Date(start), new Date(end));
 export const formatNumber = (value: number): string => new Intl.NumberFormat(locale()).format(value);
 
 // How long from one "YYYY-MM-DD" date to a later one, in the UI's locale: "1 year, 2 months",

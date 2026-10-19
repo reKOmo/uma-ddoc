@@ -8,7 +8,7 @@ const stored = (page: import('@playwright/test').Page, key: string) =>
 
 test('settings survive a reload, stored as before', async ({ page }) => {
   await open(page, '#/settings');
-  const times = page.getByRole('group', { name: 'Banner times' });
+  const times = page.getByRole('group', { name: 'Time zone' });
   await times.getByRole('button', { name: /Local/ }).click();
   await page.reload();
   await expect(times.getByRole('button', { name: /Local/ })).toHaveAttribute('aria-pressed', 'true');
@@ -16,6 +16,8 @@ test('settings survive a reload, stored as before', async ({ page }) => {
     timeZone: 'local',
     scenarioNames: 'global',
     jpNewsLanguage: 'jp',
+    // Added later; the browser's (Playwright's Chromium is en-US: 12-hour).
+    clock: '12h',
   });
 });
 
@@ -24,14 +26,16 @@ test("an older version's settings load", async ({ page }) => {
     'uma-ddoc.settings': JSON.stringify({ timeZone: 'local', scenarioNames: 'jp', jpNewsLanguage: 'en' }),
   });
   const pressed = page.getByRole('main').getByRole('button', { pressed: true });
-  await expect(pressed).toHaveCount(3);
+  await expect(pressed).toHaveCount(4);
   await expect(pressed.nth(0)).toContainText('Local');
-  await expect(pressed.nth(1)).toContainText('JP');
+  // It stored no clock: the browser's.
+  await expect(pressed.nth(1)).toContainText('12-hour');
+  await expect(pressed.nth(2)).toContainText('JP');
 });
 
 test('garbage in storage gives the defaults, not a crash', async ({ page }) => {
   await open(page, '#/settings', { 'uma-ddoc.settings': '{not json', 'uma-ddoc.tierListFilters': '[1,2' });
-  await expect(page.getByRole('group', { name: 'Banner times' }).getByRole('button', { pressed: true })).toContainText(
+  await expect(page.getByRole('group', { name: 'Time zone' }).getByRole('button', { pressed: true })).toContainText(
     'UTC'
   );
 });

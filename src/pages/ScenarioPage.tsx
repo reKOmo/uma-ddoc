@@ -3,14 +3,14 @@ import type { CSSProperties } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getServerConfig } from '../../tierlist/scenarios.ts';
-import { formatDate, formatDateTime, formatDuration, scenarioName, serverName } from '../i18n/index.ts';
+import { formatDateRange, formatDateTime, formatDuration, scenarioName, serverName } from '../i18n/index.ts';
 import { DATE_FIELD, SCENARIOS, isCurrent, scenarioByKey } from '../scenarioRelease.ts';
 import type { Scenario, StartDate } from '../../shared/schemas/scenario.ts';
 import type { Server } from '../servers.ts';
 import { Section } from '../ui/Section.tsx';
 import Status from '../ui/Status.tsx';
 import { ink } from '../timeline/scenarioStrip.ts';
-import { timeZoneOptions, useSettings } from '../settings.tsx';
+import { clockOptions, timeZoneOptions, useSettings } from '../settings.tsx';
 import { umapyoiGl, umapyoiJp } from '../umapyoi.ts';
 import { TAB_URLS, scenarioUrl } from '../routes.ts';
 import styles from './ScenarioPage.module.css';
@@ -46,7 +46,7 @@ export type ScenarioPageProps = {
 export default function ScenarioPage({ scenarioKey, onScenarioChange }: ScenarioPageProps) {
   const { t } = useTranslation();
   const { settings } = useSettings();
-  const { timeZone } = settings;
+  const { timeZone, clock } = settings;
   const scenario = scenarioKey === undefined ? null : scenarioByKey(scenarioKey);
 
   if (!scenario) {
@@ -66,10 +66,17 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      timeZoneName: 'short',
+      ...clockOptions(clock),
+      // Only UTC is named: local time is the viewer's own.
+      ...(timeZone === 'utc' && { timeZoneName: 'short' }),
     });
-  const shortDate = (date: string) =>
-    formatDate(`${date}T00:00:00Z`, { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' });
+  const dayRange = (from: string, to: string) =>
+    formatDateRange(`${from}T00:00:00Z`, `${to}T00:00:00Z`, {
+      timeZone: 'UTC',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
 
   const now = Date.now();
   const relative = (iso: string) => {
@@ -109,7 +116,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
           {start.tag === 'predicted' && start.lo && (
             <span className={styles.range}>
               {t('scenarioPage.range', {
-                dates: t('common.dateRange', { start: shortDate(start.lo), end: shortDate(start.hi ?? start.lo) }),
+                dates: dayRange(start.lo, start.hi ?? start.lo),
               })}
             </span>
           )}

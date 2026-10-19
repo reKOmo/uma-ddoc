@@ -1,41 +1,51 @@
-import i18n, { formatDate, formatDateTime } from '../i18n/index.ts';
-import { timeZoneOptions } from '../settings.tsx';
+import i18n, { formatDate, formatDateRange } from '../i18n/index.ts';
+import { clockOptions, timeZoneOptions } from '../settings.tsx';
 import type { Entry } from './entries.ts';
 import { DAY } from './layout.ts';
 
+// One date, or (`range`) two with what they share written once.
+export type DateFormat = ((iso: string) => string) & { range: (start: string, end: string) => string };
 export type DateFormats = {
-  long: (iso: string) => string;
-  short: (iso: string) => string;
-  time: (iso: string) => string;
-  month: (date: Date, withYear?: boolean) => string;
+  long: DateFormat;
+  short: DateFormat;
+  time: DateFormat;
+  // "Oct 2026": always with its year, so scrolling never loses it.
+  month: (date: Date) => string;
   isJanuary: (date: Date) => boolean;
 };
 type DateSpan = { start: string; end: string | null; openEnded?: boolean };
 
-// Settings' timezone: UTC (as the game announces times, the default) or the viewer's own.
-export function dateFormats(timeZone: 'utc' | 'local'): DateFormats {
+const dateFormat = (options: Intl.DateTimeFormatOptions): DateFormat =>
+  Object.assign((iso: string) => formatDate(iso, options), {
+    range: (start: string, end: string) => formatDateRange(start, end, options),
+  });
+
+// Settings' timezone: UTC (as the game announces times, the default; named, "10:00 PM UTC") or the viewer's own (not
+// named: it's theirs).
+// (`clock`: Settings' 12- or 24-hour clock, for the times.)
+export function dateFormats(timeZone: 'utc' | 'local', clock: '12h' | '24h' = '12h'): DateFormats {
   const zone = timeZoneOptions(timeZone);
   return {
-    long: (iso) => formatDate(iso, { ...zone, year: 'numeric', month: 'short', day: 'numeric' }),
-    short: (iso) => formatDate(iso, { ...zone, month: 'short', day: 'numeric' }),
-    time: (iso) =>
-      formatDateTime(iso, {
-        ...zone,
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZoneName: 'short',
-      }),
-    month: (date, withYear) => formatDate(date, { ...zone, month: 'short', ...(withYear && { year: 'numeric' }) }),
+    long: dateFormat({ ...zone, year: 'numeric', month: 'short', day: 'numeric' }),
+    short: dateFormat({ ...zone, month: 'short', day: 'numeric' }),
+    time: dateFormat({
+      ...zone,
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      ...clockOptions(clock),
+      ...(timeZone === 'utc' && { timeZoneName: 'short' }),
+    }),
+    month: (date) => formatDate(date, { ...zone, month: 'short', year: 'numeric' }),
     isJanuary: (date) => (timeZone === 'utc' ? date.getUTCMonth() : date.getMonth()) === 0,
   };
 }
 
 // Without an end: "from start" when openEnded (a scout with no end date, a scenario still running), else one day.
-export function dateRange({ start, end, openEnded = !end }: DateSpan, format: (iso: string) => string): string {
-  if (end) return i18n.t('common.dateRange', { start: format(start), end: format(end) });
+export function dateRange({ start, end, openEnded = !end }: DateSpan, format: DateFormat): string {
+  if (end) return format.range(start, end);
   return openEnded ? i18n.t('timeline.since', { date: format(start) }) : format(start);
 }
 

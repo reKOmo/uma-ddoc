@@ -34,18 +34,31 @@ describe('settings', () => {
 
   it('loads the stored JSON, each field checked', async () => {
     data.set(KEY, JSON.stringify({ timeZone: 'local', scenarioNames: 'nope', jpNewsLanguage: 'en', extra: 1 }));
-    const { getSettings } = await load();
-    expect(getSettings()).toEqual({ timeZone: 'local', scenarioNames: 'global', jpNewsLanguage: 'en' });
+    const { getSettings, DEFAULTS } = await load();
+    // (No clock stored, as by older versions: the browser's.)
+    expect(getSettings()).toEqual({
+      timeZone: 'local',
+      scenarioNames: 'global',
+      jpNewsLanguage: 'en',
+      clock: DEFAULTS.clock,
+    });
+  });
+
+  it('loads a stored clock', async () => {
+    data.set(KEY, JSON.stringify({ timeZone: 'utc', scenarioNames: 'global', jpNewsLanguage: 'jp', clock: '24h' }));
+    const { getSetting } = await load();
+    expect(getSetting('clock')).toBe('24h');
   });
 
   it('writes the plain settings object', async () => {
-    const { setSetting, getSetting } = await load();
+    const { setSetting, getSetting, DEFAULTS } = await load();
     setSetting('scenarioNames', 'jp');
     expect(getSetting('scenarioNames')).toBe('jp');
     expect(JSON.parse(writes.get(KEY) as string)).toEqual({
       timeZone: 'utc',
       scenarioNames: 'jp',
       jpNewsLanguage: 'jp',
+      clock: DEFAULTS.clock,
     });
   });
 
@@ -58,8 +71,8 @@ describe('settings', () => {
 
   it.each(GARBAGE)('gives the defaults for %s', async (raw) => {
     data.set(KEY, raw);
-    const { getSettings } = await load();
-    expect(getSettings()).toEqual({ timeZone: 'utc', scenarioNames: 'global', jpNewsLanguage: 'jp' });
+    const { getSettings, DEFAULTS } = await load();
+    expect(getSettings()).toEqual(DEFAULTS);
   });
 
   it('survives a throwing localStorage', async () => {

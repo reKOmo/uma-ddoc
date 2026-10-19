@@ -75,7 +75,7 @@ export const TimelineAxis = memo(function TimelineAxis({ timeline, scenarios, px
             className={clsx(styles.tick, format.isJanuary(date) && styles.year)}
             style={{ left: day * px }}
           >
-            {format.month(date, format.isJanuary(date))}
+            {format.month(date)}
           </span>
         ))}
       </div>

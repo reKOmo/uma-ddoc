@@ -12,6 +12,7 @@ beforeEach(() => {
   setSetting('timeZone', DEFAULTS.timeZone);
   setSetting('scenarioNames', DEFAULTS.scenarioNames);
   setSetting('jpNewsLanguage', DEFAULTS.jpNewsLanguage);
+  setSetting('clock', DEFAULTS.clock);
 });
 afterEach(cleanup);
 
@@ -31,7 +32,7 @@ describe('SettingsPage', () => {
 
   it('names each setting group by its heading, one button pressed in each', () => {
     render(<SettingsPage />);
-    const times = screen.getByRole('group', { name: 'Banner times' });
+    const times = screen.getByRole('group', { name: 'Time zone' });
     const pressed = within(times).getByRole('button', { pressed: true });
     expect(pressed.textContent).toContain('UTC');
     expect(within(times).getByRole('button', { name: /Local/ }).getAttribute('aria-pressed')).toBe('false');
@@ -41,7 +42,7 @@ describe('SettingsPage', () => {
 
   it('stores the chosen option when its button is clicked', () => {
     render(<SettingsPage />);
-    const times = () => screen.getByRole('group', { name: 'Banner times' });
+    const times = () => screen.getByRole('group', { name: 'Time zone' });
     fireEvent.click(within(times()).getByRole('button', { name: /Local/ }));
     expect(getSettings().timeZone).toBe('local');
     expect(within(times()).getByRole('button', { name: /Local/ }).getAttribute('aria-pressed')).toBe('true');

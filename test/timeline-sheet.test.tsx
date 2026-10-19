@@ -148,7 +148,7 @@ describe('TimelineSheet', () => {
       screen.getByText(kindName(predicted)),
       screen.getByRole('heading', { level: 2, name: entryTitle(predicted) }),
       screen.getByText(i18n.t('timeline.status.predicted')),
-      screen.getByText(/^Predicted from JP's dates \(May 1, 2025 - May 8, 2025\); could be 4 days earlier/),
+      screen.getByText(/^Predicted from JP's dates \(May 1 – 8, 2025\); could be 4 days earlier/),
       screen.getByRole('heading', { level: 3, name: i18n.t('timeline.featuredCards') }),
       // "Ranking…", then the card's stat.
       screen.getByText(new RegExp(`^${i18n.t('common.ranking')}`)),

@@ -59,8 +59,8 @@ export default function TimelinePage({
     setSelected(entry.key);
     setSheetOpen(true);
   }, []);
-  const { timeZone } = useSettings().settings;
-  const format = useMemo(() => dateFormats(timeZone), [timeZone]);
+  const { timeZone, clock } = useSettings().settings;
+  const format = useMemo(() => dateFormats(timeZone, clock), [timeZone, clock]);
   const scroller = useRef<HTMLDivElement>(null);
 
   const loaded = useAsync(() => loadTimeline(server).then((l) => ({ server, ...l })), [server]).data;
