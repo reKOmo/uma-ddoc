@@ -11,7 +11,7 @@ import type { CardsFile } from '../../shared/schemas/card.ts';
 import type { SERVERS } from '../servers.ts';
 
 // Computed once the sheet has slid in: a ranking blocks the page for a few hundred ms.
-export type CardRank = { tier: number; position: number; stat: string };
+export type CardRank = { tier: number; position: number; stat: Stat };
 export type RankResult = { ranks: Map<number, CardRank | null>; upcoming: boolean };
 
 // TODO(ts): cards.json's type (a JSON import) is wider than the schema (strings for enums); test/schemas.test.ts checks it

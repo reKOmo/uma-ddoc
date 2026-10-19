@@ -90,7 +90,7 @@ async function computeCombined(server: Server, key: string, stat: Stat, upcoming
   const scenarios = COMBINED[key].scenarios(server);
   const totals = new Map<string, Ranked>();
   for (const scenario of scenarios) {
-    // Yield between scenarios (each blocks for ~100-300 ms) so the UI can paint.
+    // Yield between scenarios (each blocks for ~40-150 ms) so the UI can paint.
     await new Promise((resolve) => setTimeout(resolve));
     const ranking = await rankByUsefulness(server, scenario, stat, { upcoming });
     const own = upcoming ? await rankByUsefulness(server, scenario, stat) : ranking;
@@ -107,8 +107,15 @@ async function computeCombined(server: Server, key: string, stat: Stat, upcoming
 }
 
 async function computeUsefulness(server: Server, scenario: string, stat: Stat, upcoming: boolean): Promise<Ranked[]> {
-  const { weights, candidates, toDeck } = await setup(server, scenario, stat, upcoming);
+  const setupResult = await setup(server, scenario, stat, upcoming);
+  const { weights, toDeck } = setupResult;
   const decks = presetDecks(server).map((d) => toDeck(d.cards));
+
+  // Candidates are scored independently and the server's own cards are the same either way, so looking ahead only
+  // scores the cards the server lacks.
+  const own = upcoming ? await rankByUsefulness(server, scenario, stat) : [];
+  const owned = new Set(own.map((r) => `${r.id}/${r.lb}`));
+  const candidates = setupResult.candidates.filter((c) => !owned.has(`${c.id}/${c.limit_break}`));
 
   const totals = new Map<string, Ranked>();
   for (const deck of decks) {
@@ -130,5 +137,5 @@ async function computeUsefulness(server: Server, scenario: string, stat: Stat, u
     }
   }
 
-  return [...totals.values()].sort((a, b) => b.score - a.score);
+  return [...own, ...totals.values()].sort((a, b) => b.score - a.score);
 }

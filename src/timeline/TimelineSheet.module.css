@@ -163,6 +163,12 @@
   border-radius: 6px;
 }
 
+.rankStat {
+  width: 20px;
+  height: 20px;
+  margin-right: -3px;
+}
+
 .rank.pending,
 .rank.missing {
   font-weight: 400;

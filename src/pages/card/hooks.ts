@@ -45,7 +45,7 @@ export function useScenarioRankings(server: Server, stat: Stat | undefined, enab
     if (!enabled || !stat) return;
     (async () => {
       for (const scenario of scenarioOptions(server)) {
-        // Each ranking blocks for ~100-300 ms; yield first so the page paints.
+        // Each ranking blocks for ~40-150 ms; yield first so the page paints.
         await new Promise((resolve) => setTimeout(resolve));
         if (cancelled) return;
         const ranking = await rankByUsefulness(server, scenario, stat);

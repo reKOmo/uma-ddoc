@@ -62,12 +62,38 @@ function specialtyChances(card: CalcCard, weights: CalcWeights) {
   };
 }
 
-const deepClone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
+// Everything about one subset of the fixed deck that doesn't depend on the candidate, built once per processCards call
+// rather than once per candidate × training. Indexed by the subset's membership mask, the order subsets() yields, so
+// the sums below add up in the same order (and to the same bits) as before.
+type Combo = {
+  size: number;
+  statBonus: number[];
+  motivationBonus: number;
+  trainingBonus: number[]; // by type count (highlander)
+  friendshipBonus: number[]; // by training
+  chance: number[]; // by training: exactly this subset lands there
+  hasStatCard: boolean[]; // by training: holds a card on its specialty
+};
+type DeckTable = { combos: Combo[]; withoutCandidate: Map<number[], Map<number, number[][]>> };
+
+function deckTable(deck: DeckCard[]): DeckTable {
+  const types = [0, 1, 2, 3, 4, 5, GROUP_TYPE];
+  const combos = subsets(deck, 0).map((combination) => ({
+    size: combination.length,
+    statBonus: [0, 1, 2, 3, 4, 5].map((stat) => comboStatBonus(combination, stat)),
+    motivationBonus: comboMotivationBonus(combination),
+    trainingBonus: [0, 1, 2, 3, 4, 5, 6, 7].map((typeCount) => comboTrainingBonus(combination, typeCount)),
+    friendshipBonus: types.map((type) => comboFriendshipBonus(combination, type)),
+    chance: types.map((type) => combinationChance(combination, deck, type)),
+    hasStatCard: types.map((type) => combination.some((c) => c.cardType === type)),
+  }));
+  return { combos, withoutCandidate: new Map() };
+}
 
 export function processCards(cards: CalcCard[], weights: CalcWeights, deck: CalcCard[]): ProcessedCard[] {
   const processedCards: ProcessedCard[] = [];
-  // TODO(ts): the clones get their calculation fields (cardType, index, …) filled in just below
-  const selectedCards = deepClone(deck) as DeckCard[];
+  // TODO(ts): the copies get their calculation fields (cardType, index, …) filled in just below
+  const selectedCards = deck.map((c) => ({ ...c })) as DeckCard[];
 
   // Pre-process the fixed deck: its training types, its cards by type, and the bond it needs before anyone rainbows.
   const presentTypes = [false, false, false, false, false, false, false];
@@ -107,10 +133,11 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
   }
 
   const chanceOfPreferredRainbow = 1 - preferredRainbowChances.reduce((product, chance) => product * (1 - chance), 1);
+  const table = deckTable(selectedCards);
 
   for (let i = 0; i < cards.length; i++) {
     // TODO(ts): rainbowSpecialty / offSpecialty are set below, before anything reads them
-    const card = deepClone(cards[i]) as PlayedCard;
+    const card = { ...cards[i] } as PlayedCard;
     const cardType = card.type;
     card.index = 6; // distinct from the selected cards' indices (0..5)
 
@@ -227,7 +254,7 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
         gains,
         weights,
         card,
-        selectedCards,
+        table,
         training,
         daysOnThisTraining,
         typeCount,
@@ -249,7 +276,7 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
         gains,
         weights,
         card,
-        selectedCards,
+        table,
         training,
         daysOnThisTraining,
         typeCount,
@@ -275,7 +302,7 @@ export function processCards(cards: CalcCard[], weights: CalcWeights, deck: Calc
         specialtyGains,
         weights,
         card,
-        selectedCards,
+        table,
         cardType,
         rainbowTraining,
         true,
@@ -346,7 +373,7 @@ function trainingGain(
   gains: number[],
   weights: CalcWeights,
   card: PlayedCard,
-  otherCards: DeckCard[],
+  table: DeckTable,
   trainingType: number,
   days: number,
   rainbow: boolean,
@@ -382,29 +409,28 @@ function trainingGain(
   if (gainsToScore(soloGain, weights) > weights.minimum) {
     for (let stat = 0; stat < STAT_COUNT; stat++) {
       trainingGains[stat] +=
-        soloGain[stat] * days * combinationChance([], otherCards, trainingType) * (rainbow ? weights.multi : 1);
+        soloGain[stat] * days * table.combos[0].chance[trainingType] * (rainbow ? weights.multi : 1);
     }
   }
 
-  if (otherCards.length === 0) return trainingGains;
-
   // Case 2: each non-empty subset of deck members joins the candidate. The
   // candidate's marginal contribution is (gain with it) − (gain without it).
-  const combinations = subsets(otherCards);
-  for (let i = 0; i < combinations.length; i++) {
-    const combination = combinations[i];
-    const withoutCandidate = [0, 0, 0, 0, 0, 0];
-    const withCandidate = [0, 0, 0, 0, 0, 0];
+  const withoutCandidate = [0, 0, 0, 0, 0, 0];
+  const withCandidate = [0, 0, 0, 0, 0, 0];
+  for (let mask = 1; mask < table.combos.length; mask++) {
+    const combo = table.combos[mask];
+    withoutCandidate.fill(0);
+    withCandidate.fill(0);
 
-    const selfTrainingBonus = trainingBonus + (combination.length + 1) * card.crowd_bonus;
-    const combinationTrainingBonus = comboTrainingBonus(combination, typeCount);
-    const combinationFriendshipBonus = comboFriendshipBonus(combination, trainingType);
-    const combinationMotivationBonus = comboMotivationBonus(combination);
+    const selfTrainingBonus = trainingBonus + (combo.size + 1) * card.crowd_bonus;
+    const combinationTrainingBonus = combo.trainingBonus[typeCount];
+    const combinationFriendshipBonus = combo.friendshipBonus[trainingType];
+    const combinationMotivationBonus = combo.motivationBonus;
 
     for (let stat = 0; stat < STAT_COUNT; stat++) {
       if (gains[stat] === 0) continue;
 
-      let base = gains[stat] + comboStatBonus(combination, stat);
+      let base = gains[stat] + combo.statBonus[stat];
       if (rainbow) base += card.fs_stats[stat];
 
       withoutCandidate[stat] +=
@@ -412,7 +438,7 @@ function trainingGain(
         combinationTrainingBonus *
         (1 + weights.motivation * combinationMotivationBonus) *
         combinationFriendshipBonus *
-        (1 + CARD_BONUS * combination.length) *
+        (1 + CARD_BONUS * combo.size) *
         weights.umaBonus[stat];
 
       withCandidate[stat] +=
@@ -420,12 +446,12 @@ function trainingGain(
         (combinationTrainingBonus + selfTrainingBonus - 1) *
         (1 + weights.motivation * (combinationMotivationBonus + motivationBonus - 1)) *
         (combinationFriendshipBonus * fsBonus) *
-        (1 + CARD_BONUS * (combination.length + 1)) *
+        (1 + CARD_BONUS * (combo.size + 1)) *
         weights.umaBonus[stat];
     }
 
     if (gainsToScore(withCandidate, weights) > weights.minimum) {
-      const chance = combinationChance(combination, otherCards, trainingType);
+      const chance = combo.chance[trainingType];
       for (let stat = 0; stat < STAT_COUNT; stat++) {
         trainingGains[stat] +=
           (withCandidate[stat] - withoutCandidate[stat]) * days * chance * (rainbow ? weights.multi : 1);
@@ -437,20 +463,19 @@ function trainingGain(
 }
 
 // Gain from the candidate training off its specialty. Only the deck members
-// on *their* specialty (statCards) can rainbow here, so the candidate's
-// contribution counts only for combinations that include such a card.
+// on *their* specialty can rainbow here, so the candidate's contribution
+// counts only for combinations that include such a card.
 function crossTrainingGain(
   gains: number[],
   weights: CalcWeights,
   card: PlayedCard,
-  otherCards: DeckCard[],
+  table: DeckTable,
   trainingType: number,
   days: number,
   typeCount: number,
   bonded: boolean
 ) {
   const trainingGains = [0, 0, 0, 0, 0, 0, 0];
-  const statCards = otherCards.filter((c) => c.cardType === trainingType);
   let trainingBonus = card.tb + card.fan_bonus * weights.fanBonus;
   if (typeCount >= card.highlander_threshold) trainingBonus += card.highlander_training;
   let fsBonus = 1;
@@ -458,30 +483,23 @@ function crossTrainingGain(
     fsBonus += (card.fs_bonus + card.unique_fs_bonus - 1) / 5;
   }
 
-  const combinations = subsets(otherCards);
-  for (let i = 0; i < combinations.length; i++) {
-    const combination = combinations[i];
-    const withoutCandidate = [0, 0, 0, 0, 0, 0];
-    const withCandidate = [0, 0, 0, 0, 0, 0];
+  const without = withoutCandidateGains(table, gains, weights, trainingType, typeCount);
+  const withCandidate = [0, 0, 0, 0, 0, 0];
+  for (let mask = 1; mask < table.combos.length; mask++) {
+    const combo = table.combos[mask];
+    // Without a deck card on its specialty nothing rainbows: no gain either way.
+    if (!combo.hasStatCard[trainingType]) continue;
+    withCandidate.fill(0);
 
-    const selfTrainingBonus = trainingBonus + (combination.length + 1) * card.crowd_bonus;
-    const combinationTrainingBonus = comboTrainingBonus(combination, typeCount);
-    const combinationFriendshipBonus = comboFriendshipBonus(combination, trainingType);
-    const combinationMotivationBonus = comboMotivationBonus(combination);
+    const selfTrainingBonus = trainingBonus + (combo.size + 1) * card.crowd_bonus;
+    const combinationTrainingBonus = combo.trainingBonus[typeCount];
+    const combinationFriendshipBonus = combo.friendshipBonus[trainingType];
+    const combinationMotivationBonus = combo.motivationBonus;
 
     for (let stat = 0; stat < STAT_COUNT; stat++) {
       if (gains[stat] === 0) continue;
-      if (!combination.some((r) => statCards.indexOf(r) > -1)) continue;
 
-      const base = gains[stat] + comboStatBonus(combination, stat);
-
-      withoutCandidate[stat] +=
-        base *
-        combinationTrainingBonus *
-        (1 + weights.motivation * combinationMotivationBonus) *
-        combinationFriendshipBonus *
-        (1 + CARD_BONUS * combination.length) *
-        weights.umaBonus[stat];
+      const base = gains[stat] + combo.statBonus[stat];
 
       if (bonded) {
         withCandidate[stat] +=
@@ -489,20 +507,21 @@ function crossTrainingGain(
           (combinationTrainingBonus + selfTrainingBonus + card.fs_training - 1) *
           (1 + weights.motivation * (combinationMotivationBonus + card.mb + card.fs_motivation - 1)) *
           (combinationFriendshipBonus * fsBonus) *
-          (1 + CARD_BONUS * (combination.length + 1)) *
+          (1 + CARD_BONUS * (combo.size + 1)) *
           weights.umaBonus[stat];
       } else {
         withCandidate[stat] +=
           (base + card.stat_bonus[stat]) *
           (combinationTrainingBonus + selfTrainingBonus - 1) *
           (1 + weights.motivation * (combinationMotivationBonus + card.mb - 1)) *
-          (1 + CARD_BONUS * (combination.length + 1)) *
+          (1 + CARD_BONUS * (combo.size + 1)) *
           weights.umaBonus[stat];
       }
     }
 
     if (gainsToScore(withCandidate, weights) > weights.minimum) {
-      const chance = combinationChance(combination, otherCards, trainingType);
+      const chance = combo.chance[trainingType];
+      const withoutCandidate = without[mask];
       for (let stat = 0; stat < STAT_COUNT; stat++) {
         trainingGains[stat] += (withCandidate[stat] - withoutCandidate[stat]) * days * chance * weights.multi;
       }
@@ -510,6 +529,39 @@ function crossTrainingGain(
   }
 
   return trainingGains;
+}
+
+// crossTrainingGain's deck-only side (the training's gain without the candidate), per subset; the same for every
+// candidate, so worked out once per deck.
+function withoutCandidateGains(
+  table: DeckTable,
+  gains: number[],
+  weights: CalcWeights,
+  trainingType: number,
+  typeCount: number
+) {
+  // Keyed by the gains array itself: they're the weights' own arrays, one per training.
+  const byGains = table.withoutCandidate.get(gains) ?? new Map<number, number[][]>();
+  table.withoutCandidate.set(gains, byGains);
+  const key = trainingType * 8 + typeCount;
+  const cached = byGains.get(key);
+  if (cached) return cached;
+  const result = table.combos.map((combo) => {
+    const withoutCandidate = [0, 0, 0, 0, 0, 0];
+    for (let stat = 0; stat < STAT_COUNT; stat++) {
+      if (gains[stat] === 0) continue;
+      withoutCandidate[stat] +=
+        (gains[stat] + combo.statBonus[stat]) *
+        combo.trainingBonus[typeCount] *
+        (1 + weights.motivation * combo.motivationBonus) *
+        combo.friendshipBonus[trainingType] *
+        (1 + CARD_BONUS * combo.size) *
+        weights.umaBonus[stat];
+    }
+    return withoutCandidate;
+  });
+  byGains.set(key, result);
+  return result;
 }
 
 function gainsToScore(gains: number[], weights: CalcWeights) {

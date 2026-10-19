@@ -7,6 +7,7 @@ import SeeMore from '../ui/SeeMore.tsx';
 import ShouldPullLine from '../ui/ShouldPullLine.tsx';
 import StatusBadge from './StatusBadge.tsx';
 import { TIER_NAMES } from '../tiers.ts';
+import { STAT_ICONS } from '../statIcons.ts';
 import { formatNumber, scenarioName, serverName, statName } from '../i18n/index.ts';
 import { umapyoiUrl } from '../umapyoi.ts';
 import { useSettings } from '../settings.tsx';
@@ -225,7 +226,9 @@ function CardRank({ id, rankings }: { id: number | null; rankings: RankResult | 
   return (
     <span className={styles.rank}>
       <span className={clsx(styles.rankTier, `tier-${rank.tier}`)}>{TIER_NAMES[rank.tier]}</span>
-      {t('common.rank', { position: rank.position })} {statName(rank.stat)}
+      {t('common.rank', { position: rank.position })}
+      <img className={styles.rankStat} src={STAT_ICONS[rank.stat]} alt="" />
+      {statName(rank.stat)}
     </span>
   );
 }
