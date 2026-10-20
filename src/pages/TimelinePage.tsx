@@ -104,11 +104,15 @@ export default function TimelinePage({
     setSheetOpen(false);
   }, [server]);
 
+  // A link opens its entry once: the address isn't routed again when the sheet closes, so the link would otherwise
+  // reopen it after a server switch and back.
+  const openedLink = useRef<string | null>(null);
   useEffect(() => {
-    if (!linked) return;
+    if (!linked || openedLink.current === `${server}/${linkId}`) return;
+    openedLink.current = `${server}/${linkId}`;
     setSelected(linked.key);
     setSheetOpen(true);
-  }, [linked]);
+  }, [linked, server, linkId]);
 
   const { centerOn, centerOnMiddle, scrollToDay } = useCenterOn(scroller, timeline, px, linked);
   const range = useRenderWindow(scroller, timeline, px);

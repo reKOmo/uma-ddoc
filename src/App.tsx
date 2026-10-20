@@ -68,7 +68,8 @@ function Shell() {
 
   // Every new Timeline link switches to its server, even when the user picked another one since.
   const linkServer = onTimeline && isServer(timelineParams?.server) ? timelineParams.server : undefined;
-  const linkId = linkServer ? timelineParams?.id : undefined;
+  // (Only on the link's own server: the same id on another one is a different entry.)
+  const linkId = linkServer === server ? timelineParams?.id : undefined;
   // biome-ignore lint/correctness/useExhaustiveDependencies: only a new link switches; picking a server by hand afterwards stays.
   useEffect(() => {
     if (linkServer && linkServer !== server) changeServer(linkServer);
