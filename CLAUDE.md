@@ -3,6 +3,8 @@
 A static, mobile-first web app for Uma Musume players (support card tier list, banner/event Timeline, Career
 scenarios), deployed to GitHub Pages; no backend, all data is generated at build time.
 
+- **Never commit or push** (no amend either); the user does both. Only exception: a subagent may commit to its own
+  local branch (e.g. a worktree), never push.
 - **pnpm, never npm.**
 - **TypeScript everywhere, strict.** Scripts and `tierlist/` run on Node 24's type stripping (`node scripts/x.ts`, no
   build step): `.ts` in every import path, no `enum` / `namespace` / parameter properties. Never `any`: `unknown` +
