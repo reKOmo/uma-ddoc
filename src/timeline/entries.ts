@@ -9,7 +9,7 @@ export type { ArtBanner, ArtBannerFile, ArtItem };
 
 export type EntryGroup = 'characters' | 'cards' | 'event';
 export type EntryKind = 'characters' | 'cards' | EventKind;
-export type EntryStatus = 'confirmed' | 'predicted' | 'upcoming' | 'ended' | 'live';
+export type EntryStatus = 'confirmed' | 'predicted' | 'ended' | 'live';
 export type Tone = 'kind-characters' | `type-${string}` | `kind-${EventKind}`;
 export type Art = { src: string | undefined; official: boolean };
 export type Prediction = {
@@ -72,11 +72,11 @@ export type Entry = {
 
 type StatusDates = Pick<Banner, 'start' | 'end' | 'predicted'>;
 
-// Where the start comes from first (a confirmed or predicted one), else where today is.
+// A predicted start stays predicted; a known one is confirmed until it starts, then live or ended by the dates.
 export function bannerStatus(banner: StatusDates, now: number = Date.now()): EntryStatus {
-  if (banner.start.status === 'confirmed') return 'confirmed';
-  if (banner.predicted || banner.start.status === 'predicted') return 'predicted';
-  if (now < Date.parse(banner.start.date)) return 'upcoming';
+  if (banner.start.status === 'predicted' || (banner.predicted && banner.start.status !== 'confirmed'))
+    return 'predicted';
+  if (now < Date.parse(banner.start.date)) return 'confirmed';
   if (banner.end && now > Date.parse(banner.end.date)) return 'ended';
   return 'live';
 }

@@ -438,6 +438,19 @@ describe.skipIf(!existsSync(postsFile('gl')))('the stored news', () => {
     }
   });
 
+  it("makes an event with a post of its own a celebration's part, never another celebration series' part", () => {
+    const byId = new Map(events.map((e) => [e.id, e]));
+    // New Beginnings Part 1 lists the Daily Free 10x Scout (post 1124) and Star Pieces that overlap Fall G1's.
+    if (byId.has('1122')) {
+      expect(byId.get('1122-1')).toMatchObject({ name: 'Daily Free 10x Scout', parent: '1122' });
+      expect(byId.has('1124')).toBe(false);
+      expect(byId.get('1122-7')).toMatchObject({ name: 'Bonus Star Piece rewards', parent: '1122' });
+      expect(byId.get('1066-2')?.end?.date).toBe('2026-11-17T14:59:00.000Z');
+    }
+    // The free scout's own post came first: it keeps its id, under the celebration.
+    if (byId.has('543')) expect(byId.get('543')?.parent).toBe('544');
+  });
+
   it('makes every event post into dated events of known kinds', () => {
     for (const p of posts) {
       const c = categorize(p);

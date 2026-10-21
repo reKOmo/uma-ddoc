@@ -58,7 +58,7 @@ export const en: Lexicon = {
     [/Giveaway|present\b|Giving Thanks|Free .*Crystals|\bGift$/i, 'event', 'gift', (m) => campaignName(m.input)],
     [/login bonus/i, 'event', 'login_bonus', (m) => campaignName(m.input)],
     [/missions\b/i, 'event', 'missions', (m) => m.input.match(/"([^"]+)"/)?.[1] ?? campaignName(m.input)],
-    [/Celebration/i, 'event', 'celebration', (m) => campaignName(m.input)],
+    [/Celebration|^New Beginnings\b/i, 'event', 'celebration', (m) => campaignName(m.input)],
     [
       /Bonus Star Piece|Daily Race (?:Tickets|attempts)|Free 10[x-] ?Scout|Free Retries|Commemoration/i,
       'event',

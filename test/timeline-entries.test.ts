@@ -44,7 +44,7 @@ const SERVERS: [string, Entry[]][] = [
   ['JP', timeline('jp', jpBanners, jpEvents)],
 ];
 const FIELDS = Object.keys(SERVERS[0][1][0]).sort();
-const STATUSES = ['live', 'upcoming', 'ended', 'predicted', 'confirmed'];
+const STATUSES = ['live', 'ended', 'predicted', 'confirmed'];
 
 describe.each(SERVERS)('the calendar (%s)', (_, entries) => {
   const keys = new Set(entries.map((e) => e.key));
@@ -210,19 +210,24 @@ describe('eventEntries', () => {
 });
 
 describe('bannerStatus', () => {
-  it('reads predicted and confirmed first, then the dates', () => {
+  it('reads a predicted start first, then the dates', () => {
     const status = (start: string, end: string | null) =>
       bannerStatus({ start: at(start), end: end ? at(end) : null }, now);
     expect(status('2026-10-01T00:00:00Z', '2026-10-20T00:00:00Z')).toBe('live');
-    expect(status('2026-10-20T00:00:00Z', '2026-10-27T00:00:00Z')).toBe('upcoming');
+    expect(status('2026-10-20T00:00:00Z', '2026-10-27T00:00:00Z')).toBe('confirmed');
     expect(status('2026-09-01T00:00:00Z', '2026-09-08T00:00:00Z')).toBe('ended');
     expect(status('2026-09-01T00:00:00Z', null)).toBe('live'); // until further notice
     expect(bannerStatus({ start: at('2026-12-01T00:00:00Z', 'confirmed'), end: null, predicted: true }, now)).toBe(
       'confirmed'
     );
+    // A confirmed one goes live once it starts.
+    expect(bannerStatus({ start: at('2026-10-01T00:00:00Z', 'confirmed'), end: null, predicted: true }, now)).toBe(
+      'live'
+    );
+    expect(bannerStatus({ start: at('2026-10-01T00:00:00Z'), end: null, predicted: true }, now)).toBe('predicted');
     // An announced event whose end is only a prediction: the news', by its dates.
     expect(bannerStatus({ start: at('2026-10-20T00:00:00Z'), end: at('2026-10-27T00:00:00Z', 'predicted') }, now)).toBe(
-      'upcoming'
+      'confirmed'
     );
   });
 });

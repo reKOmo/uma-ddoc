@@ -31,11 +31,6 @@
   background: var(--accent);
 }
 
-.upcoming {
-  color: #fff;
-  background: #3d8bfd;
-}
-
 .predicted {
   color: #fff;
   background: #8b93a1;

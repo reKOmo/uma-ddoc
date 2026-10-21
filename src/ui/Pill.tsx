@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import styles from './Pill.module.css';
 
-export type PillStatus = 'live' | 'upcoming' | 'predicted' | 'confirmed' | 'ended';
+export type PillStatus = 'live' | 'predicted' | 'confirmed' | 'ended';
 
 type PillCommon = {
   tone?: string;

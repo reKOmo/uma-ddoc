@@ -135,7 +135,6 @@
     "aboutDates": "About these dates",
     "status": {
       "live": "live",
-      "upcoming": "upcoming",
       "ended": "ended",
       "predicted": "predicted",
       "confirmed": "confirmed"

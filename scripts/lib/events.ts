@@ -488,6 +488,8 @@ function merge(event: Fragment, next: Fragment, lang: Lexicon = en): Fragment {
       news_url: next.news_url,
     }),
     ...(union && span([event, next])),
+    // An event with a post of its own that a celebration's post lists too is that celebration's part.
+    parent: event.parent ?? next.parent,
     image: event.image ?? next.image,
     cards: [...cards.values()],
     items: mergeItems(event.items, next.items),
@@ -561,11 +563,16 @@ export function buildEvents(
   let events: Fragment[] = [];
   const byKey = new Map<string, Fragment[]>();
   const alias = new Map<string, string>(); // a merged fragment's id → its event's (sub-events point at their post's celebration)
+  const byFragmentId = new Map(fragments.map((f) => [f.id, f]));
+  const series = (part: Fragment) =>
+    norm(byFragmentId.get(part.parent ?? '')?.name?.replace(/\s*(?:part \d+|第\d+弾)$/i, '') ?? null);
   for (const f of fragments) {
     const key = sameKey(f);
     const same = byKey.get(key) ?? [];
+    // (Parts of two celebration series are two events: New Beginnings' Star Pieces aren't Fall G1's, though they
+    // overlap. A later part's post re-listing an earlier part's shop is the same one.)
     const match = f.start
-      ? same.find((e) => overlap(e, f))
+      ? same.find((e) => overlap(e, f) && (!e.parent || !f.parent || series(e) === series(f)))
       : same
           .filter((e) => ms(e.start) <= Date.parse(f.posted))
           .find((e) => Date.parse(f.posted) - endOf(e) <= GROUP_DAYS * DAY);

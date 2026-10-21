@@ -82,7 +82,7 @@ NAMES = [
     (r"^spring g1 celebration part (\d+)$", r"^春のgiキャンペーン第(\d+)弾$", 'spring_g1_{0}'),
     (r"^fall g1 celebration part (\d+)$", r"^秋のgiキャンペーン第(\d+)弾$", 'fall_g1_{0}'),
     (r"^holiday celebration part (\d+)$", r"^クリスマスキャンペーン第(\d+)弾$", 'christmas_{0}'),
-    (r"^new year'?s? celebration part (\d+)$", r"^ゆく年くる年キャンペーン第(\d+)弾$", 'new_year_{0}'),
+    (r"^(?:new year'?s? celebration|new beginnings) part (\d+)$", r"^ゆく年くる年キャンペーン第(\d+)弾$", 'new_year_{0}'),
     (r"^half anniversary celebration part (\d+)$", r"^ハーフアニバーサリーキャンペーン第(\d+)弾$", 'anniversary_0.5_{0}'),
     (r"^(\d+(?:\.5)?)(?:st|nd|rd|th)?(?:-year)? anniversary celebration part (\d+)$",
      r"^(\d+(?:\.5)?)(?:st|nd|rd|th) anniversaryキャンペーン第(\d+)弾$", 'anniversary_{0}_{1}'),

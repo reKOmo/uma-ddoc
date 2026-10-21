@@ -75,6 +75,11 @@ describe('categorize', () => {
       kind: 'campaign',
       name: 'Daily Free 10x Scout',
     });
+    // (no "Celebration" in its title)
+    expect(of('New Beginnings Part 1 now available!')).toMatchObject({
+      kind: 'celebration',
+      name: 'New Beginnings Part 1',
+    });
     expect(of('A special Umayuru Celebration has begun!')).toMatchObject({
       kind: 'celebration',
       name: 'Umayuru Celebration',

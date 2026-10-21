@@ -121,11 +121,11 @@ describe('Pill', () => {
 
   it('renders a status pill', () => {
     render(
-      <Pill variant="status" status="upcoming">
-        Upcoming
+      <Pill variant="status" status="confirmed">
+        Confirmed
       </Pill>
     );
-    expect(screen.getByText('Upcoming').tagName).toBe('SPAN');
+    expect(screen.getByText('Confirmed').tagName).toBe('SPAN');
   });
 });
 
