@@ -30,12 +30,17 @@
     "news:umapyoi:jp": "node scripts/fetch-news-umapyoi.ts --server jp",
     "news:categories": "node scripts/categorize-news.ts",
     "news:events": "node scripts/list-events.ts",
+    "news:merges": "node scripts/list-merges.ts",
     "news:ai": "node scripts/ai-events.ts",
+    "gold:review": "node scripts/gold-review.ts",
+    "gold:review:jp": "node scripts/gold-review.ts --server jp",
+    "news:features": "node scripts/news-features.ts",
     "update-global": "node scripts/update-global.ts",
     "update-jp": "node scripts/update-jp.ts",
     "setup-ml": "uv venv --allow-existing --python 3.13 ml/.venv && uv pip install --python ml/.venv -r ml/requirements.txt",
     "predict-gl": "ml/.venv/bin/python ml/predict.py",
     "predict-gl:backtest": "ml/.venv/bin/python ml/backtest.py",
+    "news:categorize": "ml/.venv/bin/python -W ignore ml/categorize.py",
     "prepare": "husky"
   },
   "dependencies": {

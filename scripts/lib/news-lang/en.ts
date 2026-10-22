@@ -17,6 +17,34 @@ const campaignName = (title: string) =>
     .replace(/\s+event$|!$/i, '')
     .replace(/^"(.*)"$/, '$1');
 
+// A celebration part's name from sentence shapes the patterns (`subNames`) don't read: a numbered part of a named
+// mission set, an event that "begins" or "will begin", and fixed names for parts a sentence only describes (checked
+// against the gold set's part names, data/news/gl/gold.json).
+function subName(sentence: string): string | null {
+  const part = sentence.match(/launching part (\d+) of (?:the )?.*?"([^"]+)"/i);
+  if (part) return `${part[2]} Part ${part[1]}`;
+  if (/^(?:we're adding )?new limited-time missions/i.test(sentence)) return 'Limited-time Missions';
+  if (/^(?:special missions|.*updating daily, special missions)/i.test(sentence)) return 'Special Missions';
+  if (/discounted carats|carats (?:are being sold )?at a lower price|purchase carats at a lower price/i.test(sentence))
+    return 'Discounted Carats';
+  const items = sentence.match(/receive up to \d+ "([^"]+)" items/i);
+  if (items) return `${items[1]} giveaway`;
+  const anniversary = sentence.match(/^(?:To celebrate the game's (.+?), we've sent|As an? (.+?) gift, we have sent)/i);
+  if (anniversary) return `${anniversary[1] ?? anniversary[2]} gift`;
+  const card = sentence.match(/gifted with the SSR Support Card "?(\[[^\]]+\] [^"!]+)"?!/i);
+  if (card) return card[1];
+  const named = sentence.match(
+    /^(?:[A-Z][a-z]{2} \d+ )?(?:the |an? )?(.+?)(?: event| campaign)? (?:begins at|will begin|will be available|starts from|has started|is in progress)/i
+  );
+  if (named) return named[1];
+  return (
+    sentence.match(/gifted all trainers with (.+?)!/i)?.[1] ??
+    sentence.match(/"([^"]+)" has been added/i)?.[1] ??
+    sentence.match(/sending (?:another |a second |a )?(?:set of )?(.+?) gifts? to/i)?.[1] ??
+    null
+  );
+}
+
 export const en: Lexicon = {
   server: 'gl',
   cardLang: 'en',
@@ -73,6 +101,29 @@ export const en: Lexicon = {
     ],
   ],
 
+  // Checked against the gold set (data/news/gl/gold.json): every post listing "included events" is a celebration,
+  // every one opening with a gift "to all trainers" a gift.
+  signals: [
+    ['included_events', 'body', /details (?:of|on) (?:the )?included (?:events|campaigns)/i],
+    ['gift_opening', 'opening', /(?:sent|gifted|gift(?:ing)? of)\b[^.!]*\b(?:all|every) (?:our )?trainers/i],
+    ['gift_to_all', 'body', /(?:sent|gifted|gift(?:ing)? of)\b[^.!]*\b(?:all|every) (?:our )?trainers/i],
+    ['login_bonus_opening', 'opening', /login bonus/i],
+    ['event_story', 'title', /event story/i],
+    ['regarding', 'title', /^Regarding\b/i],
+    ['limited_time', 'body', /limited[- ]time|for a limited time|availability period/i],
+  ],
+  revise: (rule, has, title) => {
+    // A notice about something past ("Regarding the … Giveaway Gift Contents") is no event.
+    if (rule.category === 'event' && has('regarding')) return { category: 'other', kind: 'misc', name: null };
+    if (rule.category === 'banner' || rule.kind === 'community') return rule;
+    // A celebration whose title says no "Celebration" ("New Beginnings Part 1", "G1 Race Commemoration").
+    if (has('included_events')) return { category: 'event', kind: 'celebration', name: campaignName(title) };
+    if (rule.category === 'other' && has('gift_opening'))
+      return { category: 'event', kind: 'gift', name: campaignName(title) };
+    if (rule.kind === 'campaign' && has('login_bonus_opening')) return { ...rule, kind: 'login_bonus' };
+    return rule;
+  },
+
   titleName: (title) => title.replace(/!$/, ''),
 
   // A banner's art (<img …gacha_banner_<id>_….png>): split on (the capture keeps it), and its URL + gacha id.
@@ -90,7 +141,7 @@ export const en: Lexicon = {
   // Header art (<figure><img …></figure>) starts a block; scout art doesn't.
   blockArt: /<figure>\s*<img[^>]*\ssrc="([^"]+)"[^>]*>\s*<\/figure>/gi,
   notBlockArt: /gacha_banner_/,
-  artId: /_(\d{8})(?:_|\.)/,
+  artId: /_(\d{8,9})(?:_|\.)/,
 
   numbers: { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 },
   // Same item, other spelling → the name we show (keyed without a trailing "gift(s)": "150-carat gifts" are Carats).
@@ -141,7 +192,7 @@ export const en: Lexicon = {
     ['Support Points', /\bsupport points?\b/i],
     ['Rainbow Crystal Shards', /rainbow crystal shards?/i],
     ['Support Card Scout Tickets', /support card scout tickets?/i],
-    ['Trainee Scout Tickets', /trainee scout tickets?/i],
+    ['Trainee Scout Tickets', /trainee (?:umamusume )?scout tickets?/i],
     // A voucher lets you pick a card (or trainee): named as the post names it ("1.5-Year Anniversary SSR Voucher").
     [null, /(?:[A-Z0-9][\w.-]* ){0,4}SSR (?:Support Card )?Vouchers?/],
   ],
@@ -195,7 +246,8 @@ export const en: Lexicon = {
   // "The in-game collaboration event with Tokyo Mega Illumination, Sparkly Magic Show, is set to kick off at …"
   inGameEvent: /^The in-game (?:collaboration )?event\b.*?, (.+?), is set to (?:begin|kick off)/i,
   // A celebration's sub-event: its opening sentence without its date, the names in it, else a heading that names it.
-  subOpening: /^(?:As of|From|At|Starting(?: from)?)\s.*?\(UTC\),\s*/i,
+  subOpening: /^(?:As of|From|At|Starting(?: from)?|Beginning (?:from|at))\s.*?\(UTC\),\s*/i,
+  subName,
   subNames: [
     /(?:Missions|event) "([^"]+)"/i,
     /available in the (.+?) under/i,
@@ -211,8 +263,20 @@ export const en: Lexicon = {
     s
       .replace(/["“”]/g, '')
       .trim()
+      // "Part 2 of the 1st Anniversary Login Bonus" → "1st Anniversary Login Bonus Part 2"
+      .replace(/^Part (\d+) of (?:the )?(.+)$/i, '$2 Part $1')
+      .replace(/\s+campaign$/i, '')
+      // "Golshi Week Celebration Hijack special missions": an event's missions are named as one
+      .replace(/\bspecial missions$/i, 'Special Missions')
       .replace(/^./, (c) => c.toUpperCase()),
-  notNameHeading: /important|details|contents/i,
+  // A card gift its sentence doesn't name ("We're sending a unique SSR Support Card … to all trainers!"): the one card
+  // its "Gift Contents" list.
+  blockName: (block) => {
+    const lines = block.sections.find((s) => /contents/i.test(s.heading))?.lines ?? [];
+    return lines.length === 1 && /^\[[^\]]+\] \S/.test(lines[0]) ? lines[0] : null;
+  },
+  // (headings that never name an event: "Eligible Trainers", "How to Receive", "Gift Period")
+  notNameHeading: /important|details|contents|eligible|how to|period/i,
   // [kind, pattern] in order; a sub-event's name and opening sentence decide first, its headings only when they don't.
   subKinds: [
     ['login_bonus', /login bonus/i],

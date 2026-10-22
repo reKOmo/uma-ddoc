@@ -9,7 +9,7 @@ import {
 } from './card.ts';
 import { CmRewardsFileSchema, EventPairsFileSchema, EventsFileSchema, PredictedEventsFileSchema } from './event.ts';
 import { GametoraCardsFileSchema, GametoraEventsFileSchema, GametoraTraineesFileSchema } from './gametora.ts';
-import { AiAnswersFileSchema, PostsFileSchema } from './news.ts';
+import { AiAnswersFileSchema, CategoriesFileSchema, GoldFileSchema, PostsFileSchema } from './news.ts';
 import { KnownDatesFileSchema, PredictionsFileSchema } from './predictions.ts';
 import { PullGuideSchema } from './pullGuide.ts';
 import { ScenariosFileSchema } from './scenario.ts';
@@ -31,6 +31,10 @@ export const DATA_FILES: Record<string, z.ZodType> = {
   'data/news/jp/posts.json': PostsFileSchema,
   'data/news/gl/ai_answers.json': AiAnswersFileSchema,
   'data/news/jp/ai_answers.json': AiAnswersFileSchema,
+  'data/news/gl/gold.json': GoldFileSchema,
+  'data/news/jp/gold.json': GoldFileSchema,
+  'data/news/gl/categories.json': CategoriesFileSchema,
+  'data/news/jp/categories.json': CategoriesFileSchema,
 };
 
 // Built (generated/, gitignored): checked when present.

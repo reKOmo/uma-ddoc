@@ -46,7 +46,7 @@ Every other command (data updates, news, predictions): [docs/commands.md](docs/c
   [Timeline](docs/features/timeline.md) · [Scenarios + Settings](docs/features/scenarios-settings.md)
 - Data: [pipeline overview](docs/data/pipeline.md) · [card data](docs/data/cards.md) ·
   [GameTora](docs/data/gametora.md) · [official news](docs/data/news.md) · [events + the model](docs/data/events.md) ·
-  [JP cards, banners, events](docs/data/jp.md) · [scenarios](docs/data/scenarios.md) ·
+  [JP cards, banners, events](docs/data/jp.md) · [post classifiers + gold sets](docs/data/classifier.md) · [scenarios](docs/data/scenarios.md) ·
   [predictions (ml/)](docs/data/predictions.md) · [pull guide](docs/data/pull-guide.md)
 - [Ranking semantics + upstream parity](docs/ranking.md) · [testing](docs/testing.md) ·
   [CI workflows](docs/ci.md)

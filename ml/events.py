@@ -15,23 +15,29 @@ from the JP news + GameTora's history, `pnpm update-jp`). Top-level events are p
 A JP event's expected Global day (`ref`) is where JP's card releases put it: interpolated between Global's release
 batches (JP release day → Global release day, data.batches()) up to Global's progress, then the release model with
 its known dates. A pair whose Global day is more than TOL days off it is rejected (reported: Global moved that event,
-e.g. a song gift months later), as is one out of JP's order among its kind. Every pair is an anchor, an order pair only when
+e.g. a song gift months later), as is one out of JP's order among its kind. A paired celebration's parts are paired
+too (pair_parts()): by the art id Global reuses (JP's おみくじキャンペーン and Global's Lucky Draw are both 26400004),
+else by kind and the same offset from the celebration's start; never anchors. Every pair is an anchor, an order pair only when
 unambiguous: no other JP event of its kind within TOL of the expected day.
 
 Pairs → generated/event_pairs.json:
-  { pairs: [{ gl, jp, kind, how, gl_start, jp_start, dev_days, anchor }], rejected: [{ …, why }] }
+  { pairs: [{ gl, jp, kind, how, gl_start, jp_start, dev_days, anchor }], rejected: [{ …, why }],
+    missing_parts: [{ gl_parent, jp_parent, jp }] }  (a paired celebration's JP parts Global's lacks)
   (kind: the JP event's; dev_days: Global day − expected day; anchor: used as a known date)
 Anchors are known dates for the release model (adjust.load_known_dates(),
 after the hand entries and Global's banners): the JP event's start day in JST → the Global one's in UTC.
 
 Predicted events → generated/predicted_global_events.json (optional for the site, like predicted banners):
-  { source: { predicted_from, fitted_at }, events: [event…] }, newest first. Every top-level JP event starting after
-  the last JP day Global's card releases have reached (the banners' anchor) with no pair, with its parts: JP's fields
+  { source: { predicted_from, fitted_at }, events: [event…] }, newest first. Every top-level JP event with no pair
+  starting at most LOOKBACK JP days before the last JP day Global's card releases have reached (the banners' anchor)
+  and predicted to start on Global at most SHOWN_DAYS ago, with its parts: JP's fields
   (kind, name in Japanese, cards, items, titles, phases, races, image, news_url = the JP post, source) and
   id 'jp-<JP id>', parent 'jp-<JP parent id>' | null, start / end: the top-level event's predicted Global start (its JST
   start day through predict(), 22:00 UTC like banners, never a Japanese weekend), its parts and phases moved by the
   same amount (JP's lengths kept); every date status predicted (the start with lo / hi), a start confirmed when
-  known_dates.json's `dates` give its JP day; predicted: true, jp_id, jp_start, jp_end.
+  known_dates.json's `dates` give its JP day; predicted: true, jp_id, jp_start, jp_end. Also every missing part of
+  a Global celebration not over yet: parent the Global celebration, moved by the celebrations' offset (none once
+  it is over: Global has never run a part it skipped later).
 
 Fills → data/global_events.json (write_fills()): a paired Global event's dates its news doesn't give yet (a "coming
 soon" cup's end and later phases), JP's moved by the pair's offset, status predicted. Each run drops the old fills
@@ -54,6 +60,12 @@ PAIRS_OUTPUT = GENERATED / 'event_pairs.json'
 EVENTS_OUTPUT = GENERATED / 'predicted_global_events.json'
 DAY_MS = 86_400_000
 TOL = 10  # days a pair may be off its expected Global day
+# An unpaired JP event from up to LOOKBACK JP days before Global's progress is still predicted (JP 1122 started on the
+# very day Global's card releases had reached, and its Global post was misread: it vanished), as long as its predicted
+# Global start is at most SHOWN_DAYS ago: the Timeline hides a predicted event that long past its start
+# (src/timeline/events.ts' withPredicted(), the same 14 days).
+LOOKBACK = 30
+SHOWN_DAYS = 14
 
 ZODIAC = {
     'aries': 'アリエス', 'taurus': 'タウラス', 'gemini': 'ジェミニ', 'cancer': 'キャンサー', 'leo': 'レオ',
@@ -146,6 +158,47 @@ def load(server):
         if e['parent']:
             parts[e['parent']].append(e)
     return events, [e for e in events if not e['parent']], parts
+
+
+# An event's art id (Global reuses JP's for a celebration's parts: JP's おみくじキャンペーン and Global's Lucky Draw are
+# both 26400004): the number in its picture's name, or a JP campaign picture's date (CP_20261017).
+ART = re.compile(r'(?:header|banner)_(?:((?:CP|EV)_\d{8})_\d+|(\d{4,10}))')
+PART_TOL = 2  # days a part paired by kind may be off its JP offset from the celebration's start
+
+
+def art_of(event):
+    m = ART.search(event.get('image') or '')
+    return m and (m[1] or m[2])
+
+
+def pair_parts(gl, jp, gl_parts, jp_parts, paired_gl, paired_jp):
+    """A paired celebration's parts: [(Global part, JP part, how)] and the JP parts left. By art id where it is one
+    part's alone on both sides (a part without art of its own shows its celebration's), else by kind with the same
+    offset from the celebration's start (within PART_TOL days). Parts already paired (by post) are left out."""
+    own = lambda e: not re.search(r'-m\d+$', e['id'])  # noqa: E731  (mission sets go with their missions)
+    gs = [e for e in gl_parts.get(gl['id'], []) if own(e) and e['id'] not in paired_gl]
+    js = [e for e in jp_parts.get(jp['id'], []) if own(e) and e['id'] not in paired_jp]
+    found = []
+
+    def unique(parts):
+        arts = [art_of(e) for e in parts]
+        return {a: e for a, e in zip(arts, parts) if a and arts.count(a) == 1}
+
+    g_art, j_art = unique(gs), unique(js)
+    for a, j in j_art.items():
+        if a in g_art:
+            found.append((g_art[a], j, 'art'))
+    used_g, used_j = {g['id'] for g, _, _ in found}, {j['id'] for _, j, _ in found}
+    offset = lambda e, top: utc_day(e['start']) - utc_day(top['start'])  # noqa: E731
+    for j in [e for e in js if e['id'] not in used_j]:
+        near = [g for g in gs if g['id'] not in used_g and g['kind'] == j['kind']
+                and abs(offset(g, gl) - offset(j, jp)) <= PART_TOL]
+        if near:
+            g = min(near, key=lambda g: abs(offset(g, gl) - offset(j, jp)))
+            found.append((g, j, 'kind'))
+            used_g.add(g['id'])
+            used_j.add(j['id'])
+    return found, [j for j in js if j['id'] not in used_j]
 
 
 def lis_keep(pairs):
@@ -272,10 +325,24 @@ def pair_events(ref):
                 rejected.append({**p, 'why': f'out of JP order among {kind} pairs'})
     for p in pairs:
         p.setdefault('anchor', True)
+    # A paired celebration's parts, by the art Global reuses (else kind and offset): pairs, never anchors (a part's
+    # dates follow its celebration), outside the order check; JP's parts without a Global one: `missing_parts`.
+    missing = []
+    by_gl, by_jp = {e['id']: e for e in gl_all}, {e['id']: e for e in jp_all}
+    for top in [p for p in pairs + rejected if p['kind'] == 'celebration']:
+        gl, jp = by_gl.get(top['gl']), by_jp.get(top['jp'])
+        if not gl or not jp or gl['kind'] != 'celebration':
+            continue
+        found, left = pair_parts(gl, jp, gl_parts, jp_parts, paired_gl, paired_jp)
+        for g, j, how in found:
+            paired_gl.add(g['id'])
+            paired_jp.add(j['id'])
+            pairs.append(record(g, j, how, anchor=False))
+        missing += [{'gl_parent': gl['id'], 'jp_parent': jp['id'], 'jp': j['id']} for j in left]
     pairs.sort(key=lambda p: p['gl_start'])
     rejected.sort(key=lambda p: p['gl_start'])
     check(pairs, gl_top)
-    return {'pairs': pairs, 'rejected': rejected, 'done_jp': paired_jp}
+    return {'pairs': pairs, 'rejected': rejected, 'done_jp': paired_jp, 'missing_parts': missing}
 
 
 def check(pairs, gl_top):
@@ -294,7 +361,9 @@ def check(pairs, gl_top):
 def write_pairs(result):
     clean = lambda p: {k: v for k, v in p.items() if k not in ('jp_day', 'gl_day')}  # noqa: E731
     lines = lambda xs: ',\n'.join(json.dumps(clean(x), ensure_ascii=False) for x in xs)  # noqa: E731
-    PAIRS_OUTPUT.write_text(f'{{\n"pairs": [\n{lines(result["pairs"])}\n],\n"rejected": [\n{lines(result["rejected"])}\n]\n}}\n')
+    PAIRS_OUTPUT.write_text(f'{{\n"pairs": [\n{lines(result["pairs"])}\n],\n'
+                            f'"rejected": [\n{lines(result["rejected"])}\n],\n'
+                            f'"missing_parts": [\n{lines(result["missing_parts"])}\n]\n}}\n')
 
 
 def anchor_points(result):
@@ -336,9 +405,37 @@ def predict_events(predict, anchor_jp, known, pairs, fitted_at):
     confirmed_days = hand_known_days()
     events, jp_top, parts = load('jp')
     paired = pairs['done_jp']
-    todo = sorted((e for e in jp_top if e['id'] not in paired and jst_day(e['start']) > anchor_jp),
+    todo = sorted((e for e in jp_top if e['id'] not in paired and jst_day(e['start']) >= anchor_jp - LOOKBACK),
                   key=lambda e: e['start'])
     out = []
+
+    def emit(e, offset, m, confirmed, parent=None):
+        fields = {k: v for k, v in e.items() if k not in ('id', 'parent', 'start', 'end', 'phases', 'news_url', 'image', 'source')}
+        moved = lambda iso: dated(shift(iso, offset), 'predicted')  # noqa: E731
+        start = shift(e['start'], offset)
+        event = {
+            'id': f'jp-{e["id"]}',
+            **{k: fields[k] for k in ('kind', 'name')},
+            'parent': parent or (f'jp-{e["parent"]}' if e['parent'] else None),
+            'start': dated(start, 'confirmed') if confirmed else dated(start, 'predicted', **day_range(utc_day(start), m)),
+            'end': moved(e['end']),
+            **{k: fields[k] for k in ('cards', 'items', 'titles')},
+            **({'phases': [{**p, 'start': moved(p['start']), 'end': moved(p['end'])}
+                           for p in e['phases']]} if e.get('phases') is not None else {}),
+            # JP's race conditions: Global has mostly reused them (the sheet says whose they are).
+            **({'races': e['races']} if e.get('races') else {}),
+            'news_url': e['news_url'],
+            'image': e['image'],
+            'source': e['source'],
+            'predicted': True,
+            'jp_id': e['id'],
+            'jp_start': e['start'],
+            'jp_end': e['end'],
+        }
+        out.append(event)
+        for part in parts.get(e['id'], []):
+            emit(part, offset, m, confirmed)
+
     if todo:
         days, margin = predict(np.array([jst_day(e['start']) for e in todo]))
         jp_days = [jst_day(e['start']) for e in todo]
@@ -346,38 +443,25 @@ def predict_events(predict, anchor_jp, known, pairs, fitted_at):
         days = np.where([d in known for d in jp_days], [known.get(d, 0) for d in jp_days], snap_weekday(days))
         margin = np.broadcast_to(margin, days.shape)
 
-        def emit(e, offset, root, m, confirmed):
-            fields = {k: v for k, v in e.items() if k not in ('id', 'parent', 'start', 'end', 'phases', 'news_url', 'image', 'source')}
-            moved = lambda iso: dated(shift(iso, offset), 'predicted')  # noqa: E731
-            start = shift(e['start'], offset)
-            event = {
-                'id': f'jp-{e["id"]}',
-                **{k: fields[k] for k in ('kind', 'name')},
-                'parent': f'jp-{e["parent"]}' if e['parent'] else None,
-                'start': dated(start, 'confirmed') if confirmed else dated(start, 'predicted', **day_range(utc_day(start), m)),
-                'end': moved(e['end']),
-                **{k: fields[k] for k in ('cards', 'items', 'titles')},
-                **({'phases': [{**p, 'start': moved(p['start']), 'end': moved(p['end'])}
-                               for p in e['phases']]} if e.get('phases') is not None else {}),
-                # JP's race conditions: Global has mostly reused them (the sheet says whose they are).
-                **({'races': e['races']} if e.get('races') else {}),
-                'news_url': e['news_url'],
-                'image': e['image'],
-                'source': e['source'],
-                'predicted': True,
-                'jp_id': e['id'],
-                'jp_start': e['start'],
-                'jp_end': e['end'],
-            }
-            out.append(event)
-            for part in parts.get(e['id'], []):
-                emit(part, offset, root, m, confirmed)
-
+        shown_from = epoch_days(fitted_at) - SHOWN_DAYS
         for e, day, m in zip(todo, days, margin):
+            if day < shown_from:
+                continue
             start = iso_at(day, GLOBAL_START_HOUR)
             offset = pd.Timestamp(start).value // 1_000_000 - pd.Timestamp(e['start']).value // 1_000_000
             # confirmed: only a JP day known_dates.json's `dates` give (hand_known_days()), not one known otherwise
-            emit(e, offset, e, m, jst_day(e['start']) in confirmed_days)
+            emit(e, offset, m, jst_day(e['start']) in confirmed_days)
+    # A paired celebration's JP parts Global's post doesn't list, under Global's celebration at JP's offset from its
+    # start; none once Global's celebration is over (Global has never run a skipped part later: it speeds JP up).
+    gl_events = {e['id']: e for e in load('gl')[0]}
+    jp_events = {e['id']: e for e in events}
+    now = pd.Timestamp(fitted_at).value // 1_000_000
+    for miss in pairs['missing_parts']:
+        gl, jp, part = gl_events.get(miss['gl_parent']), jp_events.get(miss['jp_parent']), jp_events.get(miss['jp'])
+        if not gl or not jp or not part or pd.Timestamp(gl['end'] or gl['start']).value // 1_000_000 < now:
+            continue
+        offset = pd.Timestamp(gl['start']).value // 1_000_000 - pd.Timestamp(jp['start']).value // 1_000_000
+        emit(part, offset, 0, False, parent=gl['id'])
     out.sort(key=lambda e: (e['start']['date'], e['id']), reverse=True)
     result = {'source': {'predicted_from': 'jp_events.json', 'fitted_at': fitted_at}, 'events': out}
     lines = ',\n'.join(json.dumps(e, ensure_ascii=False) for e in out)
@@ -454,6 +538,9 @@ def summary(pairs, predicted):
         f'rejected: {len(pairs["rejected"])}',
     ]
     lines += [f'  {p["gl"]} ↔ JP {p["jp"]} ({p["kind"]}, {p["how"]}): {p["why"]}' for p in pairs['rejected']]
+    gl_parents = {e['parent'] for e in predicted['events'] if e['parent'] and not e['parent'].startswith('jp-')}
+    lines.append(f'JP parts missing from a Global celebration: {len(pairs["missing_parts"])}, '
+                 f'{sum(m["gl_parent"] in gl_parents for m in pairs["missing_parts"])} predicted (the rest are over)')
     top = [e for e in predicted['events'] if not e['parent']]
     lines.append(f'predicted events: {len(top)} top-level + {len(predicted["events"]) - len(top)} parts '
                  f'({count(top, lambda e: e["kind"])})')

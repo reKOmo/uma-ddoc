@@ -25,6 +25,7 @@ import {
 import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.ts';
 import { readJpBanners, regularBanners } from './lib/jp-banners.ts';
 import { buildEvents, readAnswers, readCmTable, readEvents, writeEvents } from './lib/events.ts';
+import { readCategories, refreshCategories, unsureLines } from './lib/categories.ts';
 import { keepEventFills } from './lib/dates.ts';
 import { ensureCards } from './update-cards.ts';
 import { buildCardFiles } from './build-cards.ts';
@@ -85,10 +86,13 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
     writeScenarios(stored.source, scenarios.scenarios);
   }
 
+  // Each post's category and units: the classifiers' (ml/categorize.py) over the rules.
+  refreshCategories();
+  const categories = readCategories();
   const storedEvents: GameEvent[] = readEvents();
   const oldEvents = new Map(storedEvents.map((e) => [e.id, JSON.stringify(e)]));
   const events = keepEventFills(
-    buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers() }),
+    buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers(), categories }),
     storedEvents
   );
   writeEvents(events);
@@ -139,6 +143,8 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
     );
   }
   for (const name of scenarios.unmatched) lines.push(`- Scenario "${name}" doesn't match any JP scenario`);
+  const titles = new Map(raw.map((p) => [p.announce_id, p.title]));
+  for (const line of unsureLines(categories, 'gl', titles)) lines.push(`- ${line}`);
 
   const summary = lines.length ? `## Global repository (data/)\n\n${lines.join('\n')}\n` : '';
   return { ...result, changed, released, scenarios, events: changedEvents, unconfirmed, summary };

@@ -66,6 +66,12 @@ pnpm test:visual       # 14 screens × light/dark × phone/desktop, pixel by pix
   (most advanced post's dates, ended posts, same-named events kept apart); the Champions Meeting range; mission sets
   as bars under their event; over the stored
   news: every event post makes dated events of known kinds, every story event has its SSR.
+- `news-replay-gl/jp.test.ts` (`news-replay.ts`, one file per server so they run in parallel): each server's newest
+  15 stored posts replayed one by one, as the news workflow meets them: a new post never wipes an older event or
+  changes its kind (joining an event of its kind is fine: 1124's free scout becomes 1122's part), and an event post the
+  gold set knows makes or joins one (Global's 1122 once vanished). Twice: with the stored categories, then (with
+  `ml/.venv`; deploy.yml sets it up) with the newest 40 categorized by the models as if new (`categorize.py
+  --hold-out`), whose events must also be the gold labels' (1093's in-game event read as a login bonus was two bars).
 - `global.test.ts`: `applyNews` (news + JP banner → Global banner/releases, idempotent, seeded entries kept but given
   their post and art,
   unknown ids, paid scouts and type mismatches skipped) and `englishNames`.

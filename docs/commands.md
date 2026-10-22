@@ -36,6 +36,12 @@ pnpm news:umapyoi      # the posts the official site no longer serves, from umap
                        # news:umapyoi:jp (parsed by `update-jp`)
 pnpm news:categories   # every stored post with its category (banner / event kind / other), for checking the parser
 pnpm news:events       # the events the stored news makes (cards, items, titles), printed; nothing written
+pnpm news:merges       # every post that joined another post's event, grouped so the unusual merges stand out (--all: the
+                       # routine ones too); nothing written
+pnpm gold:review       # local page (localhost:5190) to label Global's posts by hand → data/news/gl/gold.json (the gold set)
+pnpm news:features     # what the parsers see in each Global post → generated/news_features.json (for news:categorize)
+pnpm news:categorize   # classifiers trained on the gold set → data/news/gl/categories.json (ml/categorize.py; --evaluate:
+                       # cross-validated against the rules; --hold-out <ids>: those posts as if new, for the tests)
 pnpm news:ai           # ask a model about what the rules doubt in events → data/news/<server>/ai_answers.json (--server jp);
                        # --model M, --provider ollama|openrouter, --limit N; --compare [--sample N | --ids a,b] tests a
                        # model against the rules (nothing saved, report in generated/ai-compare-<model>.json)

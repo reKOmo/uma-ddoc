@@ -127,4 +127,27 @@ describe('plain', () => {
       'Only once each! Rookie Starter Packs & more'
     );
   });
+
+  it("revises the title's answer by the body's template phrases", () => {
+    const message = (...lines: string[]) => lines.join('<br>\n');
+    expect(
+      of('G1 Race Commemoration now available!', {
+        message: message(
+          'As of 10:00 p.m., Mar 3 (UTC), our G1 Commemoration has begun!',
+          'See below for details of included events.'
+        ),
+      })
+    ).toMatchObject({ category: 'event', kind: 'celebration', name: 'G1 Race Commemoration' });
+    expect(
+      of('Free Rainbow and Gold Uncap Crystals to celebrate new uncap items!', {
+        message: message("To celebrate, we've sent a gift of one Rainbow Uncap Crystal to all trainers!"),
+      })
+    ).toMatchObject({ category: 'event', kind: 'gift' });
+    expect(
+      of('Cinderella Grey Broadcast Commemoration event is now underway!', {
+        message: message("Starting from 12:00 p.m., Oct 6 (UTC), we're holding a commemorative login bonus!"),
+      }).kind
+    ).toBe('login_bonus');
+    expect(of('Regarding the August Giveaway Gift Contents').category).toBe('other');
+  });
 });

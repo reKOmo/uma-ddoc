@@ -47,6 +47,7 @@ scripts/
   lib/ai.ts          the model client: Ollama (native /api/chat) or OpenRouter (OpenAI-style), aiConfig(), ask()
   ai-events.ts       `pnpm news:ai` (ask about doubted fields, store answers; --compare to test a model)
   list-events.ts     `pnpm news:events` (the events the news makes, printed, nothing written)
+  list-merges.ts     `pnpm news:merges` (which posts joined which event, and how; nothing written)
   lib/colors.ts      main colour (PNGs decoded by pngjs) of an image, for scenario covers
   lib/scenarios.ts   Career scenarios (data/scenarios.json): SCENARIO_NAMES (slug → key + JP/Global short names, by hand),
                      mergeGametora() (JP side), applyScenarioNews() (Global side, from the news)
@@ -56,6 +57,12 @@ scripts/
   fetch-news-all.ts  the whole archive → data/news/<server>/posts.json (one-off, resumable)
   fetch-news-umapyoi.ts  older posts from umapyoi.net's mirror → data/news/<server>/posts.json (one-off, resumable)
   categorize-news.ts `pnpm news:categories`
+  gold-review.ts     `pnpm gold:review`: a local Vite page (gold-review/) to label every Global post by hand → gold.json
+  news-features.ts   `pnpm news:features`: each Global post's features for ml/categorize.py → generated/news_features.json
+  lib/categories.ts  data/news/gl/categories.json (ml/categorize.py's labels, which buildEvents() reads over the rules):
+                     readCategories(), refreshCategories() (features + the classifiers, when ml/.venv exists)
+  lib/gold.ts        the gold set (data/news/gl/gold.json): units() (a post cut for labelling), ruleLabel() (today's rules'
+                     label, the pre-fill), jpCategories() (the same-id JP post's), reader/writer
   lib/news-api.ts    the news API client per server (gl / jp; gentle pacing), posts.json reader/writer, --server
   lib/news-text.ts   pure: HTML → lines/sections, period dates (parsePeriod), shared by the news parsers
   lib/post-categories.ts  pure: categorize(post) → banner / event (+ kind) / other, phase, name
@@ -174,6 +181,8 @@ ml/                  Python (own venv, ml/.venv): predicts Global release dates 
                      scenarios.py (predicted Global scenario launches → data/scenarios.json),
                      events.py (Global events paired with JP's → generated/event_pairs.json; predicted Global
                      events → generated/predicted_global_events.json),
+                     categorize.py (Global's posts and their units classified, learned from the gold set →
+                     data/news/gl/categories.json),
                      (see ml/README.md)
 data/                ours, committed (hand-kept records, the stored news, and what update-jp / update-global build from it; generated/ is rebuilt every deploy):
   global_banners.json, global_cards.json   Global's banners + card releases: seeded from GameTora once,

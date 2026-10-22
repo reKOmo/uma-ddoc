@@ -104,12 +104,13 @@ export const PredictedEventsFileSchema = z.strictObject({
 });
 export type PredictedEventsFile = z.infer<typeof PredictedEventsFileSchema>;
 
-// A Global event paired with JP's (`how`: same post id, the story event's card, the name, or the order).
+// A Global event paired with JP's (`how`: same post id, the story event's card, the name, the order; a celebration's
+// part: the art Global reuses, else its kind and offset from the celebration's start).
 const EventPair = z.strictObject({
   gl: z.string(),
   jp: z.string(),
   kind: EventKind,
-  how: z.enum(['post', 'card', 'name', 'order']),
+  how: z.enum(['post', 'card', 'name', 'order', 'art', 'kind']),
   gl_start: Moment,
   jp_start: Moment,
   dev_days: z.number(),
@@ -117,6 +118,8 @@ const EventPair = z.strictObject({
 export const EventPairsFileSchema = z.strictObject({
   pairs: z.array(EventPair.extend({ anchor: z.boolean() })),
   rejected: z.array(EventPair.extend({ why: z.string() })),
+  // A paired celebration's JP parts Global's celebration lacks
+  missing_parts: z.array(z.strictObject({ gl_parent: z.string(), jp_parent: z.string(), jp: z.string() })),
 });
 export type EventPairsFile = z.infer<typeof EventPairsFileSchema>;
 

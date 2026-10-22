@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
 import type { GametoraCard } from '../shared/schemas/gametora.ts';
+import { readCategories, refreshCategories, unsureLines } from './lib/categories.ts';
 import { buildEvents, readAnswers, readEvents, writeEvents } from './lib/events.ts';
 import { fillFromGametora, readGametoraEvents } from './lib/gametora-events.ts';
 import { updateJpBanners } from './lib/jp-banners.ts';
@@ -43,7 +44,10 @@ export async function updateJp(): Promise<JpUpdate> {
   const banners = await updateJpBanners({ posts, cards });
 
   const old = new Map<string, string>(readEvents('jp').map((e: GameEvent) => [e.id, JSON.stringify(e)]));
-  const fromNews = buildEvents(posts, { cards, answers: readAnswers('jp'), lang: ja });
+  // Each post's category and units: JP's classifiers' (ml/categorize.py --server jp) over the rules.
+  refreshCategories('jp');
+  const categories = readCategories('jp');
+  const fromNews = buildEvents(posts, { cards, answers: readAnswers('jp'), lang: ja, categories });
   // Without GameTora's file (never scraped), the fills already in data/ are kept.
   const gametora = readGametoraEvents();
   const kept = readEvents('jp').filter((e: GameEvent) => e.source === 'gametora');
@@ -74,6 +78,7 @@ export async function updateJp(): Promise<JpUpdate> {
     ...(scenarios.unmatched.length
       ? [`Scenario launch posts matching no scenario: ${scenarios.unmatched.join(', ')}.`]
       : []),
+    ...unsureLines(categories, 'jp'),
   ];
   console.log(lines.join('\n'));
   if (existsSync(SUMMARY_FILE))

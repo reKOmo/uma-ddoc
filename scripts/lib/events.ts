@@ -24,7 +24,7 @@ import { categorize, plain } from './post-categories.ts';
 import { EVENT_KINDS } from '../../shared/schemas/event.ts';
 import type { CmRewardsFile, EventCard, EventItem, EventsFile, GameEvent, Race } from '../../shared/schemas/event.ts';
 import { dated } from '../../shared/schemas/common.ts';
-import type { AiAnswersFile, NewsPost } from '../../shared/schemas/news.ts';
+import type { AiAnswersFile, NewsPost, PostCategory } from '../../shared/schemas/news.ts';
 import type { Block, DateRef, Lexicon } from './news-lang/index.ts';
 import type { Server } from './news-text.ts';
 
@@ -62,14 +62,27 @@ export type Fragment = {
   missions?: { name: string; start: string; end: string | null }[];
 };
 // part: the sub-event's id suffix, null for the celebration itself.
-type Group = { part: string | null; first: Block; blocks: Block[]; period: Dates | null; headed: boolean };
+// (kind: the classified unit's, ml/categorize.py; else the rules decide it.)
+type Group = {
+  part: string | null;
+  first: Block;
+  blocks: Block[];
+  period: Dates | null;
+  headed: boolean;
+  kind?: string | null;
+};
 type Schedule = [string, RegExp][];
 export type BuildOptions = {
   cmTable?: CmRewardsFile;
   cards?: Parameters<typeof cardIndex>[0];
   answers?: AiAnswersFile;
   lang?: Lexicon;
+  // What ml/categorize.py makes of each post (categories.ts), over the title rules.
+  categories?: Map<number, PostCategory>;
+  // Filled with every post's fragment that joined another event, and how (`pnpm news:merges` lists them).
+  merges?: Merge[];
 };
+export type Merge = { from: string; into: string; how: 'overlap' | 'same dates' | 'undated' | 'ended' | 'dropped' };
 
 export const EVENTS_FILE = `${DATA_DIR}global_events.json`;
 export const eventsFile = (server: Server = 'gl'): string =>
@@ -240,9 +253,20 @@ export function postEvents(
   post: NewsPost,
   index: ReturnType<typeof cardIndex> = new Map(),
   lang: Lexicon = en,
-  names: Map<string, string> = new Map()
+  names: Map<string, string> = new Map(),
+  classified?: PostCategory
 ): Fragment[] {
-  const c = categorize(post, lang);
+  const rules = categorize(post, lang);
+  // (A gold name, else the rules': the classifiers name nothing.)
+  const c = classified
+    ? {
+        ...rules,
+        category: classified.category,
+        kind: classified.kind,
+        phase: classified.phase,
+        name: classified.name ?? rules.name,
+      }
+    : rules;
   if (c.category !== 'event' || c.phase === 'ending') return [];
   // TODO(ts): a stored post always has a time
   const posted = new Date(apiDate(post.post_at, lang.server) as string).toISOString();
@@ -279,8 +303,9 @@ export function postEvents(
       name: c.name ?? (UNNAMED_KINDS.includes(kind) ? null : title),
       parent: null,
       start: period?.start ?? (c.phase === 'ended' ? null : posted),
-      // Announced without dates ("coming in late November"): joins the event when its dated post comes.
-      undated: !period && c.phase !== 'ended',
+      // Announced without dates ("coming in late November"): joins the event when its dated post comes. (Not a gift:
+      // it's sent when posted.)
+      undated: !period && c.phase !== 'ended' && kind !== 'gift',
       end: period?.end ?? null,
       image: post.image_big || blocks.find((b) => b.art)?.art || null,
       ...rewards(lines, index, year, lang),
@@ -305,7 +330,28 @@ export function postEvents(
   // Magic Show, is set to kick off at …") gives that event its period and contents: a sub-event of its own (id -0).
   const groups: Group[] = [];
   const postLines = lang.partCopies ? blocks.flatMap(blockLines) : [];
-  const [first, ...rest] = blocks;
+  // Classified: the post cut into units as the gold set is (the intro a unit of its own), each unit's role
+  // deciding: the celebration's own text, a part of its kind, more of the group before, or left out.
+  const units = classified?.units.length ? eventBlocks(post, { ...lang, introBlock: true }) : [];
+  if (classified && units.length === classified.units.length) {
+    units.forEach((block, n) => {
+      const { role, kind: partKind } = classified.units[n];
+      if (role === 'none') return;
+      if (role === 'part') {
+        const headed = headingPeriod(block, year, lang);
+        const period = withEnd(headed ?? openingPeriod(block, year, lang) ?? { start: posted, end: null }, block);
+        groups.push({ part: String(n), first: block, blocks: [block], period, headed: !!headed, kind: partKind });
+      } else if (role === 'continues' && groups.length) groups.at(-1)?.blocks.push(block);
+      else if (groups[0]?.part === null) groups[0].blocks.push(block);
+      else groups.unshift({ part: null, first: block, blocks: [block], period: null, headed: false });
+    });
+    if (groups[0]?.part !== null)
+      groups.unshift({ part: null, first: units[0], blocks: [], period: null, headed: false });
+    // (Its own period: a heading of its own text, never a part's.)
+    const own = groups[0].blocks.length ? headingPeriod(joinBlocks(groups[0].blocks), year, lang) : null;
+    Object.assign(groups[0], { period: withEnd(own, groups[0].first), headed: !!own });
+  }
+  const [first, ...rest] = groups.length ? [] : blocks;
   // (Only when the block's period is that event's: it starts with the later sentence, not the celebration's.)
   const startOf = (line: string | undefined) =>
     line && lang.starts.test(line) && lang.opening(line) ? lang.parsePeriod(line, year).start : null;
@@ -324,7 +370,7 @@ export function postEvents(
         ? [[null, first]]
         : [];
   parts.push(...rest.map((block, n): [string, Block] => [String(n + 1), block]));
-  for (const [part, block] of parts) {
+  for (const [part, block] of groups.length ? [] : parts) {
     if (part !== null && lang.blockRole?.(block)) continue;
     // A sub-event has a period heading or gift/reward contents of its own (a gift sent once has no period: it starts
     // when its sentence says, else when posted); a dated sentence alone ("a new song has been added as of …") is news
@@ -346,14 +392,15 @@ export function postEvents(
     else groups.at(-1)?.blocks.push(block);
   }
   const id = String(c.id);
-  const events = groups.map(({ part, first, blocks: own, period, headed }) => {
+  const events = groups.map(({ part, first, blocks: own, period, headed, kind: partKind }) => {
     const inGame = part !== null ? first.intro[0]?.match(lang.inGameEvent ?? /$^/) : null;
     const name = part === null ? c.name : (inGame?.[1] ?? subEventName(first, lang));
     const lines = own.flatMap(blockLines);
     const event = {
       ...base,
       id: part === null ? id : `${id}-${part}`,
-      kind: part === null ? 'celebration' : inGame ? 'special' : subEventKind(name, first, lang),
+      // (An in-game event's sentence is unmistakable, more so than the unit model's kind.)
+      kind: part === null ? 'celebration' : inGame ? 'special' : (partKind ?? subEventKind(name, first, lang)),
       name: name ?? c.name,
       parent: part === null ? null : id,
       start: dated(period)?.start ?? null,
@@ -374,7 +421,7 @@ export function postEvents(
         !inGame &&
         !sentenceName(first, lang) &&
         "the name is a heading or the celebration's, not from a sentence",
-      kind: sub && !inGame && !matchedKind(name, first, lang) && 'nothing says what kind it is',
+      kind: sub && !partKind && !inGame && !matchedKind(name, first, lang) && 'nothing says what kind it is',
       dates: sub && c.phase !== 'ended' && datesDoubt(own, period, headed, lang),
     });
   });
@@ -444,6 +491,12 @@ function missionBars(f: Fragment, lang: Lexicon): Fragment[] {
 const ms = (date: string | null): number => Date.parse(date ?? '');
 const endOf = (e: Dates): number => ms(e.end ?? e.start) || ms(e.start) + DAY;
 const overlap = (a: Dates, b: Dates): boolean => ms(a.start) <= endOf(b) && ms(b.start) <= endOf(a);
+// One race weekend's post inside a G1 celebration's part for all of them (JP's weekly 「育成報酬」ピース追加キャンペーン
+// under the part listing every race's window): less than half its length, within it.
+const windowOf = (part: Dates, post: Dates): boolean =>
+  endOf(post) - ms(post.start) < (endOf(part) - ms(part.start)) / 2 &&
+  ms(post.start) >= ms(part.start) - DAY &&
+  endOf(post) <= endOf(part) + DAY;
 const sameKey = (e: { kind: string; name: string | null }): string => `${e.kind}|${norm(e.name)}`;
 
 function mergeItems(a: EventItem[], b: EventItem[]): EventItem[] {
@@ -482,7 +535,8 @@ function merge(event: Fragment, next: Fragment, lang: Lexicon = en): Fragment {
     // Race conditions too (a cup's can change after it's announced).
     ...(next.races?.length && { races: laterRaces(event.races, next.races) }),
     ...(later && {
-      start: next.start,
+      // (Both begun: the first post's start stands; a story's later episodes don't move it.)
+      start: next.phase === 'started' && event.phase === 'started' && event.start ? event.start : next.start,
       end: next.end ?? event.end,
       phase: next.phase,
       news_url: next.news_url,
@@ -540,7 +594,12 @@ const output = (e: Fragment): GameEvent => ({
 
 // Every event fragment the news describes (one per event per post, mission sets included), with its doubts, text
 // and aiKey, before posts about the same event are merged: what the model is asked about (news:ai).
-export function eventFragments(posts: NewsPost[], cards: BuildOptions['cards'] = {}, lang: Lexicon = en): Fragment[] {
+export function eventFragments(
+  posts: NewsPost[],
+  cards: BuildOptions['cards'] = {},
+  lang: Lexicon = en,
+  categories: BuildOptions['categories'] = new Map()
+): Fragment[] {
   const index = cardIndex(cards, lang);
   // (JP: a Legend Race's opponents by Global's name for them, where a card of theirs has one.)
   const names = new Map(
@@ -548,16 +607,18 @@ export function eventFragments(posts: NewsPost[], cards: BuildOptions['cards'] =
       card.name?.jp && card.name.en && lang.cardLang !== 'en' ? [[card.name.jp, card.name.en] as const] : []
     )
   );
-  return posts.flatMap((post) => postEvents(post, index, lang, names)).flatMap((f) => missionBars(f, lang));
+  return posts
+    .flatMap((post) => postEvents(post, index, lang, names, categories.get(post.announce_id)))
+    .flatMap((f) => missionBars(f, lang));
 }
 
 // Every event the news describes, newest first. `answers` fill in the fields the rules doubted or left empty
 // (applyAnswer()).
 export function buildEvents(
   posts: NewsPost[],
-  { cmTable = [], cards = {}, answers = {}, lang = en }: BuildOptions = {}
+  { cmTable = [], cards = {}, answers = {}, lang = en, categories = new Map(), merges = [] }: BuildOptions = {}
 ): GameEvent[] {
-  const fragments = eventFragments(posts, cards, lang)
+  const fragments = eventFragments(posts, cards, lang, categories)
     .map((f) => (answers[f.aiKey] ? applyAnswer(f, answers[f.aiKey].answer, { lang }) : f))
     .sort((a, b) => a.posted.localeCompare(b.posted) || a.id.localeCompare(b.id));
   let events: Fragment[] = [];
@@ -566,13 +627,21 @@ export function buildEvents(
   const byFragmentId = new Map(fragments.map((f) => [f.id, f]));
   const series = (part: Fragment) =>
     norm(byFragmentId.get(part.parent ?? '')?.name?.replace(/\s*(?:part \d+|第\d+弾)$/i, '') ?? null);
+  // (the celebration a part belongs to, after its posts merged)
+  const owner = (part: Fragment) => part.parent && (alias.get(part.parent) ?? part.parent);
   for (const f of fragments) {
     const key = sameKey(f);
     const same = byKey.get(key) ?? [];
-    // (Parts of two celebration series are two events: New Beginnings' Star Pieces aren't Fall G1's, though they
-    // overlap. A later part's post re-listing an earlier part's shop is the same one.)
+    // (Parts of two celebration posts are one event only within one series, and only a shop re-listed with new items
+    // or a part with the very same start (a re-listing): New Beginnings' Star Pieces aren't Fall G1's, a Part 3's
+    // "Discounted Carats" or "Daily Free Scout" isn't Part 2's, though they overlap.)
+    const relisted = (e: Fragment) =>
+      series(e) === series(f) && (owner(e) === owner(f) || f.kind === 'shop' || e.start === f.start);
+    // (A standalone post and a part are one event, unless the post is one window of the part's: its own bar.)
+    const joins = (e: Fragment) =>
+      e.parent && f.parent ? relisted(e) : e.parent ? !windowOf(e, f) : f.parent ? !windowOf(f, e) : true;
     const match = f.start
-      ? same.find((e) => overlap(e, f) && (!e.parent || !f.parent || series(e) === series(f)))
+      ? same.find((e) => overlap(e, f) && joins(e))
       : same
           .filter((e) => ms(e.start) <= Date.parse(f.posted))
           .find((e) => Date.parse(f.posted) - endOf(e) <= GROUP_DAYS * DAY);
@@ -587,14 +656,16 @@ export function buildEvents(
     if (match) {
       Object.assign(match, merge(match, f, lang));
       alias.set(f.id, match.id);
+      merges.push({ from: f.id, into: match.id, how: f.start ? 'overlap' : f.phase === 'ended' ? 'ended' : 'undated' });
     } else if (twin) {
       Object.assign(twin, merge(twin, f, lang), { name: f.name });
       alias.set(f.id, twin.id);
       byKey.set(key, [...same, twin]);
+      merges.push({ from: f.id, into: twin.id, how: 'same dates' });
     } else if (f.start) {
       events.push(f);
       byKey.set(key, [...same, f]);
-    }
+    } else merges.push({ from: f.id, into: '', how: 'dropped' });
   }
   // An event announced without dates is the same-named one starting within SAME_EVENT_DAYS after the post (its own
   // "starts when posted" bar is dropped), else it stays (announced, not scheduled yet).
@@ -608,6 +679,7 @@ export function buildEvents(
       );
     if (!later) continue;
     // One event, under the first post's id, with the dated post's dates.
+    merges.push({ from: later.id, into: f.id, how: 'undated' });
     Object.assign(later, merge({ ...f, start: null }, later, lang), { id: f.id, start: later.start, end: later.end });
     alias.set(later.id, f.id);
     dropped.add(f);

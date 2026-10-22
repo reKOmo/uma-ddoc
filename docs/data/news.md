@@ -45,7 +45,9 @@
   (named one-offs), celebration (multi-part: anniversaries, holidays, Fall G1), campaign (single bonuses: Star Pieces,
   race tickets, free scouts), gift. Other: scenario, update, issue, maintenance, sale, roundup, community, misc.
   Phase: announced / league_selection / started / ending / ended. `news:latest` uses it for the summary and to tell
-  news.yml whether data/ needs rebuilding.
+  news.yml whether data/ needs rebuilding. Global's answer is revised by template phrases in the body (`en.ts`
+  `signals` / `revise`), and Global's events are built from the gold set and the classifiers' labels
+  (`data/news/gl/categories.json`) over these rules: [classifier](classifier.md).
 - **Banner posts** (`scripts/lib/banner-posts.ts`): `bannerPost(post)` → `{ id, url, posted, paid, banners: [{
   gachaId, type: character | support, start, end, image, featured }] }`. Each banner's art sits under a "Trainee
   Umamusume" / "Support Cards" heading (its type) and is followed by its own list (`★★★ [Title] Name` / `SSR [Title]

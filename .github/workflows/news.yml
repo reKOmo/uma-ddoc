@@ -43,6 +43,22 @@ jobs:
       - name: Fetch card data
         if: steps.news.outputs.update == 'true' || steps.news_jp.outputs.update == 'true'
         run: node scripts/update-cards.ts && node scripts/scrape-gametora.ts
+      # ml/categorize.py classifies each server's posts (update-jp and update-global run it again when ml/.venv
+      # exists), before the model is asked: a new post's events are cut by its classified units, and the answers are
+      # keyed by those events' ids.
+      - uses: astral-sh/setup-uv@v10.2.0 # no floating v10 tag (setup-uv stopped publishing major tags after v7)
+        if: steps.news.outputs.update == 'true' || steps.news_jp.outputs.update == 'true'
+        with:
+          enable-cache: true
+          cache-dependency-glob: ml/requirements.txt
+      - name: Set up the post classifiers (ml/)
+        if: steps.news.outputs.update == 'true' || steps.news_jp.outputs.update == 'true'
+        run: pnpm setup-ml
+      - name: Classify the posts
+        if: steps.news.outputs.update == 'true' || steps.news_jp.outputs.update == 'true'
+        run: |
+          pnpm news:features && pnpm news:categorize
+          pnpm news:features --server jp && pnpm news:categorize --server jp
       # A model (OpenRouter's free Gemma) answers what the rules doubt in new events → data/news/gl/ai_answers.json.
       # Only events without a stored answer are asked. Skipped while the OPENROUTER_API_KEY secret isn't set; a
       # failure here doesn't stop the run (the rules' values are kept).

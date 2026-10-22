@@ -7,6 +7,7 @@ import { GENERATED_DIR } from './lib/paths.ts';
 import { loadPosts, serverArg } from './lib/news-api.ts';
 import { aiConfig, ask } from './lib/ai.ts';
 import { type Field, applyAnswer, mergeAnswer, question, staleFields } from './lib/event-questions.ts';
+import { readCategories } from './lib/categories.ts';
 import { type Fragment, eventFragments, readAnswers, writeAnswers } from './lib/events.ts';
 import { norm } from './lib/event-rewards.ts';
 import { lexicon } from './lib/news-lang/index.ts';
@@ -44,7 +45,8 @@ const cards: CardsFile = existsSync(cardsFile) ? JSON.parse(readFileSync(cardsFi
 const server = serverArg();
 const lang = lexicon(server);
 const posts = [...loadPosts(server).values()];
-const fragments = eventFragments(posts, cards, lang);
+// (Cut as update-global cuts them, so the answers' keys match.)
+const fragments = eventFragments(posts, cards, lang, readCategories(server));
 console.log(
   `${server}: ${config.provider} ${config.model}${config.think ? ' (thinking)' : ''}: ${fragments.length} events`
 );

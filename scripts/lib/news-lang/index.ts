@@ -16,6 +16,8 @@ export type Match = RegExpMatchArray & { input: string };
 export type DateRef = number | string;
 export type Period = { start: string | null; end: string | null };
 export type BannerType = 'character' | 'support';
+export type Signal = [name: string, where: 'title' | 'opening' | 'body', pattern: RegExp];
+export type Revised = { category: 'banner' | 'event' | 'other'; kind: string | null; name: string | null };
 // A title rule: [title pattern, category, kind, name]: the first match wins. kind is a function of the post where it
 // depends on it; name is a capture group's index or a function of the match.
 export type Rule = [
@@ -62,6 +64,10 @@ export type Lexicon = {
   // [title pattern, phase], the first match wins (post-categories).
   phases: [RegExp, string][];
   rules: Rule[];
+  // Global: template phrases a title can't show (a celebration's "details of included events"), and the title rules'
+  // answer revised by them (post-categories; the phrases are ml/categorize.py's features too, news-features.ts).
+  signals?: Signal[];
+  revise?: (rule: Revised, has: (signal: string) => boolean, title: string) => Revised;
   // An event's name when the title gives none.
   titleName: (title: string) => string;
 

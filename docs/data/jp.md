@@ -51,8 +51,9 @@
   (every JP banner has a label) and shows `name` under the sheet's art, `note` in place of the empty featured list. `regularBanners()` (and ml/data.py's `jp_banners()`) is what
   Global's news pairing, `globalProgress` and `ml/` read: no paid banners, no string ids, GameTora's featured (no
   `from_news` items), so their output didn't change. The Timeline shows paid badges and links re-runs both ways.
-- **JP events** (`buildEvents(posts, { lang: ja })` → `data/jp_events.json`, `pnpm update-jp`): Global's model, JP
-  wording. Celebration posts are cut at part art (`header_…`, `banner_…`, `header_CP_/EV_…`, bare `<img>` too; the
+- **JP events** (`buildEvents(posts, { lang: ja, categories })` → `data/jp_events.json`, `pnpm update-jp`): Global's
+  model, JP wording; each post's category and an event post's parts come from JP's gold set and classifiers
+  (`data/news/jp/categories.json`, [classifier](classifier.md)), the cutting below only where no label is. Celebration posts are cut at part art (`header_…`, `banner_…`, `header_CP_/EV_…`, bare `<img>` too; the
   intro is its own block; scout links and paid gachas, card-copy summaries and feature news aren't parts). Periods are
   JST; gifts run to their 対象のトレーナー deadline; Champions Meetings have Global's phases (the headings never changed
   since 2022), League of Heroes its own (team formation, main stage, extra stage registration / matching / votes /

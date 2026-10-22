@@ -36,8 +36,12 @@ const named = (m: { input: string }) => jaName(m.input);
 const PART_ART =
   /(?:<figure>\s*)?<img[^>]*\ssrc="([^"]*\/(?:header|banner|announce_banner)_(?:(?:CP|EV)_\d{8}_\d+|\d{4,10})(?:_[^"/.]+)?\.(?:png|jpg)[^"]*)"[^>]*>(?:\s*<\/figure>)?/gi;
 const partArts = (post: PostLike) => (post.message ?? '').match(PART_ART)?.length ?? 0;
-// A campaign post showing several parts' art is a celebration (G1 campaigns, anniversaries' 第N弾, ゆく年くる年…).
-const campaignKind = (post: PostLike) => (partArts(post) >= 2 ? 'celebration' : 'campaign');
+// A campaign post showing several parts' art is a celebration (G1 campaigns, anniversaries' 第N弾, ゆく年くる年…), as is
+// one showing a part's art after an intro of its own ("本キャンペーンでは…", White Day's: checked against the gold set,
+// data/news/jp/gold.json).
+const INTRO = /本キャンペーンでは|キャンペーンの詳細は、下記/;
+const campaignKind = (post: PostLike) =>
+  partArts(post) >= 2 || (partArts(post) === 1 && INTRO.test(post.message ?? '')) ? 'celebration' : 'campaign';
 
 const TILDE = '[～〜~]';
 
@@ -95,6 +99,17 @@ function subName(sentence: string) {
   }
   // (Not a sentence naming rewards: "…クリアすることで「ジュエル」や「マニー」などの報酬を獲得できます！")
   return (names.find((n) => n.on) ?? (/報酬|など/.test(sentence) ? null : names[0]))?.name ?? null;
+}
+
+// A part's name from shapes the quotes alone don't give (checked against the gold set's part names): a pair of paid
+// guaranteed scouts ("「★3確定…」と「SSR確定…」"), a rental boost and a story unlock told in a sentence, a daily gift.
+function partName(sentence: string) {
+  const pair = sentence.match(/「(★3確定[^」]+)」と「(SSR確定[^」]+)」/);
+  if (pair) return `${pair[1]}・${pair[2]}`;
+  if (/レンタル回数増加キャンペーン/.test(sentence)) return 'レンタル回数増加キャンペーン';
+  if (/ウマ娘ストーリー第\d+話～第\d+話を期間限定で解放/.test(sentence)) return 'ウマ娘ストーリー解放キャンペーン';
+  const daily = sentence.match(/毎日、(.+?)を\d+個/);
+  return daily ? `${daily[1]}プレゼント` : subName(sentence);
 }
 
 // How many copies of a card one part of a celebration gives, from the post's summary of them ("「…ログインボーナス」で
@@ -196,7 +211,9 @@ export const ja: JapaneseLexicon = {
     [/^レースコンテンツ「(.+?)」β版/, 'event', 'special', 1],
     [/^「(.+?)」イベント(?:開催決定|開催)！$/, 'event', 'special', 1],
     [/マンスリーマッチ(?!.*(?:お知らせ|について)$)/, 'event', 'special', named],
-    [/(?:ショータイム|お悩み相談).*[！!]$/, 'event', 'special', named],
+    // (A video series, "…お悩み相談！」配信中！", is no in-game event.)
+    [/お悩み相談/, 'other', 'misc'],
+    [/ショータイム.*[！!]$/, 'event', 'special', named],
     [/ショップの開催|ショップラインナップ追加/, 'event', 'shop', named],
     [/ログインボーナス/, 'event', 'login_bonus', named],
     [/ミッションの追加について/, 'other', 'update'],
@@ -204,6 +221,9 @@ export const ja: JapaneseLexicon = {
     [/ピース追加/, 'event', 'campaign', named],
     // Notices about a campaign ("…の販売期間延長とガチャの再開催につきまして", "…で交換ができるSSRサポートカードの対象について")
     [/(?:キャンペーン|周年|Anniv).*(?:について|につきまして)$/, 'other', 'update'],
+    // (ウマさんぽ and its editions, ギャルさんぽ, KFCさんぽ: Global's Uma Outing; 新春レース応援: bonus Star Pieces alone.)
+    [/さんぽキャンペーン/, 'event', 'uma_outing', named],
+    [/新春レース応援キャンペーン/, 'event', 'campaign', named],
     [/G[ⅠI]キャンペーン|レース応援キャンペーン|Anniversaryキャンペーン|周年|Anniv/, 'event', 'celebration', named],
     [/キャンペーン/, 'event', campaignKind, named],
     [/プレゼント|配布/, 'event', 'gift', named],
@@ -240,7 +260,8 @@ export const ja: JapaneseLexicon = {
   // part.
   introBlock: true,
   notBlockArt: /gacha_banner_|banner_detail_/,
-  artId: /(?:header|banner)_(?:(?:CP|EV)_\d{8}_(\d+)|(\d{4,10}))/,
+  // (a campaign's art: its date, CP_20261017; else the number)
+  artId: /(?:header|banner)_(?:((?:CP|EV)_\d{8})_\d+|(\d{4,10}))/,
 
   numbers: {},
   // Items Global has too go by Global's names, as Global's posts spell them (both servers' events read, sort and show
@@ -415,9 +436,10 @@ export const ja: JapaneseLexicon = {
     null,
   // A sub-event's opening: "M/D H:MMから[、]「X」を開催中です！", "…[ミッション]に「X」が登場！"
   subOpening: /^.*?\d{1,2}:\d{2}\s*(?:から|に)、?/,
-  subName,
+  subName: partName,
   subNames: [],
-  cleanName: (s) => s.trim(),
+  // (a card given: "SSR[Endless Game]ルーラーシップ" → its title and name)
+  cleanName: (s) => s.trim().replace(/^SSR(?=\[)/, ''),
   notNameHeading: /注意事項|詳細|内容|について|方法/,
   subKinds: [
     ['sale', /販売|購入できる|必要ジュエル/],

@@ -63,3 +63,14 @@ pnpm predict-gl            # predictions with the best one → generated/predict
   nearest fixed point (last release or known date). Deploys rerun it after the banner scrape.
   The backtest only covers ~2 years of JP history ahead, so far-out ranges assume Global keeps
   its current pace.
+
+## News post classifiers
+
+`categorize.py` (`pnpm news:categorize`, after `pnpm news:features`) learns from the hand-labelled gold set
+(`data/news/gl/gold.json`) what Global's news posts are (category + kind, phase) and what each unit of an event post is
+(its own event, a part of some kind, or nothing), with today's rules' answer and Global's template phrases
+(`en.ts` `signals`) among the features → `data/news/gl/categories.json`. `--evaluate` scores them against the rules,
+cross-validated and on the newest quarter of the posts after training on the rest (2026-10-21, newest: units 98.0% vs
+92.9%, phase 100%; cross-validated: units 99.0%, phase 99.7%, optimistic as folds share near-twin posts). A post's category + kind stay the rules' (98.9% of what the
+pipeline reads, vs the model's 98.7%: its misses are one-off posts); the post model flags where it disagrees. More:
+`docs/data/classifier.md`.

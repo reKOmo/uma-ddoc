@@ -157,16 +157,20 @@ describe('withPredicted', () => {
   ]);
   const ids = (events: GameEvent[]) => events.map((e) => e.id);
 
-  it("adds the predicted events after the real ones, leaving out those Global's news has overtaken", () => {
-    const merged = withPredicted(real, predicted.events);
-    // jp-3000 (a story starting before Global's latest real one) goes, its mission set with it; parts aren't compared
-    // with real parts (Global's mission 1-m1 starts after the predicted ones).
-    expect(ids(merged)).toEqual(['1', '1-m1', 'jp-3444', 'jp-3500', 'jp-3500-m1', 'jp-3379', 'jp-3400']);
+  it('adds the predicted events after the real ones, hiding one 14 days past its predicted start', () => {
+    const all = ['1', '1-m1', 'jp-3000', 'jp-3000-m1', 'jp-3444', 'jp-3500', 'jp-3500-m1', 'jp-3379', 'jp-3400'];
+    // jp-3000 (a story predicted for Sep 20) stays though Global's real story 1 has started since: JP's events come to
+    // Global, at times later than predicted.
+    expect(ids(withPredicted(real, predicted.events, Date.parse('2026-10-01T00:00:00Z')))).toEqual(all);
+    // 14 days past its start it's hidden, its mission set with it.
+    expect(ids(withPredicted(real, predicted.events, Date.parse('2026-10-10T00:00:00Z')))).toEqual(
+      all.filter((id) => !id.startsWith('jp-3000'))
+    );
     expect(withPredicted(real, [])).toEqual(real);
   });
 
   it("draws them in Global's groups, kinds Global lacks too, parts under their predicted parent", () => {
-    const groups = eventGroups(withPredicted(real, predicted.events));
+    const groups = eventGroups(withPredicted(real, predicted.events, Date.parse('2026-10-10T00:00:00Z')));
     const rows = Object.fromEntries(groups.map((g) => [g.key, idsOf(g.rows)]));
     expect(rows).toEqual({
       'events-story': [['1', 'jp-3500', 'jp-3400']],
@@ -229,6 +233,6 @@ describe.skipIf(!existsSync(PAIRS_FILE))('event pairs (generated/event_pairs.jso
     expect(pairs.filter((p) => !gl.has(p.gl) || !jp.has(p.jp))).toEqual([]);
     // Global's Sparkly Magic Show (a part of its Holiday Celebration, with a post of its own) is JP's KIRARI MAGIC SHOW
     // (a part of JP's), from the same post; never an anchor.
-    if (gl.has('1093-0')) expect(pairs.find((p) => p.gl === '1093-0')).toMatchObject({ jp: '1093-1', anchor: false });
+    if (gl.has('1093-1')) expect(pairs.find((p) => p.gl === '1093-1')).toMatchObject({ jp: '1093-1', anchor: false });
   });
 });

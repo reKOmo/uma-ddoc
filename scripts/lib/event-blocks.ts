@@ -16,7 +16,8 @@ function block(html: string, art: string | null, lang: Lexicon): Block {
   const url = art ? decodeEntities(art) : null;
   return {
     art: url,
-    artId: url?.match(lang.artId)?.[1] ?? null,
+    // (the lexicon's pattern captures it in one of its groups)
+    artId: url?.match(lang.artId)?.slice(1).find(Boolean) ?? null,
     intro,
     sections: rest.map(({ heading, lines }) => ({ heading, lines })),
   };

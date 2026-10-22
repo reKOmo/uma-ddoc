@@ -40,22 +40,16 @@ export function itemList(items: EventItem[]): EventItem[] {
     .map(({ item }) => item);
 }
 
-// A predicted event (with its parts) is dropped once a real top-level event of its kind starts at or after it.
-export function withPredicted(real: GameEvent[], predicted: PredictedEvent[]): GameEvent[] {
-  const latest = new Map<string, number>();
-  for (const event of real)
-    if (!event.parent) {
-      const start = Date.parse(event.start.date);
-      if (!((latest.get(event.kind) ?? Number.NEGATIVE_INFINITY) >= start)) latest.set(event.kind, start);
-    }
+// A predicted event (with its parts) shows until 14 days past its predicted start, Global's news or not: JP's events
+// come to Global, at times later than predicted (ml/events.py writes them for as long, its SHOWN_DAYS).
+const SHOWN_MS = 14 * 24 * 3600 * 1000;
+
+export function withPredicted(real: GameEvent[], predicted: PredictedEvent[], now: number = Date.now()): GameEvent[] {
   const byId = new Map(predicted.map((event) => [event.id, event] as const));
   const top = (event: PredictedEvent): PredictedEvent => {
     const parent = event.parent && byId.get(event.parent);
     return parent && parent !== event ? top(parent) : event;
   };
-  const kept = predicted.filter((event) => {
-    const root = top(event);
-    return !((latest.get(root.kind) ?? Number.NEGATIVE_INFINITY) >= Date.parse(root.start.date));
-  });
+  const kept = predicted.filter((event) => Date.parse(top(event).start.date) + SHOWN_MS >= now);
   return [...real, ...kept];
 }

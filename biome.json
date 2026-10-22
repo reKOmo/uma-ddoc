@@ -13,7 +13,9 @@
       "!data/jp_*.json",
       "!data/scenarios.json",
       "!data/news/*/posts.json",
-      "!data/news/*/ai_answers.json"
+      "!data/news/*/ai_answers.json",
+      "!data/news/*/gold.json",
+      "!data/news/*/categories.json"
     ]
   },
   "formatter": {
