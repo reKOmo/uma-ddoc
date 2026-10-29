@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.26.2",
+  "engines": {
+    "node": ">=24.12.0 <25"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -35,6 +38,7 @@
     "gold:review": "node scripts/gold-review.ts",
     "gold:review:jp": "node scripts/gold-review.ts --server jp",
     "news:features": "node scripts/news-features.ts",
+    "news:run": "sh scripts/news-run.sh",
     "update-global": "node scripts/update-global.ts",
     "update-jp": "node scripts/update-jp.ts",
     "setup-ml": "uv venv --allow-existing --python 3.13 ml/.venv && uv pip install --python ml/.venv -r ml/requirements.txt",

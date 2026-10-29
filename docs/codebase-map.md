@@ -53,7 +53,7 @@ scripts/
                      mergeGametora() (JP side), applyScenarioNews() (Global side, from the news)
   fetch-pull-guide.ts  Luh's Support Card Encyclopedia (Google Sheet) → generated/pull_guide.json
   lib/pull-guide.ts  pure: the sheet's HTML view → entries (dates, Pull?, notes) → advice per banner (findBanner())
-  fetch-news-latest.ts  new/edited posts → data/news/<server>/posts.json + summary.md (incremental, news.yml)
+  fetch-news-latest.ts  new/edited posts → data/news/<server>/posts.json + summary.md (incremental, news:run)
   fetch-news-all.ts  the whole archive → data/news/<server>/posts.json (one-off, resumable)
   fetch-news-umapyoi.ts  older posts from umapyoi.net's mirror → data/news/<server>/posts.json (one-off, resumable)
   categorize-news.ts `pnpm news:categories`

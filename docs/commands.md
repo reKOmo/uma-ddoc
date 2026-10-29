@@ -30,6 +30,7 @@ pnpm update-global     # official news → Global's banners, card releases, scen
 pnpm fetch-pull-guide  # pull advice + notes per card from Luh's Support Card Encyclopedia → generated/pull_guide.json (after predict-gl)
 pnpm clone-upstream    # clone/update upstream main into upstream/ (for test:upstream)
 pnpm news:latest       # new + edited posts from umamusume.com/news → data/news/gl/posts.json (+ summary.md); periodic runs
+pnpm news:run          # the daily news run (scripts/news-run.sh, run by an automation): both servers' news:latest, the records, a commit
 pnpm news:all          # every post the site still serves (walks the archive post by post; resumable; once)
 pnpm news:umapyoi      # the posts the official site no longer serves, from umapyoi.net's mirror (resumable; once)
                        # each of the three takes --server jp (umamusume.jp → data/news/jp/): news:latest:jp, news:all:jp,

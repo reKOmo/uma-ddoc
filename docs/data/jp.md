@@ -82,7 +82,7 @@
   (1,120 → 1,110 events). Known weak spot: the cosmetic 特別ホーム画面 parts became `special`.
 - **JP on the Timeline and in the workflows**: JP's calendar has the event lanes Global has (groups, parts, sheets).
   A banner without an end (an open-ended scout, 終了日時未定) counts as one day in `src/timeline/layout.ts` and reads "from
-  <start>". `fetch-news-latest --server jp` categorizes with the JP lexicon (summary + `update`). `news.yml`: Global's
-  news, then JP's (`news_jp`); cards + GameTora if either updated; the model for each server that updated;
+  <start>". `fetch-news-latest --server jp` categorizes with the JP lexicon (summary + `update`). `news:run`: Global's
+  news, then JP's; cards + GameTora if either updated; the model for each server that updated;
   `update-jp`, then `update-global` (Global's news pairs with JP's banners by id); one commit whose subject sums both
   servers. `deploy.yml` runs `update-jp` before `update-global` (not committed).

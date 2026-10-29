@@ -86,7 +86,7 @@ and today's rules' answer, so the models learn where the rules go wrong.
 
 ## Events from the labels
 
-`update-jp` / `update-global` run both commands first when `ml/.venv` exists (`pnpm setup-ml`; news.yml sets it up
+`update-jp` / `update-global` run both commands first when `ml/.venv` exists (`pnpm setup-ml`; news:run sets it up
 and classifies before asking the AI, whose answers are keyed by the classified events' ids) and build the events from
 `categories.json` (`scripts/lib/categories.ts`; a post missing from it falls back to the rules):
 

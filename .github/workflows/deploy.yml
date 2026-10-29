@@ -1,15 +1,16 @@
 # Builds the site with fresh card data from upstream and deploys it to GitHub
 # Pages. Runs daily so new cards show up without a commit. If the card data
 # breaks a test, the job fails (GitHub emails you) and the last good deploy
-# stays live.
+# stays live. On a pull request it only builds and tests: `build` is the check
+# main's ruleset requires before a PR can merge.
 name: Deploy site
 
-# Manual runs only for now; uncomment push/schedule to run automatically again.
 on:
-  # push:
-  #   branches: [main]
-  # schedule:
-  #   - cron: "17 6 * * *"
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -17,9 +18,10 @@ permissions:
   pages: write
   id-token: write
 
+# A newer push to the same PR replaces its running check; deploys queue instead.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -29,7 +31,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v5
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Lint and format check
@@ -41,8 +43,8 @@ jobs:
         run: pnpm typecheck
       - name: Scrape new cards, scenarios and JP's event history from GameTora
         run: pnpm scrape-gametora
-      # Normally already done and committed by news.yml; rerun so a news commit made any other way
-      # still shows up (not committed from here). JP's first: Global's news pairs with JP's banners by id.
+      # Normally already done and committed by the news run (scripts/news-run.sh); rerun so a news commit made any
+      # other way still shows up (not committed from here). JP's first: Global's news pairs with JP's banners by id.
       - name: Apply the official JP news to JP's banners and events
         run: pnpm update-jp
       - name: Apply the official news to Global's banners
@@ -63,12 +65,15 @@ jobs:
       - name: Build
         run: pnpm build
       - uses: actions/configure-pages@v5
+        if: github.event_name != 'pull_request'
       - uses: actions/upload-pages-artifact@v4
+        if: github.event_name != 'pull_request'
         with:
           path: dist
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

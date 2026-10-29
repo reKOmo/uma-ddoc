@@ -5,6 +5,7 @@ scenarios), deployed to GitHub Pages; no backend, all data is generated at build
 
 - **Never commit or push** (no amend either); the user does both. Only exception: a subagent may commit to its own
   local branch (e.g. a worktree), never push.
+- **Work on `dev`**; `main` is deployed and only takes PRs that pass CI ([CI + branches](docs/ci.md)).
 - **pnpm, never npm.**
 - **TypeScript everywhere, strict.** Scripts and `tierlist/` run on Node 24's type stripping (`node scripts/x.ts`, no
   build step): `.ts` in every import path, no `enum` / `namespace` / parameter properties. Never `any`: `unknown` +
