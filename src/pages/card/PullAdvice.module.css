@@ -57,6 +57,22 @@ a.bannerLink {
   font-size: 0.9rem;
 }
 
+.pulls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* The count stands out: what a player gets for free. */
+.pulls strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .guide {
   margin-top: 24px;
 }

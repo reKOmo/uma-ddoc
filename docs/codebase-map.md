@@ -42,6 +42,8 @@ scripts/
   lib/events.ts      pure: postEvents() (a post → its events, with doubts), eventFragments(), buildEvents() (mission
                      sets as bars, merged over posts, answers applied), cmPhases() (a cup's schedule), cmItems()
                      (Champions Meeting range from the hand table), data/ readers/writers (events, answers)
+  lib/free-scouts.ts pure: a free scout campaign's windows (scoutWindows(), counted()), its banners (bannerOf()),
+                     each banner's free pulls (withFreePulls())
   lib/event-questions.ts  pure: what a model is asked about an event (askedFields(), question(): prompt + examples
                      + JSON schema), staleFields() / mergeAnswer() (per-field versions), applyAnswer() (checks + rules first)
   lib/ai.ts          the model client: Ollama (native /api/chat) or OpenRouter (OpenAI-style), aiConfig(), ask()

@@ -31,7 +31,8 @@ Predicted events → generated/predicted_global_events.json (optional for the si
   { source: { predicted_from, fitted_at }, events: [event…] }, newest first. Every top-level JP event with no pair
   starting at most LOOKBACK JP days before the last JP day Global's card releases have reached (the banners' anchor)
   and predicted to start on Global at most SHOWN_DAYS ago, with its parts: JP's fields
-  (kind, name in Japanese, cards, items, titles, phases, races, image, news_url = the JP post, source) and
+  (kind, name in Japanese, cards, items, titles, phases, races, free scout windows, image, news_url = the JP post,
+  source) and
   id 'jp-<JP id>', parent 'jp-<JP parent id>' | null, start / end: the top-level event's predicted Global start (its JST
   start day through predict(), 22:00 UTC like banners, never a Japanese weekend), its parts and phases moved by the
   same amount (JP's lengths kept); every date status predicted (the start with lo / hi), a start confirmed when
@@ -424,6 +425,9 @@ def predict_events(predict, anchor_jp, known, pairs, fitted_at):
                            for p in e['phases']]} if e.get('phases') is not None else {}),
             # JP's race conditions: Global has mostly reused them (the sheet says whose they are).
             **({'races': e['races']} if e.get('races') else {}),
+            # JP's free scout windows, moved like its phases (their banners' ids are the predicted Global banners').
+            **({'scouts': [{**w, 'start': shift(w['start'], offset), 'end': shift(w['end'], offset)}
+                           for w in e['scouts']]} if e.get('scouts') else {}),
             'news_url': e['news_url'],
             'image': e['image'],
             'source': e['source'],

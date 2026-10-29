@@ -3,7 +3,7 @@
 - **Events** (`scripts/lib/events.ts` → `data/global_events.json`): Global's in-game events from the news alone (no
   GameTora; Global's upcoming ones are predicted from JP's: "Global ↔ JP events" below). **Everything with dates of its
   own is a bar** (except inside one event: Champions Meeting rounds, reward collection, repeated windows stay in its
-  bar), newest first: `{ id, kind, name, parent, start, end, cards, items, titles, phases?, races?, news_url, image, source }`
+  bar), newest first: `{ id, kind, name, parent, start, end, cards, items, titles, phases?, races?, scouts?, news_url, image, source }`
   (`phases`: a Champions Meeting's, JP League of Heroes', else any event whose post gives two or more of `lang.eventPhases`: event, tallying, results, reward collection). `races` (`scripts/lib/event-races.ts`, wording in `lang.race`): every event whose
   post has a "Race Condition(s)" section (Champions Meetings, Legend Races, the Racing Carnival, Dream Team), `{ name,
   opponent, track, surface, distance, category, direction, course, season, weather, ground, time, variable }` as keys
@@ -69,6 +69,29 @@
   dates, cards), Legend Race, mission set and special-event run matches it, and every Champions Meeting's end (its
   start is earlier on purpose: league selection); ours only has less (the Trainer Aptitude Test's / Racing Carnival's
   reward-collection days after their event period, mission sets the news hasn't announced).
+- **Free scouts** (`scripts/lib/free-scouts.ts`, wording in `lang.scouts`, both servers): a daily free scout campaign
+  (Global's "Daily Free 10x Scout" / a celebration's "Daily Free Scout"; JP's 「1日1回10連ガチャ無料キャンペーン」 /
+  「毎日ガチャ1回無料キャンペーン」) gets `scouts` `[{ scout, type, banner, start, end, size, scouts }]`: each eligible scout
+  as the post names it ("• Spotlight Support Card Scout" + its window on the next line; JP: 「・… ガチャ」, or a list under
+  the campaign's 開催期間 that takes that period), its type (support / character from the name; null when it doesn't
+  say), single or 10x (`size`, from the sentence naming the scout's type: 364 holds a single scout's campaign and a
+  10x's), and `scouts`, the free scouts a player who logs in every day gets: one at each daily reset in the window
+  (Global 15:00 UTC, JP 5:00 JST) plus one when it opens off a reset, unless it carries on the window before it (same
+  size, starting the minute it ends: that day's scout was the earlier scout's); a parallel window does open with one
+  (236's "(9 days)"). Pulls = scouts × size; stock ("Free Scout Stock" / ガチャストック) doesn't change the maximum.
+  Checked against what the post states: "up to a maximum of 10 times" / 「最大12回まで」 = the windows' total (scouts
+  sharing one window count once: either takes that day's), "(9 days total)" / 「（2日分）」 = a window's count; a mismatch,
+  or a campaign whose windows the rules don't read (the launch's labelled "Pretty Derby Scout:" windows, 121), is a
+  `scouts` doubt for the model. Every stated total and day count matched (Global 18 campaigns, JP 68). `banner`
+  (`bannerOf()`, by `update-global` / `update-jp`, which pass their banners to `buildEvents()`): of the window's type,
+  open when the window starts, never a paid scout; the one named as the post names the scout (JP's banners have names:
+  3145's is 「ピックアップ プリティーダービーガチャ」, not the premium one beside it), else the newest (Global runs two of a
+  type at once and the newer is the "Spotlight"; 373: one opening later in the window isn't eligible); every window
+  matches one. Each banner then gets `free_pulls` (`withFreePulls()`): its windows' pulls, a window two posts list
+  (364's part and 373's) once. Banner posts that mention a free scout (366, 376) aren't read: the celebrations list
+  the same windows. Global's counts equal Luh's on every banner both give but 30073 (the post gives 6, Luh 5;
+  `test/free-scouts.test.ts` lists the differences); JP's 30153 count (11) is the trainee banner's, Luh put it on the
+  card banner.
 - **A model for what the rules doubt** (`scripts/lib/ai.ts`, `event-questions.ts`, `ai-events.ts`, `pnpm news:ai`): the
   rules stay the extractor; each event records its `doubts` ({ field: why }: an amount in a sentence they didn't read or
   given per day (`itemDoubt()`), copies given in several places or talked about but not read (`copiesDoubt()`), a
@@ -87,10 +110,18 @@
   names in the text (not a kind's generic name like "Legend Race"; "carat gifts" → Carats), amounts up to 10 million,
   copies of a card the rules found that the post gives (as a digit or word, in a line about the card or copies/times;
   "1st" isn't 1), a known kind, dates in order within ~200 days of the post; mission sets take names only; card copies
-  a model put among the items count as copies. Models: Gemma 4 — locally `gemma4:26b` through Ollama (native API,
+  a model put among the items count as copies. Free scouts (`scouts`): the model gives each window (the scout as the
+  text names it, start, end, the days the text states) and the stated total; the code sizes and counts them as the
+  rules do (`counted()`; a stated day count stands: the launch's first window has no time), and takes them only if
+  every scout name and number is in the text and they add up to the total. Local 26b read the launch's 7 + 8 = 15
+  right and matched the rules on six campaigns of both servers. Models: Gemma 4 — locally `gemma4:26b` through Ollama (native API,
   `think: false`: thinking took minutes and its reasoning filled Ollama's default 4,096-token context, so `num_ctx`
   16,384), on OpenRouter `google/gemma-4-26b-a4b-it:free` (OPENROUTER_API_KEY; free models: 20 requests a minute, 50 a
-  day, 1,000 once the account bought $10 of credits; paced and 429s retried). `gemma4:e4b` is ~6× faster but missed the
+  day, 1,000 once the account bought $10 of credits; paced and 429s retried), falling back to
+  `nvidia/nemotron-3.5-super-vl:free` when Google throttles the free Gemma for everyone (each answer stores the model
+  that gave it; `--compare` on 20 events: every kind, end and amount the same as the rules, its few differences
+  defensible, e.g. a gift series' first gift day as its start). A run stops asking once every model stays unavailable through the
+  retries; the rest are asked on the next. `gemma4:e4b` is ~6× faster but missed the
   multiplications. Results (2026-10-11): 142 events asked; on hard cases with known answers 26b got every one (Umayuru's
   150 × 22 windows = 3,300 carats, 3,000-carat login bonuses, Golshi Mode's 1,200,000 Monies, ×5 card gifts, ×2 login
   and ×3 missions copies); every number and date it changed is in its post. `--compare` asks events about every field

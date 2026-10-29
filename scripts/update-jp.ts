@@ -9,7 +9,8 @@ import type { GametoraCard } from '../shared/schemas/gametora.ts';
 import { readCategories, refreshCategories, unsureLines } from './lib/categories.ts';
 import { buildEvents, readAnswers, readEvents, writeEvents } from './lib/events.ts';
 import { fillFromGametora, readGametoraEvents } from './lib/gametora-events.ts';
-import { updateJpBanners } from './lib/jp-banners.ts';
+import { readJpBanners, updateJpBanners, writeJpBanners } from './lib/jp-banners.ts';
+import { withFreePulls } from './lib/free-scouts.ts';
 import { loadPosts } from './lib/news-api.ts';
 import { ja } from './lib/news-lang/ja.ts';
 import { GENERATED_DIR, newsDir } from './lib/paths.ts';
@@ -47,7 +48,13 @@ export async function updateJp(): Promise<JpUpdate> {
   // Each post's category and units: JP's classifiers' (ml/categorize.py --server jp) over the rules.
   refreshCategories('jp');
   const categories = readCategories('jp');
-  const fromNews = buildEvents(posts, { cards, answers: readAnswers('jp'), lang: ja, categories });
+  const fromNews = buildEvents(posts, {
+    cards,
+    answers: readAnswers('jp'),
+    lang: ja,
+    categories,
+    banners: readJpBanners(),
+  });
   // Without GameTora's file (never scraped), the fills already in data/ are kept.
   const gametora = readGametoraEvents();
   const kept = readEvents('jp').filter((e: GameEvent) => e.source === 'gametora');
@@ -60,6 +67,8 @@ export async function updateJp(): Promise<JpUpdate> {
     ? fill.events
     : [...fill.events, ...kept].sort((a, b) => b.start.date.localeCompare(a.start.date) || b.id.localeCompare(a.id));
   writeEvents(events, 'jp');
+  // Each banner's free pulls, from the events' free scout windows.
+  writeJpBanners(withFreePulls(readJpBanners(), events));
   const changed = events.filter((e: GameEvent) => old.get(e.id) !== JSON.stringify(e));
 
   const stored = readScenarios();
