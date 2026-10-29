@@ -2,6 +2,8 @@
 
 ```sh
 pnpm test              # Vitest unit suite (~15s; fetches card data if missing); pre-push runs it
+pnpm test:code         # the suite without the data tests (CI's required check)
+pnpm test:data         # only the data tests (CI's `data` job, not required)
 pnpm test:upstream     # our calculation vs upstream's (~25s; needs `pnpm clone-upstream`)
 pnpm test:e2e          # the app in a browser (Playwright, e2e/; starts the dev server; ~45s; needs
                        # `pnpm exec playwright install chromium` once; E2E_PORT=… for parallel runs)
@@ -17,6 +19,15 @@ pnpm test:visual       # 14 screens × light/dark × phone/desktop, pixel by pix
 - Changed a data shape: `pnpm build-schemas` (`schemas.test.ts` fails when `schemas/*.json` are stale).
 - Changed a shared news parser: run `update-global` / `news:events` before and after; Global's output must be
   byte-identical.
+
+## Code and data tests
+
+A test that reads the stored news, the records (`data/`) or `generated/` as a whole is a **data test**: tag its
+`describe` (or `it`) `{ tags: ['data'] }`. New news can fail one while the code works (a post the parsers don't read
+right), and the data it reads changes with the news and the sites, so it never blocks a merge or the deploy: CI runs
+it in the `data` job, which fails the run and emails you. Everything else is a code test, fixtures and fixed sample
+posts included, and gates the merge. Don't hardcode today's content in a code test (the list of scenarios, the newest
+card): check the rule against whatever the data holds.
 
 ## Conventions
 

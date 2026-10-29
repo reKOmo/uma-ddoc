@@ -59,13 +59,4 @@ describe('paced', () => {
     await vi.advanceTimersByTimeAsync(1);
     expect(await p).toBe('ok');
   });
-
-  it('follows a changed pause', async () => {
-    const pace = paced({ pause: [5000, 5000] });
-    await pace(async () => 1);
-    pace.pause = [10, 10];
-    const p = pace(async () => 2);
-    await vi.advanceTimersByTimeAsync(10);
-    expect(await p).toBe(2);
-  });
 });

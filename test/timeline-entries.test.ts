@@ -46,7 +46,7 @@ const SERVERS: [string, Entry[]][] = [
 const FIELDS = Object.keys(SERVERS[0][1][0]).sort();
 const STATUSES = ['live', 'ended', 'predicted', 'confirmed'];
 
-describe.each(SERVERS)('the calendar (%s)', (_, entries) => {
+describe.each(SERVERS)('the calendar (%s)', { tags: ['data'] }, (_, entries) => {
   const keys = new Set(entries.map((e) => e.key));
 
   it('gives every banner and event the same fields', () => {

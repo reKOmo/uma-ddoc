@@ -8,8 +8,7 @@ import '../src/i18n/index.ts';
 import Dropdown from '../src/Dropdown.tsx';
 import ScenarioPicker, { scenarioPickerOptions } from '../src/ScenarioPicker.tsx';
 import i18n from '../src/i18n/index.ts';
-import { isCurrent } from '../src/scenarioRelease.ts';
-import { isReleased } from '../src/scenarioRelease.ts';
+import { SCENARIOS, isCurrent, isReleased } from '../src/scenarioRelease.ts';
 
 afterEach(cleanup);
 
@@ -76,36 +75,14 @@ describe('scenarioPickerOptions', () => {
 });
 
 describe('scenarioPickerOptions: scenarios the tier list lacks', () => {
-  it('lists every scenario newest first, the unranked ones disabled with a note', () => {
-    const scenarios = ['DYI', 'GM', 'GL', 'MANT', 'Aoharu', 'URA'];
+  // Against whatever data/scenarios.json lists, so a new scenario needs no change here.
+  it('lists every scenario newest first, the unranked ones disabled with a note, unknown ranked keys last', () => {
+    const scenarios = ['DYI', 'GM', 'GL', 'MANT', 'Aoharu', 'URA', 'Unknown'];
     const options = scenarioPickerOptions({ scenarios, combined: [], server: 'gl', t: i18n.t });
-    expect(options.map((o) => o.value)).toEqual([
-      'TracenKen',
-      'BD',
-      'Onsen',
-      'DYI',
-      'TL',
-      'Mecha',
-      'GFF',
-      'UAF',
-      'LArc',
-      'GM',
-      'GL',
-      'MANT',
-      'Aoharu',
-      'URA',
-    ]);
+    const known = SCENARIOS.map((sc) => sc.key).reverse();
+    expect(options.map((o) => o.value)).toEqual([...known, 'Unknown']);
     const disabled = options.filter((o) => o.disabled);
-    expect(disabled.map((o) => o.value).sort()).toEqual([
-      'BD',
-      'GFF',
-      'LArc',
-      'Mecha',
-      'Onsen',
-      'TL',
-      'TracenKen',
-      'UAF',
-    ]);
+    expect(disabled.map((o) => o.value)).toEqual(known.filter((key) => !scenarios.includes(key)));
     expect(disabled.every((o) => o.note === 'Not in the tier list yet' && !o.badge)).toBe(true);
     expect(options.filter((o) => !o.disabled).map((o) => o.value)).toEqual(scenarios);
   });

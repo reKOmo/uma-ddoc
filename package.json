@@ -15,6 +15,8 @@
     "typecheck": "tsc",
     "format": "biome check --write",
     "test": "vitest run --project unit",
+    "test:code": "vitest run --project unit --tags-filter='!data'",
+    "test:data": "vitest run --project unit --tags-filter=data",
     "test:upstream": "vitest run --project upstream",
     "test:e2e": "playwright test --project phone --project desktop",
     "test:visual": "playwright test --project visual-phone --project visual-desktop",

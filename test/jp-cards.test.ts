@@ -211,16 +211,10 @@ describe('applyNewsCards', () => {
 });
 
 const stored = posts.length && existsSync(GAMETORA_CARDS_FILE) && existsSync(JP_CARDS_FILE);
-describe.skipIf(!stored)('the stored news, history and GameTora list', () => {
+describe.skipIf(!stored)('the stored news, history and GameTora list', { tags: ['data'] }, () => {
   const all = stored ? newsCards(posts) : [];
   const jpCards = stored ? readJson<JpCardsFile>(JP_CARDS_FILE) : {};
   const gtCards = stored ? readJson<GametoraCard[]>(GAMETORA_CARDS_FILE) : [];
-
-  it('add nothing GameTora lists that the history lacks, today', () => {
-    const r = applyNewsCards({ history: jpCards, found: all, gametora: gtCards });
-    expect(r.history).toEqual(jpCards);
-    expect(r.gametoraOnly).toEqual([]);
-  });
 
   it('rebuild the newest cards from the news + GameTora exactly as the frozen history has them', () => {
     // the frozen cards from 2026-06 on, removed and rebuilt

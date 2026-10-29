@@ -369,7 +369,7 @@ describe('the schema', () => {
     expect(fits({ banners: {}, noBanner: { 1: { ...guide.banners[30120][30086] } } })).toBe(false);
   });
 
-  it.skipIf(!existsSync('generated/pull_guide.json'))('fits generated/pull_guide.json', () => {
+  it.skipIf(!existsSync('generated/pull_guide.json'))('fits generated/pull_guide.json', { tags: ['data'] }, () => {
     check(JSON.parse(readFileSync('generated/pull_guide.json', 'utf8')));
   });
 });

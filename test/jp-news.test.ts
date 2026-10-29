@@ -137,7 +137,7 @@ describe('norm', () => {
 });
 
 const file = postsFile('jp');
-describe.skipIf(!existsSync(file))('the stored JP news', () => {
+describe.skipIf(!existsSync(file))('the stored JP news', { tags: ['data'] }, () => {
   const posts: NewsPost[] = JSON.parse(readFileSync(file, 'utf8'));
   const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
   const categories = new Map(posts.map((p) => [String(p.announce_id), categorize(p, ja)]));
@@ -145,7 +145,11 @@ describe.skipIf(!existsSync(file))('the stored JP news', () => {
   const BANNER_SAMPLES: Record<string, string> = samples.banner;
 
   it('finds a scout banner in exactly the posts that show scout art, typed', () => {
-    const withArt = posts.filter((p) => /gacha_banner_\d+/.test(p.message ?? '')).map((p) => String(p.announce_id));
+    // Stream recaps repeating banners that have their own posts (3528: ぱかライブTV' #8 → 3508, 3511).
+    const recaps = new Set(['3528']);
+    const withArt = posts
+      .filter((p) => /gacha_banner_\d+/.test(p.message ?? '') && !recaps.has(String(p.announce_id)))
+      .map((p) => String(p.announce_id));
     const banners = [...categories].filter(([, c]) => c.category === 'banner').map(([id]) => id);
     expect(banners.sort()).toEqual(withArt.sort());
     for (const id of banners) expect(present(category(id).banners, 'banners').every((b) => b.type)).toBe(true);

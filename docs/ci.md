@@ -1,8 +1,9 @@
 # CI workflows
 
 - `deploy.yml` — on push to main, daily, manually, and on every PR (build + tests only, no deploy): install → `pnpm lint` → `update-cards` → `pnpm typecheck` (needs `generated/`) →
-  `scrape-gametora` → `update-jp` → `update-global` (both not committed) → `setup-ml` + `predict-gl` → `fetch-pull-guide` → `pnpm test` → `pnpm test:e2e` → build → GitHub Pages. If any
-  step fails the job fails and the last good deploy stays live.
+  `scrape-gametora` → `update-jp` → `update-global` (both not committed) → `setup-ml` + `predict-gl` → `fetch-pull-guide` → `pnpm test:code` → `pnpm test:e2e` → build → GitHub Pages. If any
+  step fails the job fails and the last good deploy stays live. A second job, `data`, runs `pnpm test:data` on what
+  `build` generated: not required, never blocks the deploy, but fails the run (and emails) when new data trips a test.
 - `upstream-check.yml` — on push to main, daily, and manually: install →
   `clone-upstream` → `update-cards` → `pnpm test:upstream`. A failure (GitHub emails)
   means upstream changed; deploys don't depend on it.
@@ -20,6 +21,6 @@
 ## Branches
 
 Work happens on `dev`; `main` is what's deployed. A ruleset on main requires a PR whose branch is up to date with main
-and whose `build` check (`deploy.yml`) passed, and blocks force pushes and deletion; the repo admin can bypass it. PRs
+and whose `build` check (`deploy.yml`) passed (`data` isn't required: [testing](testing.md#code-and-data-tests)), and blocks force pushes and deletion; the repo admin can bypass it. PRs
 merge with a merge commit only, so dev keeps its history and needs no reset after a merge ("Update branch" on the PR
 merges main's news commits back into dev). Dependabot opens weekly PRs against dev (`.github/dependabot.yml`).

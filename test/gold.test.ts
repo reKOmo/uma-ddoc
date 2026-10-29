@@ -6,19 +6,23 @@ import { loadPosts } from '../scripts/lib/news-api.ts';
 describe('the gold set', () => {
   const posts = loadPosts('gl');
 
-  it.each(['gl', 'jp'] as const)('labels stored posts, an event post unit by unit (%s)', (server) => {
-    if (!existsSync(goldFile(server))) return;
-    const stored = loadPosts(server);
-    const labels = readGold(server);
-    expect(labels.filter((l) => !stored.has(String(l.id))).map((l) => l.id)).toEqual([]);
-    const wrongUnits = labels.filter((l) => {
-      const post = stored.get(String(l.id));
-      // (A post edited since may cut otherwise: it's labelled again, gold.ts' stale().)
-      if (!post || stale(l, post)) return false;
-      return l.category === 'event' ? l.units.length !== units(post, server).length : l.units.length > 0;
-    });
-    expect(wrongUnits.map((l) => l.id)).toEqual([]);
-  });
+  it.each(['gl', 'jp'] as const)(
+    'labels stored posts, an event post unit by unit (%s)',
+    { tags: ['data'] },
+    (server) => {
+      if (!existsSync(goldFile(server))) return;
+      const stored = loadPosts(server);
+      const labels = readGold(server);
+      expect(labels.filter((l) => !stored.has(String(l.id))).map((l) => l.id)).toEqual([]);
+      const wrongUnits = labels.filter((l) => {
+        const post = stored.get(String(l.id));
+        // (A post edited since may cut otherwise: it's labelled again, gold.ts' stale().)
+        if (!post || stale(l, post)) return false;
+        return l.category === 'event' ? l.units.length !== units(post, server).length : l.units.length > 0;
+      });
+      expect(wrongUnits.map((l) => l.id)).toEqual([]);
+    }
+  );
 
   it("pre-fills a celebration's intro and the part its first art opens as two units", () => {
     const post = posts.get('1122');

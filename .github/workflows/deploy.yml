@@ -58,8 +58,16 @@ jobs:
       # After the predictions: the advice is matched to Global's banners, predicted ones included.
       - name: Fetch pull advice from Luh's Support Card Encyclopedia
         run: pnpm fetch-pull-guide
+      # The code tests only; the data tests run in the `data` job below.
       - name: Test
-        run: pnpm test
+        run: pnpm test:code
+      # What the data tests read: the records as this build rebuilt them, and generated/.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: data
+          path: |
+            data
+            generated
       - name: End-to-end tests (the app in a browser)
         run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e
       - name: Build
@@ -70,6 +78,32 @@ jobs:
         if: github.event_name != 'pull_request'
         with:
           path: dist
+
+  # The data tests (pnpm test:data) on what `build` generated. New news can fail them while the code works (a post the
+  # parsers don't read right), so they block neither a merge nor the deploy; a failure still fails the run and GitHub
+  # emails you.
+  data:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: data
+      # The news replay classifies posts with ml/ (skipped without it).
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: ml/requirements.txt
+      - run: pnpm setup-ml
+      - name: Data tests
+        run: pnpm test:data
 
   deploy:
     needs: build

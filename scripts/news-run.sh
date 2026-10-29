@@ -11,29 +11,41 @@
 set -eu
 
 # fetch-news-latest.ts reports update= (something for the records) and changed= (posts to commit) in $GITHUB_OUTPUT.
-out=$(mktemp)
-trap 'rm -f "$out"' EXIT
-GITHUB_OUTPUT=$out node scripts/fetch-news-latest.ts
-gl_update=$(sed -n 's/^update=//p' "$out")
-gl_changed=$(sed -n 's/^changed=//p' "$out")
-: >"$out"
-GITHUB_OUTPUT=$out node scripts/fetch-news-latest.ts --server jp
-jp_update=$(sed -n 's/^update=//p' "$out")
-jp_changed=$(sed -n 's/^changed=//p' "$out")
+# Both servers at once: they're different sites, so neither gets requests any faster (progress lines say gl: / jp:).
+gl_out=$(mktemp)
+jp_out=$(mktemp)
+trap 'rm -f "$gl_out" "$jp_out"' EXIT
+echo '== Global and JP news'
+GITHUB_OUTPUT=$gl_out node scripts/fetch-news-latest.ts &
+gl=$!
+GITHUB_OUTPUT=$jp_out node scripts/fetch-news-latest.ts --server jp &
+jp=$!
+# Wait for both before failing, so a failed one doesn't leave the other running.
+status=0
+wait "$gl" || status=1
+wait "$jp" || status=1
+[ "$status" = 0 ] || exit 1
+gl_update=$(sed -n 's/^update=//p' "$gl_out")
+gl_changed=$(sed -n 's/^changed=//p' "$gl_out")
+jp_update=$(sed -n 's/^update=//p' "$jp_out")
+jp_changed=$(sed -n 's/^changed=//p' "$jp_out")
 
 if [ "$gl_update" = true ] || [ "$jp_update" = true ]; then
   # Both records need card names and titles (generated/cards.json: upstream's lists, data/jp_cards.json, and
   # GameTora's support card list for cards newer than it); JP's banners are our own (data/jp_banners.json).
+  echo '== Card data'
   node scripts/update-cards.ts && node scripts/scrape-gametora.ts
   # ml/categorize.py classifies each server's posts (update-jp and update-global run it again when ml/.venv
   # exists), before the model is asked: a new post's events are cut by its classified units, and the answers are
   # keyed by those events' ids.
+  echo '== Classifying the posts'
   pnpm setup-ml
   pnpm news:features && pnpm news:categorize
   pnpm news:features --server jp && pnpm news:categorize --server jp
   # A model (OpenRouter's free Gemma) answers what the rules doubt in new events → data/news/<server>/ai_answers.json.
   # Only events without a stored answer are asked. Skipped while OPENROUTER_API_KEY isn't set; a failure here doesn't
   # stop the run (the rules' values are kept).
+  echo '== Model answers'
   if [ -z "${OPENROUTER_API_KEY:-}" ]; then
     echo "OPENROUTER_API_KEY not set, skipping the model"
   else
@@ -47,6 +59,7 @@ if [ "$gl_update" = true ] || [ "$jp_update" = true ]; then
   # JP's banners (data/jp_banners.json) and events (data/jp_events.json), rebuilt from every JP post with the
   # model's answers. Before Global's: Global's news pairs with JP's banners by id. Run on either server's news
   # (it's idempotent), so Global's always pairs with JP's latest banners.
+  echo '== Records'
   node scripts/update-jp.ts
   # Global's events (data/global_events.json) are rebuilt by the same script, with the model's answers.
   node scripts/update-global.ts

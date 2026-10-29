@@ -9,8 +9,8 @@
 // posts.json keeps each post's `detail` as sent, plus fetched_at and the ids the detail gave. One post per line,
 // newest first. Parsers read that file, so a parser change never needs a request.
 //
-// Keep it gentle: one request at a time with a random pause, 3–8 s by default; the one-off archive walk goes faster
-// with setPause().
+// Keep it gentle: one request at a time with a random 1–2 s pause (the pace the archive walk, hundreds of requests,
+// ran at without being blocked).
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
@@ -79,11 +79,8 @@ const SERVERS: Record<Server, ServerConfig> = {
   },
 };
 
-// One request at a time; a random pause (3–8 s) before every request but the first.
-const pace = paced({ pause: [3000, 8000] });
-export function setPause(min: number, max: number): void {
-  pace.pause = [min, max];
-}
+// One request at a time; a random pause (1–2 s) before every request but the first.
+const pace = paced({ pause: [1000, 2000] });
 
 export class ApiError extends Error {
   readonly code: number;
@@ -103,6 +100,8 @@ async function call(server: Server, endpoint: string, { body, query }: Request, 
     method: body ? 'POST' : 'GET',
     headers: { ...BROWSER, ...SERVERS[server].headers, Referer: referer },
     body: body && JSON.stringify(body),
+    // A blocked IP can leave a request hanging instead of refusing it.
+    signal: AbortSignal.timeout(60_000),
   });
   if (!res.ok) throw new Error(`${endpoint}: ${res.status} ${res.statusText}`);
   // TODO(ts): res.json() is any; the fields read from it are checked where they're read (response_code, etc.).
