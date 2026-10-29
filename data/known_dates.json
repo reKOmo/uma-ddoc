@@ -16,18 +16,5 @@
       "source": "October 2026 release schedule (official socials): New Beginnings Part 2, Champions Meeting Capricorn Cup, Spotlight Support Card Scout"
     }
   ],
-  "banners": [
-    {
-      "id": 30140,
-      "start": "2026-10-24T06:00:00.000Z",
-      "end": "2026-11-06T21:59:59.000Z",
-      "source": "October 2026 release schedule (official socials): New Trainee"
-    },
-    {
-      "id": 30141,
-      "start": "2026-10-27T22:00:00.000Z",
-      "end": "2026-11-06T21:59:59.000Z",
-      "source": "October 2026 release schedule (official socials): Spotlight Support Card Scout"
-    }
-  ]
+  "banners": []
 }
