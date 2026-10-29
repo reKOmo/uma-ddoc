@@ -102,7 +102,7 @@ describe('event parts', () => {
   });
 });
 
-describe.each(SERVERS)('the event data (%s)', (_, events) => {
+describe.each(SERVERS)('the event data (%s)', { tags: ['data'] }, (_, events) => {
   it('only uses kinds the app styles and labels', () => {
     expect(events.filter((e) => !EVENT_KINDS.includes(e.kind))).toEqual([]);
   });
@@ -181,7 +181,9 @@ describe('withPredicted', () => {
     expect(idsOf(story.parts)).toEqual([['jp-3500-m1']]);
   });
 
-  it("keeps every predicted event after Global's latest real one of its kind (the real data)", () => {
+  it("keeps every predicted event after Global's latest real one of its kind (the real data)", {
+    tags: ['data'],
+  }, () => {
     const merged = withPredicted(globalEvents, predicted.events);
     const latest = (kind: string) =>
       Math.max(...globalEvents.filter((e) => e.kind === kind && !e.parent).map((e) => Date.parse(e.start.date)));
@@ -196,7 +198,7 @@ const predictedFiles: [string, PredictedEventsFile][] = [['the fixture', predict
 if (existsSync(PREDICTED_FILE))
   predictedFiles.push(['generated/predicted_global_events.json', JSON.parse(readFileSync(PREDICTED_FILE, 'utf8'))]);
 
-describe.each(predictedFiles)('predicted events (%s)', (_, file) => {
+describe.each(predictedFiles)('predicted events (%s)', { tags: ['data'] }, (_, file) => {
   it("are JP's events with Global dates, of kinds the app styles and labels", () => {
     expect(file.source).toBeTruthy();
     const ids = new Set(file.events.map((e) => e.id));
@@ -223,7 +225,7 @@ describe.each(predictedFiles)('predicted events (%s)', (_, file) => {
 
 // `pnpm predict-gl` writes this file too; it is optional.
 const PAIRS_FILE = new URL('../generated/event_pairs.json', import.meta.url);
-describe.skipIf(!existsSync(PAIRS_FILE))('event pairs (generated/event_pairs.json)', () => {
+describe.skipIf(!existsSync(PAIRS_FILE))('event pairs (generated/event_pairs.json)', { tags: ['data'] }, () => {
   const { pairs } = existsSync(PAIRS_FILE)
     ? fixture<EventPairsFile>(JSON.parse(readFileSync(PAIRS_FILE, 'utf8')))
     : { pairs: [] };

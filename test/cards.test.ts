@@ -61,7 +61,7 @@ const historyEntry = (g: GametoraCard): JpCard => {
 const history: JpCardsFile = Object.fromEntries(gametora.slice(0, 3).map((c) => [c.support_id, historyEntry(c)]));
 const { cards, stats } = buildCards({ upstream, history, gametora, globalCards, iconBase: 'https://up/' });
 
-describe('cards.json', () => {
+describe('cards.json', { tags: ['data'] }, () => {
   it("has every card upstream or the history has, with Global's title and date from our record", () => {
     expect(Object.keys(cards)).toEqual(['30001', '30081', '30126']);
     expect(cards[30001]).toEqual({
@@ -120,7 +120,7 @@ describe('cards.json', () => {
   });
 });
 
-describe('the stats', () => {
+describe('the stats', { tags: ['data'] }, () => {
   it("hold each server's name, events and limit breaks, and join back to upstream's lists", () => {
     expect(stats.gl[30001]).toEqual({
       charName: 'T.M. Opera O',
@@ -132,7 +132,7 @@ describe('the stats', () => {
   });
 });
 
-describe('the schema', () => {
+describe('the schema', { tags: ['data'] }, () => {
   const check = (data: unknown) => expect(CardsFileSchema.safeParse(data).error?.issues ?? []).toEqual([]);
 
   it('fits what the build writes', () => {

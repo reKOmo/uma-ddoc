@@ -16,13 +16,13 @@ function problems(schema: z.ZodType, data: unknown): string {
         .join('\n');
 }
 
-describe('committed data', () => {
+describe('committed data', { tags: ['data'] }, () => {
   it.each(Object.entries(DATA_FILES))('%s fits its schema', (file, schema) => {
     expect(problems(schema, read(file))).toBe('');
   });
 });
 
-describe('generated data', () => {
+describe('generated data', { tags: ['data'] }, () => {
   it.each(Object.entries(GENERATED_FILES))('%s fits its schema (when built)', (file, schema) => {
     if (!existsSync(file)) return;
     expect(problems(schema, read(file))).toBe('');
