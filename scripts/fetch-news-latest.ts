@@ -42,7 +42,9 @@ const newestBefore = SERIES.map(newestIn);
 type IndexItem = { announce_id: number; update_at: string | null };
 const fresh: IndexItem[] = [];
 let reachedKnown = false;
+// Progress as it goes: with a pause before each request a run takes a minute or more, and a CI log would otherwise stay empty.
 for (let page = 1; page <= MAX_PAGES && !reachedKnown; page++) {
+  console.log(`${server}: index page ${page}`);
   const { items, more } = await indexPage(page, server);
   for (const item of items) {
     const old = posts.get(String(item.announce_id));
@@ -58,12 +60,15 @@ const edited: string[] = [];
 for (const item of fresh) {
   const id = String(item.announce_id);
   (posts.has(id) ? edited : added).push(id);
+  console.log(`${server}: fetching ${id}`);
   posts.set(id, await fetchPost(id, server));
 }
 
 for (const [i, start] of SERIES.entries()) {
   const last = newestIn(start) + PROBE_ABOVE;
-  for (let id = Math.max(start + 1, newestBefore[i] - PROBE_BELOW); id <= last; id++) {
+  const first = Math.max(start + 1, newestBefore[i] - PROBE_BELOW);
+  console.log(`${server}: probing ids ${first}–${last}`);
+  for (let id = first; id <= last; id++) {
     if (posts.has(String(id))) continue;
     const post = await probePost(id, server);
     if (!post) continue;
