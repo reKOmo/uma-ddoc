@@ -78,6 +78,7 @@ export const SCENARIO_NAMES: Partial<Record<string, ScenarioNames>> = {
   'yukoma-hot-springs': ['Onsen', 'YHS', null],
   'beyond-dreams': ['BD', 'BD', null],
   'tracen-ken': ['TracenKen', 'Tracen-ken', null],
+  'shuntaisai': ['Shuntaisai', 'Shuntaisai', null],
 };
 
 export function shortNames(slug: string): Scenario['short'] {

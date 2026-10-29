@@ -286,7 +286,7 @@ describe('applyJpNews', () => {
   });
 });
 
-describe.skipIf(!posts.length || !existsSync(JP_BANNERS_FILE))('the stored JP banners', () => {
+describe.skipIf(!posts.length || !existsSync(JP_BANNERS_FILE))('the stored JP banners', { tags: ['data'] }, () => {
   const stored = readJson<BannerFile>(JP_BANNERS_FILE);
   const all: ['character' | 'support', Banner][] = [
     ...stored.characters.map((b): ['character', Banner] => ['character', b]),

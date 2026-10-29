@@ -148,7 +148,7 @@ const cards: CardsFile = existsSync(cardsFile) ? read<CardsFile>(cardsFile) : {}
 describe.each([
   ['gl', en],
   ['jp', ja],
-] as [string, Lexicon][])('the stored %s news', (server, lang) => {
+] as [string, Lexicon][])('the stored %s news', { tags: ['data'] }, (server, lang) => {
   const file = postsFile(server as 'gl' | 'jp');
   it.skipIf(!existsSync(file))('knows every word of every race line, and every race name', () => {
     const unknown = new Set<string>();

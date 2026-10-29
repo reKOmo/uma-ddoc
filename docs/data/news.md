@@ -4,10 +4,10 @@
   keep it gentle. `news:latest` pages 10 posts at a time like the site, stops at the first page with a known post,
   fetches details only for new/edited posts (index `update_at` changed), then probes the unknown ids of
   each id series (JP: just the one) from 8 below its newest id to 4 above (Global serves some posts before its index lists them: 1094,
-  a carat gift; JP too, in case; an unknown id answers `response_code` 500 on both), one request at a time with 3–8 s random
+  a carat gift; JP too, in case; an unknown id answers `response_code` 500 on both), one request at a time with 1–2 s random
   pauses — a normal day is ~25 requests. Don't make it refetch everything. The index only lists the last few months;
   each detail response has `next_announce_id` (the next older post, by post date, across every id series), so
-  `news:all` walks the whole archive from the newest post (1–2 s pauses, a one-off). The site doesn't keep everything:
+  `news:all` walks the whole archive from the newest post (same pace, a one-off). The site doesn't keep everything:
   163 posts, mostly from July 2026 on, a few back to the June 2025 launch. The rest (425 posts, every month since
   launch) came from umapyoi.net, which mirrors the official English news (`GET https://umapyoi.net/api/v1/en/news` →
   every id, `/api/v1/en/news/<id>` → a post; same ids, titles and HTML as the official ones): `news:umapyoi` (0.1 s pauses: umapyoi.net allows 10 requests a second) turns them

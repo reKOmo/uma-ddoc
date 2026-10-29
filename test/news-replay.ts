@@ -16,7 +16,7 @@ const HELD_OUT = 40;
 
 // (One file per server, so they run in parallel: news-replay-gl / -jp.test.ts.)
 export function replayNews(server: Server): void {
-  describe(`a new post (${server})`, () => {
+  describe(`a new post (${server})`, { tags: ['data'] }, () => {
     const lang = lexicon(server);
     const answers = readAnswers(server);
     const gold = new Map(readGold(server).map((l) => [String(l.id), l]));

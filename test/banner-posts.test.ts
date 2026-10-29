@@ -92,7 +92,7 @@ describe('bannerPost', () => {
   });
 });
 
-describe.skipIf(!existsSync(postsFile('gl')))('the stored news', () => {
+describe.skipIf(!existsSync(postsFile('gl')))('the stored news', { tags: ['data'] }, () => {
   const posts: NewsPost[] = JSON.parse(readFileSync(postsFile('gl'), 'utf8'));
   const banners = posts.map((post) => bannerPost(post)).filter((scout) => scout !== null);
 

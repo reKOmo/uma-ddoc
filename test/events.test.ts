@@ -411,7 +411,7 @@ describe('mission sets', () => {
   });
 });
 
-describe.skipIf(!existsSync(postsFile('gl')))('the stored news', () => {
+describe.skipIf(!existsSync(postsFile('gl')))('the stored news', { tags: ['data'] }, () => {
   const posts = JSON.parse(readFileSync(postsFile('gl'), 'utf8'));
   const events = buildEvents(posts);
 

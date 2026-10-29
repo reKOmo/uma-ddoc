@@ -2,19 +2,12 @@ export const sleep = (ms: number): Promise<void> => new Promise((resolve) => set
 
 // Runs requests one after another (await each before starting the next) with a random pause between them, min–max ms
 // (equal: a fixed one). The first request starts at once unless `first` is set (a script that always pauses before a
-// request). `pace.pause` can be changed later (news-api's setPause()).
-export type Paced = {
-  <T>(request: () => Promise<T>): Promise<T>;
-  pause: [min: number, max: number];
-};
-
-export function paced({ pause, first = false }: { pause: [number, number]; first?: boolean }): Paced {
+// request).
+export function paced({ pause: [min, max], first = false }: { pause: [number, number]; first?: boolean }) {
   let ran = false;
-  const pace = async <T>(request: () => Promise<T>): Promise<T> => {
-    if (ran || first) await sleep(pace.pause[0] + Math.random() * (pace.pause[1] - pace.pause[0]));
+  return async <T>(request: () => Promise<T>): Promise<T> => {
+    if (ran || first) await sleep(min + Math.random() * (max - min));
     ran = true;
     return request();
   };
-  pace.pause = pause;
-  return pace;
 }

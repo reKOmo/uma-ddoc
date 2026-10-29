@@ -440,7 +440,7 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
 });
 
 const stored = eventsFile('jp');
-describe.skipIf(!existsSync(stored))('the stored JP events', () => {
+describe.skipIf(!existsSync(stored))('the stored JP events', { tags: ['data'] }, () => {
   const events = read<GameEvent[]>(stored);
   const since = (kind: string, date: string) => events.filter((e) => e.kind === kind && e.start.date >= date);
 
