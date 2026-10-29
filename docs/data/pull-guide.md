@@ -16,7 +16,8 @@
   an estimate), so `fetch-pull-guide` runs after `predict-gl`. Verified: every gacha row maps, and the sheet's
   "Rerun" labels match the banners' `new` flags exactly. `pull_guide.json` (shape: `schemas/pull_guide.schema.json`; keep it in step): `{ banners:
   { [banner id]: { [card id]: advice } }, noBanner: { [card id]: advice + release } }`, advice = `{ googleSheetsSrc:
-  { gid, row } (the card page links to the row), freePulls, shouldPull (the pill: yes/no/free/whale/dolphin + the
+  { gid, row } (the card page links to the row), freePulls (shown only for a banner the news gives none for: the
+  news' count, [events](events.md), Free scouts, wins), shouldPull (the pill: yes/no/free/whale/dolphin + the
   advice's "+"s, or null; a card without one whose comment/notes say "With X" takes X's pill when X is on the same
   banner and has one: `withCompanions()`, fuse.js on the banner's card names, so nicknames inside a name match, "Spe",
   "Hishiama", and on `NICKNAMES`, a hand table of those that aren't, "Mambo" for Matikanetannhauser), comment (the line under it), advice (the notes as one paragraph) }`; `noBanner` holds

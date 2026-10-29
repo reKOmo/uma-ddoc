@@ -7,7 +7,7 @@ import i18n, { scenarioName } from '../src/i18n/index.ts';
 import type { Banner, BannerItem } from '../shared/schemas/banner.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
-import { type Entry, bannerEntries, eventEntries } from '../src/timeline/entries.ts';
+import { type Entry, bannerEntries, eventEntries, linkFreeScouts } from '../src/timeline/entries.ts';
 import { dateFormats, entryTitle, kindName } from '../src/timeline/format.ts';
 import { type ArtBannerFile, withArt } from '../src/gametora.ts';
 import cardsJson from '../generated/cards.json' with { type: 'json' };
@@ -139,11 +139,11 @@ const events = eventEntries(
 const all = new Map([predicted, paid, ...events].map((e) => [e.key, e]));
 const format = dateFormats('utc');
 
-function renderSheet(entry: Entry) {
+function renderSheet(entry: Entry, lookup: Map<string, Entry> = all) {
   return render(
     <TimelineSheet
       entry={entry}
-      lookup={(key) => all.get(key)}
+      lookup={(key) => lookup.get(key)}
       server="gl"
       scenario="GL"
       format={format}
@@ -240,5 +240,86 @@ describe('TimelineSheet', () => {
     expect(row('round_2')?.textContent).toMatch(/· predicted$/);
     expect(row('round_1')?.textContent).not.toMatch(/predicted/);
     expect(events[0].endPredicted).toBe(false);
+  });
+});
+
+describe('TimelineSheet: free scouts', () => {
+  const banner = (id: number, more: Partial<Banner> = {}): Banner => ({
+    id,
+    start: at('2026-10-20T22:00:00Z'),
+    end: at('2026-11-01T21:59:59Z'),
+    main: card(ids[0]),
+    featured: [card(ids[0])],
+    ...more,
+  });
+  const entries = linkFreeScouts([
+    ...bannerEntries(file([banner(30139, { free_pulls: 50 }), banner(30151, { free_pulls: 120, predicted: true })]), {
+      now,
+    }),
+    ...eventEntries(
+      [
+        {
+          id: '1124',
+          kind: 'campaign',
+          name: 'Daily Free 10x Scout',
+          parent: null,
+          start: at('2026-10-20T22:00:00Z'),
+          end: at('2026-10-30T14:59:00Z'),
+          cards: [],
+          items: [],
+          titles: [],
+          scouts: [
+            {
+              scout: 'Spotlight Support Card Scout',
+              type: 'support',
+              banner: 30139,
+              start: '2026-10-20T22:00:00.000Z',
+              end: '2026-10-24T21:59:00.000Z',
+              size: 10,
+              scouts: 5,
+            },
+          ],
+          news_url: null,
+          image: null,
+          source: 'news',
+        },
+      ] satisfies GameEvent[],
+      { cards, now }
+    ),
+  ]);
+  const byKey = new Map(entries.map((e) => [e.key, e]));
+  const [real, fromJp, campaign] = entries;
+
+  it("lists a banner's free scouts the same way, each campaign a link; a predicted one's are JP's", () => {
+    renderSheet(real, byKey);
+    // (at the top: before the featured cards)
+    expectInOrder([
+      screen.getByRole('heading', { level: 3, name: i18n.t('timeline.freeScouts') }),
+      screen.getByRole('heading', { level: 3, name: i18n.t('timeline.featuredCards') }),
+    ]);
+    expectInOrder([
+      screen.getByRole('heading', { level: 3, name: i18n.t('timeline.freeScouts') }),
+      screen.getByRole('button', { name: new RegExp(entryTitle(campaign)) }),
+      screen.getByText('50 free pulls'),
+      screen.getByText(/· 5 × 10$/),
+    ]);
+    cleanup();
+    renderSheet(fromJp, byKey);
+    // (no JP campaign on this calendar: the count alone)
+    expectInOrder([
+      screen.getByRole('heading', { level: 3, name: i18n.t('timeline.freeScoutsJp') }),
+      screen.getByText('120 free pulls'),
+    ]);
+  });
+
+  it("lists a campaign's windows: each banner, its dates and pulls", () => {
+    renderSheet(campaign, byKey);
+    expectInOrder([
+      screen.getByRole('heading', { level: 3, name: i18n.t('timeline.freeScouts') }),
+      screen.getByRole('button', { name: new RegExp(entryTitle(real)) }),
+      screen.getByText('50 free pulls'),
+      screen.getByText(/· 5 × 10$/),
+    ]);
+    expect(screen.queryByText(i18n.t('timeline.nothingListed'))).toBeNull();
   });
 });

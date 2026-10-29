@@ -106,7 +106,11 @@ card): check the rule against whatever the data holds.
   keys, known statuses, relations / parents / parts pointing at entries, art on every banner; re-runs both ways,
   predicted / paid banners, predicted events' card names and JP links, one-day events, `bannerStatus()`.
 - `timeline-sheet.test.tsx`: the sheet's sections, in order, for a predicted banner, a paid scout, a celebration and
-  its part (the sheet's portal mocked away).
+  its part, and free scouts at the top of a banner's and a campaign's (the sheet's portal mocked away).
+- `free-scouts.test.ts`: free scout windows on lines from Global and JP posts (counts, sizes per scout, a list under
+  the campaign's period, doubts on stated totals / days), the banner match and per-banner pulls, a model's answer
+  checked; data: every stored campaign read with no doubt but the launch's, and the banners' free pulls against
+  Luh's (the differences reported as an annotation).
 - `timeline-order.test.ts`: the lane groups' order (default, dropping among shown groups, groups a saved order lacks).
 - `timeline.test.ts`: calendar days in UTC vs. the viewer's timezone (TZ pinned to Europe/Warsaw); end-less entries;
   `laneGroups()` order; `visibleRows()` (compact mode: rows in view, parts by their entry's key, open ends).

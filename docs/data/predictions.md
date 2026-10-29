@@ -3,7 +3,9 @@
 
 `ml/` is Python in its own venv (`pnpm setup-ml`). Deploys rerun it after the banner scrape, so predictions
 restart from Global's latest release. The Timeline page reads `generated/predicted_global_banners.json`
-through an `import.meta.glob`, so it's optional: without `pnpm predict-gl` there are just no predicted bars. Announced Global dates go in
+through an `import.meta.glob`, so it's optional: without `pnpm predict-gl` there are just no predicted bars. A
+predicted banner keeps every field of its JP banner but the JP news' (`JP_NEWS_KEYS`), `free_pulls` too: what JP
+gave, shown as JP's. Announced Global dates go in
 
 - **Known dates from Global's banners** (`ml/adjust.py`): every Global banner rerunning a JP banner newer than the
   anchor is a known date (JP start's JST date → Global start's UTC date), merged with `known_dates.json` (hand
@@ -21,7 +23,7 @@ through an `import.meta.glob`, so it's optional: without `pnpm predict-gl` there
   20/20, LR 15/15, …); unpaired: mostly 2025 gifts/campaigns whose 2021 JP posts aren't in the archive, Transfer
   Requests (GameTora has none). Predicted events: every JP event (all kinds, user decision) after the JP date Global
   has caught up to with no pair, at the same predicted Global date as banners (22:00 UTC, no JP weekend; a known date
-  exactly), JP's durations, parts and phases shifted with their top-level event, JP's races as they are; `generated/predicted_global_events.json`
+  exactly), JP's durations, parts, phases and free scout windows shifted with their top-level event, JP's races as they are; `generated/predicted_global_events.json`
   `{ source, events: [JP event fields + id 'jp-<jp id>', parent 'jp-…', predicted, jp_id, jp_start, jp_end] }`, every
   date status `predicted` (starts with `lo` / `hi`: ± the margin), a start `confirmed` on a known JP day (below). 368
   top-level + 616 parts on 2026-10-12. Paired Global events get the dates their news lacks filled in from their JP pair

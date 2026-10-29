@@ -42,6 +42,9 @@ export const BannerSchema = z.strictObject({
   rerunOf: z.int().optional(),
   // (end null: an open-ended re-run)
   rerun: z.strictObject({ id: BannerIdSchema, start: DatedMoment, end: DatedMoment.nullable() }).optional(),
+  // Free pulls the news' free scout campaigns give on it (scripts/lib/free-scouts.ts' withFreePulls(); a predicted
+  // Global banner keeps its JP banner's: what JP gave).
+  free_pulls: z.int().min(1).optional(),
   // Predicted (generated/predicted_global_banners.json): JP's dates it's predicted from.
   predicted: z.boolean().optional(),
   jp_start: Moment.optional(),

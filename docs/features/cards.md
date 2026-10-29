@@ -28,12 +28,15 @@
   - "Upcoming banner", on the banner's art like the Timeline's bars (same crop of GameTora's margin, dark
     gradient, shadowed text, "See banner" a solid accent (pink) button): its status badge + dates as in the Timeline's sheet (Settings timezone; the guide's
     own date for event/story/shop cards, on no banner), then the label pill (Rerun when the banner's `featured`
-    entry isn't `new`; the guide's Event, Story… for cards on no banner) and "See banner" on one line.
+    entry isn't `new`; the guide's Event, Story… for cards on no banner) and "See banner" on one line. Under the dates,
+    the banner's free pulls from the news, the count big ("🎁 **50** free pulls on this banner"; a predicted banner's
+    "JP gave **120** …": its JP banner's, [events](../data/events.md)).
     "See banner" is `#/timeline/gl/<banner id>` (the Timeline switches to Global, centres on that banner and opens
     its sheet). "No upcoming banners :c" when none is to come.
   - under a rule (beside it on desktop, the box split in two), "Should pull? <pill>": Yes / No / Free / If Whale(+…) / If Dolphin(+…) when the advice starts with one; the
     whole advice as the recommendation line when it says more than the pill, or has no pill and is longer than
-    24 characters (shorter, e.g. "With Kitasan", it leads the notes instead; `parsePull`), free pulls, then the notes as one paragraph (`notesParagraph()` at build time: a full stop added where a sentence has none).
+    24 characters (shorter, e.g. "With Kitasan", it leads the notes instead; `parsePull`), the guide's free pulls
+    (only for a banner the news gives none for), then the notes as one paragraph (`notesParagraph()` at build time: a full stop added where a sentence has none).
   - The box's footer (under both halves): a centred "See more on Luh's encyclopedia" (the card's row in the sheet). The guide's disclaimer (with a link
     to the sheet) is in About, not on the card page.
   - "Available on" (`Origins`, `src/cardOrigins.ts`): every banner featuring the card and event giving it on the

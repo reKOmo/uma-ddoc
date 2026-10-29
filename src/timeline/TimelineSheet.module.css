@@ -212,6 +212,18 @@
   color: var(--muted);
 }
 
+/* A free scout window's pulls, its dates under them. */
+.pulls {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.pulls strong {
+  font-size: 1.05rem;
+}
+
 .races {
   display: grid;
   gap: 10px;

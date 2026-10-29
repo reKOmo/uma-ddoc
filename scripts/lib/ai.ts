@@ -1,6 +1,7 @@
 // One client for the models that judge doubted news fields. Both providers speak the OpenAI-style chat API: ollama
 // is local with no limits; openrouter's free models allow 20 requests a minute and 50 a day (1,000 with $10 of
-// credits), so requests are paced and 429s retried.
+// credits), so requests are paced and 429s retried. The free models are also throttled upstream for every user at
+// once, so OpenRouter falls back to another free model from a different provider when the first is unavailable.
 // Thinking is off unless AI_THINK is set: Gemma 4 thinks for minutes per answer on a laptop, sometimes ending in an
 // empty reply.
 // ask() asks for JSON fitting the schema (replies are parsed defensively; callers validate them).
@@ -16,16 +17,18 @@ export type AiConfig = {
   url: string;
   model: string;
   key: string | null | undefined;
+  fallbacks: string[];
   pause: number;
   think: boolean;
 };
 type Message = { role: 'system' | 'user'; content: string };
 
-export const DEFAULTS: Record<Provider, { url: string; model: string; pause: number }> = {
-  ollama: { url: 'http://localhost:11434/api/chat', model: 'gemma4:26b', pause: 0 },
+export const DEFAULTS: Record<Provider, { url: string; model: string; fallbacks: string[]; pause: number }> = {
+  ollama: { url: 'http://localhost:11434/api/chat', model: 'gemma4:26b', fallbacks: [], pause: 0 },
   openrouter: {
     url: 'https://openrouter.ai/api/v1/chat/completions',
     model: 'google/gemma-4-26b-a4b-it:free',
+    fallbacks: ['nvidia/nemotron-3.5-super-vl:free'],
     pause: 3500,
   },
 };
@@ -42,6 +45,8 @@ export function aiConfig(
     provider: provider as Provider,
     url: provider === 'ollama' && env.OLLAMA_URL ? `${env.OLLAMA_URL}/api/chat` : defaults.url,
     model: overrides.model ?? env.AI_MODEL ?? defaults.model,
+    // A model asked for by name (--compare, AI_MODEL) answers alone.
+    fallbacks: overrides.model || env.AI_MODEL ? [] : defaults.fallbacks,
     key: provider === 'openrouter' ? env.OPENROUTER_API_KEY : null,
     pause: defaults.pause,
     think: overrides.think ?? /^(1|true|yes)$/i.test(env.AI_THINK ?? ''),
@@ -71,6 +76,7 @@ function body(config: AiConfig, { system, user, schema }: Question) {
   }
   return {
     model: config.model,
+    ...(config.fallbacks.length && { models: [config.model, ...config.fallbacks] }),
     messages,
     temperature: 0,
     response_format: { type: 'json_schema', json_schema: { name: 'answer', strict: true, schema } },
@@ -98,8 +104,9 @@ async function streamed(res: Response): Promise<{ message: { content: string } }
   return { message: { content: parts.map((p) => p.message?.content ?? '').join('') } };
 }
 
-// A reply worth trying again (429, 5xx): its message is the error `ask` ends with if the tries run out.
-class Retry extends Error {}
+// A reply worth trying again (429, 5xx): its message is the error `ask` ends with if the tries run out, when the
+// provider is unavailable for now.
+export class Unavailable extends Error {}
 // A dropped connection ("fetch failed"): tried again like a 5xx, but only for the first two tries.
 class Dropped extends Error {
   original: Error;
@@ -110,7 +117,11 @@ class Dropped extends Error {
 }
 
 let last = 0;
-export async function ask(config: AiConfig, { system, user, schema }: Question): Promise<unknown> {
+// The parsed reply, and the model that gave it (a fallback's, when the first model was unavailable).
+export async function ask(
+  config: AiConfig,
+  { system, user, schema }: Question
+): Promise<{ answer: unknown; model: string }> {
   const post = async (): Promise<Response> => {
     const wait = last + config.pause - Date.now();
     if (wait > 0) await sleep(wait);
@@ -127,7 +138,7 @@ export async function ask(config: AiConfig, { system, user, schema }: Question):
       throw new Dropped(err);
     });
     if (res.status === 429 || res.status >= 500)
-      throw new Retry(`${config.provider} ${res.status}: ${(await res.text()).slice(0, 300)}`);
+      throw new Unavailable(`${config.provider} ${res.status}: ${(await res.text()).slice(0, 300)}`);
     return res;
   };
   // Up to 5 retries after 5 s, 10 s, 20 s, 40 s, 80 s (each try waits for the provider's pacing first).
@@ -139,7 +150,7 @@ export async function ask(config: AiConfig, { system, user, schema }: Question):
       factor: 2,
       randomize: false,
       shouldRetry: ({ error, attemptNumber }) =>
-        error instanceof Retry || (error instanceof Dropped && attemptNumber <= 2),
+        error instanceof Unavailable || (error instanceof Dropped && attemptNumber <= 2),
       onFailedAttempt: ({ error, attemptNumber }) => {
         if (error instanceof Dropped && attemptNumber <= 2)
           console.warn(
@@ -152,10 +163,11 @@ export async function ask(config: AiConfig, { system, user, schema }: Question):
   }
   if (!res.ok) throw new Error(`${config.provider} ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const json: {
+    model?: string;
     message?: { content?: string };
     choices?: { message?: { content?: string } }[];
   } = config.provider === 'ollama' ? await streamed(res) : await res.json();
   const content = json.message?.content ?? json.choices?.[0]?.message?.content;
   if (!content) throw new Error(`${config.provider}: empty reply ${JSON.stringify(json).slice(0, 300)}`);
-  return parseJson(content);
+  return { answer: parseJson(content), model: json.model ?? config.model };
 }

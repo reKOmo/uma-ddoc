@@ -27,6 +27,7 @@ import { readJpBanners, regularBanners } from './lib/jp-banners.ts';
 import { buildEvents, readAnswers, readCmTable, readEvents, writeEvents } from './lib/events.ts';
 import { readCategories, refreshCategories, unsureLines } from './lib/categories.ts';
 import { keepEventFills } from './lib/dates.ts';
+import { withFreePulls } from './lib/free-scouts.ts';
 import { ensureCards } from './update-cards.ts';
 import { buildCardFiles } from './build-cards.ts';
 
@@ -92,10 +93,18 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   const storedEvents: GameEvent[] = readEvents();
   const oldEvents = new Map(storedEvents.map((e) => [e.id, JSON.stringify(e)]));
   const events = keepEventFills(
-    buildEvents(raw, { cmTable: readCmTable(), cards: cardData, answers: readAnswers(), categories }),
+    buildEvents(raw, {
+      cmTable: readCmTable(),
+      cards: cardData,
+      answers: readAnswers(),
+      categories,
+      banners: result.global,
+    }),
     storedEvents
   );
   writeEvents(events);
+  // Each banner's free pulls, from the events' free scout windows.
+  writeGlobal({ ...result, global: withFreePulls(result.global, events) });
   const changedEvents = events.filter((e) => oldEvents.get(e.id) !== JSON.stringify(e));
 
   const before = new Map(

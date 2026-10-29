@@ -45,6 +45,21 @@ const AnswerSchema = z.strictObject({
     )
     .optional(),
   cards: z.array(z.strictObject({ title: z.string().nullable(), copies: z.number().nullable() })).optional(),
+  // Free scout windows (the code counts them) and the total the text states.
+  scouts: z
+    .strictObject({
+      windows: z.array(
+        z.strictObject({
+          scout: z.string().nullable(),
+          start: z.string().nullable(),
+          end: z.string().nullable(),
+          days: z.number().nullable(),
+        })
+      ),
+      total: z.number().nullable(),
+    })
+    .nullable()
+    .optional(),
 });
 export const AiAnswerSchema = z.strictObject({
   model: z.string(),

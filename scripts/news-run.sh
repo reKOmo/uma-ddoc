@@ -7,7 +7,7 @@
 #
 # Run by an external automation, since both sites block GitHub's IPs. It commits but doesn't push: the automation
 # pushes the commit to the news branch and opens a PR into main that merges itself once CI passes, which starts the
-# deploy. No new or edited posts → no commit.
+# deploy. Nothing changed in data/ → no commit.
 set -eu
 
 # fetch-news-latest.ts reports update= (something for the records) and changed= (posts to commit) in $GITHUB_OUTPUT.
@@ -30,7 +30,10 @@ gl_changed=$(sed -n 's/^changed=//p' "$gl_out")
 jp_update=$(sed -n 's/^update=//p' "$jp_out")
 jp_changed=$(sed -n 's/^changed=//p' "$jp_out")
 
-if [ "$gl_update" = true ] || [ "$jp_update" = true ]; then
+# With OPENROUTER_API_KEY set this runs every time, new posts or not: events the model couldn't answer last time
+# (its free models are often rate-limited) are asked again, and finding them needs the card data and the classified
+# posts. With every event answered the model gets no requests.
+if [ "$gl_update" = true ] || [ "$jp_update" = true ] || [ -n "${OPENROUTER_API_KEY:-}" ]; then
   # Both records need card names and titles (generated/cards.json: upstream's lists, data/jp_cards.json, and
   # GameTora's support card list for cards newer than it); JP's banners are our own (data/jp_banners.json).
   echo '== Card data'
@@ -42,19 +45,15 @@ if [ "$gl_update" = true ] || [ "$jp_update" = true ]; then
   pnpm setup-ml
   pnpm news:features && pnpm news:categorize
   pnpm news:features --server jp && pnpm news:categorize --server jp
-  # A model (OpenRouter's free Gemma) answers what the rules doubt in new events → data/news/<server>/ai_answers.json.
-  # Only events without a stored answer are asked. Skipped while OPENROUTER_API_KEY isn't set; a failure here doesn't
-  # stop the run (the rules' values are kept).
+  # A model (OpenRouter's free Gemma, another free model as its fallback) answers what the rules doubt in events →
+  # data/news/<server>/ai_answers.json. Only events without a stored answer are asked. Skipped while
+  # OPENROUTER_API_KEY isn't set; a failure here doesn't stop the run (the rules' values are kept until the next).
   echo '== Model answers'
   if [ -z "${OPENROUTER_API_KEY:-}" ]; then
     echo "OPENROUTER_API_KEY not set, skipping the model"
   else
-    if [ "$gl_update" = true ]; then
-      node scripts/ai-events.ts || echo "ai-events (Global) failed, keeping the rules' values"
-    fi
-    if [ "$jp_update" = true ]; then
-      node scripts/ai-events.ts --server jp || echo "ai-events (JP) failed, keeping the rules' values"
-    fi
+    node scripts/ai-events.ts || echo "ai-events (Global) failed, keeping the rules' values"
+    node scripts/ai-events.ts --server jp || echo "ai-events (JP) failed, keeping the rules' values"
   fi
   # JP's banners (data/jp_banners.json) and events (data/jp_events.json), rebuilt from every JP post with the
   # model's answers. Before Global's: Global's news pairs with JP's banners by id. Run on either server's news
@@ -65,13 +64,17 @@ if [ "$gl_update" = true ] || [ "$jp_update" = true ]; then
   node scripts/update-global.ts
 fi
 
-if [ "$gl_changed" != true ] && [ "$jp_changed" != true ]; then
-  echo "No new posts"
+# Each run rewrites both summaries (their time line); a server's is committed only with new or edited posts.
+[ "$gl_changed" = true ] || git checkout -q -- data/news/gl/summary.md
+[ "$jp_changed" = true ] || git checkout -q -- data/news/jp/summary.md
+if [ -z "$(git status --porcelain data/)" ]; then
+  echo "Nothing new"
   exit 0
 fi
 
 # The message: each changed server's count line ("2 new, 0 edited.") in the subject, its whole summary (posts +
-# what changed in data/) as a paragraph of the body; a server without new or edited posts is left out.
+# what changed in data/) as a paragraph of the body; a server without new or edited posts is left out. With no new
+# posts (only answers the model gave late, or card data), the changed files.
 subject=""
 set --
 if [ "$gl_changed" = true ] && [ -f data/news/gl/summary.md ]; then
@@ -81,6 +84,10 @@ fi
 if [ "$jp_changed" = true ] && [ -f data/news/jp/summary.md ]; then
   subject="${subject:+$subject }JP $(sed -n 3p data/news/jp/summary.md)"
   set -- "$@" -m "$(cat data/news/jp/summary.md)"
+fi
+if [ -z "$subject" ]; then
+  subject="no new posts, records updated"
+  set -- -m "$(git status --short data/)"
 fi
 git add data/
 git commit -m "News: $subject" "$@"

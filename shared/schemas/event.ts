@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BannerIdSchema } from './banner.ts';
 import { DatedMoment, Day, Moment, Rarity } from './common.ts';
 
 export const EVENT_KINDS = [
@@ -67,6 +68,20 @@ export const RaceSchema = z.strictObject({
 });
 export type Race = z.infer<typeof RaceSchema>;
 
+// A daily free scout campaign's window (scripts/lib/free-scouts.ts): the eligible scout as the post names it, its type
+// (null: the name doesn't say) and banner (null: none matched), single or 10x, and the free scouts a player who logs
+// in every day gets in it (pulls: scouts × size).
+export const FreeScoutSchema = z.strictObject({
+  scout: z.string(),
+  type: z.enum(['character', 'support']).nullable(),
+  banner: BannerIdSchema.nullable(),
+  start: Moment,
+  end: Moment,
+  size: z.union([z.literal(1), z.literal(10)]),
+  scouts: z.int().min(0),
+});
+export type FreeScout = z.infer<typeof FreeScoutSchema>;
+
 // Ids: the post's id; "<post>-<block>" for a celebration's sub-event, "<event>-m<n>" for a mission set,
 // "gt-…" for JP's GameTora fills, "jp-<jp id>" for a predicted event.
 export const GameEventSchema = z.strictObject({
@@ -82,6 +97,7 @@ export const GameEventSchema = z.strictObject({
   titles: z.array(z.string()),
   phases: z.array(PhaseSchema).optional(),
   races: z.array(RaceSchema).optional(),
+  scouts: z.array(FreeScoutSchema).optional(),
   news_url: z.string().nullable(),
   image: z.string().nullable(),
   source: z.enum(['news', 'gametora']),

@@ -331,14 +331,20 @@ describe.skipIf(!posts.length || !existsSync(JP_BANNERS_FILE))('the stored JP ba
   it('are what the news makes of them (pnpm update-jp leaves them unchanged), from the seeded ones alone', () => {
     const cards = readJson<CardsFile>(`${GENERATED_DIR}cards.json`);
     const global = existsSync(GLOBAL_BANNERS_FILE) ? readJson<BannerFile>(GLOBAL_BANNERS_FILE) : null;
-    expect(applyJpNews({ posts: scouts, jp: stored, cards, global }).jp).toEqual(stored);
+    // (Free pulls come from the events, after the banners: update-jp's withFreePulls().)
+    const withoutPulls = (file: BannerFile) => ({
+      ...file,
+      characters: file.characters.map(({ free_pulls, ...b }) => b),
+      cards: file.cards.map(({ free_pulls, ...b }) => b),
+    });
+    expect(withoutPulls(applyJpNews({ posts: scouts, jp: stored, cards, global }).jp)).toEqual(withoutPulls(stored));
     // From the seeded history alone: the same, every featured trainee and card resolved. A trainee debuting on a
     // banner made from the news resolves only from GameTora's trainee list, as update-jp reads it (when there is one).
     const trainees = existsSync(GAMETORA_TRAINEES_FILE) ? readJson<GametoraTrainee[]>(GAMETORA_TRAINEES_FILE) : null;
     const seeded = (list: Banner[]) => list.filter((b) => !b.from_news);
     const jp = { ...stored, characters: seeded(stored.characters), cards: seeded(stored.cards) };
     const again = applyJpNews({ posts: scouts, jp, cards, global, trainees });
-    expect(again.jp).toEqual(stored);
+    expect(withoutPulls(again.jp)).toEqual(withoutPulls(stored));
     // Unresolved: only a trainee debuting on a banner made from the news (no earlier banner names it, and the news
     // gives no trainee ids); every card and every known trainee resolves.
     const named = new Set(

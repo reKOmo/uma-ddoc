@@ -27,6 +27,23 @@ export type Rule = [
   (number | ((m: Match) => string | null))?,
 ];
 
+// A daily free scout campaign's wording (free-scouts.ts).
+export type ScoutLexicon = {
+  // A line about the daily free scout, and one of those saying it's a 10x.
+  daily: RegExp;
+  ten: RegExp;
+  // An eligible scout's line (its window on the next line) → its banner type, else null; a sentence's scout's type.
+  scout: (line: string) => BannerType | null;
+  named: (sentence: string) => BannerType | null;
+  // A scout's line → its name ("• Spotlight Support Card Scout" → "Spotlight Support Card Scout").
+  name: (line: string) => string;
+  // A window's stated length ("(9 days total)"), and the campaign's stated total ("up to a maximum of 10 times").
+  days: RegExp;
+  total: RegExp;
+  // The daily reset, in UTC hours.
+  resetHour: number;
+};
+
 // An event's race conditions (event-races.ts): "Nakayama / Turf / 2,500m (Long) / Right-Handed / …".
 export type RaceLexicon = {
   // The heading the race lines sit under; a line with a distance is a race.
@@ -200,6 +217,8 @@ export type Lexicon = {
   gives: RegExp;
   // The post's sentence about its mission sets' rewards.
   missionRewards: (line: string) => boolean;
+  // Daily free scouts.
+  scouts?: ScoutLexicon;
   // JP: a gift without an end of its own runs until the deadline of who gets it (ISO, or null).
   deadline?: (block: Block, ref: DateRef) => string | null;
   // JP: a celebration's part that is no event of its own (a scout's, a summary, a feature): its role, else null.

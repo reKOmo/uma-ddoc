@@ -3,7 +3,7 @@ import { cards } from '../../tierlist/cards.ts';
 import { SERVERS } from '../servers.ts';
 import { type ArtBannerFile, withArt } from '../gametora.ts';
 import { withPredicted } from './events.ts';
-import { type Counterpart, type Entry, bannerEntries, eventEntries } from './entries.ts';
+import { type Counterpart, type Entry, bannerEntries, eventEntries, linkFreeScouts } from './entries.ts';
 import { globalProgress } from './globalProgress.ts';
 import type { BannerFile } from '../../shared/schemas/banner.ts';
 import type {
@@ -129,10 +129,8 @@ const loadFiles = (server: Server): Promise<[Banners, EventsFile]> => {
   const name = SERVERS[server].banners as BannerName;
   return Promise.all([loadBanners(name), loadEvents(name)]);
 };
-const toEntries = (banners: Banners, events: EventsFile, now: number): Entry[] => [
-  ...bannerEntries(banners, { now }),
-  ...eventEntries(events, { cards, now }),
-];
+const toEntries = (banners: Banners, events: EventsFile, now: number): Entry[] =>
+  linkFreeScouts([...bannerEntries(banners, { now }), ...eventEntries(events, { cards, now })]);
 
 export async function loadEntries(server: Server, now = Date.now()): Promise<Entry[]> {
   const [banners, events] = await loadFiles(server);

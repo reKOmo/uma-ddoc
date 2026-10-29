@@ -20,8 +20,10 @@ import { blockLines, eventBlocks, joinBlocks } from './event-blocks.ts';
 import { blockRaces } from './event-races.ts';
 import { cardIndex, cardsIn, copiesDoubt, itemDoubt, itemsIn, missionsIn, norm, titlesIn } from './event-rewards.ts';
 import { SUB_EVENT_KINDS, UNNAMED_KINDS, applyAnswer } from './event-questions.ts';
+import { type ScoutWindow, bannerOf, scoutWindows } from './free-scouts.ts';
 import { categorize, plain } from './post-categories.ts';
 import { EVENT_KINDS } from '../../shared/schemas/event.ts';
+import type { BannerFile } from '../../shared/schemas/banner.ts';
 import type { CmRewardsFile, EventCard, EventItem, EventsFile, GameEvent, Race } from '../../shared/schemas/event.ts';
 import { dated } from '../../shared/schemas/common.ts';
 import type { AiAnswersFile, NewsPost, PostCategory } from '../../shared/schemas/news.ts';
@@ -60,6 +62,8 @@ export type Fragment = {
   context?: string[];
   // Mission sets it lists (taken out into bars of their own by missionBars()).
   missions?: { name: string; start: string; end: string | null }[];
+  // A daily free scout campaign's windows (free-scouts.ts).
+  scouts?: ScoutWindow[];
 };
 // part: the sub-event's id suffix, null for the celebration itself.
 // (kind: the classified unit's, ml/categorize.py; else the rules decide it.)
@@ -81,6 +85,8 @@ export type BuildOptions = {
   categories?: Map<number, PostCategory>;
   // Filled with every post's fragment that joined another event, and how (`pnpm news:merges` lists them).
   merges?: Merge[];
+  // The server's banners: each free scout window's (bannerOf()); without them, windows have none.
+  banners?: Pick<BannerFile, 'characters' | 'cards'>;
 };
 export type Merge = { from: string; into: string; how: 'overlap' | 'same dates' | 'undated' | 'ended' | 'dropped' };
 
@@ -240,13 +246,17 @@ function datesDoubt(
 }
 
 function rewards(lines: string[], index: ReturnType<typeof cardIndex>, year: DateRef, lang: Lexicon) {
+  const free = scoutWindows(lines, year, lang);
   return {
     cards: cardsIn(lines, index, lang),
     items: itemsIn(lines, lang),
     titles: titlesIn(lines, lang),
     missions: missionsIn(lines, year, lang),
+    ...(free && { scouts: free.scouts }),
   };
 }
+const scoutsDoubt = (lines: string[], year: DateRef, lang: Lexicon): string | null =>
+  scoutWindows(lines, year, lang)?.doubt ?? null;
 
 // An event post as fragments: one per event it describes, before posts about the same event are merged.
 export function postEvents(
@@ -314,6 +324,7 @@ export function postEvents(
     };
     return [
       withDoubts(event, lines, lang, {
+        scouts: scoutsDoubt(lines, year, lang),
         dates:
           c.phase === 'ended'
             ? null
@@ -423,6 +434,7 @@ export function postEvents(
         "the name is a heading or the celebration's, not from a sentence",
       kind: sub && !partKind && !inGame && !matchedKind(name, first, lang) && 'nothing says what kind it is',
       dates: sub && c.phase !== 'ended' && datesDoubt(own, period, headed, lang),
+      scouts: scoutsDoubt(lines, year, lang),
     });
   });
   // Lines elsewhere in the post about an event's cards ("up to three times in the Missions" in the gift's section):
@@ -548,6 +560,8 @@ function merge(event: Fragment, next: Fragment, lang: Lexicon = en): Fragment {
     cards: [...cards.values()],
     items: mergeItems(event.items, next.items),
     titles: [...new Set([...event.titles, ...next.titles])],
+    // (A celebration lists the same windows as the campaign's own post: the later post's.)
+    ...((next.scouts ?? event.scouts) && { scouts: next.scouts?.length ? next.scouts : event.scouts }),
   };
 }
 
@@ -572,7 +586,7 @@ export function cmItems(table: CmRewardsFile, start: string | null): EventItem[]
 }
 
 const FIELDS = ['id', 'kind', 'name', 'parent', 'start', 'end', 'cards', 'items', 'titles', 'phases', 'races'] as const;
-const output = (e: Fragment): GameEvent => ({
+const output = (e: Fragment, banners: BuildOptions['banners']): GameEvent => ({
   // TODO(ts): fromEntries() loses the keys; FIELDS are GameEvent's, and the merged fragments have them all (dated, kind known)
   ...(Object.fromEntries(FIELDS.map((f) => [f, e[f]])) as Omit<
     Pick<GameEvent, (typeof FIELDS)[number]>,
@@ -587,6 +601,17 @@ const output = (e: Fragment): GameEvent => ({
   // What a sale lists is bought, not given (a JP pack with a support card in it).
   cards: e.kind === 'sale' ? [] : e.cards,
   items: e.kind === 'sale' ? [] : e.items,
+  ...(e.scouts?.length && {
+    scouts: e.scouts.map(({ scout, type, start, end, size, scouts }) => ({
+      scout,
+      type,
+      banner: banners ? bannerOf({ scout, type, start, end, size, scouts }, banners) : null,
+      start,
+      end,
+      size,
+      scouts,
+    })),
+  }),
   news_url: e.news_url ?? null,
   image: e.image ?? null,
   source: e.source,
@@ -616,7 +641,7 @@ export function eventFragments(
 // (applyAnswer()).
 export function buildEvents(
   posts: NewsPost[],
-  { cmTable = [], cards = {}, answers = {}, lang = en, categories = new Map(), merges = [] }: BuildOptions = {}
+  { cmTable = [], cards = {}, answers = {}, lang = en, categories = new Map(), merges = [], banners }: BuildOptions = {}
 ): GameEvent[] {
   const fragments = eventFragments(posts, cards, lang, categories)
     .map((f) => (answers[f.aiKey] ? applyAnswer(f, answers[f.aiKey].answer, { lang }) : f))
@@ -702,7 +727,7 @@ export function buildEvents(
   const byId = new Map(events.map((e) => [e.id, e]));
   return events
     .map((e) => (!e.image && e.parent ? { ...e, image: byId.get(e.parent)?.image ?? null } : e))
-    .map(output)
+    .map((e) => output(e, banners))
     .sort((a, b) => b.start.date.localeCompare(a.start.date) || b.id.localeCompare(a.id));
 }
 

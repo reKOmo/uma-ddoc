@@ -290,6 +290,21 @@ export const en: Lexicon = {
   // The post's sentence about its mission sets' rewards ("By completing these missions, you can earn rewards
   // including carats, monies and Support Points!").
   missionRewards: (line) => /missions/i.test(line) && /rewards?/i.test(line),
+  // "you will be able to perform a 10x scout on one of the currently available Scouts, up to a maximum of 10 times",
+  // "you can perform a free single scout each day", "draw one free scout per day", "scout once per day for free";
+  // then "• Spotlight Support Card Scout" + its window ("… (UTC) (10 days)", or "(9 days total)" on the line after).
+  scouts: {
+    daily:
+      /\bperform (?:a|one) (?:free )?(?:single|10x) scout|free (?:single |10x )?scouts? (?:each|per) day|once per day for free/i,
+    ten: /\b10x\b|\b10-scout/i,
+    scout: (line) => (/^• .+ Scout$/i.test(line) ? (/Support Card/i.test(line) ? 'support' : 'character') : null),
+    name: (line) => line.replace(/^•\s*/, ''),
+    named: (sentence) =>
+      /Support Card Scout/i.test(sentence) ? 'support' : /Pretty Derby Scout/i.test(sentence) ? 'character' : null,
+    days: /\((\d+) days?(?: total)?\)/i,
+    total: /up to a maximum of (\d+) times/i,
+    resetHour: 15,
+  },
   race: {
     heading: /^Race Conditions?$/i,
     parts: (line) => line.split('/').map((part) => part.trim()),
