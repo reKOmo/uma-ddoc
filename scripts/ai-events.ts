@@ -5,7 +5,7 @@ import { parseArgs } from 'node:util';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { loadPosts, serverArg } from './lib/news-api.ts';
-import { aiConfig, ask } from './lib/ai.ts';
+import { Unavailable, aiConfig, ask } from './lib/ai.ts';
 import { type Field, applyAnswer, mergeAnswer, question, staleFields } from './lib/event-questions.ts';
 import { readCategories } from './lib/categories.ts';
 import { type Fragment, eventFragments, readAnswers, writeAnswers } from './lib/events.ts';
@@ -48,14 +48,17 @@ const posts = [...loadPosts(server).values()];
 // (Cut as update-global cuts them, so the answers' keys match.)
 const fragments = eventFragments(posts, cards, lang, readCategories(server));
 console.log(
-  `${server}: ${config.provider} ${config.model}${config.think ? ' (thinking)' : ''}: ${fragments.length} events`
+  `${server}: ${config.provider} ${[config.model, ...config.fallbacks].join(' → ')}${config.think ? ' (thinking)' : ''}: ${fragments.length} events`
 );
 
-async function timed(event: Fragment, options: QuestionOptions): Promise<{ answer: ModelAnswer; ms: number }> {
+async function timed(
+  event: Fragment,
+  options: QuestionOptions
+): Promise<{ answer: ModelAnswer; model: string; ms: number }> {
   const t = Date.now();
+  const { answer, model } = await ask(config, question(event, { ...options, lang }));
   // TODO(ts): the model's parsed reply, unchecked (ask() gives unknown): applyAnswer() checks it.
-  const answer = (await ask(config, question(event, { ...options, lang }))) as ModelAnswer;
-  return { answer, ms: Date.now() - t };
+  return { answer: answer as ModelAnswer, model, ms: Date.now() - t };
 }
 
 if (!flags.compare) {
@@ -65,20 +68,26 @@ if (!flags.compare) {
   console.log(
     `${todo.length} events with doubted or empty fields and no answer; asking ${Math.min(limit, todo.length)}`
   );
+  const asking = todo.slice(0, limit);
   let failed = 0;
-  for (const f of todo.slice(0, limit)) {
+  let asked = 0;
+  for (const f of asking) {
+    asked++;
     const fields = staleFields(f, answers[f.aiKey]);
     try {
-      const { answer, ms } = await timed(f, { fields });
-      answers[f.aiKey] = mergeAnswer(answers[f.aiKey], fields, answer, config.model);
+      const { answer, model, ms } = await timed(f, { fields });
+      answers[f.aiKey] = mergeAnswer(answers[f.aiKey], fields, answer, model);
       writeAnswers(answers, server);
-      console.log(`  ${f.id} (${fields.join(', ')}) ${(ms / 1000).toFixed(1)} s`);
+      console.log(`  ${f.id} (${fields.join(', ')}) ${model} ${(ms / 1000).toFixed(1)} s`);
     } catch (err) {
       failed++;
       console.warn(`  ${f.id}: ${err instanceof Error ? err.message : err}`);
+      // Every model was unavailable through all the retries: the rest would be too. They're asked on the next run.
+      if (err instanceof Unavailable) break;
     }
   }
-  console.log(`done, ${failed} failed`);
+  const left = asking.length - asked;
+  console.log(`done, ${failed} failed${left ? `, ${left} left for the next run` : ''}`);
 } else {
   const n = Number(arg(flags.sample) ?? '20');
   const spread = <T>(list: T[], k: number): T[] =>
@@ -91,6 +100,8 @@ if (!flags.compare) {
     : [...spread(doubted, Math.ceil(n / 2)), ...spread(sure, Math.floor(n / 2))];
 
   const counts = (items: Fragment['items']) => Object.fromEntries(items.map((i) => [norm(i.name), i.count]));
+  const scoutsLine = (scouts: Fragment['scouts']) =>
+    scouts?.length ? scouts.map((w) => `${w.type ?? 'any'} ×${w.size} ${w.scouts}`).join(', ') : null;
   const rows: Record<string, unknown>[] = [];
   const tally: Record<string, Record<string, number>> = {};
   const mark = (field: string, verdict: string) => {
@@ -130,6 +141,8 @@ if (!flags.compare) {
         start: [minute(f.start), minute(used.start)],
         end: [minute(f.end), minute(used.end)],
         ...Object.fromEntries(f.cards.map((c, n) => [`copies ${c.name}`, [c.copies, used.cards[n].copies]])),
+        // ("support ×10 5, character ×10 5": each window's type, size and count)
+        ...(f.scouts && { scouts: [scoutsLine(f.scouts), scoutsLine(used.scouts)] }),
       };
       const compared = Object.fromEntries(
         Object.entries(fields).map(([k, [rules, model]]) => {

@@ -7,11 +7,13 @@
 // (`trustModel`, for comparing a model with the rules, lets the answer win wherever it's valid).
 // An answer is used only if it checks out: names appear in the text, amounts are whole and up to 10 million, copies are
 // of a card the rules found (1–20) and the post gives them, the kind is known, dates are in order and within ~200 days
-// of the post.
+// of the post; free scout windows name a scout the text names, the days and total they give are in the text, and the
+// windows, counted as the rules count them, add up to that total.
 // JP posts are Japanese, with times in JST and years mostly left out: the model answers dates as the post writes them
 // and the code converts them to UTC with the year nearest the post (as parsePeriodJa() does).
 
 import { itemName, norm, numberWord } from './event-rewards.ts';
+import { type FoundWindow, type ScoutWindow, counted, dailyLines } from './free-scouts.ts';
 import { DAY } from './news-text.ts';
 import { en } from './news-lang/en.ts';
 import type { Lexicon } from './news-lang/index.ts';
@@ -19,7 +21,7 @@ import type { JsonSchema, Question } from './ai.ts';
 import type { AiAnswer } from '../../shared/schemas/news.ts';
 import type { EventCard, EventItem, GameEvent } from '../../shared/schemas/event.ts';
 
-export type Field = 'items' | 'cards' | 'name' | 'kind' | 'dates';
+export type Field = 'items' | 'cards' | 'name' | 'kind' | 'dates' | 'scouts';
 // A model's answer (the fields it was asked), as stored in ai_answers.json.
 export type Answer = AiAnswer['answer'];
 
@@ -34,11 +36,12 @@ export type AskedEvent = Pick<GameEvent, 'id' | 'name' | 'parent' | 'cards' | 'i
   posted: string;
   doubts: Record<string, string>;
   context?: string[];
+  scouts?: ScoutWindow[];
 };
 
 // Each question's version: bump one when its wording or examples change, so only stored answers to it are asked
 // again (an answer stored with one `version` for every field, before these, counts as version 1 of each).
-export const FIELD_VERSIONS: Record<Field, number> = { items: 2, cards: 2, name: 1, kind: 1, dates: 1 };
+export const FIELD_VERSIONS: Record<Field, number> = { items: 2, cards: 2, name: 1, kind: 1, dates: 1, scouts: 1 };
 
 // A stored answer's question versions per field.
 const versionsOf = (stored: AiAnswer | null | undefined): Record<string, number> =>
@@ -85,6 +88,25 @@ const KINDS_JA = [...SUB_EVENT_KINDS, 'special'];
 const nullable = (type: string): JsonSchema => ({ type: [type, 'null'] });
 
 type FieldSpec = { ask: string | ((e: AskedEvent) => string); schema: JsonSchema | null };
+const DATE = { type: ['string', 'null'], pattern: '^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}$' };
+// Free scout windows (the code counts the scouts).
+const SCOUTS: JsonSchema = {
+  type: 'object',
+  properties: {
+    windows: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { scout: { type: 'string' }, start: DATE, end: DATE, days: nullable('integer') },
+        required: ['scout', 'start', 'end', 'days'],
+        additionalProperties: false,
+      },
+    },
+    total: nullable('integer'),
+  },
+  required: ['windows', 'total'],
+  additionalProperties: false,
+};
 const FIELDS: Record<Field, FieldSpec> = {
   items: {
     ask: [
@@ -135,9 +157,11 @@ const FIELDS: Record<Field, FieldSpec> = {
     ask: 'start and end: when this event itself runs, as "YYYY-MM-DD HH:MM" in UTC. If it has several windows, the start of the first and the end of the last. Not a deadline for starting the game, qualifying or claiming gifts (a gift usually has no end: null). null if the text does not say.',
     schema: null, // start + end
   },
+  scouts: {
+    ask: 'scouts: the daily free scout. windows: one per eligible scout, in order: scout: its name as the text writes it ("Spotlight Support Card Scout"); start and end: when it is eligible, as "YYYY-MM-DD HH:MM" in UTC (a time the text leaves out: 00:00); days: the number of days the text states for that window ("(9 days total)"), else null. Scouts listed under one shared period each get that period. total: the most free scouts in all the text states ("up to a maximum of 10 times"), else null.',
+    schema: SCOUTS,
+  },
 };
-
-const DATE = { type: ['string', 'null'], pattern: '^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}$' };
 
 // Worked examples per field, from made-up posts in the news' style (not real ones, so the model learns the pattern,
 // not answers): [text, the part of the answer it gives].
@@ -214,6 +238,31 @@ const EXAMPLES: Examples = {
     ],
     ['A new campaign is coming soon! Details will be announced at a later date.', { start: null, end: null }],
   ],
+  scouts: [
+    [
+      'Each day you log in, you can perform a free 10x scout on one of the scouts below, up to a maximum of 8 times.\nEligible Scouts\n• Example Support Card Scout\n10:00 p.m., Jan 5 - 9:59 p.m., Jan 9, 2026 (UTC)\n• Example Pretty Derby Scout\n10:00 p.m., Jan 9 - 2:59 p.m., Jan 13, 2026 (UTC)',
+      {
+        scouts: {
+          windows: [
+            { scout: 'Example Support Card Scout', start: '2026-01-05 22:00', end: '2026-01-09 21:59', days: null },
+            { scout: 'Example Pretty Derby Scout', start: '2026-01-09 22:00', end: '2026-01-13 14:59', days: null },
+          ],
+          total: 8,
+        },
+      },
+    ],
+    [
+      'Trainers can draw one free scout per day!\nAvailability Period\nExample Pretty Derby Scout:\nFeb 1 - 9:59 p.m., Feb 4, 2026 (UTC) (4 days total)',
+      {
+        scouts: {
+          windows: [
+            { scout: 'Example Pretty Derby Scout', start: '2026-02-01 00:00', end: '2026-02-04 21:59', days: 4 },
+          ],
+          total: null,
+        },
+      },
+    ],
+  ],
 };
 
 // (An example with a post date, [text, answer, posted]: JP's, whose dates leave the year out.)
@@ -262,6 +311,10 @@ const FIELDS_JA: Record<Field, FieldSpec> = {
   dates: {
     ask: 'start and end: when this event itself runs, as "YYYY-MM-DD HH:MM" in Japan time (JST), the time as the text writes it and the year from the post date (an event can run into the next year). If it has several windows, the start of the first and the end of the last. Not a deadline for starting the game (対象のトレーナー), qualifying or claiming rewards (受け取り期限, 報酬受け取り期間): a gift usually has no end, null. null if the text gives no day and time (a rough "9月下旬" is not one).',
     schema: null, // start + end
+  },
+  scouts: {
+    ask: 'scouts: the daily free scout (無料で引ける[10回引く!] / [1回引く!]). windows: one per eligible scout (対象ガチャ), in order: scout: its name as the text writes it ("2nd Anniversary サポートカードガチャ"); start and end: when it is eligible, as "YYYY-MM-DD HH:MM" in JST, the year from the post date; days: the days the text states for that window ("（2日分）"), else null. Scouts listed under one shared period (開催期間) each get that period. total: the most free scouts in all the text states ("最大12回まで"), else null.',
+    schema: SCOUTS,
   },
 };
 
@@ -342,6 +395,32 @@ const EXAMPLES_JA: Examples = {
       'チャンピオンズミーティングの開催が決定しました！\n開催予定時期\n9月下旬\n正式な開催時期は決まり次第お知らせいたします。',
       { start: null, end: null },
       '2026-08-10',
+    ],
+  ],
+  scouts: [
+    [
+      '期間中に毎日ログインすると、開催中のガチャの[10回引く!]を最大8回まで1日1回無料で引けます。\n開催期間\n1/5 12:00 ～ 1/13 4:59\n対象ガチャ\n・ためし サポートカードガチャ',
+      {
+        scouts: {
+          windows: [
+            { scout: 'ためし サポートカードガチャ', start: '2026-01-05 12:00', end: '2026-01-13 04:59', days: null },
+          ],
+          total: 8,
+        },
+      },
+      '2026-01-05',
+    ],
+    [
+      '開催中のガチャの[1回引く!]を1日1回無料で引けます。\n開催期間\n・ためし プリティーダービーガチャ\n2/1 12:00 ～ 2/3 4:59（2日分）',
+      {
+        scouts: {
+          windows: [
+            { scout: 'ためし プリティーダービーガチャ', start: '2026-02-01 12:00', end: '2026-02-03 04:59', days: 2 },
+          ],
+          total: null,
+        },
+      },
+      '2026-01-30',
     ],
   ],
 };
@@ -477,7 +556,8 @@ export function question(
 ): Question {
   const q = questionsOf(lang);
   // Copies need cards; kinds are asked where a model may correct one.
-  const askable = (f: Field) => (f !== 'cards' || event.cards.length) && (f !== 'kind' || q.kindAsked(event));
+  const askable = (f: Field) =>
+    (f !== 'cards' || event.cards.length) && (f !== 'kind' || q.kindAsked(event)) && (f !== 'scouts' || event.scouts);
   const fields = all ? (Object.keys(q.fields) as Field[]).filter(askable) : (only ?? askedFields(event));
   const properties: Record<string, unknown> = {};
   for (const f of fields) {
@@ -525,7 +605,43 @@ const amountOf = (a: { total?: unknown; each?: unknown; times?: unknown }): numb
 // What a model sent back, not trusted: any field may be missing or of another type.
 type LooseItem = { name?: unknown; each?: unknown; times?: unknown; total?: unknown };
 type LooseCard = { title?: unknown; copies?: unknown };
-type LooseAnswer = { name?: unknown; kind?: unknown; start?: unknown; end?: unknown; items?: unknown; cards?: unknown };
+type LooseWindow = { scout?: unknown; start?: unknown; end?: unknown; days?: unknown };
+type LooseAnswer = {
+  name?: unknown;
+  kind?: unknown;
+  start?: unknown;
+  end?: unknown;
+  items?: unknown;
+  cards?: unknown;
+  scouts?: { windows?: unknown; total?: unknown } | null;
+};
+
+// The model's free scout windows, counted as the rules count them, or null unless they check out.
+function answerScouts(
+  event: AskedEvent,
+  raw: LooseAnswer['scouts'],
+  q: Questions,
+  lang: Lexicon
+): ScoutWindow[] | null {
+  const words = lang.scouts;
+  if (!words || !Array.isArray(raw?.windows) || !raw.windows.length) return null;
+  const lines = event.text.split('\n');
+  // A number the text states where the pattern says (a window's days, the total).
+  const stated = (re: RegExp, n: unknown): n is number =>
+    count(n, 1000) && lines.some((l) => Number(l.match(re)?.[1]) === n);
+  const found: FoundWindow[] = [];
+  // TODO(ts): each window is checked below
+  for (const w of raw.windows as (LooseWindow | null)[]) {
+    const start = q.isoOf(w?.start, event);
+    const end = q.isoOf(w?.end, event, start);
+    if (!inText(event, w?.scout) || !start || !end || start >= end) return null;
+    if (w?.days != null && !stated(words.days, w.days)) return null;
+    found.push({ scout: w.scout, type: words.named(w.scout), start, end, days: w?.days ?? null });
+  }
+  const { scouts, total } = counted(found, dailyLines(lines, words), words, true);
+  if (raw?.total != null && !(stated(words.total, raw.total) && raw.total === total)) return null;
+  return scouts;
+}
 
 export function applyAnswer<E extends AskedEvent>(
   event: E,
@@ -591,6 +707,8 @@ export function applyAnswer<E extends AskedEvent>(
   if (typeof answer.kind === 'string' && q.kinds.includes(answer.kind) && q.kindTaken(event) && take('kind', false))
     // TODO(ts): q.kinds holds only EventKinds, but is typed as strings
     next.kind = answer.kind as GameEvent['kind'];
+  const scouts = answerScouts(event, answer.scouts, q, lang);
+  if (scouts && take('scouts', !next.scouts?.length)) next.scouts = scouts;
   const start = q.isoOf(answer.start, event);
   const end = q.isoOf(answer.end, event, start);
   if (start && (!end || start < end)) {

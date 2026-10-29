@@ -456,5 +456,24 @@ export const ja: JapaneseLexicon = {
   // Parts that don't stretch their celebration: sales (a starter pack stays on sale for a year or more after it).
   notSpanning: (event) => event.kind === 'sale',
   missionRewards: (line) => /ミッション/.test(line) && /報酬/.test(line),
+  // 「1日1回10連ガチャ無料キャンペーン」: 開催中のガチャの[10回引く!]を最大12回まで1日1回無料で引けます; 「毎日ガチャ1回無料
+  // キャンペーン」: 対象サポートカードガチャの[1回引く!]を毎日無料で引けます; then 「・2nd Anniversary サポートカードガチャ」 +
+  // its window (or a list of them under the campaign's period). Resets at 5:00 JST.
+  scouts: {
+    daily: /\[(?:1|10)回引く!\].{0,20}(?:無料で引けます|毎日無料)/,
+    ten: /\[10回引く!\]/,
+    scout: (line) => (/^・.*ガチャ$/.test(line) ? (/サポートカード/.test(line) ? 'support' : 'character') : null),
+    name: (line) => line.replace(/^・\s*/, ''),
+    named: (sentence) =>
+      /サポートカードガチャ/.test(sentence)
+        ? 'support'
+        : /(?:プリティーダービー|ウマ娘)ガチャ/.test(sentence)
+          ? 'character'
+          : null,
+    // 「3/19 12:00 ～ 3/21 4:59（2日分）」
+    days: /[（(](\d+)日分[）)]/,
+    total: /最大(\d+)回まで/,
+    resetHour: 20,
+  },
   race: jaRace,
 };

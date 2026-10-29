@@ -1,7 +1,15 @@
 import type { Banner, BannerId } from '../../shared/schemas/banner.ts';
 import type { CardsFile } from '../../shared/schemas/card.ts';
 import { type DatedMoment, dated } from '../../shared/schemas/common.ts';
-import type { EventItem, EventKind, GameEvent, Phase, PredictedEvent, Race } from '../../shared/schemas/event.ts';
+import type {
+  EventItem,
+  EventKind,
+  FreeScout,
+  GameEvent,
+  Phase,
+  PredictedEvent,
+  Race,
+} from '../../shared/schemas/event.ts';
 import { type ArtBanner, type ArtBannerFile, type ArtItem, cardIcon } from '../gametora.ts';
 import { DAY } from './layout.ts';
 
@@ -24,6 +32,9 @@ export type Relation = {
   start: string;
   end: string | null;
 };
+// A free scout window: on a campaign, its banner's entry; on a banner, its campaign's (null: none on the calendar);
+// single or 10x, the free scouts in it.
+export type ScoutRow = Pick<FreeScout, 'scout' | 'start' | 'end' | 'size' | 'scouts'> & { target: string | null };
 export type Featured = {
   key: string | number;
   id: number | null;
@@ -68,6 +79,9 @@ export type Entry = {
   phases: Phase[];
   races: Race[];
   titles: string[];
+  // A banner's free pulls (banners' `free_pulls`), an event's free scout windows.
+  freePulls: number | null;
+  scouts: ScoutRow[];
 };
 
 type StatusDates = Pick<Banner, 'start' | 'end' | 'predicted'>;
@@ -166,6 +180,8 @@ function bannerEntry(
     phases: [],
     races: [],
     titles: [],
+    freePulls: banner.free_pulls ?? null,
+    scouts: [],
   };
 }
 
@@ -238,6 +254,33 @@ export function eventEntries(
       phases: event.phases ?? [],
       races: event.races ?? [],
       titles: event.titles,
+      freePulls: null,
+      scouts: (event.scouts ?? []).map(({ scout, type, banner, start, end, size, scouts }) => ({
+        scout,
+        start,
+        end,
+        size,
+        scouts,
+        target: banner != null && type ? `${type === 'support' ? 'cards' : 'characters'}:${banner}` : null,
+      })),
     };
+  });
+}
+
+// Banners get the free scout windows on them, each pointing to its campaign (a window two posts list, a celebration's
+// part and the campaign's own post, once).
+export function linkFreeScouts(entries: Entry[]): Entry[] {
+  const onBanner = new Map<string, Map<string, ScoutRow>>();
+  for (const e of entries)
+    for (const row of e.scouts) {
+      if (!row.target) continue;
+      const rows = onBanner.get(row.target) ?? new Map<string, ScoutRow>();
+      const window = `${row.start} ${row.end} ${row.size}`;
+      if (!rows.has(window)) rows.set(window, { ...row, target: e.key });
+      onBanner.set(row.target, rows);
+    }
+  return entries.map((e) => {
+    const rows = e.group !== 'event' && onBanner.get(e.key);
+    return rows ? { ...e, scouts: [...rows.values()].sort((a, b) => a.start.localeCompare(b.start)) } : e;
   });
 }

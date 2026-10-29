@@ -72,7 +72,8 @@ export default function TimelineSheet({
     !entry.items.length &&
     !entry.titles.length &&
     !entry.phases.length &&
-    !entry.races.length;
+    !entry.races.length &&
+    !entry.scouts.length;
   return (
     <Sheet open={open} onClose={onClose} onClosed={onClosed}>
       {entry.art && (
@@ -80,6 +81,8 @@ export default function TimelineSheet({
       )}
       <Header entry={entry} format={format} />
       <Relations entry={entry} lookup={lookup} format={format} onSelect={onSelect} />
+      {/* First: what a player gets for free. */}
+      <FreeScouts entry={entry} lookup={lookup} format={format} onSelect={onSelect} />
       <Featured entry={entry} rankings={rankings} advice={advice} />
       <Races races={entry.races} predicted={!!entry.prediction} />
       <Rewards items={entry.items} />
@@ -353,6 +356,62 @@ function Rewards({ items }: { items: EventItem[] }) {
             {item.count == null ? item.name : t('timeline.itemCount', { name: item.name, count: count(item.count) })}
           </li>
         ))}
+      </ul>
+    </>
+  );
+}
+
+// Free scout windows: a campaign's, each banner (a link to it); a banner's, each campaign giving them. Then the pulls,
+// its dates under them. A predicted Global banner's are what JP gave (with no JP campaign on the calendar: the
+// count alone).
+function FreeScouts({
+  entry,
+  lookup,
+  format,
+  onSelect,
+}: {
+  entry: Entry;
+  lookup: Lookup;
+  format: DateFormats;
+  onSelect: (entry: Entry) => void;
+}) {
+  const { t } = useTranslation();
+  const fromJp = entry.group !== 'event' && !!entry.prediction;
+  if (!entry.scouts.length && entry.freePulls == null) return null;
+  return (
+    <>
+      <h3 className={styles.heading}>{t(fromJp ? 'timeline.freeScoutsJp' : 'timeline.freeScouts')}</h3>
+      <ul className={styles.list}>
+        {!entry.scouts.length && (
+          <li>
+            <span />
+            <span className={styles.pulls}>
+              <strong>{t('timeline.freePulls', { count: entry.freePulls })}</strong>
+            </span>
+          </li>
+        )}
+        {entry.scouts.map((row) => {
+          // (the banner, on a campaign; the campaign, on a banner)
+          const other = row.target ? lookup(row.target) : undefined;
+          const dates = dateRange({ start: row.start, end: row.end }, format.short);
+          return (
+            <li key={`${row.scout} ${row.start}`}>
+              {other ? (
+                <button type="button" className={styles.part} onClick={() => onSelect(other)}>
+                  <span className={styles.dot} data-tone={other.tone} aria-hidden="true" />
+                  {entryTitle(other)}
+                </button>
+              ) : (
+                <span>{row.scout}</span>
+              )}
+              {/* The pulls stand out; the window and how they come under them. */}
+              <span className={styles.pulls}>
+                <strong>{t('timeline.freePulls', { count: row.scouts * row.size })}</strong>
+                <small>{row.size === 10 ? `${dates} · ${t('timeline.tenTimes', { times: row.scouts })}` : dates}</small>
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </>
   );

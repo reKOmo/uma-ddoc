@@ -49,7 +49,10 @@
   (`background-size: cover`, like banners' official art) behind the banners' gradient, edge coloured by kind family; under 64px a bar is a chip
   (no label, no art; name in the tooltip and sheet); an event run on a race shows its first one's course after its
   name ("Sagittarius Cup · Nakayama 2500m", `raceLabel()`); a bar whose end is only predicted (an announced cup)
-  fades out at its end, its sheet saying "end predicted" and marking its schedule's predicted rows. A bar opens a sheet: dates, "Part of <event>" (opens it), the
+  fades out at its end, its sheet saying "end predicted" and marking its schedule's predicted rows. A bar opens a sheet: dates, "Part of <event>" (opens it),
+  its free scouts first, banners and campaigns alike ("Free scouts": the campaign's banners or the banner's campaigns
+  as links, each with its pulls big and its dates · "5 × 10" under them; a predicted Global banner's "Free scouts on
+  JP", the count alone without its JP campaign on the calendar; `linkFreeScouts()` gives banners their windows), the
   support cards it gives first (to their card page, copies), its races (course, distance, turns; season, weather,
   ground, JP's time of day; "vary from race to race" for League of Heroes / Dream Team; a predicted event's marked as
   JP's), other rewards (carats, monies, shards first; ranges for

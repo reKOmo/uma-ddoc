@@ -1,6 +1,6 @@
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Gift } from 'lucide-react';
 import clsx from 'clsx';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { ArtBanner } from '../../gametora.ts';
 import type { Release } from '../../../shared/schemas/pullGuide.ts';
@@ -69,6 +69,17 @@ export default function PullAdvice({ cardId }: { cardId: number }) {
               <p className={styles.when}>
                 {banner ? <BannerDates banner={banner} timeZone={timeZone} /> : release && releaseDate(release, t)}
               </p>
+              {/* From the news' free scout campaigns; a predicted banner's are what JP gave. */}
+              {banner?.free_pulls && (
+                <p className={styles.pulls}>
+                  <Gift size={15} aria-hidden="true" />
+                  <Trans
+                    i18nKey={banner.predicted ? 'pullGuide.freePullsJp' : 'pullGuide.freePullsNews'}
+                    count={banner.free_pulls}
+                    components={{ strong: <strong /> }}
+                  />
+                </p>
+              )}
               {(label || banner) && (
                 <div className={styles.head}>
                   {label && <Pill variant="label">{label}</Pill>}
@@ -93,7 +104,10 @@ export default function PullAdvice({ cardId }: { cardId: number }) {
               {entry.shouldPull && <ShouldPullChip pill={entry.shouldPull} />}
             </h2>
             {entry.comment && <p className={styles.advice}>{entry.comment}</p>}
-            {entry.freePulls && <p className={styles.free}>{t('pullGuide.freePulls', { count: entry.freePulls })}</p>}
+            {/* (The guide's own count, only where the news gives none.) */}
+            {entry.freePulls && !banner?.free_pulls && (
+              <p className={styles.free}>{t('pullGuide.freePulls', { count: entry.freePulls })}</p>
+            )}
             {entry.advice && <p className={styles.note}>{entry.advice}</p>}
           </div>
         )}

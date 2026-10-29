@@ -9,10 +9,12 @@
   means upstream changed; deploys don't depend on it.
 - News isn't a GitHub workflow (both news sites block GitHub's IPs): an external automation runs `pnpm news:run`
   (`scripts/news-run.sh`) daily at 23:43 UTC on a clean checkout of main:
-  `news:latest` for Global, then `--server jp`; if a banner, event or scenario post came in on either, `update-cards` +
-  `scrape-gametora`, then `setup-ml` + `news:features` / `news:categorize` for both servers, `news:ai` per server that
-  updated (OpenRouter; skipped without `OPENROUTER_API_KEY`, never fails the run), then `update-jp` and
-  `update-global`; commits `data/` with both summaries as the message. The automation force-pushes that commit to the
+  `news:latest` for both servers at once; if a banner, event or scenario post came in on either, or always while
+  `OPENROUTER_API_KEY` is set (events the model failed to answer are asked again on the next run), `update-cards` +
+  `scrape-gametora`, then `setup-ml` + `news:features` / `news:categorize` for both servers, `news:ai` for both
+  (OpenRouter, a second free model as fallback; skipped without the key, never fails the run), then `update-jp` and
+  `update-global`; commits `data/` when it changed (the summaries only with new posts), with the changed servers'
+  summaries as the message. The automation force-pushes that commit to the
   `news` branch and opens a PR into main, or updates the open one, with the message as its title and body, and turns
   on auto-merge: it merges once `build` passes, and the merge deploys. It acts as a GitHub App (Contents + Pull
   requests write), which isn't a bypass actor on main's ruleset.
