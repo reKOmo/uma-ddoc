@@ -117,6 +117,7 @@
 {"id": 100003, "category": "event", "kind": "gift", "phase": null, "name": "July Helping Hand Giveaway", "source": "gold", "confidence": null, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 100002, "category": "other", "kind": "misc", "phase": "started", "name": null, "source": "gold", "confidence": null, "flag": null, "units": []},
 {"id": 100001, "category": "other", "kind": "sale", "phase": "started", "name": null, "source": "gold", "confidence": null, "flag": null, "units": []},
+{"id": 1135, "category": "event", "kind": "champions_meeting", "phase": "started", "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
 {"id": 1134, "category": "event", "kind": "champions_meeting", "phase": "league_selection", "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
 {"id": 1133, "category": "other", "kind": "update", "phase": "started", "name": null, "source": "model", "confidence": 0.588, "flag": null, "units": []},
 {"id": 1132, "category": "banner", "kind": null, "phase": "started", "name": null, "source": "model", "confidence": 0.995, "flag": null, "units": []},
