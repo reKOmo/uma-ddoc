@@ -1,12 +1,13 @@
-# Umamusume news — 2026-10-31 23:43 UTC
+# Umamusume news — 2026-11-01 23:43 UTC
 
-1 new, 0 edited.
+2 new, 0 edited.
 
 ## New
 
-- [The race event Champions Meeting: Capricorn Cup is here!](https://umamusume.com/news/1135/) — event / champions_meeting, started
+- [The story event Happy New Future! A Sentimental Sunrise has ended!](https://umamusume.com/news/1127/) — event / story, ended
+- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/1069/) — event / campaign
 
 
 ## Global repository (data/)
 
-- Updated champions_meeting event "Capricorn Cup" (2026-10-27) — titles: Capricorn Cup Platinum, Capricorn Cup Gold, Capricorn Cup Silver, Capricorn Cup Bronze
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-11-01)
