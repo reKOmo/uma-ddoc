@@ -29,17 +29,20 @@ List what's predicted around the image's dates (widen the window to the month sh
 ```sh
 python3 - <<'EOF'
 import json, datetime
-jst = lambda iso: (datetime.datetime.fromisoformat(iso.replace('Z', '+00:00')) + datetime.timedelta(hours=9)).date()
+# start / end are { date, status, lo?, hi? } (status: news, gametora, predicted, confirmed); end may be null
+d = lambda v: v['date'] if isinstance(v, dict) else (v or '')
+jst = lambda v: (datetime.datetime.fromisoformat(d(v).replace('Z', '+00:00')) + datetime.timedelta(hours=9)).date()
 b = json.load(open('generated/predicted_global_banners.json'))
 for kind in ('characters', 'cards'):
     for x in b[kind]:
-        if '2026-10-01' <= x['start'] < '2026-11-15':
-            print('BANNER', kind, x['id'], x['start'][:16], x['end'][:16], 'jp day', jst(x['jp_start']),
-                  [f"{i['name']} {i.get('title') or ''}" for i in x['featured']])
+        if '2026-10-01' <= d(x['start']) < '2026-11-15':
+            print('BANNER', kind, x['id'], d(x['start'])[:16], d(x['end'])[:16], x['start']['status'],
+                  'jp day', jst(x['jp_start']), [f"{i['name']} {i.get('title') or ''}" for i in x['featured']])
 e = json.load(open('generated/predicted_global_events.json'))
 for x in e['events']:
-    if '2026-10-01' <= x['start'] < '2026-11-15' and not x.get('parent'):
-        print('EVENT', x['id'], x['kind'], x['name'], x['start'][:16], (x['end'] or '')[:16], 'jp day', jst(x['jp_start']))
+    if '2026-10-01' <= d(x['start']) < '2026-11-15' and not x.get('parent'):
+        print('EVENT', x['id'], x['kind'], x['name'], d(x['start'])[:16], d(x['end'])[:16], x['start']['status'],
+              'jp day', jst(x['jp_start']))
 EOF
 ```
 
@@ -74,7 +77,7 @@ pnpm exec vitest run test/schemas.test.ts
 ```
 
 Re-run the listing from step 3: every row on the image should now have the image's start and end exactly, with
-`confirmed: true`. Then, if the pull guide's banners are affected (new confirmed banner ids), `pnpm fetch-pull-guide`.
+start status `confirmed`. Then, if the pull guide's banners are affected (new confirmed banner ids), `pnpm fetch-pull-guide`.
 
 ## 6. Report
 
