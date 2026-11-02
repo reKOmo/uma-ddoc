@@ -1,5 +1,7 @@
 [
+{"id": 3533, "category": "other", "kind": "update", "phase": null, "name": null, "source": "model", "confidence": 1.0, "flag": null, "units": []},
 {"id": 3532, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
+{"id": 3531, "category": "other", "kind": "update", "phase": "started", "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
 {"id": 3530, "category": "other", "kind": "issue", "phase": null, "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": []},
 {"id": 3529, "category": "other", "kind": "issue", "phase": null, "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": []},
 {"id": 3528, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": []},
@@ -17,6 +19,7 @@
 {"id": 3511, "category": "banner", "kind": null, "phase": "started", "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
 {"id": 3509, "category": "event", "kind": "celebration", "phase": "started", "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "none", "kind": null}, {"role": "part", "kind": "campaign"}, {"role": "part", "kind": "login_bonus"}, {"role": "part", "kind": "campaign"}, {"role": "part", "kind": "sale"}, {"role": "part", "kind": "sale"}, {"role": "part", "kind": "sale"}, {"role": "none", "kind": null}, {"role": "part", "kind": "missions"}, {"role": "part", "kind": "campaign"}, {"role": "part", "kind": "campaign"}, {"role": "part", "kind": "campaign"}, {"role": "part", "kind": "campaign"}, {"role": "part", "kind": "campaign"}]},
 {"id": 3508, "category": "banner", "kind": null, "phase": "started", "name": null, "source": "model", "confidence": 0.995, "flag": null, "units": []},
+{"id": 3507, "category": "banner", "kind": null, "phase": "started", "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": []},
 {"id": 3506, "category": "banner", "kind": null, "phase": "announced", "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": []},
 {"id": 3504, "category": "event", "kind": "gift", "phase": null, "name": null, "source": "model", "confidence": 0.989, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 3503, "category": "other", "kind": "community", "phase": null, "name": null, "source": "gold", "confidence": null, "flag": null, "units": []},
