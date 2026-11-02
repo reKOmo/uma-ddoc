@@ -9,9 +9,20 @@ export type ToolbarButtonProps = {
   disabled?: boolean;
   iconOnly?: boolean;
   title?: string;
+  /** A count shown by the icon (none when 0). */
+  badge?: number;
 };
 
-export function ToolbarButton({ icon: Icon, label, onClick, pressed, disabled, iconOnly, title }: ToolbarButtonProps) {
+export function ToolbarButton({
+  icon: Icon,
+  label,
+  onClick,
+  pressed,
+  disabled,
+  iconOnly,
+  title,
+  badge,
+}: ToolbarButtonProps) {
   return (
     <button
       type="button"
@@ -24,6 +35,11 @@ export function ToolbarButton({ icon: Icon, label, onClick, pressed, disabled, i
     >
       {Icon && <Icon size={18} aria-hidden="true" />}
       {!iconOnly && label}
+      {!!badge && (
+        <span className={styles.badge} aria-hidden="true">
+          {badge}
+        </span>
+      )}
     </button>
   );
 }

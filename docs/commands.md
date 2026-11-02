@@ -7,7 +7,7 @@ pnpm dev               # dev server (fetches card data on first run — see note
 pnpm build             # production build into dist/
 pnpm lint              # Biome: formatting + lint check (CI runs this)
 pnpm format            # Biome: apply formatting and safe fixes
-pnpm test              # Vitest unit suite (~15s; fetches card data if missing)
+pnpm test              # Vitest unit suite (~15s; fetches card data if missing, rebuilds it if stale)
 pnpm test:upstream     # compare our calculation with upstream's (~25s; needs the clone)
 pnpm typecheck         # tsc over everything (CI runs this)
 pnpm test:e2e          # the app in a browser (Playwright, e2e/; starts the dev server; ~45s; needs

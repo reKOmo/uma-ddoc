@@ -20,3 +20,14 @@
   background: var(--accent);
   border-color: var(--accent);
 }
+
+.badge {
+  min-width: 20px;
+  padding: 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--accent);
+  background: var(--accent-text);
+  border-radius: 999px;
+}

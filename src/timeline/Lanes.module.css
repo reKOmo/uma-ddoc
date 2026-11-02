@@ -151,6 +151,14 @@
   box-shadow: 0 0 0 2px var(--accent);
 }
 
+.bar.focused {
+  z-index: 1;
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+  /* Clear of the sticky axis above when scrolled into view. */
+  scroll-margin: 140px 24px 24px;
+}
+
 .bar.officialArt {
   background-size: cover;
 }
