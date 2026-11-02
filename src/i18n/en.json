@@ -220,7 +220,47 @@
       "dragOver": "{{name}} is now at position {{position}}.",
       "dragEnd": "{{name}} dropped at position {{position}}.",
       "dragCancel": "Cancelled; {{name}} is back where it was.",
-      "dragHandle": "Move {{name}}"
+      "dragHandle": "Move {{name}}",
+      "searchHeading": "Search",
+      "searchOverride": "Search overrides filters"
+    },
+    "search": {
+      "button": "Search",
+      "label": "Search the calendar",
+      "placeholder": "Character, card type, event, item…",
+      "close": "Close",
+      "clear": "Clear search",
+      "remove": "Remove {{name}}",
+      "chipCount_one": "{{count}} search term",
+      "chipCount_other": "{{count}} search terms",
+      "textOption": "Anything with “{{text}}”",
+      "position_one": "{{position}} of {{count}} match",
+      "position_other": "{{position}} of {{count}} matches",
+      "previous": "Previous match",
+      "next": "Next match",
+      "noMatches": "No matches",
+      "hiddenMatches_one": "{{count}} more hidden by the filter",
+      "hiddenMatches_other": "{{count}} more hidden by the filter",
+      "type": {
+        "character": "Character",
+        "type": "Card type",
+        "pull": "Pull advice",
+        "name": "Name",
+        "kind": "Kind",
+        "item": "Item",
+        "race": "Race",
+        "text": "Text"
+      },
+      "group": {
+        "character": "Characters",
+        "type": "Card types",
+        "pull": "Pull advice",
+        "kind": "Kinds",
+        "name": "Events & banners",
+        "item": "Items",
+        "race": "Races",
+        "text": "Anything"
+      }
     }
   },
   "events": {

@@ -7,6 +7,7 @@ import { FilterButton, FilterSection, FilterSheet } from '../FilterSheet.tsx';
 import GroupOrder, { type LaneGroup } from './GroupOrder.tsx';
 import styles from './TimelineFilter.module.css';
 import type { Verdict } from '../pullGuide.ts';
+import { saveSearchOverride, useSearchOverrideStore } from './searchOverride.ts';
 
 type TabKey = 'show' | 'order';
 const TABS: Record<TabKey, LucideIcon> = { show: Eye, order: ListOrdered };
@@ -44,6 +45,7 @@ export default function TimelineFilter({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<TabKey>('show');
+  const searchOverride = useSearchOverrideStore((state) => state.override);
   const banners = kinds.filter((kind) => BANNERS.includes(kind));
   const events = kinds.filter((kind) => !BANNERS.includes(kind));
   const pulls = verdicts.map(pullKey);
@@ -131,6 +133,19 @@ export default function TimelineFilter({
               note: t(hidden.has('cards') ? 'timeline.filter.pullOff' : 'timeline.filter.pullNote'),
               off: hidden.has('cards'),
             })}
+            <section className="filter-section">
+              <div className="filter-section-head">
+                <h3>{t('timeline.filter.searchHeading')}</h3>
+              </div>
+              <label className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  checked={searchOverride}
+                  onChange={(e) => saveSearchOverride(e.target.checked)}
+                />
+                {t('timeline.filter.searchOverride')}
+              </label>
+            </section>
           </div>
           <div className={styles.panel} inert={tab !== 'order'}>
             <section className="filter-section">

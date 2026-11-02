@@ -41,7 +41,22 @@
   while one of its cards has a verdict shown; `VERDICTS`, `bannerVerdicts()` in `src/pullGuide.ts`; greyed out while
   support card banners are hidden).
   Hidden bars leave the lanes (a hidden event's parts of shown kinds stand on their own; the calendar's dates and the
-  sheets keep everything). **Compact mode** (the toolbar's fold button, on by default, `src/timeline/compact.ts`: remembered in
+  sheets keep everything). **Search** (the toolbar's magnifier, `TimelineSearch.tsx` on downshift's combobox +
+  match-sorter's ranking; while open the field takes the toolbar's row, "Close" folds it back to the button with a
+  count of chips): typing only suggests, from this calendar's own entries (`searchIndex()` in `src/timeline/search.ts`):
+  characters (one per character, by English name through the card data, so JP's Japanese-named banners and events
+  match; the Japanese name finds them too), card types, pull advice (when the guide covers the calendar's banners: a
+  support card banner has a verdict when one of its cards has it, as in the filter), banner / event names, kinds, items, race courses, and the text
+  itself (matches any field, card titles included), in groups by type (characters, card types, pull advice, kinds, events & banners,
+  items, races, then the text), each a chip (a plus in its circle; the highlighted one outlined). Picked suggestions become chips like the filter's ticked ones, in the calendar's colour
+  (`data-tone`: a kind's, a card type's, a name its entry's; grey otherwise), a click removing one: chips of one type
+  OR, different types AND. Only matches stay, with their parts and their parents (unfolded down to them); each new search jumps to
+  the first match still running or ahead, else the last one before (`jumpTarget()`). By default a search shows matches
+  the filter hides; the filter's Show tab has a switch for that ("Search overrides filters") (`searchOverride.ts`, localStorage). A line under the
+  toolbar counts the matches (and those hidden by the filter; the field's × clears the search) and, centred, steps through them in date
+  order (‹ "3 of 12 matches" ›, starting at the one jumped to): the current match's bar is ringed and scrolls itself
+  into view (`focused` in `Lanes.tsx`). The chips aren't remembered (this
+  visit only; kept across a server switch). **Compact mode** (the toolbar's fold button, on by default, `src/timeline/compact.ts`: remembered in
   localStorage): rows with nothing in view (± half a screen) fold away while scrolling slowly or once it stops (`visibleRows()` in
   `layout.ts`), so a group is only as tall as what's on screen; rows are never repacked, a bar never changes row. An event with parts (a celebration's sub-events, an event's mission sets) is one bar with a "+N" fold
   button (`.bar-fold`); unfolded, its parts' rows open under its row over a band tinted in its colour

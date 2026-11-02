@@ -1,11 +1,11 @@
 // Usage: pnpm update-cards
 
-import { existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { DATA_FILES, REPO, UPSTREAM_RAW, download, latestRef } from './lib/upstream.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { readSources, writeSources } from './lib/sources.ts';
-import { OUTPUTS, buildCardFiles } from './build-cards.ts';
+import { INPUTS, OUTPUTS, buildCardFiles } from './build-cards.ts';
 
 const sourceKey = (file: { local: string }): string => `raw/upstream/${file.local}`;
 
@@ -29,14 +29,19 @@ export async function updateCards(): Promise<void> {
   await buildCardFiles();
 }
 
-// Fetches upstream's card data if this checkout is missing it, and builds the card data if that's missing.
+const mtime = (path: string): number => (existsSync(path) ? statSync(path).mtimeMs : 0);
+
+// Fetches upstream's card data if this checkout is missing it, and builds the card data if that's missing or older
+// than what it's built from (e.g. a pulled news commit added cards to data/jp_cards.json).
 export async function ensureCards(): Promise<void> {
   const sources = readSources();
   if (DATA_FILES.some((file) => !existsSync(UPSTREAM_RAW + file.local) || !sources[sourceKey(file)])) {
     await updateCards();
-  } else if (OUTPUTS.some((name) => !existsSync(GENERATED_DIR + name))) {
-    await buildCardFiles();
+    return;
   }
+  const built = Math.min(...OUTPUTS.map((name) => mtime(GENERATED_DIR + name)));
+  const inputs = [...INPUTS, ...DATA_FILES.map((file) => UPSTREAM_RAW + file.local)];
+  if (inputs.some((path) => mtime(path) > built)) await buildCardFiles();
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

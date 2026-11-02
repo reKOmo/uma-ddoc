@@ -1,5 +1,5 @@
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FoldVertical, Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FoldVertical, Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SCENARIOS } from '../scenarioRelease.ts';
@@ -11,13 +11,15 @@ import { buildTimeline } from '../timeline/layout.ts';
 import { scenarioSegments } from '../timeline/scenarioStrip.ts';
 import { getCollapsed, saveCollapsed, useCollapsedStore } from '../timeline/collapsed.ts';
 import TimelineFilter from '../timeline/TimelineFilter.tsx';
+import TimelineSearch, { SearchButton } from '../timeline/TimelineSearch.tsx';
+import type { Term } from '../timeline/search.ts';
 import { VERDICTS } from '../pullGuide.ts';
 import { dateFormats } from '../timeline/format.ts';
 import { CalendarLines, TimelineAxis } from '../timeline/TimelineAxis.tsx';
 import { LaneGroup } from '../timeline/Lanes.tsx';
 import TimelineSheet from '../timeline/TimelineSheet.tsx';
 import type { Entry } from '../timeline/entries.ts';
-import { middleOf, useCenterOn } from '../timeline/useCenterOn.ts';
+import { endOfToday, middleOf, useCenterOn } from '../timeline/useCenterOn.ts';
 import { useCompactRows } from '../timeline/useCompactRows.ts';
 import { useRenderWindow } from '../timeline/useRenderWindow.ts';
 import { useTimelineFilters } from '../timeline/useTimelineFilters.ts';
@@ -85,7 +87,10 @@ export default function TimelinePage({
     () => current && buildTimeline(current.entries, { utc: timeZone === 'utc' }),
     [current, timeZone]
   );
-  const filters = useTimelineFilters(current?.entries ?? null);
+  // The search's chips: kept for this visit only (also across a server switch: characters and kinds are the same).
+  const [chips, setChips] = useState<Term[]>([]);
+  const [searching, setSearching] = useState(false);
+  const filters = useTimelineFilters(current?.entries ?? null, chips);
   const { groups } = filters;
   const scenarios = useMemo(() => scenarioSegments(SCENARIOS, server), [server]);
   const px = ZOOMS[zoom] ?? 1;
@@ -136,6 +141,28 @@ export default function TimelinePage({
   // (After the calendar is centred, above: it reads the new scroll position.)
   const { compact, toggleCompact, visible } = useCompactRows(scroller, timeline, groups, px);
 
+  // The search's current match (an index into its matches, in date order): the previous / next buttons step through
+  // them, the page scrolling to each (its bar scrolls itself into view, ringed).
+  const [cursor, setCursor] = useState(0);
+  const matched = filters.search?.matched;
+  const focused = matched?.[cursor]?.key ?? null;
+  const goToMatch = (index: number) => {
+    const match = matched?.[index];
+    if (!match || !timeline) return;
+    setCursor(index);
+    scrollToDay(timeline.at(middleOf(match)));
+  };
+  // A new search unfolds the parents of its matches and goes to its first match ahead (search.ts).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: on a new search (or calendar) only, not on filter changes.
+  useEffect(() => {
+    const search = filters.search;
+    if (!search || !timeline) return;
+    setUnfolded((old) => new Set([...old, ...search.unfold]));
+    const index = search.target ? search.matched.indexOf(search.target) : 0;
+    setCursor(index);
+    if (search.target) scrollToDay(timeline.at(middleOf(search.target)));
+  }, [chips, timeline]);
+
   const entry = selected ? byKey.get(selected) : undefined;
 
   useEffect(() => {
@@ -146,61 +173,106 @@ export default function TimelinePage({
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.toolbar}>
-          {marks.map((mark) => (
-            <ToolbarButton
-              key={mark.key}
-              icon={MARK_ICONS[mark.key]}
-              label={t(`timeline.mark.${mark.key}.button`)}
-              title={t(`timeline.mark.${mark.key}.title`)}
-              onClick={() => timeline && scrollToDay(timeline.at(mark.at))}
+          {searching ? (
+            <TimelineSearch
+              terms={filters.terms}
+              chips={chips}
+              onChange={setChips}
+              onClose={() => setSearching(false)}
             />
-          ))}
-          <TimelineFilter
-            kinds={filters.kinds}
-            verdicts={filters.verdictsOf ? VERDICTS : []}
-            hidden={filters.hidden}
-            onChange={filters.changeHidden}
-            groups={filters.presentGroups}
-            onReorder={filters.reorder}
-            onResetOrder={filters.resetOrder}
-            defaultOrder={filters.defaultOrder}
-            disabled={!timeline}
-          />
-          <ToolbarButton
-            icon={LocateFixed}
-            label={t('timeline.today')}
-            onClick={() => timeline && scrollToDay(timeline.today)}
-            disabled={!timeline}
-          />
-          <ToolbarButton
-            icon={FoldVertical}
-            label={t('timeline.compact')}
-            title={t('timeline.compactTitle')}
-            onClick={toggleCompact}
-            disabled={!timeline}
-            pressed={compact}
-            iconOnly
-          />
-          {/* Not a Segmented: the buttons aren't a choice (no pressed one) and each disables at its own end. */}
-          <fieldset className={styles.zoom} aria-label={t('timeline.zoom')}>
-            <button
-              type="button"
-              onClick={() => changeZoom(zoom - 1)}
-              disabled={!timeline || zoom === 0}
-              aria-label={t('timeline.zoomOut')}
-            >
-              <ZoomOut size={18} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={() => changeZoom(zoom + 1)}
-              disabled={!timeline || zoom === ZOOMS.length - 1}
-              aria-label={t('timeline.zoomIn')}
-            >
-              <ZoomIn size={18} aria-hidden="true" />
-            </button>
-          </fieldset>
+          ) : (
+            <>
+              <SearchButton count={chips.length} onClick={() => setSearching(true)} disabled={!timeline} />
+              {marks.map((mark) => (
+                <ToolbarButton
+                  key={mark.key}
+                  icon={MARK_ICONS[mark.key]}
+                  label={t(`timeline.mark.${mark.key}.button`)}
+                  title={t(`timeline.mark.${mark.key}.title`)}
+                  onClick={() => timeline && scrollToDay(timeline.at(mark.at))}
+                />
+              ))}
+              <TimelineFilter
+                kinds={filters.kinds}
+                verdicts={filters.verdictsOf ? VERDICTS : []}
+                hidden={filters.hidden}
+                onChange={filters.changeHidden}
+                groups={filters.presentGroups}
+                onReorder={filters.reorder}
+                onResetOrder={filters.resetOrder}
+                defaultOrder={filters.defaultOrder}
+                disabled={!timeline}
+              />
+              <ToolbarButton
+                icon={LocateFixed}
+                label={t('timeline.today')}
+                onClick={() => timeline && scrollToDay(endOfToday(timeline))}
+                disabled={!timeline}
+              />
+              <ToolbarButton
+                icon={FoldVertical}
+                label={t('timeline.compact')}
+                title={t('timeline.compactTitle')}
+                onClick={toggleCompact}
+                disabled={!timeline}
+                pressed={compact}
+                iconOnly
+              />
+              {/* Not a Segmented: the buttons aren't a choice (no pressed one) and each disables at its own end. */}
+              <fieldset className={styles.zoom} aria-label={t('timeline.zoom')}>
+                <button
+                  type="button"
+                  onClick={() => changeZoom(zoom - 1)}
+                  disabled={!timeline || zoom === 0}
+                  aria-label={t('timeline.zoomOut')}
+                >
+                  <ZoomOut size={18} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeZoom(zoom + 1)}
+                  disabled={!timeline || zoom === ZOOMS.length - 1}
+                  aria-label={t('timeline.zoomIn')}
+                >
+                  <ZoomIn size={18} aria-hidden="true" />
+                </button>
+              </fieldset>
+            </>
+          )}
         </div>
+        {filters.search && (
+          <p className={styles.searchNote} role="status">
+            {filters.search.matched.length > 0 && (
+              <span className={styles.matchNav}>
+                <button
+                  type="button"
+                  className={styles.navButton}
+                  onClick={() => goToMatch(cursor - 1)}
+                  disabled={cursor <= 0}
+                  aria-label={t('timeline.search.previous')}
+                >
+                  <ChevronLeft size={18} aria-hidden="true" />
+                </button>
+                {t('timeline.search.position', {
+                  position: Math.min(cursor, filters.search.matched.length - 1) + 1,
+                  count: filters.search.matched.length,
+                })}
+                <button
+                  type="button"
+                  className={styles.navButton}
+                  onClick={() => goToMatch(cursor + 1)}
+                  disabled={cursor >= filters.search.matched.length - 1}
+                  aria-label={t('timeline.search.next')}
+                >
+                  <ChevronRight size={18} aria-hidden="true" />
+                </button>
+              </span>
+            )}
+            {!filters.search.matched.length && t('timeline.search.noMatches')}
+            {filters.search.hiddenMatches > 0 &&
+              ` · ${t('timeline.search.hiddenMatches', { count: filters.search.hiddenMatches })}`}
+          </p>
+        )}
       </header>
 
       {!timeline || !current ? (
@@ -225,6 +297,7 @@ export default function TimelinePage({
                 at={at}
                 format={format}
                 unfolded={unfolded}
+                focused={focused}
                 onToggleParts={toggleParts}
                 onSelect={show}
               />

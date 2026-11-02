@@ -11,6 +11,7 @@ import { ja } from '../scripts/lib/news-lang/ja.ts';
 import { en as enLexicon } from '../scripts/lib/news-lang/en.ts';
 import { EVENT_GROUPS } from '../src/timeline/events.ts';
 import { LANE_GROUPS } from '../src/timeline/layout.ts';
+import { TERM_TYPES } from '../src/timeline/search.ts';
 import { ORIGIN_KINDS } from '../src/cardOrigins.ts';
 import { cards } from '../tierlist/cards.ts';
 import { present } from './helpers.ts';
@@ -82,6 +83,7 @@ describe('catalogs', () => {
       ...present(ja.schedules, 'JP schedules').league_of_heroes.map(([k]) => `events.phase.${k}`),
       ...[...enLexicon.eventPhases, ...ja.eventPhases].map(([k]) => `events.phase.${k}`),
       ...['show', 'order'].map((k) => `timeline.filter.tab.${k}`),
+      ...TERM_TYPES.flatMap((k) => [`timeline.search.type.${k}`, `timeline.search.group.${k}`]),
       ...[1, 2, 3, 4].map((n) => `tierList.size.${n}`),
       ...ORIGIN_KINDS.filter((k) => k !== 'other').map((k) => `card.origins.kind.${k}`),
       ...new Set(Object.values(cards).flatMap((card) => card.source.map((s) => `card.origins.source.${s}`))),

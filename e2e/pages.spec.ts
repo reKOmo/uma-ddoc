@@ -76,3 +76,29 @@ test('a Timeline sheet opens from a bar and closes', async ({ page }) => {
   await page.getByRole('button', { name: 'Close' }).click();
   await expect(page.getByRole('dialog')).toBeHidden();
 });
+
+test('the Timeline search filters the calendar by a picked chip', async ({ page }) => {
+  await open(page, '#/timeline');
+  const bars = page.getByTestId('bar');
+  await expect(bars.first()).toBeVisible();
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Search the calendar' }).fill('Kitasan Black');
+  await page.getByRole('option', { name: 'Kitasan Black', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Remove Kitasan Black' })).toBeVisible();
+  const status = page.getByRole('status').filter({ hasText: /match/ });
+  await expect(status).toContainText(/\d+ of \d+ match/);
+  const before = await status.textContent();
+  const step = page.getByRole('button', {
+    name: (await page.getByRole('button', { name: 'Next match' }).isEnabled()) ? 'Next match' : 'Previous match',
+  });
+  await step.click();
+  await expect(status).not.toHaveText(before ?? '');
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Search', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  // The current match's bar is scrolled into view.
+  await expect(page.locator('[data-testid="bar"][aria-current="true"]')).toBeInViewport();
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await page.getByRole('button', { name: 'Clear search' }).click();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Search', exact: true })).toHaveAttribute('aria-pressed', 'false');
+});
