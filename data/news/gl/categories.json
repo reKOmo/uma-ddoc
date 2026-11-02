@@ -119,7 +119,7 @@
 {"id": 100001, "category": "other", "kind": "sale", "phase": "started", "name": null, "source": "gold", "confidence": null, "flag": null, "units": []},
 {"id": 1135, "category": "event", "kind": "champions_meeting", "phase": "started", "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
 {"id": 1134, "category": "event", "kind": "champions_meeting", "phase": "league_selection", "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
-{"id": 1133, "category": "other", "kind": "update", "phase": "started", "name": null, "source": "model", "confidence": 0.588, "flag": null, "units": []},
+{"id": 1133, "category": "event", "kind": "campaign", "phase": "started", "name": null, "source": "model", "confidence": 0.98, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 1132, "category": "banner", "kind": null, "phase": "started", "name": null, "source": "model", "confidence": 0.995, "flag": null, "units": []},
 {"id": 1131, "category": "event", "kind": "celebration", "phase": "started", "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "part", "kind": "campaign"}, {"role": "part", "kind": "campaign"}, {"role": "part", "kind": "campaign"}]},
 {"id": 1130, "category": "banner", "kind": null, "phase": "announced", "name": null, "source": "model", "confidence": 0.993, "flag": null, "units": []},
