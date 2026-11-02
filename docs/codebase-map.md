@@ -144,7 +144,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     format.ts        dateFormats(timeZone), dateRange(), kindName(), barLabel(), entryTitle()
     useRankings.ts   MLB ranks of a sheet's cards (server's own tier list, else looking ahead)
     useCenterOn.ts, useCompactRows.ts, useRenderWindow.ts, useTimelineFilters.ts  the Timeline page's centring
-                     (linked entry / today, zoom), compact mode's measuring, the time range whose bars are drawn (1.5
+                     (linked entry / the end of today, zoom), compact mode's measuring, the time range whose bars are drawn (1.5
                      screens each side; the rest of history isn't rendered), and its hidden / order / verdict filtering
     TimelineSheet.tsx  the one sheet for every entry, in sections (Header, Provenance, Relations, Featured,
                      Rewards, Schedule, Titles, Parts, RankNote, Links)
@@ -159,6 +159,10 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      the sheet)
     hidden.ts        banner sections + event kinds the filter hides (zustand store): getHidden() / saveHidden()
     TimelineFilter.tsx  the toolbar's filter button + sheet (toggles per banner section / event kind / pull verdict)
+    search.ts        pure: the search's suggestions (searchIndex), chip matching, its results (matches + parents + parts),
+                     jumpTarget()
+    TimelineSearch.tsx  the toolbar's search button + field (downshift combobox, chips, match-sorter suggestions)
+    searchOverride.ts  whether a search shows matches the filter hides (zustand store, default on)
     compact.ts       compact mode on/off (default on; zustand store): getCompact() / saveCompact()
     scenarioStrip.ts pure: scenario segments (launch → next launch, cover colour + text ink) for the calendar's strip
     globalProgress.ts pure: where Global is in JP's history (window between banners + linear estimate)

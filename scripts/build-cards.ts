@@ -12,6 +12,8 @@ import type { GametoraCard } from '../shared/schemas/gametora.ts';
 export const GAMETORA_CARDS_FILE = `${GENERATED_DIR}raw/gametora_cards.json`;
 export { JP_CARDS_FILE };
 export const OUTPUTS = ['cards.json', 'card_stats/gl_card_stats.json', 'card_stats/jp_card_stats.json'];
+// What buildCardFiles() reads besides upstream's files: a pull that changes one makes the outputs stale.
+export const INPUTS = [JP_CARDS_FILE, GLOBAL_CARDS_FILE, GAMETORA_CARDS_FILE];
 
 const perLine = (object: Record<string, unknown>): string =>
   `{\n${Object.entries(object)

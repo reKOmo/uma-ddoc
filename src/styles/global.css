@@ -118,7 +118,8 @@ h1 {
 [data-tone="type-guts"] {
   --tone: #e64980;
 }
-[data-tone="type-intelligence"] {
+[data-tone="type-intelligence"],
+[data-tone="type-wisdom"] {
   --tone: #2fb344;
 }
 [data-tone="type-friend"],

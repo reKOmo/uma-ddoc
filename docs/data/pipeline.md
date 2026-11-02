@@ -49,7 +49,8 @@ days, scenario launches, predictions), is `{ date, status, lo?, hi?, source? }` 
 - The Timeline fades a bar whose end is only predicted (`Entry.endPredicted`); the sheet says "end predicted" and marks
   schedule rows with a predicted date.
 
-- `ensureCards()` fetches upstream's card data if it's missing and builds the card data if that's missing; it runs
-  from a Vite plugin (dev/build) and from `test/global-setup.ts`.
+- `ensureCards()` fetches upstream's card data if it's missing and builds the card data if that's missing or older
+  than its inputs (`data/jp_cards.json`, `data/global_cards.json`, GameTora's and upstream's raw files: a pulled news
+  commit adding cards rebuilds it); it runs from a Vite plugin (dev/build) and from `test/global-setup.ts`.
 
 Details per source: [cards](cards.md), [GameTora](gametora.md), [news](news.md), [events](events.md), [JP](jp.md), [scenarios](scenarios.md), [predictions](predictions.md), [pull guide](pull-guide.md).

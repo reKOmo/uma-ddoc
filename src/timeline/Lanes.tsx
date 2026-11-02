@@ -1,4 +1,4 @@
-import { Fragment, memo, useMemo } from 'react';
+import { Fragment, memo, useEffect, useMemo, useRef } from 'react';
 import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
@@ -17,6 +17,8 @@ type Callbacks = {
   at: (ms: number) => number;
   format: DateFormats;
   unfolded: Set<string>;
+  // The search's current match: ringed, and scrolled into view when it's drawn.
+  focused: string | null;
   onToggleParts: (key: string) => void;
   onSelect: (entry: Entry) => void;
 };
@@ -34,6 +36,7 @@ export const LaneGroup = memo(function LaneGroup({
   at,
   format,
   unfolded,
+  focused,
   onToggleParts,
   onSelect,
 }: Callbacks & {
@@ -67,6 +70,7 @@ export const LaneGroup = memo(function LaneGroup({
           at={at}
           format={format}
           unfolded={unfolded}
+          focused={focused}
           onToggleParts={onToggleParts}
           onSelect={onSelect}
         />
@@ -83,6 +87,7 @@ function Rows({
   at,
   format,
   unfolded,
+  focused,
   onToggleParts,
   onSelect,
   depth = 0,
@@ -115,6 +120,7 @@ function Rows({
                 at={at}
                 format={format}
                 open={unfolded.has(item.entry.key)}
+                focused={item.entry.key === focused}
                 onToggleParts={onToggleParts}
                 onSelect={onSelect}
               />
@@ -134,6 +140,7 @@ function Rows({
               at={at}
               format={format}
               unfolded={unfolded}
+              focused={focused}
               onToggleParts={onToggleParts}
               onSelect={onSelect}
               depth={depth + 1}
@@ -157,10 +164,16 @@ const Bar = memo(function Bar({
   at,
   format,
   open,
+  focused,
   onToggleParts,
   onSelect,
-}: Omit<Callbacks, 'unfolded'> & { item: LaneItem<Entry>; open: boolean }) {
+}: Omit<Callbacks, 'unfolded' | 'focused'> & { item: LaneItem<Entry>; open: boolean; focused: boolean }) {
   const { t } = useTranslation();
+  const ref = useRef<HTMLDivElement>(null);
+  // (Also when it's first drawn: the page scrolls to its day first, which brings it into the drawn range.)
+  useEffect(() => {
+    if (focused) ref.current?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  }, [focused]);
   const entry = item.entry;
   const left = at(item.start);
   const width = Math.max(at(item.end) - left, MIN_WIDTH);
@@ -175,9 +188,11 @@ const Bar = memo(function Bar({
   });
   return (
     <div
+      ref={ref}
       data-tone={entry.tone}
       className={clsx(
         styles.bar,
+        focused && styles.focused,
         styles[entry.status],
         entry.endPredicted && styles.endPredicted,
         chip && styles.chip,
@@ -190,6 +205,7 @@ const Bar = memo(function Bar({
         type="button"
         className={styles.barHit}
         data-testid="bar"
+        aria-current={focused || undefined}
         title={title}
         aria-label={title}
         onClick={() => onSelect(entry)}

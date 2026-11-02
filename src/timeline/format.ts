@@ -68,8 +68,11 @@ export function barLabel(entry: Pick<Entry, 'main' | 'name' | 'kind' | 'group'>)
 // The bar's course: its first race with a distance ("Nakayama 2500m"), or null.
 export function raceLabel(entry: Pick<Entry, 'races'>): string | null {
   const race = entry.races.find((r) => r.distance);
-  return race ? `${i18n.t(`events.race.track.${race.track}`, { defaultValue: race.track })} ${race.distance}m` : null;
+  return race ? courseName(race) : null;
 }
+
+export const courseName = (race: Pick<Entry['races'][number], 'track' | 'distance'>): string =>
+  `${i18n.t(`events.race.track.${race.track}`, { defaultValue: race.track })} ${race.distance}m`;
 
 export const entryTitle = (entry: Pick<Entry, 'name' | 'main' | 'kind' | 'group'>): string =>
   entry.name ?? barLabel(entry);
