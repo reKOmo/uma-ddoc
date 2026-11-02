@@ -88,7 +88,7 @@ export const en: Lexicon = {
     [/missions\b/i, 'event', 'missions', (m) => m.input.match(/"([^"]+)"/)?.[1] ?? campaignName(m.input)],
     [/Celebration|^New Beginnings\b/i, 'event', 'celebration', (m) => campaignName(m.input)],
     [
-      /Bonus Star Piece|Daily Race (?:Tickets|attempts)|Free 10[x-] ?Scout|Free Retries|Commemoration/i,
+      /Bonus Star Piece|Race Rally|Daily Race (?:Tickets|attempts)|Free 10[x-] ?Scout|Free Retries|Commemoration/i,
       'event',
       'campaign',
       (m) => campaignName(m.input),
