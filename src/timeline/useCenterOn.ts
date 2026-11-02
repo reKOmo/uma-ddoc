@@ -6,6 +6,10 @@ export const middleOf = (entry: { start: string; end: string | null }): number =
   return (start + end) / 2;
 };
 
+// Where "today" centres the calendar: the end of today (the calendar's days start at its timezone's midnight), so more of
+// what's ahead is in view.
+export const endOfToday = (timeline: Timeline): number => Math.floor(timeline.today) + 1;
+
 export function useCenterOn(
   scroller: RefObject<HTMLElement | null>,
   timeline: Timeline | null,
@@ -16,7 +20,7 @@ export function useCenterOn(
 
   useLayoutEffect(() => {
     if (!timeline || target.current !== null) return;
-    target.current = linked ? timeline.at(middleOf(linked)) : timeline.today;
+    target.current = linked ? timeline.at(middleOf(linked)) : endOfToday(timeline);
   }, [timeline, linked]);
 
   useLayoutEffect(() => {

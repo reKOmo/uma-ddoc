@@ -1,7 +1,7 @@
 # Testing
 
 ```sh
-pnpm test              # Vitest unit suite (~15s; fetches card data if missing); pre-push runs it
+pnpm test              # Vitest unit suite (~15s; fetches card data if missing, rebuilds it if stale); pre-push runs it
 pnpm test:code         # the suite without the data tests (CI's required check)
 pnpm test:data         # only the data tests (CI's `data` job, not required)
 pnpm test:upstream     # our calculation vs upstream's (~25s; needs `pnpm clone-upstream`)
