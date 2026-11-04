@@ -1,12 +1,11 @@
-# Umamusume news (JP) — 2026-11-02 23:44 UTC
+# Umamusume news (JP) — 2026-11-04 23:44 UTC
 
-3 new, 1 edited.
+2 new, 1 edited.
 
 ## New
 
-- [トゥインクルコレクション プリティーダービーガチャとSSR確定賢さガチャ開催！](https://umamusume.jp/news/detail/?id=3507) — banner, started
-- [一部育成ウマ娘に進化スキル追加！](https://umamusume.jp/news/detail/?id=3531) — other / update, started
-- [アップデートのお知らせ【11/2 11:00公開】](https://umamusume.jp/news/detail/?id=3533) — other / update
+- [育成シナリオ「駿大祭編」におけるカルストンライトオの一部育成イベントの不具合について](https://umamusume.jp/news/detail/?id=3538) — other / issue
+- [育成シナリオ「駿大祭編」におけるカルストンライトオの一部育成イベントの不具合について](https://umamusume.jp/news/detail/?id=3537) — other / issue
 
 ## Edited
 
