@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+
 // Upstream is data only: the calculation is ours (tierlist/).
 export const REPO: string = 'Euophrys/umamusume-tierlist';
 import { GENERATED_DIR, ROOT } from './paths.ts';
@@ -14,12 +16,10 @@ export const DATA_FILES: DataFile[] = [
   { upstream: 'src/card-events.js', local: 'card-events.js' },
 ];
 
-export async function latestRef(): Promise<string> {
-  const res = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {
-    headers: { Accept: 'application/vnd.github.sha' },
-  });
-  if (!res.ok) throw new Error(`GitHub API: ${res.status} ${res.statusText}`);
-  return (await res.text()).trim();
+// Git, not GitHub's API: the API's anonymous limit is shared by a CI runner's whole IP, and failed deploys.
+export function latestRef(): string {
+  const out = execFileSync('git', ['ls-remote', '--exit-code', `https://github.com/${REPO}.git`, 'refs/heads/main']);
+  return out.toString().split('\t')[0];
 }
 
 // Downloads each file at `ref`: { [upstream path]: text }.
