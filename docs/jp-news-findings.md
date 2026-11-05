@@ -45,28 +45,28 @@ Draft rules (first match wins, after the label check) classify every one of the 
 are in the session scratchpad (`classify.mjs`), to become `news-lang/ja.js`. Totals: banner 469 · event 1,031 · other
 1,163. Key rules and order:
 
-| order | title | → |
-|---|---|---|
-| label | `announce_label` 2 / 3 | other / community |
-| 1 | `メンテナンス` | other / maintenance (before issue: `…機能不具合に伴うメンテナンス`) |
-| 2 | `不具合\|障害\|現象について\|エラー\|強制終了\|誤表記\|詐欺\|…` | other / issue (before store and gacha) |
-| 3 | `WebStore\|ウマ箱\|ウマスク\|ウマプラン\|コラボ(?:限定)?セット\|販売開始！$\|…` | other / sale |
-| 4 | `ガチャ.*無料\|無料.*ガチャ` (1日1回10連ガチャ無料) | event / campaign |
-| 5 | `ガチャ.*プレゼント！$` (SSRメイクデビューガチャ gift) | event / gift |
-| 6 | banner: `/ガチャ(?:」\|』)?(?:\s*(?:DAY\d\|第[0-9０-９]+R\|in [A-Z]+))?(?:も)?開催(?:決定)?！$/` | banner — exactly the 466 posts with `gacha_banner_` art, no misses |
-| 7 | `^レースイベント「チャンピオンズミーティング[ 　](name)」(参加リーグ選択開始\|開催\|特別開催決定)！$`, previews `^(M/D\|N月[上中下]旬)「チャンピオンズミーティング …」開催予定！$` | event / champions_meeting |
-| 8 | `^レースイベント「リーグ オブ ヒーローズ」(チーム編成期間開始\|開催)！$` (+ previews) | event / **league_of_heroes** (a kind EN lacks) |
-| 9 | `^レジェンドレース(開催決定\|開催)！$` | event / legend_race |
-| 10 | `^ストーリーイベント「(name)」(開催決定\|開催\|終了)！$` | event / story |
-| 11 | `^「特別移籍(?: (.+ Edition))?」(開催決定\|開催)！$` (none after 2023-10) | event / transfer_requests |
-| 12 | `^\d+月～\d+月対戦レースイベント` (6-month CM/LoH schedule, from 2025) | other / roundup |
-| 13 | `^育成シナリオ「(name)」公開！$` (anchored: 公開記念キャンペーン is a campaign, …がアップデート！ an update) | other / scenario |
-| 14 | `^(?:特別\|コラボ)?イベント「(name)」…(開催予告\|開催決定\|開催中\|開催\|追加\|終了迫る\|終了予告\|終了)！$`, `^レースコンテンツ「…」β版…`, `^「フジキセキのショータイム」イベント…` | event / special (因子研究, マスターズチャレンジ, 技能試験, 最強チーム, レーシングカーニバル, one-offs) |
-| 15 | `ショップの開催\|ショップラインナップ追加` · `ログインボーナス` · `ミッション` (but `ミッションの追加について` = update) | event / shop · login_bonus · missions |
-| 16 | `ピース追加` (「育成報酬」ピース追加キャンペーン = EN's Bonus Star Piece) | event / campaign |
-| 17 | `キャンペーン` with ≥ 2 boundary arts in the body (G1, Anniversary 第N弾, ゆく年くる年…); else | event / celebration; event / campaign |
-| 18 | `プレゼント\|配布` | event / gift (no phase in the title: started) |
-| … | policy, devices, item expiry, `アップデートのお知らせ`, adjustments, new features, content added, releases, `について$` | other / misc / update |
+| order | title                                                                                                                                                                                | →                                                                                                      |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| label | `announce_label` 2 / 3                                                                                                                                                               | other / community                                                                                      |
+| 1     | `メンテナンス`                                                                                                                                                                       | other / maintenance (before issue: `…機能不具合に伴うメンテナンス`)                                    |
+| 2     | `不具合\|障害\|現象について\|エラー\|強制終了\|誤表記\|詐欺\|…`                                                                                                                      | other / issue (before store and gacha)                                                                 |
+| 3     | `WebStore\|ウマ箱\|ウマスク\|ウマプラン\|コラボ(?:限定)?セット\|販売開始！$\|…`                                                                                                      | other / sale                                                                                           |
+| 4     | `ガチャ.*無料\|無料.*ガチャ` (1日1回10連ガチャ無料)                                                                                                                                  | event / campaign                                                                                       |
+| 5     | `ガチャ.*プレゼント！$` (SSRメイクデビューガチャ gift)                                                                                                                               | event / gift                                                                                           |
+| 6     | banner: `/ガチャ(?:」\|』)?(?:\s*(?:DAY\d\|第[0-9０-９]+R\|in [A-Z]+))?(?:も)?開催(?:決定)?！$/`                                                                                     | banner — exactly the 466 posts with `gacha_banner_` art, no misses                                     |
+| 7     | `^レースイベント「チャンピオンズミーティング[ 　](name)」(参加リーグ選択開始\|開催\|特別開催決定)！$`, previews `^(M/D\|N月[上中下]旬)「チャンピオンズミーティング …」開催予定！$`   | event / champions_meeting                                                                              |
+| 8     | `^レースイベント「リーグ オブ ヒーローズ」(チーム編成期間開始\|開催)！$` (+ previews)                                                                                                | event / **league_of_heroes** (a kind EN lacks)                                                         |
+| 9     | `^レジェンドレース(開催決定\|開催)！$`                                                                                                                                               | event / legend_race                                                                                    |
+| 10    | `^ストーリーイベント「(name)」(開催決定\|開催\|終了)！$`                                                                                                                             | event / story                                                                                          |
+| 11    | `^「特別移籍(?: (.+ Edition))?」(開催決定\|開催)！$` (none after 2023-10)                                                                                                            | event / transfer_requests                                                                              |
+| 12    | `^\d+月～\d+月対戦レースイベント` (6-month CM/LoH schedule, from 2025)                                                                                                               | other / roundup                                                                                        |
+| 13    | `^育成シナリオ「(name)」公開！$` (anchored: 公開記念キャンペーン is a campaign, …がアップデート！ an update)                                                                         | other / scenario                                                                                       |
+| 14    | `^(?:特別\|コラボ)?イベント「(name)」…(開催予告\|開催決定\|開催中\|開催\|追加\|終了迫る\|終了予告\|終了)！$`, `^レースコンテンツ「…」β版…`, `^「フジキセキのショータイム」イベント…` | event / special (因子研究, マスターズチャレンジ, 技能試験, 最強チーム, レーシングカーニバル, one-offs) |
+| 15    | `ショップの開催\|ショップラインナップ追加` · `ログインボーナス` · `ミッション` (but `ミッションの追加について` = update)                                                             | event / shop · login_bonus · missions                                                                  |
+| 16    | `ピース追加` (「育成報酬」ピース追加キャンペーン = EN's Bonus Star Piece)                                                                                                            | event / campaign                                                                                       |
+| 17    | `キャンペーン` with ≥ 2 boundary arts in the body (G1, Anniversary 第N弾, ゆく年くる年…); else                                                                                       | event / celebration; event / campaign                                                                  |
+| 18    | `プレゼント\|配布`                                                                                                                                                                   | event / gift (no phase in the title: started)                                                          |
+| …     | policy, devices, item expiry, `アップデートのお知らせ`, adjustments, new features, content added, releases, `について$`                                                              | other / misc / update                                                                                  |
 
 - Anchors (`^…` and a `！$` phase ending) keep out the near misses: event-named bug posts (3043, 3334), ぱかライブ
   summaries, `…の今後の開催について`, real-world events (`Nthイベント「…」`). Never match a bare `RT` (CM "DIRT").

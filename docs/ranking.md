@@ -50,4 +50,3 @@
 - Server keys: `gl` / `jp` for tier-list code, `global` / `jp` for banner files
   (`src/servers.ts` maps them). GameTora card types map to stat tabs via `STAT_OF_TYPE`
   (`intelligence` → `wisdom`, `group` → `friend`).
-

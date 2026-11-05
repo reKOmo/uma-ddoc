@@ -2,11 +2,11 @@
 
 How much design a change gets depends on its size.
 
-| Change | Interview + plan | Plan doc in `docs/` |
-|---|---|---|
-| Small and clear: a button, a style tweak, a one-file fix | no, just do it | no |
-| A feature or change with open questions: a new page, a new setting, a new filter | yes, in the conversation | only if asked |
-| Really big, or split into parts / several sessions: a new data pipeline, a cross-cutting refactor, a migration | yes | yes |
+| Change                                                                                                         | Interview + plan         | Plan doc in `docs/` |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------ | ------------------- |
+| Small and clear: a button, a style tweak, a one-file fix                                                       | no, just do it           | no                  |
+| A feature or change with open questions: a new page, a new setting, a new filter                               | yes, in the conversation | only if asked       |
+| Really big, or split into parts / several sessions: a new data pipeline, a cross-cutting refactor, a migration | yes                      | yes                 |
 
 ## Interview
 
