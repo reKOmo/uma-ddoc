@@ -21,8 +21,8 @@
     events, lb: [LB0…LB4 stats] } }`. `charName` is upstream's per-server name (each in its own language, which
     `scenarioLink` relies on; a group card's is a member's, as upstream has it); `events` the card's event rewards
     (the same on both servers) or null.
-  `joinCards()` rebuilds upstream's exact arrays plus `events` per card (verified by `buildCards()` and
-  `test/data.test.ts`).
+    `joinCards()` rebuilds upstream's exact arrays plus `events` per card (verified by `buildCards()` and
+    `test/data.test.ts`).
 
 - **`raw/gametora_cards.json`** is GameTora's `support-cards` file cut to what `buildCards()` reads (ids, names,
   titles, type, rarity, JP `release`, `obtained`, `url_name`: the page's slug, not derivable from the name);

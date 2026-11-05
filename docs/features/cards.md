@@ -47,6 +47,5 @@
     counts, not the celebration listing it too. A card on none (the scout pool's R/SR, main story, promo) shows
     cards.json's `source` instead. Paid banners never list cards yet (JP's paid scouts have no featured list). Under
     the card's name, the first origin's kind pill, "+N" for the other kinds it has come by since (all in the tooltip).
-  The tier list's floating "Back to top" button too.
-  Opened from tier-list cards and the Timeline sheet's "See more"; it isn't a tab, but keeps the Cards tab highlighted.
-
+    The tier list's floating "Back to top" button too.
+    Opened from tier-list cards and the Timeline sheet's "See more"; it isn't a tab, but keeps the Cards tab highlighted.

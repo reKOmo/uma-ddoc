@@ -1,6 +1,5 @@
 # Predictions (ml/)
 
-
 `ml/` is Python in its own venv (`pnpm setup-ml`). Deploys rerun it after the banner scrape, so predictions
 restart from Global's latest release. The Timeline page reads `generated/predicted_global_banners.json`
 through an `import.meta.glob`, so it's optional: without `pnpm predict-gl` there are just no predicted bars. A
