@@ -39,6 +39,8 @@
 "1079-3:h1lw9j": {"model":"gemma4:26b","at":"2026-10-21T21:45:36.442Z","versions":{"items":2},"answer":{"items":[{"name":"Monies","each":5000,"times":10,"total":50000}]}},
 "1093-4:1mts7q9": {"model":"gemma4:26b","version":3,"at":"2026-10-11T09:36:19.537Z","answer":{"kind":"campaign"}},
 "1094:kew381": {"model":"gemma4:26b","at":"2026-10-19T20:08:43.996Z","versions":{"dates":1},"answer":{"start":"2026-10-11 22:00","end":null}},
+"1117-2:oo9n72": {"model":"nvidia/nemotron-3.5-super-vl:free","at":"2026-11-05T23:45:25.958Z","versions":{"name":1,"dates":1},"answer":{"name":"Umamusume: Pretty Derby the Stage – Sprinters' Story Celebration","start":"2026-11-09 22:00","end":null}},
+"1117-3:2zg0df": {"model":"nvidia/nemotron-3.5-super-vl:free","at":"2026-11-05T23:45:29.469Z","versions":{"name":1,"dates":1},"answer":{"name":"Umamusume: Pretty Derby the Stage – Sprinters' Story Celebration","start":"2026-11-09 22:00","end":null}},
 "1122-1:8ww6wr": {"model":"gemma4:26b","at":"2026-10-21T21:45:10.402Z","versions":{"items":2},"answer":{"items":[{"name":"carats","each":150,"times":null,"total":450}]}},
 "1122-5:1bj8wk1": {"model":"gemma4:26b","at":"2026-10-21T21:45:20.028Z","versions":{"items":2},"answer":{"items":[{"name":"carats","each":1500,"times":1,"total":null},{"name":"carats","each":300,"times":null,"total":4200}]}},
 "1126:7xpvgm": {"model":"gemma4:26b","at":"2026-10-21T21:45:02.684Z","versions":{"cards":2},"answer":{"cards":[{"title":"[From Icy Blues to Verdant Hues] Grass Wonder","copies":null}]}},
