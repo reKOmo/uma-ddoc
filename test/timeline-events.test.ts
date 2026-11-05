@@ -181,6 +181,13 @@ describe('withPredicted', () => {
     expect(idsOf(story.parts)).toEqual([['jp-3500-m1']]);
   });
 
+  it("draws a part Global's post doesn't list under Global's real event", () => {
+    const part = { ...predicted.events.find((e) => e.id === 'jp-3500-m1'), id: 'jp-9-1', parent: '1' };
+    const groups = eventGroups(withPredicted(real, fixture<PredictedEventsFile['events']>([part]), 0));
+    const story = groups[0].rows[0].find((item) => item.entry.id === '1');
+    expect(story && idsOf(story.parts).flat()).toContain('jp-9-1');
+  });
+
   it("keeps every predicted event after Global's latest real one of its kind (the real data)", {
     tags: ['data'],
   }, () => {
@@ -201,7 +208,8 @@ if (existsSync(PREDICTED_FILE))
 describe.each(predictedFiles)('predicted events (%s)', { tags: ['data'] }, (_, file) => {
   it("are JP's events with Global dates, of kinds the app styles and labels", () => {
     expect(file.source).toBeTruthy();
-    const ids = new Set(file.events.map((e) => e.id));
+    // A part's parent: a predicted event, or the Global celebration whose post doesn't list the part.
+    const ids = new Set([...file.events, ...globalEvents].map((e) => e.id));
     const wrong = file.events.filter(
       (e) =>
         !e.id.startsWith('jp-') ||

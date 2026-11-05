@@ -15,7 +15,9 @@
       "!data/news/*/posts.json",
       "!data/news/*/ai_answers.json",
       "!data/news/*/gold.json",
-      "!data/news/*/categories.json"
+      "!data/news/*/categories.json",
+      "!data/news/*/summary.md",
+      "!.claude/**/*.md"
     ]
   },
   "formatter": {
@@ -41,6 +43,12 @@
       "preset": "recommended"
     }
   },
+  "overrides": [
+    {
+      "includes": ["test/**"],
+      "linter": { "rules": { "correctness": { "usePlaywrightValidDescribeCallback": "off" } } }
+    }
+  ],
   "assist": {
     "actions": {
       "source": {

@@ -141,4 +141,3 @@ card): check the rule against whatever the data holds.
 - `upstream/parity.test.ts` (`pnpm test:upstream` only): same upstream commit as
   `generated/`; same scenarios, default and deck presets; every scenario × stat × preset
   deck ranks exactly like upstream's code on upstream's card lists (75 tests).
-
