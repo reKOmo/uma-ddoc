@@ -1,6 +1,11 @@
-# Umamusume news (JP) — 2026-10-30 23:43 UTC
+# Umamusume news (JP) — 2026-11-04 23:44 UTC
 
-0 new, 1 edited.
+2 new, 1 edited.
+
+## New
+
+- [育成シナリオ「駿大祭編」におけるカルストンライトオの一部育成イベントの不具合について](https://umamusume.jp/news/detail/?id=3538) — other / issue
+- [育成シナリオ「駿大祭編」におけるカルストンライトオの一部育成イベントの不具合について](https://umamusume.jp/news/detail/?id=3537) — other / issue
 
 ## Edited
 
