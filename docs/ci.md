@@ -4,7 +4,7 @@
   `scrape-gametora` → `update-jp` → `update-global` (both not committed) → `setup-ml` + `predict-gl` → `fetch-pull-guide` → `pnpm test:code` → `pnpm test:e2e` → build → GitHub Pages. If any
   step fails the job fails and the last good deploy stays live. A second job, `data`, runs `pnpm test:data` on what
   `build` generated: not required, never blocks the deploy, but fails the run (and emails) when new data trips a test.
-- `upstream-check.yml` — on push to main, daily, and manually: install →
+- `upstream-check.yml` — manually only for now (its push and daily triggers are commented out): install →
   `clone-upstream` → `update-cards` → `pnpm test:upstream`. A failure (GitHub emails)
   means upstream changed; deploys don't depend on it.
 - News isn't a GitHub workflow (both news sites block GitHub's IPs): an external automation runs `pnpm news:run`

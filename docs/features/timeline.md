@@ -6,7 +6,7 @@
   While a sheet is open the address is `#/timeline/<server>/<id>` (replaced, not pushed; ids are unique on a server,
   banners' and events' alike), so going back to the Timeline from a card's page reopens the sheet.
   **Both servers run exactly the same code, fed different data** (`src/timeline/`): every banner and event becomes an
-  *entry* (`entries.ts`, one shape whatever the server or source; every difference between the data files is read
+  _entry_ (`entries.ts`, one shape whatever the server or source; every difference between the data files is read
   there and nowhere else), the page has no `server ===` branch, and one sheet (`TimelineSheet.tsx`, on `src/Sheet.tsx`: drag it down to close)
   shows every banner and event alike: art, kind pill, name, status + dates, where its dates come from (predicted /
   confirmed from JP's; paid), relations (re-run of / re-held / part of, each opening the other), featured items or
