@@ -462,9 +462,13 @@ def predict_events(predict, anchor_jp, known, pairs, fitted_at):
     now = pd.Timestamp(fitted_at).value // 1_000_000
     for miss in pairs['missing_parts']:
         gl, jp, part = gl_events.get(miss['gl_parent']), jp_events.get(miss['jp_parent']), jp_events.get(miss['jp'])
-        if not gl or not jp or not part or pd.Timestamp(gl['end'] or gl['start']).value // 1_000_000 < now:
+        if not gl or not jp or not part:
             continue
         offset = pd.Timestamp(gl['start']).value // 1_000_000 - pd.Timestamp(jp['start']).value // 1_000_000
+        # (news without an end, as a celebration's often is: JP's length, or it would be over the moment it starts)
+        end = gl['end'] or shift(jp['end'], offset) or gl['start']
+        if pd.Timestamp(end).value // 1_000_000 < now:
+            continue
         emit(part, offset, 0, False, parent=gl['id'])
     out.sort(key=lambda e: (e['start']['date'], e['id']), reverse=True)
     result = {'source': {'predicted_from': 'jp_events.json', 'fitted_at': fitted_at}, 'events': out}

@@ -10,7 +10,7 @@ import { INPUTS, OUTPUTS, buildCardFiles } from './build-cards.ts';
 const sourceKey = (file: { local: string }): string => `raw/upstream/${file.local}`;
 
 export async function updateCards(): Promise<void> {
-  const ref = await latestRef();
+  const ref = latestRef();
   console.log(`Fetching card data from ${REPO} @ ${ref.slice(0, 10)}…`);
   const texts = await download(ref, DATA_FILES);
 
