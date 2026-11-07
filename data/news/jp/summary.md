@@ -1,14 +1,14 @@
-# Umamusume news (JP) — 2026-11-05 23:44 UTC
+# Umamusume news (JP) — 2026-11-07 23:44 UTC
 
-2 new, 1 edited.
+1 new, 2 edited.
 
 ## New
 
-- [『7th EVENT in LOS ANGELES』返金等に関するご案内メール送信のお知らせ](https://umamusume.jp/news/detail/?id=3542) — other / community
-- [レジェンドレース開催決定！](https://umamusume.jp/news/detail/?id=3520) — event / legend_race, announced
+- [レジェンドレース開催！](https://umamusume.jp/news/detail/?id=3521) — event / legend_race, started
 
 ## Edited
 
+- [『7th EVENT in LOS ANGELES』返金等に関するご案内メール送信のお知らせ](https://umamusume.jp/news/detail/?id=3542) — other / community
 - [現在確認している不具合について](https://umamusume.jp/news/detail/?id=155) — other / issue
 
 
