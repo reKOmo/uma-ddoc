@@ -15,6 +15,7 @@ const CREDITS: readonly (readonly [string, string])[] = [
   ['tierList', 'https://euophrys.github.io/uma-tiers/'],
   ['pullGuide', PULL_GUIDE_URL],
   ['umapyoi', 'https://umapyoi.net/'],
+  ['umatl', 'https://github.com/UmaTL/hachimi-tl-en'],
 ];
 
 type ToggleProps<K extends SettingName> = {
@@ -79,6 +80,13 @@ function Toggle<K extends SettingName>({
 
 export default function SettingsPage() {
   const { t } = useTranslation();
+  // The same three for both servers' names.
+  const nameLabels = { jp: t('settings.namesJp'), official: t('settings.namesOfficial'), all: t('settings.namesAll') };
+  const nameDetails = {
+    jp: t('settings.namesJpDetail'),
+    official: t('settings.namesOfficialDetail'),
+    all: t('settings.namesAllDetail'),
+  };
   return (
     <div className={clsx('page', styles.settingsPage)}>
       <div className={styles.group}>
@@ -108,6 +116,24 @@ export default function SettingsPage() {
           labels={{ global: t('settings.scenarioNamesGlobal'), jp: t('settings.scenarioNamesJp') }}
           details={{ global: t('settings.scenarioNamesGlobalDetail'), jp: t('settings.scenarioNamesJpDetail') }}
         />
+        <section className={styles.setting}>
+          <h2>{t('settings.language')}</h2>
+          <p className={styles.hint}>{t('settings.languageHint')}</p>
+          <SubSetting
+            name="fanTlGlobal"
+            options={SETTING_OPTIONS.fanTlGlobal}
+            label={t('settings.fanTlGlobal')}
+            labels={nameLabels}
+            details={nameDetails}
+          />
+          <SubSetting
+            name="jpNames"
+            options={SETTING_OPTIONS.jpNames}
+            label={t('settings.jpNames')}
+            labels={nameLabels}
+            details={nameDetails}
+          />
+        </section>
         <Setting
           name="jpNewsLanguage"
           options={SETTING_OPTIONS.jpNewsLanguage}

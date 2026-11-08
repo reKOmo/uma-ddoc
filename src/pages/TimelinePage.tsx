@@ -4,6 +4,7 @@ import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SCENARIOS } from '../scenarioRelease.ts';
 import { useSettings } from '../settings.tsx';
+import { useLanguage } from '../translations.ts';
 import { useDragScroll } from '../useDragScroll.ts';
 import { type Mark, loadTimeline } from '../timeline/data.ts';
 import { useAsync } from '../useAsync.ts';
@@ -65,7 +66,11 @@ export default function TimelinePage({
   const format = useMemo(() => dateFormats(timeZone, clock), [timeZone, clock]);
   const scroller = useRef<HTMLDivElement>(null);
 
-  const loaded = useAsync(() => loadTimeline(server).then((l) => ({ server, ...l })), [server]).data;
+  const language = useLanguage(server);
+  const loaded = useAsync(
+    () => loadTimeline(server, { language }).then((l) => ({ server, ...l })),
+    [server, language]
+  ).data;
   // (Right after a server change, until the hook resets, its data is still the old server's.)
   const current = loaded?.server === server ? loaded : null;
   // Loaded after the calendar is drawn; only the sheet's entries get their counterpart (the bars don't show it).
@@ -90,7 +95,7 @@ export default function TimelinePage({
   // The search's chips: kept for this visit only (also across a server switch: characters and kinds are the same).
   const [chips, setChips] = useState<Term[]>([]);
   const [searching, setSearching] = useState(false);
-  const filters = useTimelineFilters(current?.entries ?? null, chips);
+  const filters = useTimelineFilters(current?.entries ?? null, chips, language);
   const { groups } = filters;
   const scenarios = useMemo(() => scenarioSegments(SCENARIOS, server), [server]);
   const px = ZOOMS[zoom] ?? 1;

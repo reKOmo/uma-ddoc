@@ -18,7 +18,8 @@ import { useSettings } from '../settings.tsx';
 import { loadPullGuide } from '../pullGuide.ts';
 import { useAsync } from '../useAsync.ts';
 import { itemList } from './events.ts';
-import { type DateFormats, barLabel, dateRange, daysOf, entryTitle, kindName } from './format.ts';
+import { type DateFormats, barLabel, dateRange, daysOf, entryTitle, kindName, labelIsFan } from './format.ts';
+import { FanTl } from '../ui/FanTl.tsx';
 import { type CardRank as CardRankValue, type RankResult, cardStat, useRankings } from './useRankings.ts';
 import type { Entry, EntryGroup } from './entries.ts';
 import type { EventItem, Phase, Race } from '../../shared/schemas/event.ts';
@@ -85,9 +86,9 @@ export default function TimelineSheet({
       <FreeScouts entry={entry} lookup={lookup} format={format} onSelect={onSelect} />
       <Featured entry={entry} rankings={rankings} advice={advice} />
       <Races races={entry.races} predicted={!!entry.prediction} />
-      <Rewards items={entry.items} />
+      <Rewards items={entry.items} fan={entry.fan} />
       <Schedule entry={entry} format={format} />
-      <Titles titles={entry.titles} />
+      <Titles titles={entry.titles} fan={entry.fan} />
       {nothing && <p className={styles.empty}>{entry.note ?? t('timeline.nothingListed')}</p>}
       <Parts entry={entry} lookup={lookup} format={format} onSelect={onSelect} />
       {cardIds.length > 0 && <RankNote scenario={scenario} server={server} upcoming={rankings?.upcoming} />}
@@ -104,7 +105,9 @@ function Header({ entry, format }: { entry: Entry; format: DateFormats }) {
       <Pill variant="kind" tone={entry.tone}>
         {kindName(entry)}
       </Pill>
-      <SheetTitle className={styles.title}>{entryTitle(entry)}</SheetTitle>
+      <SheetTitle className={styles.title}>
+        <FanTl fan={labelIsFan(entry, { title: true })}>{entryTitle(entry)}</FanTl>
+      </SheetTitle>
       {/* A div: the info's popup sits inside it. */}
       <div className={styles.dates}>
         <StatusBadge status={entry.status} />
@@ -185,7 +188,7 @@ function Featured({ entry, rankings, advice }: { entry: Entry; rankings: RankRes
       <h3 className={styles.heading}>{t(FEATURED_HEADING[entry.group])}</h3>
       <ul className={styles.featured}>
         {entry.featured.map((item) => (
-          <FeaturedItem key={item.key} item={item} rankings={rankings} advice={advice} />
+          <FeaturedItem key={item.key} item={item} rankings={rankings} advice={advice} fan={entry.fan} />
         ))}
       </ul>
     </>
@@ -198,10 +201,12 @@ function FeaturedItem({
   item,
   rankings,
   advice,
+  fan,
 }: {
   item: FeaturedEntry;
   rankings: RankResult | null;
   advice: BannerAdvice;
+  fan: Set<string>;
 }) {
   const { t } = useTranslation();
   const shouldPull = item.id != null ? advice?.[item.id]?.shouldPull : undefined;
@@ -214,10 +219,12 @@ function FeaturedItem({
       </div>
       <div className={styles.itemInfo}>
         <span className={styles.itemName}>
-          <strong>{item.name}</strong>
+          <strong>
+            <FanTl fan={fan.has(item.name)}>{item.name}</FanTl>
+          </strong>
           {item.title && (
             <span className={styles.itemTitle} title={item.title}>
-              {item.title}
+              <FanTl fan={fan.has(item.title)}>{item.title}</FanTl>
             </span>
           )}
         </span>
@@ -340,7 +347,7 @@ function Races({ races, predicted }: { races: Race[]; predicted: boolean }) {
 }
 
 // JP's items use Global's names where Global has them (the ones it doesn't stay Japanese).
-function Rewards({ items }: { items: EventItem[] }) {
+function Rewards({ items, fan }: { items: EventItem[]; fan: Set<string> }) {
   const { t } = useTranslation();
   if (!items.length) return null;
   const count = (value: NonNullable<EventItem['count']>) =>
@@ -353,7 +360,9 @@ function Rewards({ items }: { items: EventItem[] }) {
       <ul className={styles.rewards}>
         {itemList(items).map((item) => (
           <li key={item.name}>
-            {item.count == null ? item.name : t('timeline.itemCount', { name: item.name, count: count(item.count) })}
+            <FanTl fan={fan.has(item.name)}>
+              {item.count == null ? item.name : t('timeline.itemCount', { name: item.name, count: count(item.count) })}
+            </FanTl>
           </li>
         ))}
       </ul>
@@ -477,9 +486,16 @@ function Schedule({ entry, format }: { entry: Entry; format: DateFormats }) {
   );
 }
 
-function Titles({ titles }: { titles: string[] }) {
+// One mark for the line: the titles are a list in one sentence.
+function Titles({ titles, fan }: { titles: string[]; fan: Set<string> }) {
   const { t } = useTranslation();
-  return titles.length > 0 && <p className={styles.titles}>{t('timeline.titles', { titles })}</p>;
+  return (
+    titles.length > 0 && (
+      <p className={styles.titles}>
+        <FanTl fan={titles.some((title) => fan.has(title))}>{t('timeline.titles', { titles })}</FanTl>
+      </p>
+    )
+  );
 }
 
 function Parts({
@@ -504,7 +520,7 @@ function Parts({
           <li key={part.key}>
             <button type="button" className={styles.part} onClick={() => onSelect(part)}>
               <span className={styles.dot} data-tone={part.tone} aria-hidden="true" />
-              {barLabel(part)}
+              <FanTl fan={labelIsFan(part)}>{barLabel(part)}</FanTl>
               {part.featured.length > 0 && <small className={styles.hasCards}>{t('timeline.supportCards')}</small>}
             </button>
             <small>{dateRange(part, format.short)}</small>

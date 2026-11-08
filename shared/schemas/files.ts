@@ -14,6 +14,7 @@ import { KnownDatesFileSchema, PredictionsFileSchema } from './predictions.ts';
 import { PullGuideSchema } from './pullGuide.ts';
 import { ScenariosFileSchema } from './scenario.ts';
 import { SourcesFileSchema } from './sources.ts';
+import { TranslationsFileSchema, UmatlMdbSchema, UmatlTextDataSchema } from './translations.ts';
 
 // Committed: always there.
 export const DATA_FILES: Record<string, z.ZodType> = {
@@ -51,6 +52,9 @@ export const GENERATED_FILES: Record<string, z.ZodType> = {
   'generated/raw/gametora_cards.json': GametoraCardsFileSchema,
   'generated/raw/gametora_trainees.json': GametoraTraineesFileSchema,
   'generated/raw/gametora_events.json': GametoraEventsFileSchema,
+  'generated/translations.json': TranslationsFileSchema,
+  'generated/raw/umatl_text_data.json': UmatlTextDataSchema,
+  'generated/raw/umatl_mdb.json': UmatlMdbSchema,
 };
 
 // schemas/<name>: JSON Schemas for editors and other tools (pull_guide.json points at its own with `$schema`).

@@ -131,6 +131,7 @@
     "characters": "Trainees",
     "supportCards": "Support cards",
     "barLabel": "{{name}} +{{count}}",
+    "untranslated": "{{kind}}: {{name}}",
     "withRace": "{{label}} · {{race}}",
     "aboutDates": "About these dates",
     "status": {
@@ -494,7 +495,25 @@
       "umapyoi": {
         "name": "Umapyoi",
         "description": "Game news"
+      },
+      "umatl": {
+        "name": "UmaTL",
+        "description": "Fan translations of names Global hasn't released, marked on the page"
       }
-    }
+    },
+    "language": "Language",
+    "languageHint": "How cards, banners and events are named on each server: as JP writes them (on Global, where JP has a name), in Global's official English (Japanese where Global has none yet), or with GameTora's and UmaTL's fan translations filling the gaps (marked \"Translation from UmaTL\").",
+    "fanTlGlobal": "Global",
+    "jpNames": "JP",
+    "namesJp": "Japanese",
+    "namesJpDetail": "As JP writes them",
+    "namesOfficial": "Official English",
+    "namesOfficialDetail": "Global's names, else Japanese",
+    "namesAll": "All English",
+    "namesAllDetail": "+ GameTora & UmaTL"
+  },
+  "fanTl": {
+    "mark": "Translation from UmaTL",
+    "more": "Click to know more"
   }
 }

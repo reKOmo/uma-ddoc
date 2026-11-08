@@ -44,8 +44,8 @@
   sheets keep everything). **Search** (the toolbar's magnifier, `TimelineSearch.tsx` on downshift's combobox +
   match-sorter's ranking; while open the field takes the toolbar's row, "Close" folds it back to the button with a
   count of chips): typing only suggests, from this calendar's own entries (`searchIndex()` in `src/timeline/search.ts`):
-  characters (one per character, by English name through the card data, so JP's Japanese-named banners and events
-  match; the Japanese name finds them too), card types, pull advice (when the guide covers the calendar's banners: a
+  characters (one per character through the card data, so both servers' banners and events match; named as Settings →
+  Language names them, found by their English and Japanese names alike), card types, pull advice (when the guide covers the calendar's banners: a
   support card banner has a verdict when one of its cards has it, as in the filter), banner / event names, kinds, items, race courses, and the text
   itself (matches any field, card titles included), in groups by type (characters, card types, pull advice, kinds, events & banners,
   items, races, then the text), each a chip (a plus in its circle; the highlighted one outlined). Picked suggestions become chips like the filter's ticked ones, in the calendar's colour

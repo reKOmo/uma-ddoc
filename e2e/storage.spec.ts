@@ -18,6 +18,8 @@ test('settings survive a reload, stored as before', async ({ page }) => {
     jpNewsLanguage: 'jp',
     // Added later; the browser's (Playwright's Chromium is en-US: 12-hour).
     clock: '12h',
+    fanTlGlobal: 'all',
+    jpNames: 'jp',
   });
 });
 
@@ -26,11 +28,14 @@ test("an older version's settings load", async ({ page }) => {
     'uma-ddoc.settings': JSON.stringify({ timeZone: 'local', scenarioNames: 'jp', jpNewsLanguage: 'en' }),
   });
   const pressed = page.getByRole('main').getByRole('button', { pressed: true });
-  await expect(pressed).toHaveCount(4);
+  await expect(pressed).toHaveCount(6);
   await expect(pressed.nth(0)).toContainText('Local');
   // It stored no clock: the browser's.
   await expect(pressed.nth(1)).toContainText('12-hour');
   await expect(pressed.nth(2)).toContainText('JP');
+  // Added later: their defaults.
+  await expect(pressed.nth(3)).toContainText('All English');
+  await expect(pressed.nth(4)).toContainText('Japanese');
 });
 
 test('garbage in storage gives the defaults, not a crash', async ({ page }) => {

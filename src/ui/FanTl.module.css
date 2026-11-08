@@ -1,0 +1,13 @@
+/* The text's own colour, dimmed: it sits on banner art as well as on the page. */
+.mark {
+  margin-left: 0.4em;
+  padding-left: 0.4em;
+  border-left: 1px solid currentColor;
+  font-size: 0.6em;
+  font-weight: 700;
+  font-style: italic;
+  vertical-align: middle;
+  opacity: 0.75;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}

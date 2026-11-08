@@ -82,7 +82,18 @@ export type Entry = {
   // A banner's free pulls (banners' `free_pulls`), an event's free scout windows.
   freePulls: number | null;
   scouts: ScoutRow[];
+  // Set by translateEntries() (src/timeline/translate.ts): the names shown that are UmaTL's fan translations, the
+  // Japanese ones they replaced (the search still finds them), and an event left with a Japanese name in English.
+  fan: Set<string>;
+  originals: string[];
+  untranslated: boolean;
 };
+
+const untranslated = (): Pick<Entry, 'fan' | 'originals' | 'untranslated'> => ({
+  fan: new Set(),
+  originals: [],
+  untranslated: false,
+});
 
 type StatusDates = Pick<Banner, 'start' | 'end' | 'predicted'>;
 
@@ -182,6 +193,7 @@ function bannerEntry(
     titles: [],
     freePulls: banner.free_pulls ?? null,
     scouts: [],
+    ...untranslated(),
   };
 }
 
@@ -263,6 +275,7 @@ export function eventEntries(
         scouts,
         target: banner != null && type ? `${type === 'support' ? 'cards' : 'characters'}:${banner}` : null,
       })),
+      ...untranslated(),
     };
   });
 }

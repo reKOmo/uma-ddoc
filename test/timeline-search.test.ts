@@ -3,11 +3,24 @@ import { jumpTarget, searchIndex, searchResults, textTerm } from '../src/timelin
 import type { Entry } from '../src/timeline/entries.ts';
 import type { Term } from '../src/timeline/search.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
+import { type Language, languageOf } from '../src/translations.ts';
 import { fixture, present } from './helpers.ts';
 
 const cards = fixture<CardsFile>({
-  30001: { charId: 1001, type: 'speed', name: { en: 'Special Week', jp: 'スペシャルウィーク' } },
-  30002: { charId: 1002, type: 'wisdom', name: { en: 'Silence Suzuka', jp: 'サイレンススズカ' } },
+  30001: {
+    id: 30001,
+    charId: 1001,
+    type: 'speed',
+    name: { en: 'Special Week', jp: 'スペシャルウィーク' },
+    release: { gl: { date: '2025-01-01' }, jp: null },
+  },
+  30002: {
+    id: 30002,
+    charId: 1002,
+    type: 'wisdom',
+    name: { en: 'Silence Suzuka', jp: 'サイレンススズカ' },
+    release: { gl: null, jp: null },
+  },
 });
 const entry = (fields: Record<string, unknown>): Entry =>
   fixture<Entry>({
@@ -22,6 +35,7 @@ const entry = (fields: Record<string, unknown>): Entry =>
     featured: [],
     items: [],
     races: [],
+    originals: [],
     ...fields,
   });
 const card = (id: number, name: string) => ({ id, name, title: '[A Title]', card: true });
@@ -52,6 +66,22 @@ const term = (type: Term['type'], label: string): Term =>
 const keys = (chips: Term[]) => [...searchResults(entries, chips, index).matched.map((e) => e.key)];
 
 describe('the Timeline search', () => {
+  it("labels characters in the calendar's language and still finds them by both names", () => {
+    const labels = (language: Language) =>
+      searchIndex(entries, cards, null, language)
+        .terms.filter((t) => t.type === 'character')
+        .map((t) => [t.label, t.aliases]);
+    expect(labels(languageOf('gl', { fanTlGlobal: 'jp', jpNames: 'jp' }))).toEqual([
+      ['スペシャルウィーク', ['Special Week']],
+      ['サイレンススズカ', ['Silence Suzuka']],
+    ]);
+    // Official English: Global's name for a character it has, else Japanese.
+    expect(labels(languageOf('jp', { fanTlGlobal: 'all', jpNames: 'official' })).map(([label]) => label)).toEqual([
+      'Special Week',
+      'サイレンススズカ',
+    ]);
+  });
+
   it('suggests one character for all their cards and outfits, by English name, found by the Japanese one too', () => {
     const special = term('character', 'Special Week');
     expect(special.aliases).toContain('スペシャルウィーク');

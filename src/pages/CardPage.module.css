@@ -26,9 +26,27 @@
   margin: 0;
 }
 
+.names {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .title {
   margin: 0;
   color: var(--muted);
+}
+
+/* The name / title in the other language, beside the shown one. */
+.other {
+  margin-left: 0.5em;
+  font-size: 0.6em;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.title .other {
+  font-size: 0.75em;
 }
 
 .tags {
@@ -53,5 +71,22 @@
     align-items: flex-start;
     padding-top: 8px;
     text-align: left;
+  }
+
+  /* The other language's name and title in one column, starting at the same point. */
+  .names {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: baseline;
+    gap: 8px 0.75rem;
+  }
+
+  .names > h1,
+  .names > p {
+    display: contents;
+  }
+
+  .names .other {
+    margin-left: 0;
   }
 }
