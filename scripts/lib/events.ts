@@ -19,7 +19,7 @@ import { en } from './news-lang/en.ts';
 import { blockLines, eventBlocks, joinBlocks } from './event-blocks.ts';
 import { blockRaces } from './event-races.ts';
 import { cardIndex, cardsIn, copiesDoubt, itemDoubt, itemsIn, missionsIn, norm, titlesIn } from './event-rewards.ts';
-import { SUB_EVENT_KINDS, UNNAMED_KINDS, applyAnswer } from './event-questions.ts';
+import { SUB_EVENT_KINDS, UNNAMED_KINDS, applyAnswer, nameDoubt } from './event-questions.ts';
 import { type ScoutWindow, bannerOf, scoutWindows } from './free-scouts.ts';
 import { categorize, plain } from './post-categories.ts';
 import { EVENT_KINDS } from '../../shared/schemas/event.ts';
@@ -227,7 +227,12 @@ function withDoubts(
   lang: Lexicon,
   more: Record<string, string | null | false> = {}
 ): Fragment {
-  const found = { items: itemDoubt(lines, event.items, lang), cards: copiesDoubt(lines, event.cards, lang), ...more };
+  const found = {
+    items: itemDoubt(lines, event.items, lang),
+    cards: copiesDoubt(lines, event.cards, lang),
+    ...more,
+    name: more.name || nameDoubt(event.name, lang),
+  };
   const doubts = Object.fromEntries(Object.entries(found).filter((entry): entry is [string, string] => !!entry[1]));
   const text = lines.join('\n');
   return { ...event, doubts, text, aiKey: `${event.id}:${hash(text)}` };
@@ -367,19 +372,40 @@ export function postEvents(
   const startOf = (line: string | undefined) =>
     line && lang.starts.test(line) && lang.opening(line) ? lang.parsePeriod(line, year).start : null;
   const firstPeriod = first && headingPeriod(first, year, lang);
+  // (Starting with the celebration, only a sentence naming an event of its own: 653's "As of …, an Increased Bond
+  // Points event is underway!" after "As of …, our White Day Celebration has begun!", at the same time.)
+  const opensOwn = (line: string) =>
+    !!first &&
+    startOf(line) === firstPeriod?.start &&
+    !lang.contentSentence?.test(line) &&
+    sentenceName({ ...first, intro: [line] }, lang) !== null;
   const opens =
-    first && firstPeriod?.start && startOf(first.intro[0]) && startOf(first.intro[0]) !== firstPeriod.start
-      ? first.intro.findIndex((line, n) => n > 0 && startOf(line) === firstPeriod.start)
+    first && firstPeriod?.start && startOf(first.intro[0])
+      ? first.intro.findIndex(
+          (line, n) =>
+            n > 0 &&
+            startOf(line) === firstPeriod.start &&
+            (startOf(first.intro[0]) !== firstPeriod.start || opensOwn(line))
+        )
       : -1;
+  // (Or its first section goes on to: 1155's "Event Details: See below … / As of …, the Unity Cup Halved TP Costs event
+  // has begun!" over the Halved TP Costs' own period.)
+  const lines = first?.sections[0]?.lines ?? [];
+  const opensIn = opens > 0 ? -1 : lines.findIndex(opensOwn);
   const parts: [string | null, Block][] =
     opens > 0
       ? [
           [null, { ...first, intro: first.intro.slice(0, opens), sections: [] }],
           ['0', { ...first, art: null, artId: null, intro: first.intro.slice(opens) }],
         ]
-      : first
-        ? [[null, first]]
-        : [];
+      : opensIn >= 0
+        ? [
+            [null, { ...first, sections: [] }],
+            ['0', { ...first, art: null, artId: null, intro: lines.slice(opensIn), sections: first.sections.slice(1) }],
+          ]
+        : first
+          ? [[null, first]]
+          : [];
   parts.push(...rest.map((block, n): [string, Block] => [String(n + 1), block]));
   for (const [part, block] of groups.length ? [] : parts) {
     if (part !== null && lang.blockRole?.(block)) continue;
@@ -727,6 +753,7 @@ export function buildEvents(
   const byId = new Map(events.map((e) => [e.id, e]));
   return events
     .map((e) => (!e.image && e.parent ? { ...e, image: byId.get(e.parent)?.image ?? null } : e))
+    .map((e) => (e.name && lang.displayName ? { ...e, name: lang.displayName(e.name) } : e))
     .map((e) => output(e, banners))
     .sort((a, b) => b.start.date.localeCompare(a.start.date) || b.id.localeCompare(a.id));
 }

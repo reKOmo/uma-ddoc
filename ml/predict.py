@@ -62,7 +62,8 @@ def main():
 
     # Global's events paired with JP's (events.py): where JP's card releases put a JP event (between Global's
     # releases, then the model through the known dates so far) is what a pair must fit. The pairs are known dates too.
-    past, future = past_ref(b), predictor(load_known_dates(model.anchor[0]))
+    known = load_known_dates(model.anchor[0])
+    past, future = past_ref(b), predictor(known)
 
     def ref(jp):
         order = np.argsort(jp)
@@ -73,7 +74,7 @@ def main():
     pairs = pair_events(ref)
     write_pairs(pairs)
     # (only ahead of Global's last release: Global sometimes runs an event a few days before the cards of earlier JP days)
-    anchors = [(jp, gl) for jp, gl in anchor_points(pairs) if gl >= model.anchor[1]]
+    anchors = [(jp, gl) for jp, gl in anchor_points(pairs, {jp for jp, _ in known}) if gl >= model.anchor[1]]
     known = load_known_dates(model.anchor[0], events=anchors)
     predict = predictor(known)
 

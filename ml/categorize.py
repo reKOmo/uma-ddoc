@@ -121,6 +121,7 @@ def unit_rows(features, kinds):
                 'empty': str(u['empty']),
                 'rules': f"{u['rules']['role']}/{u['rules']['kind'] or ''}" if u['rules'] else '-',
                 'post_kind': kinds[f['id']] or '-',
+                'named': u.get('named') or '-',
             })
     return pd.DataFrame(rows)
 
@@ -140,7 +141,7 @@ POST_MODEL = lambda: model(text('title'), text('opening'), text('body', min_df=2
                            categories('art', 'arts', 'series', 'rules', 'twin'))
 PHASE_MODEL = lambda: model(text('title', (1, 3)), letters('title'), categories('rules_phase', 'series'))  # noqa: E731
 UNIT_MODEL = lambda: model(text('opening'), text('headings'), text('body', min_df=2),  # noqa: E731
-                           categories('art', 'position', 'dated', 'empty', 'rules', 'post_kind'))
+                           categories('art', 'position', 'dated', 'empty', 'rules', 'post_kind', 'named'))
 
 
 def load(server):

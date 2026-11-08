@@ -36,7 +36,11 @@
   starts with a later opening sentence, not the celebration's own, announces an included event: from that sentence on
   it's a sub-event `<post>-0` (Holiday Celebration Part 2's "The in-game collaboration event …, Sparkly Magic Show, is
   set to kick off at …": kind special, `lang.inGameEvent`; 1st Anniversary Part 3's login bonus), and the event's own
-  post merges into it (Global's 1109 → `1093-0`). A celebration without a
+  post merges into it (Global's 1109 → `1093-0`). Starting with the celebration, a later sentence opens one only if it
+  names an event of its own, in block 0's intro or first section (653's "an Increased Bond Points event is underway!",
+  1155's "the Unity Cup Halved TP Costs event has begun!"; not `lang.contentSentence`, "the special … home screen is
+  available!"): these decide only the rules' unit labels, a feature of the unit classifier (rules 93.6 → 96.3% of
+  Global's gold units, 2026-11-08), since every stored post is classified. A celebration without a
   period of its own runs from its opening sentence's date to its last sub-event's end. Dates (`blockPeriod()`): the
   block's period headings (main ones first: availability / event / sale / league selection; never reward collection, expiry,
   registration, matching, sneak peek, ranking, exchange), every short non-bullet line under them; "Gift Timing" lists
@@ -95,7 +99,9 @@
 - **A model for what the rules doubt** (`scripts/lib/ai.ts`, `event-questions.ts`, `ai-events.ts`, `pnpm news:ai`): the
   rules stay the extractor; each event records its `doubts` ({ field: why }: an amount in a sentence they didn't read or
   given per day (`itemDoubt()`), copies given in several places or talked about but not read (`copiesDoubt()`), a
-  sub-event name from a heading instead of a sentence, a kind nothing matched, dates from a sentence or a "Timing"
+  sub-event name from a heading instead of a sentence, a name that's a kind's generic word or (English) starts
+  lowercase (`nameDoubt()`: "events" from "Unity Cup: Shine On, Team Spirit! events are here!"; a doubted name isn't
+  shown to the model, which repeats it), a kind nothing matched, dates from a sentence or a "Timing"
   list). `askedFields()`: those, plus a card without copies or an event without a name (not items named without an
   amount, nor Legend Race / Transfer Request names: posts don't have them). Each question is narrow: the fields, worked
   examples from made-up posts (none copied from real ones; several answer null), the event's own text, and for an

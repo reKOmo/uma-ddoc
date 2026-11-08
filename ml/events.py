@@ -367,9 +367,12 @@ def write_pairs(result):
                             f'"missing_parts": [\n{lines(result["missing_parts"])}\n]\n}}\n')
 
 
-def anchor_points(result):
-    """(JP day, Global day) of the anchor pairs: the JP start's JST day → the Global start's UTC day."""
-    return [(p['jp_day'], p['gl_day']) for p in result['pairs'] if p['anchor']]
+def anchor_points(result, known_jp=()):
+    """(JP day, Global day) of the anchor pairs: the JP start's JST day → the Global start's UTC day. None for an
+    event whose JP start is on a known JP day (known_jp): it's known already, and a cup compared on round 1 would
+    count twice (Aquarius Cup: its league selection by hand, then round 1)."""
+    return [(p['jp_day'], p['gl_day']) for p in result['pairs']
+            if p['anchor'] and jst_day(p['jp_start']) not in known_jp]
 
 
 def past_ref(b):
