@@ -60,6 +60,9 @@ function features(post: NewsPost, server: Server, others: Map<number, Twin>, gol
       empty: blockLines(unit).length === 0,
       // (the rules cut only event posts into parts)
       rules: rules.units[i] ? { role: rules.units[i].role, kind: rules.units[i].kind } : null,
+      // The kind its opening sentence names ("… Login Bonus has begun!"), whatever the rules made of the unit: the
+      // first part after a celebration's intro is the rules' "event" and often a login bonus, but not when it says not.
+      named: lang.subKinds.find(([, re]) => re.test(unit.intro[0] ?? ''))?.[0] ?? null,
     })),
   };
 }

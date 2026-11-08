@@ -187,16 +187,6 @@ describe('withPredicted', () => {
     const story = groups[0].rows[0].find((item) => item.entry.id === '1');
     expect(story && idsOf(story.parts).flat()).toContain('jp-9-1');
   });
-
-  it("keeps every predicted event after Global's latest real one of its kind (the real data)", {
-    tags: ['data'],
-  }, () => {
-    const merged = withPredicted(globalEvents, predicted.events);
-    const latest = (kind: string) =>
-      Math.max(...globalEvents.filter((e) => e.kind === kind && !e.parent).map((e) => Date.parse(e.start.date)));
-    for (const e of merged.filter((x) => 'predicted' in x && x.predicted && !x.parent))
-      expect(Date.parse(e.start.date) > latest(e.kind) || latest(e.kind) === -Infinity).toBe(true);
-  });
 });
 
 // `pnpm predict-gl` writes this file; it is optional.
@@ -205,7 +195,17 @@ const predictedFiles: [string, PredictedEventsFile][] = [['the fixture', predict
 if (existsSync(PREDICTED_FILE))
   predictedFiles.push(['generated/predicted_global_events.json', JSON.parse(readFileSync(PREDICTED_FILE, 'utf8'))]);
 
-describe.each(predictedFiles)('predicted events (%s)', { tags: ['data'] }, (_, file) => {
+describe.each(predictedFiles)('predicted events (%s)', { tags: ['data'] }, (name, file) => {
+  // (Not the fixture: it was predicted from older data, which Global's news has since caught up with.)
+  it.skipIf(name === 'the fixture')("come after Global's latest real event of their kind", () => {
+    const latest = (kind: string) =>
+      Math.max(...globalEvents.filter((e) => e.kind === kind && !e.parent).map((e) => Date.parse(e.start.date)));
+    const early = file.events.filter(
+      (e) => !e.parent && latest(e.kind) > -Infinity && Date.parse(e.start.date) <= latest(e.kind)
+    );
+    expect(early.map((e) => `${e.id} ${e.kind} ${e.start.date}`)).toEqual([]);
+  });
+
   it("are JP's events with Global dates, of kinds the app styles and labels", () => {
     expect(file.source).toBeTruthy();
     // A part's parent: a predicted event, or the Global celebration whose post doesn't list the part.

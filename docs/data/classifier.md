@@ -58,7 +58,10 @@ post and unit, so Python needs no parser) and `pnpm news:categorize` (`ml/catego
 regressions → `data/news/gl/categories.json`, `CategoriesFileSchema`). Features: title, opening sentence and text
 words, Global's template phrases (`en.ts` `signals`), art series (`banner_<3 digits>`: 301 story, 302 Legend Race,
 303 Champions Meeting…; a celebration's standalone posts share its series), id series, the same-id JP post's category
-and today's rules' answer, so the models learn where the rules go wrong.
+and today's rules' answer, so the models learn where the rules go wrong. A unit also has the kind its opening
+sentence names by `subKinds` (`named`: "… Login Bonus has begun!"): the first part after a celebration's intro is the
+rules' "event" and usually a login bonus, and without it the model said so for 1155's Halved TP Costs too (unit
+role/kind 2026-11-08: Global 99.0 → 99.4%, newest 97.5 → 98.0%; JP 98.4 → 99.0%, newest 97.8 → 98.2%).
 
 - **Units** (role + kind; a `continues` counts as `none`: in the gold set it only follows a `none`) and **phase** are
   the models'. **A post's category + kind are the rules'**: no learned model beats them (their misses are one-off

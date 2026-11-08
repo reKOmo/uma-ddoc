@@ -87,6 +87,9 @@ export type Lexicon = {
   revise?: (rule: Revised, has: (signal: string) => boolean, title: string) => Revised;
   // An event's name when the title gives none.
   titleName: (title: string) => string;
+  // An event's name as shown, once built (English: its first letter capitalized, "thank-you present…" from "A
+  // thank-you present to all our trainers!").
+  displayName?: (name: string) => string;
 
   // A banner's art: split on (the capture keeps it), and its URL + gacha id.
   bannerArt: RegExp;
@@ -223,6 +226,9 @@ export type Lexicon = {
   deadline?: (block: Block, ref: DateRef) => string | null;
   // JP: a celebration's part that is no event of its own (a scout's, a summary, a feature): its role, else null.
   blockRole?: (block: Block) => string | null;
+  // A sentence about content, not an event of its own, though it reads like one ("the special … home screen is
+  // available!": the gold set's `none`).
+  contentSentence?: RegExp;
   // JP: copies one part of a celebration gives, from the post's summary of them (lines, the part's name).
   partCopies?: (lines: string[], part: string | null, card?: unknown) => number | null;
   // JP: a sub-event's name when its sentence has none.

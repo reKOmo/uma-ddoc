@@ -9,8 +9,11 @@ gave, shown as JP's. Announced Global dates go in
 - **Known dates from Global's banners** (`ml/adjust.py`): every Global banner rerunning a JP banner newer than the
   anchor is a known date (JP start's JST date → Global start's UTC date), merged with `known_dates.json` (hand
   entries win; out-of-order ones dropped with a warning). Predicted banners skip ids `data/` already has. **Event
-  pairs** are known dates too, with the lowest priority (hand entries, then banner reruns, then events; only at or
-  after Global's last release; a Champions Meeting compared on round 1 on both sides). Backtest (mean of the
+  pairs** are known dates too, with the lowest priority (hand entries, then banner reruns, then the ends of
+  `known_dates.json`'s banners, then events; only at or after Global's last release; a Champions Meeting compared on
+  round 1 on both sides; none for an event whose JP start is already a known day, or a cup counts twice). A banner's
+  end gives the day the next banner starts on each side (JP's 30148 ended as Grand Masters launched; the November 2026
+  schedule ends Global's on Dec 2). Backtest (mean of the
   per-bucket median errors, linear(all)): 3.40 → 2.90 days with them (2026-10-12).
 - **Global ↔ JP events and predicted Global events** (`ml/events.py`, run by `predict-gl`): each Global top-level
   event is paired with JP's (`generated/event_pairs.json`: `{ pairs: [{ gl, jp, kind, how, gl_start, jp_start, dev_days,
