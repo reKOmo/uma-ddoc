@@ -41,6 +41,8 @@ describe('settings', () => {
       scenarioNames: 'global',
       jpNewsLanguage: 'en',
       clock: DEFAULTS.clock,
+      fanTlGlobal: 'all',
+      jpNames: 'jp',
     });
   });
 
@@ -59,6 +61,8 @@ describe('settings', () => {
       scenarioNames: 'jp',
       jpNewsLanguage: 'jp',
       clock: DEFAULTS.clock,
+      fanTlGlobal: 'all',
+      jpNames: 'jp',
     });
   });
 

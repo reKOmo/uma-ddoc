@@ -5,6 +5,8 @@ import { type ArtBannerFile, withArt } from '../gametora.ts';
 import { withPredicted } from './events.ts';
 import { type Counterpart, type Entry, bannerEntries, eventEntries, linkFreeScouts } from './entries.ts';
 import { globalProgress } from './globalProgress.ts';
+import { type JapaneseNames, japaneseEntries, translateEntries } from './translate.ts';
+import { type Language, loadTranslations, toJapanese } from '../translations.ts';
 import type { BannerFile } from '../../shared/schemas/banner.ts';
 import type {
   EventPairsFile,
@@ -129,12 +131,39 @@ const loadFiles = (server: Server): Promise<[Banners, EventsFile]> => {
   const name = SERVERS[server].banners as BannerName;
   return Promise.all([loadBanners(name), loadEvents(name)]);
 };
-const toEntries = (banners: Banners, events: EventsFile, now: number): Entry[] =>
-  linkFreeScouts([...bannerEntries(banners, { now }), ...eventEntries(events, { cards, now })]);
+// `language`: the names' (src/translations.ts), as the files write them by default.
+type Options = { now?: number; language?: Language };
+async function toEntries(server: Server, banners: Banners, events: EventsFile, options: Options): Promise<Entry[]> {
+  const { now = Date.now(), language } = options;
+  const entries = linkFreeScouts([...bannerEntries(banners, { now }), ...eventEntries(events, { cards, now })]);
+  if (!language) return entries;
+  if (toJapanese(language)) return japaneseEntries(entries, await japaneseNames());
+  return translateEntries(entries, { tl: await loadTranslations(), language, cards, server });
+}
 
-export async function loadEntries(server: Server, now = Date.now()): Promise<Entry[]> {
+// JP's names for Global's banners (the same gacha id), trainees and paired events.
+async function japaneseNames(): Promise<JapaneseNames> {
+  const [jp, events, pairs] = await Promise.all([loadRealBanners('jp'), loadEvents('jp'), loadPairs()]);
+  const jpBanners = [...jp.characters, ...jp.cards];
+  const eventNames = new Map(events.flatMap((e) => (e.name ? [[e.id, e.name] as const] : [])));
+  return {
+    cards,
+    banners: new Map(jpBanners.flatMap((b) => (b.name ? [[String(b.id), b.name] as const] : []))),
+    trainees: new Map(
+      jp.characters.flatMap((b) => b.featured.flatMap((f) => (f.id != null ? [[f.id, f] as const] : [])))
+    ),
+    events: new Map(
+      pairs.flatMap((p) => {
+        const name = eventNames.get(p.jp);
+        return name ? [[p.gl, name] as const] : [];
+      })
+    ),
+  };
+}
+
+export async function loadEntries(server: Server, options: Options = {}): Promise<Entry[]> {
   const [banners, events] = await loadFiles(server);
-  return toEntries(banners, events, now);
+  return toEntries(server, banners, events, options);
 }
 
 // The calendar draws from `entries`; `others()` loads what needs the other server's files (large, and needed only
@@ -142,11 +171,11 @@ export async function loadEntries(server: Server, now = Date.now()): Promise<Ent
 export type Others = { marks: Mark[]; counterparts: Map<string, Counterpart> };
 export async function loadTimeline(
   server: Server,
-  now = Date.now()
+  options: Options = {}
 ): Promise<{ entries: Entry[]; others: () => Promise<Others> }> {
   const [banners, events] = await loadFiles(server);
   return {
-    entries: toEntries(banners, events, now),
+    entries: await toEntries(server, banners, events, options),
     others: async () => {
       const [marks, ids] = await Promise.all([MARKS[server]?.(banners) ?? [], COUNTERPARTS[server](banners, events)]);
       const counterparts = new Map([...ids].map(([own, id]) => [own, { server: OTHER[server], id }]));

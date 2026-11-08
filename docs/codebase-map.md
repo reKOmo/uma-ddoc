@@ -54,6 +54,8 @@ scripts/
   lib/scenarios.ts   Career scenarios (data/scenarios.json): SCENARIO_NAMES (slug → key + JP/Global short names, by hand),
                      mergeGametora() (JP side), applyScenarioNews() (Global side, from the news)
   fetch-pull-guide.ts  Luh's Support Card Encyclopedia (Google Sheet) → generated/pull_guide.json
+  fetch-umatl.ts     UmaTL's tables → generated/raw/umatl_*.json → generated/translations.json
+  lib/umatl.ts       pure: buildTranslations() (UmaTL + Global's names joined with our JP data), cleanText(), textKey()
   lib/pull-guide.ts  pure: the sheet's HTML view → entries (dates, Pull?, notes) → advice per banner (findBanner())
   fetch-news-latest.ts  new/edited posts → data/news/<server>/posts.json + summary.md (incremental, news:run)
   fetch-news-all.ts  the whole archive → data/news/<server>/posts.json (one-off, resumable)
@@ -85,12 +87,13 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   rawStorage.ts      the persisted stores' localStorage adapter: each store keeps its own stored format (never
                      zustand's { state, version } wrapper), every access guarded (private windows)
   settingsStore.ts   user settings (zustand + persist; getSetting / setSetting / subscribe for non-React readers):
-                     timeZone 'utc' | 'local', scenarioNames 'global' | 'jp', jpNewsLanguage 'jp' | 'en'
+                     timeZone 'utc' | 'local', scenarioNames 'global' | 'jp', jpNewsLanguage 'jp' | 'en',
+                     fanTlGlobal / jpNames 'jp' | 'official' | 'all'
   tierListFilters.ts the Cards tab's stat / LB filter / search / card size (zustand store): getFilters(),
                      saveFilters(), DEFAULTS, SIZES, isDefault()
   settings.tsx       useSettings() (the settings store's hook); App calls it so plain readers like scenarioName()
                      refresh on change
-  ui/                the shared components (each with its module): LinkButton, SeeMore, FoldToggle, Pill (tag / kind
+  ui/                the shared components (each with its module): LinkButton, SeeMore, FoldToggle, FanTl (the "Translation from UmaTL" mark), Pill (tag / kind
                      / status / verdict / label), TierChip, Status, Segmented, Section, SearchInput, ToolbarButton,
                      CardRow; pages use them where they look identical, else keep their own markup
   pages/SettingsPage.tsx               the Settings tab
@@ -113,6 +116,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   cardOrigins.ts     pure: cardOrigins() (a card's banners and events, as Timeline entries, oldest first; generic: the
                      origins keep the entries given), originKinds()
   predictions.ts     optional loader for generated/predicted_gl_releases.json
+  translations.ts    optional loader for generated/translations.json; languageOf() / useLanguage() (the Names settings)
   pullGuide.ts       optional loader for generated/pull_guide.json (card page's "Pull advice"), upcomingBanner(),
                      currentAdvice(), latestAdvice(), sheetLink()
   umapyoi.ts         umapyoiUrl(news_url): umapyoi.net's copy of an official post (JP's in Japanese)
@@ -166,6 +170,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     compact.ts       compact mode on/off (default on; zustand store): getCompact() / saveCompact()
     scenarioStrip.ts pure: scenario segments (launch → next launch, cover colour + text ink) for the calendar's strip
     globalProgress.ts pure: where Global is in JP's history (window between banners + linear estimate)
+    translate.ts     pure: translateEntries() (Japanese names → English by the language; fan names, originals)
   tiers.ts           toTiers(), cardRanks(), TIER_NAMES, STAT_OF_TYPE
   servers.ts         SERVERS: gl/jp ↔ banner file names
   i18n/index.ts      i18next setup; statName/serverName/scenarioName/lbName, formatDate

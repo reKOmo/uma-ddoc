@@ -22,9 +22,16 @@ import Status from '../../ui/Status.tsx';
 import RankChart, { formatDay } from '../RankChart.tsx';
 import { useUpcomingRanking } from './hooks.ts';
 import { LIMIT_BREAKS, nameOf, titleOf } from './shared.ts';
+import { type Language, type TranslationsFile, useLanguage, useTranslations } from '../../translations.ts';
+import { FanTl } from '../../ui/FanTl.tsx';
 import styles from './RankOverTime.module.css';
 
 const UPCOMING_SHOWN = 2;
+
+function cardTitle(id: number, language: Language, tl: TranslationsFile | null) {
+  const title = titleOf(id, language, tl);
+  return title && <FanTl fan={title.fan}>{title.text}</FanTl>;
+}
 
 function timelineClass(predicted: boolean, next: HistoryPoint | undefined, fade = false): string {
   return clsx(
@@ -71,6 +78,8 @@ export default function RankOverTime({
   stat,
 }: RankOverTimeProps) {
   const { t } = useTranslation();
+  const language = useLanguage(server);
+  const tl = useTranslations();
   const [scenario, setScenario] = useState(defaultScenario);
   const [lb, setLb] = useState(4);
   // Which card's passes are unfolded, so following a "See card" link folds them again.
@@ -168,7 +177,7 @@ export default function RankOverTime({
               </>
             )}
           </p>
-          <RankChart history={history} nameOf={(id: number) => nameOf(id, server)} />
+          <RankChart history={history} nameOf={(id: number) => nameOf(id, language)} />
           <p className={styles.note}>
             {t('card.historyNote', {
               lb: lbName(lb),
@@ -224,8 +233,8 @@ export default function RankOverTime({
                                 <CardRow
                                   href={cardUrl(c.id)}
                                   icon={cardIcon(c.id, cards)}
-                                  name={nameOf(c.id, server) ?? ''}
-                                  title={titleOf(c.id, server)}
+                                  name={nameOf(c.id, language) ?? ''}
+                                  title={cardTitle(c.id, language, tl)}
                                   className={styles.cardRow}
                                 />
                                 <SeeMore href={cardUrl(c.id)}>{t('card.seeCard')}</SeeMore>

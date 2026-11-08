@@ -10,7 +10,8 @@ import type { OriginKind } from '../../cardOrigins.ts';
 import { loadPullGuide } from '../../pullGuide.ts';
 import { useSettings } from '../../settings.tsx';
 import { useAsync } from '../../useAsync.ts';
-import { dateFormats, dateRange, entryTitle, kindName } from '../../timeline/format.ts';
+import { dateFormats, dateRange, entryTitle, kindName, labelIsFan } from '../../timeline/format.ts';
+import { FanTl } from '../../ui/FanTl.tsx';
 import StatusBadge from '../../timeline/StatusBadge.tsx';
 import FoldToggle from '../../ui/FoldToggle.tsx';
 import Pill from '../../ui/Pill.tsx';
@@ -107,7 +108,9 @@ export default function Origins({ card, server, origins }: OriginsProps) {
                       <span className={clsx(styles.kind, KIND_CLASS[origin.kind])}>{originLabel(origin, t)}</span>
                       {rerun && <Pill variant="tag">{t('card.origins.rerun')}</Pill>}
                     </span>
-                    <span className={styles.name}>{entryTitle(entry)}</span>
+                    <span className={styles.name}>
+                      <FanTl fan={labelIsFan(entry, { title: true })}>{entryTitle(entry)}</FanTl>
+                    </span>
                     <span className={styles.when}>
                       <StatusBadge status={entry.status} />
                       {dateRange(entry, format)}

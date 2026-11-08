@@ -57,12 +57,22 @@ export const kindName = (entry: Pick<Entry, 'group' | 'kind'>): string =>
 
 // A bar's label: a banner by its main featured item (and how many more), else its name; an event's name, else its
 // kind's (Legend Races, Transfer Requests).
-export function barLabel(entry: Pick<Entry, 'main' | 'name' | 'kind' | 'group'>): string {
+// An event whose name stayed Japanese in English says its kind first.
+type Labelled = Pick<Entry, 'main' | 'name' | 'kind' | 'group'> & Partial<Pick<Entry, 'untranslated'>>;
+export function barLabel(entry: Labelled): string {
   if (entry.main)
     return entry.main.others > 0
       ? i18n.t('timeline.barLabel', { name: entry.main.name, count: entry.main.others })
       : entry.main.name;
+  if (entry.name && entry.untranslated)
+    return i18n.t('timeline.untranslated', { kind: kindName(entry), name: entry.name });
   return entry.name ?? kindName(entry);
+}
+
+// Whether the bar's label (`title`: the sheet's title) shows a fan translation (src/timeline/translate.ts).
+export function labelIsFan(entry: Pick<Entry, 'main' | 'name' | 'fan'>, { title = false } = {}): boolean {
+  const shown = entry.main && !(title && entry.name) ? entry.main.name : entry.name;
+  return shown != null && entry.fan.has(shown);
 }
 
 // The bar's course: its first race with a distance ("Nakayama 2500m"), or null.

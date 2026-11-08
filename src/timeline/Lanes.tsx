@@ -7,7 +7,8 @@ import { type LaneGroupRows, type LaneItem, partCount } from './layout.ts';
 import type { DateFormats } from './format.ts';
 import type { RenderWindow } from './useRenderWindow.ts';
 import styles from './Lanes.module.css';
-import { barLabel, dateRange, kindName, raceLabel } from './format.ts';
+import { barLabel, dateRange, kindName, labelIsFan, raceLabel } from './format.ts';
+import { FanTl } from '../ui/FanTl.tsx';
 
 // Bars too short for a label are chips: no label, no art (name in the tooltip and sheet).
 const CHIP_WIDTH = 64;
@@ -212,7 +213,9 @@ const Bar = memo(function Bar({
       />
       {!chip && (
         <span className={styles.barLabel} aria-hidden="true">
-          <strong>{race ? t('timeline.withRace', { label, race }) : label}</strong>
+          <strong>
+            <FanTl fan={labelIsFan(entry)}>{race ? t('timeline.withRace', { label, race }) : label}</FanTl>
+          </strong>
           <small>{dateRange(entry, format.short)}</small>
         </span>
       )}

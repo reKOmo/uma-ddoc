@@ -11,12 +11,13 @@ import { type LaneGroupRows, laneGroups } from './layout.ts';
 import { DEFAULT_ORDER, isDefaultOrder, orderedGroups, reorderGroups, saveOrder, useOrderStore } from './order.ts';
 import { type Term, jumpTarget, searchIndex, searchResults } from './search.ts';
 import { useSearchOverrideStore } from './searchOverride.ts';
+import type { Language } from '../translations.ts';
 import { pullKey } from './TimelineFilter.tsx';
 
 const NONE = new Set<string>();
 const NO_GROUPS: LaneGroupRows<Entry>[] = [];
 
-export function useTimelineFilters(entries: Entry[] | null, chips: Term[]) {
+export function useTimelineFilters(entries: Entry[] | null, chips: Term[], language: Language) {
   const hidden = useHiddenStore((state) => state.hidden);
   const changeHidden = useCallback((update: (old: Set<string>) => Set<string>) => saveHidden(update(getHidden())), []);
   const order = useOrderStore((state) => state.order);
@@ -40,7 +41,10 @@ export function useTimelineFilters(entries: Entry[] | null, chips: Term[]) {
         entry.featured.flatMap((item) => (item.card && item.id != null ? [Number(item.id)] : []))
       );
   }, [guide, entries]);
-  const index = useMemo(() => entries && searchIndex(entries, cards, verdictsOf), [entries, verdictsOf]);
+  const index = useMemo(
+    () => entries && searchIndex(entries, cards, verdictsOf, language),
+    [entries, verdictsOf, language]
+  );
   const override = useSearchOverrideStore((state) => state.override);
   const { groups, search } = useMemo(() => {
     if (!entries || !index) return { groups: NO_GROUPS, search: null };

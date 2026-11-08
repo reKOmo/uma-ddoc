@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./generated/translations.json)",
+      "Read(./generated/raw/umatl_*)",
+      "Read(./dist/**/translations*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-umatl.mjs\"",
+            "statusMessage": "Checking for UmaTL data"
+          }
+        ]
+      }
+    ]
+  }
+}
