@@ -221,6 +221,10 @@ const EXAMPLES: Examples = {
       { name: 'Winter Festival Login Bonus' },
     ],
     ['A Legend Race is here! Challenge Legend Umamusume to obtain a variety of rewards.', { name: null }],
+    [
+      "We're celebrating the Career Scenario Starlit Stage: Dance On! with a set of special events!",
+      { name: 'Starlit Stage: Dance On!' },
+    ],
   ],
   kind: [
     ['During this event, the TP cost of starting a Career is halved!', { kind: 'campaign' }],
@@ -461,7 +465,18 @@ const GENERIC =
 const GENERIC_JA =
   /^[「『]?(?:レジェンドレース|特別移籍|チャンピオンズミーティング|リーグ オブ ヒーローズ|ストーリーイベント|イベント|ログインボーナス|キャンペーン|ミッション|プレゼント|セール|ショップ)[」』]?$/;
 
+// Why the rules' name for an event looks wrong, or null: a kind's generic word ("events" from "X! events are here!"),
+// or (English) a piece of a sentence, which a title-cased name never starts lowercase.
+export function nameDoubt(name: string | null, lang: Lexicon = en): string | null {
+  if (!name) return null;
+  if (questionsOf(lang).generic.test(name.trim())) return 'the name is a generic word, not a name';
+  if (lang.server === 'gl' && /^[a-z]/.test(name)) return 'the name starts lowercase: a piece of a sentence';
+  return null;
+}
+
 const isMissionSet = (event: AskedEvent) => /-m\d+$/.test(event.id);
+// (A doubted name isn't shown: a model shown it repeats it.)
+const shownName = (event: AskedEvent) => ('name' in event.doubts ? null : event.name) ?? '?';
 
 // Per server (the lexicon's `server`): what's asked and how answers are checked.
 type Questions = {
@@ -491,7 +506,7 @@ const QUESTIONS: Record<string, Questions> = {
       const when = event.start
         ? `${event.start.slice(0, 16).replace('T', ' ')} to ${event.end?.slice(0, 16).replace('T', ' ') ?? '?'} UTC`
         : 'unknown dates';
-      return [`Event: ${event.kind.replace('_', ' ')} "${event.name ?? '?'}" (${when}, as read so far).`];
+      return [`Event: ${event.kind.replace('_', ' ')} "${shownName(event)}" (${when}, as read so far).`];
     },
     // An item's name from an answer (as we show it, and as the post writes it), or null when it isn't one the text has.
     item: (event, raw) => {
@@ -515,7 +530,7 @@ const QUESTIONS: Record<string, Questions> = {
     header: (event) => {
       const when = event.start ? `${jst(event.start)} to ${event.end ? jst(event.end) : '?'} JST` : 'unknown dates';
       return [
-        `Event: ${event.kind.replace('_', ' ')} "${event.name ?? '?'}" (${when}, as read so far).`,
+        `Event: ${event.kind.replace('_', ' ')} "${shownName(event)}" (${when}, as read so far).`,
         `Posted: ${jst(event.posted).slice(0, 10)}`,
       ];
     },

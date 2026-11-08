@@ -70,6 +70,19 @@ def banner_dates(banners):
     return list(zip(to_days(jst), to_days([g[:10] for _, g in pairs])))
 
 
+def banner_end_dates(banners):
+    """(jp, gl) days of Global banners' ends ({ id, end }) with a JP one of the same id: the day each side's next
+    banner starts (the end + 1 s: JP's day in JST, Global's in UTC). JP's 30148 ended as Grand Masters launched, and
+    the release schedule ends Global's on Dec 2."""
+    jp = jp_banners()
+    jp_end = {b['id']: b.get('end') for b in jp['characters'] + jp['cards']}
+    pairs = [(jp_end[b['id']], b['end']) for b in banners if b.get('end') and jp_end.get(b['id'])]
+    if not pairs:
+        return []
+    after = lambda iso, hours: (pd.Timestamp(iso) + pd.Timedelta(hours=hours, seconds=1)).date().isoformat()  # noqa: E731
+    return list(zip(to_days([after(j, 9) for j, _ in pairs]), to_days([after(g, 0) for _, g in pairs])))
+
+
 def earliest(points, after_jp, skip=()):
     """{ jp: earliest gl } over (jp, gl) points later than after_jp (a JP day's banners can start on
     different Global days; its cards come with the first)."""
@@ -82,7 +95,8 @@ def earliest(points, after_jp, skip=()):
 
 def load_known_dates(after_jp, events=()):
     """Known (jp, gl) days for JP dates later than after_jp (earlier ones are already in the data):
-    known_dates.json's (`dates`, then `banners`), plus Global banners' (data/) for other JP dates, then `events`:
+    known_dates.json's (`dates`, then `banners`), plus Global banners' (data/) for other JP dates, then the ends of
+    known_dates.json's `banners`, then `events`:
     (jp, gl) days of Global events paired with JP's (events.py's anchors) for JP dates none of those has. A data/
     banner's or an event's date out of order with the rest is left out with a warning (Global rarely reorders
     banners); a hand-entered one out of order is an error."""
@@ -101,6 +115,9 @@ def load_known_dates(after_jp, events=()):
         if jp > after_jp and jp not in by_hand:
             from_banners[float(jp)] = min(float(gl), from_banners.get(float(jp), np.inf))
     known = merge_in_order(known, from_banners, 'Global banner')
+    # (a confirmed banner's end: after every start, which says more about its own JP day)
+    ends = banner_end_dates(list(confirmed_banners().values()))
+    known = merge_in_order(known, earliest(ends, after_jp, skip={jp for jp, _ in known}), 'confirmed banner end')
     taken = {jp for jp, _ in known}
     return merge_in_order(known, earliest(events, after_jp, skip=taken), 'Global event')
 
