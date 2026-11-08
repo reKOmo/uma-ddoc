@@ -8,14 +8,18 @@ const PHASE_WORDS =
   /\s*(?:is here|are here|is coming.*|coming soon|(?:is )?now (?:available|underway)|out now|has begun|has ended|ending soon|added)!?$/i;
 
 // A celebration's or campaign's name: the title without its phase, a leading "A special" or tagline ("Up to 100 free scouts! …"),
-// a trailing "event" or "!".
-const campaignName = (title: string) =>
-  title
-    .replace(PHASE_WORDS, '')
+// a trailing "event" or "!". "<name> events" celebrates a thing whose name can have a "!" of its own ("Unity Cup: Shine
+// On, Team Spirit! events are here!"), so it's that name as it is, not a tagline.
+const campaignName = (title: string) => {
+  const bare = title.replace(PHASE_WORDS, '');
+  const of = bare.match(/^(.+?)\s+(?:events|campaigns)$/i);
+  if (of) return of[1];
+  return bare
     .replace(/^.*!\s+(?=\S)/, '')
     .replace(/^(?:An?|The) (?:special )?/i, '')
     .replace(/\s+event$|!$/i, '')
     .replace(/^"(.*)"$/, '$1');
+};
 
 // A celebration part's name from sentence shapes the patterns (`subNames`) don't read: a numbered part of a named
 // mission set, an event that "begins" or "will begin", and fixed names for parts a sentence only describes (checked
@@ -125,6 +129,7 @@ export const en: Lexicon = {
   },
 
   titleName: (title) => title.replace(/!$/, ''),
+  displayName: (name) => name.charAt(0).toUpperCase() + name.slice(1),
 
   // A banner's art (<img …gacha_banner_<id>_….png>): split on (the capture keeps it), and its URL + gacha id.
   bannerArt: /(<img[^>]*\ssrc="[^"]*gacha_banner_\d+_[^"]*"[^>]*>)/,
@@ -287,6 +292,7 @@ export const en: Lexicon = {
   ],
   // A block with gift/reward contents gives something (a sub-event even without a period).
   gives: /gift contents|reward contents/i,
+  contentSentence: /\bhome screens? (?:is|are) (?:now )?available/i,
   // The post's sentence about its mission sets' rewards ("By completing these missions, you can earn rewards
   // including carats, monies and Support Points!").
   missionRewards: (line) => /missions/i.test(line) && /rewards?/i.test(line),
@@ -360,6 +366,10 @@ export const en: Lexicon = {
       good: { ground: 'good' },
       soft: { ground: 'soft' },
       heavy: { ground: 'heavy' },
+      // (JP's 昼 / 夕 / 夜: Global's Aquarius Cup, JP's 昼, says "Afternoon".)
+      afternoon: { time: 'day' },
+      evening: { time: 'evening' },
+      night: { time: 'night' },
     },
     opponents: /^Weather \/ Track Conditions?$/i,
     opponent: /^•\s*(.+?):\s*(.+)$/,
