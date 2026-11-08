@@ -1,4 +1,5 @@
 [
+{"id": 3542, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": []},
 {"id": 3538, "category": "other", "kind": "issue", "phase": null, "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": []},
 {"id": 3537, "category": "other", "kind": "issue", "phase": null, "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": []},
 {"id": 3533, "category": "other", "kind": "update", "phase": null, "name": null, "source": "model", "confidence": 1.0, "flag": null, "units": []},
@@ -13,6 +14,8 @@
 {"id": 3524, "category": "other", "kind": "maintenance", "phase": null, "name": null, "source": "model", "confidence": 0.95, "flag": null, "units": []},
 {"id": 3523, "category": "other", "kind": "maintenance", "phase": null, "name": null, "source": "gold", "confidence": null, "flag": null, "units": []},
 {"id": 3522, "category": "other", "kind": "update", "phase": null, "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
+{"id": 3521, "category": "event", "kind": "legend_race", "phase": "started", "name": null, "source": "model", "confidence": 0.982, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
+{"id": 3520, "category": "event", "kind": "legend_race", "phase": "announced", "name": null, "source": "model", "confidence": 0.991, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
 {"id": 3518, "category": "event", "kind": "special", "phase": "started", "name": null, "source": "model", "confidence": 0.996, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
 {"id": 3517, "category": "event", "kind": "special", "phase": "announced", "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 3516, "category": "other", "kind": "scenario", "phase": "started", "name": null, "source": "model", "confidence": 0.961, "flag": null, "units": []},
