@@ -1,7 +1,9 @@
 [
 {"id": 3542, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": []},
+{"id": 3539, "category": "event", "kind": "factor_research", "phase": "announced", "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 3538, "category": "other", "kind": "issue", "phase": null, "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": []},
 {"id": 3537, "category": "other", "kind": "issue", "phase": null, "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": []},
+{"id": 3534, "category": "banner", "kind": null, "phase": "announced", "name": null, "source": "model", "confidence": 1.0, "flag": null, "units": []},
 {"id": 3533, "category": "other", "kind": "update", "phase": null, "name": null, "source": "model", "confidence": 1.0, "flag": null, "units": []},
 {"id": 3532, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
 {"id": 3531, "category": "other", "kind": "update", "phase": "started", "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
