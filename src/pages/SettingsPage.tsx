@@ -2,7 +2,8 @@ import clsx from 'clsx';
 import { ExternalLink } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 import pkg from '../../package.json' with { type: 'json' };
-import { Segmented } from '../ui/Segmented.tsx';
+import Dropdown from '../Dropdown.tsx';
+import { OptionCards } from '../ui/OptionCards.tsx';
 import { SETTING_OPTIONS, localTimeZone, useSettings } from '../settings.tsx';
 import type { Settings, SettingName } from '../settingsStore.ts';
 import styles from './SettingsPage.module.css';
@@ -51,6 +52,31 @@ function SubSetting<K extends SettingName>({ label, ...toggle }: ToggleProps<K> 
   );
 }
 
+// A choice of how a server's names read, as a dropdown (its options' details beside them in the list).
+function NamesDropdown({ name, label }: { name: 'fanTlGlobal' | 'jpNames'; label: string }) {
+  const { t } = useTranslation();
+  const { settings, setSetting } = useSettings();
+  const options = SETTING_OPTIONS[name];
+  const key = { jp: 'namesJp', official: 'namesOfficial', all: 'namesAll' } as const;
+  return (
+    <Dropdown
+      roomy
+      label={label}
+      value={settings[name]}
+      options={options.map((option) => ({
+        value: option,
+        label: t(`settings.${key[option]}`),
+        note: t(`settings.${key[option]}Detail`),
+      }))}
+      onChange={(value) => {
+        const option = options.find((o) => o === value);
+        if (option) setSetting(name, option);
+      }}
+    />
+  );
+}
+
+// The choices side by side as cards.
 function Toggle<K extends SettingName>({
   name,
   options,
@@ -60,18 +86,9 @@ function Toggle<K extends SettingName>({
 }: ToggleProps<K> & { labelledBy: string }) {
   const { settings, setSetting } = useSettings();
   return (
-    <Segmented<Settings[K]>
+    <OptionCards<Settings[K]>
       labelledBy={labelledBy}
-      className={styles.toggle}
-      options={options.map((option) => ({
-        value: option,
-        label: (
-          <>
-            <span className={styles.optionLabel}>{labels[option]}</span>
-            {details[option] && <small className={styles.optionDetail}>{details[option]}</small>}
-          </>
-        ),
-      }))}
+      options={options.map((option) => ({ value: option, label: labels[option], detail: details[option] }))}
       value={settings[name]}
       onChange={(value) => setSetting(name, value)}
     />
@@ -80,69 +97,58 @@ function Toggle<K extends SettingName>({
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  // The same three for both servers' names.
-  const nameLabels = { jp: t('settings.namesJp'), official: t('settings.namesOfficial'), all: t('settings.namesAll') };
-  const nameDetails = {
-    jp: t('settings.namesJpDetail'),
-    official: t('settings.namesOfficialDetail'),
-    all: t('settings.namesAllDetail'),
-  };
   return (
     <div className={clsx('page', styles.settingsPage)}>
-      <div className={styles.group}>
-        <section className={styles.setting}>
-          <h2>{t('settings.times')}</h2>
-          <p className={styles.hint}>{t('settings.timesHint')}</p>
-          <SubSetting
-            name="timeZone"
-            options={SETTING_OPTIONS.timeZone}
-            label={t('settings.timeZone')}
-            labels={{ utc: t('settings.utc'), local: t('settings.local') }}
-            details={{ utc: t('settings.utcDetail'), local: t('settings.localDetail', { zone: localTimeZone() }) }}
-          />
-          <SubSetting
-            name="clock"
-            options={SETTING_OPTIONS.clock}
-            label={t('settings.clock')}
-            labels={{ '12h': t('settings.clock12'), '24h': t('settings.clock24') }}
-            details={{ '12h': '10:00 PM', '24h': '22:00' }}
-          />
-        </section>
-        <Setting
-          name="scenarioNames"
-          options={SETTING_OPTIONS.scenarioNames}
-          title={t('settings.scenarioNames')}
-          hint={t('settings.scenarioNamesHint')}
-          labels={{ global: t('settings.scenarioNamesGlobal'), jp: t('settings.scenarioNamesJp') }}
-          details={{ global: t('settings.scenarioNamesGlobalDetail'), jp: t('settings.scenarioNamesJpDetail') }}
+      <Setting
+        name="theme"
+        options={SETTING_OPTIONS.theme}
+        title={t('settings.theme')}
+        hint={t('settings.themeHint')}
+        labels={{ system: t('settings.themeSystem'), light: t('settings.themeLight'), dark: t('settings.themeDark') }}
+        details={{ system: t('settings.themeSystemDetail'), light: '', dark: '' }}
+      />
+      <section className={styles.setting}>
+        <h2>{t('settings.times')}</h2>
+        <p className={styles.hint}>{t('settings.timesHint')}</p>
+        <SubSetting
+          name="timeZone"
+          options={SETTING_OPTIONS.timeZone}
+          label={t('settings.timeZone')}
+          labels={{ utc: t('settings.utc'), local: t('settings.local') }}
+          details={{ utc: t('settings.utcDetail'), local: t('settings.localDetail', { zone: localTimeZone() }) }}
         />
-        <section className={styles.setting}>
-          <h2>{t('settings.language')}</h2>
-          <p className={styles.hint}>{t('settings.languageHint')}</p>
-          <SubSetting
-            name="fanTlGlobal"
-            options={SETTING_OPTIONS.fanTlGlobal}
-            label={t('settings.fanTlGlobal')}
-            labels={nameLabels}
-            details={nameDetails}
-          />
-          <SubSetting
-            name="jpNames"
-            options={SETTING_OPTIONS.jpNames}
-            label={t('settings.jpNames')}
-            labels={nameLabels}
-            details={nameDetails}
-          />
-        </section>
-        <Setting
-          name="jpNewsLanguage"
-          options={SETTING_OPTIONS.jpNewsLanguage}
-          title={t('settings.jpNewsLanguage')}
-          hint={t('settings.jpNewsLanguageHint')}
-          labels={{ jp: t('settings.jpNewsLanguageJp'), en: t('settings.jpNewsLanguageEn') }}
-          details={{ jp: t('settings.jpNewsLanguageJpDetail'), en: t('settings.jpNewsLanguageEnDetail') }}
+        <SubSetting
+          name="clock"
+          options={SETTING_OPTIONS.clock}
+          label={t('settings.clock')}
+          labels={{ '12h': t('settings.clock12'), '24h': t('settings.clock24') }}
+          details={{ '12h': '10:00 PM', '24h': '22:00' }}
         />
-      </div>
+      </section>
+      <Setting
+        name="scenarioNames"
+        options={SETTING_OPTIONS.scenarioNames}
+        title={t('settings.scenarioNames')}
+        hint={t('settings.scenarioNamesHint')}
+        labels={{ global: t('settings.scenarioNamesGlobal'), jp: t('settings.scenarioNamesJp') }}
+        details={{ global: t('settings.scenarioNamesGlobalDetail'), jp: t('settings.scenarioNamesJpDetail') }}
+      />
+      <section className={styles.setting}>
+        <h2>{t('settings.language')}</h2>
+        <p className={styles.hint}>{t('settings.languageHint')}</p>
+        <div className={styles.dropdowns}>
+          <NamesDropdown name="fanTlGlobal" label={t('settings.fanTlGlobal')} />
+          <NamesDropdown name="jpNames" label={t('settings.jpNames')} />
+        </div>
+      </section>
+      <Setting
+        name="jpNewsLanguage"
+        options={SETTING_OPTIONS.jpNewsLanguage}
+        title={t('settings.jpNewsLanguage')}
+        hint={t('settings.jpNewsLanguageHint')}
+        labels={{ jp: t('settings.jpNewsLanguageJp'), en: t('settings.jpNewsLanguageEn') }}
+        details={{ jp: t('settings.jpNewsLanguageJpDetail'), en: t('settings.jpNewsLanguageEnDetail') }}
+      />
 
       <section className={styles.about}>
         <h2>{t('settings.about')}</h2>

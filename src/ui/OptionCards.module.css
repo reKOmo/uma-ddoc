@@ -1,0 +1,77 @@
+.group {
+  display: grid;
+  grid-template-columns: repeat(var(--columns, 2), minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 34px 8px 14px;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--option-border);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.option:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--option-border));
+}
+
+.option[aria-pressed="true"] {
+  background: var(--selected);
+  border-color: var(--accent);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.detail {
+  font-size: 0.7rem;
+  line-height: 1.25;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.check {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  color: var(--accent-text);
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+/* Three across a phone are narrow: tighter sides, the check nearer the edge, so a word like "System" stays whole. */
+.group[data-columns="3"] .option {
+  padding: 8px 26px 8px 10px;
+}
+
+.group[data-columns="3"] .check {
+  right: 6px;
+}

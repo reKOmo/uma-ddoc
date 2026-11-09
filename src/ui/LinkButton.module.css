@@ -1,17 +1,22 @@
+/* A link as a tinted chip in the accent's colour (the Timeline sheet's links match). */
 .linkButton {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 44px;
+  padding: 0 16px;
   font: inherit;
-  font-weight: 600;
-  color: var(--accent);
+  font-weight: 700;
+  color: var(--accent-ink);
   text-decoration: none;
-  background: var(--panel);
-  border: 1px solid var(--accent);
+  background: var(--inset);
+  border: 2px solid transparent;
   border-radius: 999px;
   cursor: pointer;
+}
+
+.linkButton:hover {
+  border-color: var(--accent);
 }
 
 .linkButton:active {

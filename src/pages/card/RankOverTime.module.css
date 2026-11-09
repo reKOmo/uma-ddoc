@@ -50,7 +50,7 @@
   list-style: none;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .list > li {
@@ -168,11 +168,12 @@ button.less {
 }
 
 .rank.up svg {
-  color: var(--rank-up);
+  /* (light: a touch of --text, so the vivid green as small text reads 4.5:1; dark: the colour itself) */
+  color: color-mix(in srgb, var(--rank-up) 75%, light-dark(var(--text), var(--rank-up)));
 }
 
 .rank.down svg {
-  color: var(--rank-down);
+  color: color-mix(in srgb, var(--rank-down) 75%, light-dark(var(--text), var(--rank-down)));
 }
 
 .cards {

@@ -28,6 +28,27 @@
   border-bottom: 1px solid var(--border);
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.logo {
+  display: flex;
+  flex: none;
+  border-radius: 8px;
+}
+
+.logo img {
+  display: block;
+  width: 32px;
+  height: 32px;
+  /* The drawing fills the icon's bottom 76% (empty above): up 12% centres it on the title. */
+  translate: 0 -12%;
+}
+
 .topbar h1 {
   min-width: 0;
   margin: 0;
@@ -45,19 +66,34 @@
   padding: 0 12px 0 8px;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
 }
 
-.serverSwitch {
+/* A pill holding pill buttons, over Segmented's joined boxes (doubled class, :nth-child(n): to outrank its
+   first/last-child corners). */
+.serverSwitch.serverSwitch {
   flex-shrink: 0;
+  gap: 2px;
+  padding: 3px;
+  background: var(--panel);
+  border: 2px solid var(--option-border);
+  border-radius: 999px;
 }
 
-.serverSwitch button {
-  min-height: 32px;
-  padding: 0 10px;
+.serverSwitch.serverSwitch > button:nth-child(n) {
+  min-height: 30px;
+  padding: 0 12px;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+}
+
+.serverSwitch.serverSwitch > button:nth-child(n)[aria-pressed="true"] {
+  color: var(--accent-text);
+  background: var(--accent);
 }
 
 .tabbar {
@@ -84,12 +120,22 @@
 
 /* aria-current, not a class: screen readers announce it and the tests look it up. */
 .tabbar a[aria-current="page"] {
-  color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 600;
 }
 
+/* (overflow: an icon's stroke can reach its box's edge, the Scenarios one's circle does: an svg would clip it) */
 .tabIcon {
   flex-shrink: 0;
+  overflow: visible;
+  box-sizing: content-box;
+  padding: 3px 16px;
+  border-radius: 999px;
+}
+
+/* The open tab's icon on a pill (phones; the desktop tabs are a row of words). */
+.tabbar a[aria-current="page"] .tabIcon {
+  background: var(--selected);
 }
 
 @media (min-width: 768px) {
@@ -105,6 +151,14 @@
   .topbar {
     order: -2;
     padding: 0 16px;
+  }
+
+  .tabIcon {
+    padding: 0;
+  }
+
+  .tabbar a[aria-current="page"] .tabIcon {
+    background: none;
   }
 
   .tabbar a {

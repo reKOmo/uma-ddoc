@@ -1,4 +1,4 @@
-import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, FoldVertical, Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +12,8 @@ import { buildTimeline } from '../timeline/layout.ts';
 import { scenarioSegments } from '../timeline/scenarioStrip.ts';
 import { getCollapsed, saveCollapsed, useCollapsedStore } from '../timeline/collapsed.ts';
 import TimelineFilter from '../timeline/TimelineFilter.tsx';
-import TimelineSearch, { SearchButton } from '../timeline/TimelineSearch.tsx';
+import TimelineSearch from '../timeline/TimelineSearch.tsx';
+import TimelineSkeleton from '../timeline/TimelineSkeleton.tsx';
 import type { Term } from '../timeline/search.ts';
 import { VERDICTS } from '../pullGuide.ts';
 import { dateFormats } from '../timeline/format.ts';
@@ -24,7 +25,6 @@ import { endOfToday, middleOf, useCenterOn } from '../timeline/useCenterOn.ts';
 import { useCompactRows } from '../timeline/useCompactRows.ts';
 import { useRenderWindow } from '../timeline/useRenderWindow.ts';
 import { useTimelineFilters } from '../timeline/useTimelineFilters.ts';
-import Status from '../ui/Status.tsx';
 import { ToolbarButton } from '../ui/ToolbarButton.tsx';
 import { timelineUrl } from '../routes.ts';
 import type { Server } from '../servers.ts';
@@ -94,8 +94,10 @@ export default function TimelinePage({
   );
   // The search's chips: kept for this visit only (also across a server switch: characters and kinds are the same).
   const [chips, setChips] = useState<Term[]>([]);
-  const [searching, setSearching] = useState(false);
-  const filters = useTimelineFilters(current?.entries ?? null, chips, language);
+  // The calendar follows the chips a moment later: the search field shows a removed (or added) chip at once, the
+  // lanes' refiltering renders after it.
+  const searched = useDeferredValue(chips);
+  const filters = useTimelineFilters(current?.entries ?? null, searched, language);
   const { groups } = filters;
   const scenarios = useMemo(() => scenarioSegments(SCENARIOS, server), [server]);
   const px = ZOOMS[zoom] ?? 1;
@@ -166,7 +168,7 @@ export default function TimelinePage({
     const index = search.target ? search.matched.indexOf(search.target) : 0;
     setCursor(index);
     if (search.target) scrollToDay(timeline.at(middleOf(search.target)));
-  }, [chips, timeline]);
+  }, [searched, timeline]);
 
   const entry = selected ? byKey.get(selected) : undefined;
 
@@ -178,72 +180,66 @@ export default function TimelinePage({
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.toolbar}>
-          {searching ? (
-            <TimelineSearch
-              terms={filters.terms}
-              chips={chips}
-              onChange={setChips}
-              onClose={() => setSearching(false)}
+          {/* Always open: under the buttons on phones, before them on desktop (CSS order). */}
+          <div className={styles.searchSlot}>
+            <TimelineSearch terms={filters.terms} chips={chips} onChange={setChips} />
+          </div>
+          {marks.map((mark) => (
+            <ToolbarButton
+              key={mark.key}
+              icon={MARK_ICONS[mark.key]}
+              label={t(`timeline.mark.${mark.key}.button`)}
+              title={t(`timeline.mark.${mark.key}.title`)}
+              phoneIconOnly
+              onClick={() => timeline && scrollToDay(timeline.at(mark.at))}
             />
-          ) : (
-            <>
-              <SearchButton count={chips.length} onClick={() => setSearching(true)} disabled={!timeline} />
-              {marks.map((mark) => (
-                <ToolbarButton
-                  key={mark.key}
-                  icon={MARK_ICONS[mark.key]}
-                  label={t(`timeline.mark.${mark.key}.button`)}
-                  title={t(`timeline.mark.${mark.key}.title`)}
-                  onClick={() => timeline && scrollToDay(timeline.at(mark.at))}
-                />
-              ))}
-              <TimelineFilter
-                kinds={filters.kinds}
-                verdicts={filters.verdictsOf ? VERDICTS : []}
-                hidden={filters.hidden}
-                onChange={filters.changeHidden}
-                groups={filters.presentGroups}
-                onReorder={filters.reorder}
-                onResetOrder={filters.resetOrder}
-                defaultOrder={filters.defaultOrder}
-                disabled={!timeline}
-              />
-              <ToolbarButton
-                icon={LocateFixed}
-                label={t('timeline.today')}
-                onClick={() => timeline && scrollToDay(endOfToday(timeline))}
-                disabled={!timeline}
-              />
-              <ToolbarButton
-                icon={FoldVertical}
-                label={t('timeline.compact')}
-                title={t('timeline.compactTitle')}
-                onClick={toggleCompact}
-                disabled={!timeline}
-                pressed={compact}
-                iconOnly
-              />
-              {/* Not a Segmented: the buttons aren't a choice (no pressed one) and each disables at its own end. */}
-              <fieldset className={styles.zoom} aria-label={t('timeline.zoom')}>
-                <button
-                  type="button"
-                  onClick={() => changeZoom(zoom - 1)}
-                  disabled={!timeline || zoom === 0}
-                  aria-label={t('timeline.zoomOut')}
-                >
-                  <ZoomOut size={18} aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => changeZoom(zoom + 1)}
-                  disabled={!timeline || zoom === ZOOMS.length - 1}
-                  aria-label={t('timeline.zoomIn')}
-                >
-                  <ZoomIn size={18} aria-hidden="true" />
-                </button>
-              </fieldset>
-            </>
-          )}
+          ))}
+          <TimelineFilter
+            kinds={filters.kinds}
+            verdicts={filters.verdictsOf ? VERDICTS : []}
+            hidden={filters.hidden}
+            onChange={filters.changeHidden}
+            groups={filters.presentGroups}
+            onReorder={filters.reorder}
+            onResetOrder={filters.resetOrder}
+            defaultOrder={filters.defaultOrder}
+            disabled={!timeline}
+          />
+          <ToolbarButton
+            icon={LocateFixed}
+            label={t('timeline.today')}
+            phoneIconOnly
+            onClick={() => timeline && scrollToDay(endOfToday(timeline))}
+            disabled={!timeline}
+          />
+          <ToolbarButton
+            icon={FoldVertical}
+            label={t('timeline.compact')}
+            title={t('timeline.compactTitle')}
+            onClick={toggleCompact}
+            disabled={!timeline}
+            pressed={compact}
+            iconOnly
+          />
+          {/* Not a Segmented: the buttons aren't a choice (no pressed one) and each disables at its own end. */}
+          <fieldset className={styles.zoom} aria-label={t('timeline.zoom')}>
+            <button
+              type="button"
+              onClick={() => changeZoom(zoom - 1)}
+              disabled={!timeline || zoom === 0}
+              aria-label={t('timeline.zoomOut')}
+            >
+              <ZoomOut size={18} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => changeZoom(zoom + 1)}
+              disabled={!timeline || zoom === ZOOMS.length - 1}
+              aria-label={t('timeline.zoomIn')}
+            >
+              <ZoomIn size={18} aria-hidden="true" />
+            </button>
+          </fieldset>
         </div>
         {filters.search && (
           <p className={styles.searchNote} role="status">
@@ -281,7 +277,7 @@ export default function TimelinePage({
       </header>
 
       {!timeline || !current ? (
-        <Status className={styles.status}>{t('timeline.loading')}</Status>
+        <TimelineSkeleton />
       ) : (
         <div className={styles.timeline} ref={scroller}>
           {/* Half a screen of slack at the end, so today can always be centred. */}

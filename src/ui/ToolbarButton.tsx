@@ -8,6 +8,8 @@ export type ToolbarButtonProps = {
   pressed?: boolean;
   disabled?: boolean;
   iconOnly?: boolean;
+  /** Only the icon on phones (the label still names it, and shows on desktop). */
+  phoneIconOnly?: boolean;
   title?: string;
   /** A count shown by the icon (none when 0). */
   badge?: number;
@@ -20,6 +22,7 @@ export function ToolbarButton({
   pressed,
   disabled,
   iconOnly,
+  phoneIconOnly,
   title,
   badge,
 }: ToolbarButtonProps) {
@@ -31,10 +34,10 @@ export function ToolbarButton({
       disabled={disabled}
       aria-pressed={pressed}
       aria-label={iconOnly ? label : undefined}
-      title={title}
+      title={title ?? (phoneIconOnly ? label : undefined)}
     >
       {Icon && <Icon size={18} aria-hidden="true" />}
-      {!iconOnly && label}
+      {!iconOnly && <span className={phoneIconOnly ? styles.phoneHidden : undefined}>{label}</span>}
       {!!badge && (
         <span className={styles.badge} aria-hidden="true">
           {badge}

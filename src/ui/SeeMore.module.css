@@ -3,15 +3,19 @@
   flex-shrink: 0;
   align-items: center;
   min-height: 32px;
-  padding: 0 4px 0 9px;
+  padding: 0 4px 0 10px;
   font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--accent);
+  font-weight: 700;
+  color: var(--accent-ink);
   white-space: nowrap;
   text-decoration: none;
-  background: none;
-  border: 1px solid var(--accent);
+  background: var(--inset);
+  border: 2px solid transparent;
   border-radius: 999px;
+}
+
+.seeMore:hover {
+  border-color: var(--accent);
 }
 
 .seeMore:active {

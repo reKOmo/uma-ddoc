@@ -15,9 +15,11 @@ export type FilterButtonProps = {
   countTitle?: string;
   onClick: () => void;
   disabled?: boolean;
+  /** Only the icon on phones (the label still names it, and shows on desktop). */
+  phoneIconOnly?: boolean;
 };
 
-export function FilterButton({ count, countTitle, onClick, disabled }: FilterButtonProps) {
+export function FilterButton({ count, countTitle, onClick, disabled, phoneIconOnly }: FilterButtonProps) {
   const { t } = useTranslation();
   return (
     <button
@@ -26,9 +28,10 @@ export function FilterButton({ count, countTitle, onClick, disabled }: FilterBut
       onClick={onClick}
       disabled={disabled}
       aria-haspopup="dialog"
+      title={phoneIconOnly ? t('filter.button') : undefined}
     >
       <SlidersHorizontal size={18} aria-hidden="true" />
-      {t('filter.button')}
+      <span className={phoneIconOnly ? styles.phoneHidden : undefined}>{t('filter.button')}</span>
       {count > 0 && (
         <span className={styles.filterCount} title={countTitle}>
           {count}

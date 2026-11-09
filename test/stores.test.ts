@@ -43,7 +43,15 @@ describe('settings', () => {
       clock: DEFAULTS.clock,
       fanTlGlobal: 'all',
       jpNames: 'jp',
+      // (added later: the device's)
+      theme: 'system',
     });
+  });
+
+  it('loads a stored theme', async () => {
+    data.set(KEY, JSON.stringify({ timeZone: 'utc', theme: 'dark' }));
+    const { getSetting } = await load();
+    expect(getSetting('theme')).toBe('dark');
   });
 
   it('loads a stored clock', async () => {
@@ -63,6 +71,8 @@ describe('settings', () => {
       clock: DEFAULTS.clock,
       fanTlGlobal: 'all',
       jpNames: 'jp',
+      // (added later: the device's)
+      theme: 'system',
     });
   });
 

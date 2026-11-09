@@ -10,6 +10,7 @@ import Pill from '../src/ui/Pill.tsx';
 import TierChip from '../src/ui/TierChip.tsx';
 import Status from '../src/ui/Status.tsx';
 import StatusBadge from '../src/timeline/StatusBadge.tsx';
+import { OptionCards } from '../src/ui/OptionCards.tsx';
 
 afterEach(cleanup);
 
@@ -160,5 +161,37 @@ describe('Status', () => {
   it('is a paragraph of text', () => {
     render(<Status>Loading</Status>);
     expect(screen.getByText('Loading').tagName).toBe('P');
+  });
+});
+
+describe('OptionCards', () => {
+  const options = [
+    { value: 'a', label: 'Alpha', detail: 'First' },
+    { value: 'b', label: 'Beta', detail: 'Second' },
+  ] as const;
+
+  it('names the group by its label and presses the chosen card only', () => {
+    render(
+      <>
+        <span id="pick">Pick one</span>
+        <OptionCards labelledBy="pick" options={options} value="b" onChange={() => {}} />
+      </>
+    );
+    const group = screen.getByRole('group', { name: 'Pick one' });
+    expect(group.querySelectorAll('[aria-pressed="true"]')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /Beta/ }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: /Alpha/ }).textContent).toContain('First');
+  });
+
+  it('calls onChange with the clicked card', () => {
+    const onChange = vi.fn();
+    render(
+      <>
+        <span id="pick">Pick one</span>
+        <OptionCards labelledBy="pick" options={options} value="a" onChange={onChange} />
+      </>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Beta/ }));
+    expect(onChange).toHaveBeenCalledWith('b');
   });
 });

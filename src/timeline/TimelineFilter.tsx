@@ -91,6 +91,7 @@ export default function TimelineFilter({
         countTitle={t('timeline.filter.hiddenCount', { count: hiddenCount })}
         onClick={() => setOpen(true)}
         disabled={disabled}
+        phoneIconOnly
       />
       <FilterSheet
         open={open}

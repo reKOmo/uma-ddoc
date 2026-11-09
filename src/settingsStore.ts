@@ -1,5 +1,5 @@
 // Read outside React too (getSetting(); React uses src/settings.tsx). Remembered in this browser as the stored JSON
-// `{ timeZone, scenarioNames, jpNewsLanguage, clock, fanTlGlobal, jpNames }` (keys are only ever added, never changed). Storage can be missing or
+// `{ timeZone, scenarioNames, jpNewsLanguage, clock, fanTlGlobal, jpNames, theme }` (keys are only ever added, never changed). Storage can be missing or
 // throw: the defaults apply then.
 //   timeZone       'utc' (the game's own times, default) | 'local' (the viewer's timezone)
 //   clock          '12h' | '24h' (default: the browser's own, from its locale)
@@ -8,6 +8,7 @@
 //   fanTlGlobal    Global's names: 'jp' (as JP writes them, where JP has them) | 'official' (Global's official English,
 //                  else Japanese) | 'all' (Global's, else GameTora's, else UmaTL's; default)
 //   jpNames        JP's names, the same options; default 'jp'
+//   theme          'system' (the device's light or dark, default) | 'light' | 'dark' (src/theme.ts applies it)
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -21,6 +22,7 @@ export type Settings = {
   clock: '12h' | '24h';
   fanTlGlobal: 'jp' | 'official' | 'all';
   jpNames: 'jp' | 'official' | 'all';
+  theme: 'system' | 'light' | 'dark';
 };
 export type SettingName = keyof Settings;
 
@@ -37,6 +39,7 @@ export const DEFAULTS: Settings = {
   clock: browserClock(),
   fanTlGlobal: 'all',
   jpNames: 'jp',
+  theme: 'system',
 };
 export const OPTIONS = {
   timeZone: ['utc', 'local'],
@@ -45,6 +48,7 @@ export const OPTIONS = {
   clock: ['12h', '24h'],
   fanTlGlobal: ['jp', 'official', 'all'],
   jpNames: ['jp', 'official', 'all'],
+  theme: ['system', 'light', 'dark'],
 } as const;
 const KEY = 'uma-ddoc.settings';
 
@@ -57,6 +61,7 @@ const schema = z.looseObject({
   clock: z.catch(z.enum(OPTIONS.clock), DEFAULTS.clock),
   fanTlGlobal: z.catch(z.enum(OPTIONS.fanTlGlobal), DEFAULTS.fanTlGlobal),
   jpNames: z.catch(z.enum(OPTIONS.jpNames), DEFAULTS.jpNames),
+  theme: z.catch(z.enum(OPTIONS.theme), DEFAULTS.theme),
 });
 
 type State = {
@@ -80,8 +85,8 @@ export const useSettingsStore = create<State>()(
         (raw) => {
           const parsed = schema.safeParse(JSON.parse(raw));
           if (!parsed.success) return null;
-          const { timeZone, scenarioNames, jpNewsLanguage, clock, fanTlGlobal, jpNames } = parsed.data;
-          return { settings: { timeZone, scenarioNames, jpNewsLanguage, clock, fanTlGlobal, jpNames } };
+          const { timeZone, scenarioNames, jpNewsLanguage, clock, fanTlGlobal, jpNames, theme } = parsed.data;
+          return { settings: { timeZone, scenarioNames, jpNewsLanguage, clock, fanTlGlobal, jpNames, theme } };
         },
         ({ settings }) => JSON.stringify(settings)
       ),

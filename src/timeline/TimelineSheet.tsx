@@ -4,15 +4,13 @@ import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import Sheet, { SheetTitle } from '../Sheet.tsx';
 import Pill from '../ui/Pill.tsx';
-import SeeMore from '../ui/SeeMore.tsx';
-import ShouldPullLine from '../ui/ShouldPullLine.tsx';
+import ShouldPullChip from '../ui/ShouldPullChip.tsx';
 import InfoTip from '../ui/InfoTip.tsx';
-import StatusBadge from './StatusBadge.tsx';
 import RaceTrack from './RaceTrack.tsx';
 import { DistanceBars, GroundDrops, SeasonIcon, TimeIcon, TurnArrow, WeatherIcon } from './RaceIcons.tsx';
 import { TIER_NAMES } from '../tiers.ts';
-import { STAT_ICONS } from '../statIcons.ts';
-import { formatNumber, formatTimeLeft, scenarioName, serverName, statName } from '../i18n/index.ts';
+import TypePill from '../ui/TypePill.tsx';
+import { formatNumber, formatTimeLeft, scenarioName, serverName } from '../i18n/index.ts';
 import { umapyoiUrl } from '../umapyoi.ts';
 import { useSettings } from '../settings.tsx';
 import { loadPullGuide } from '../pullGuide.ts';
@@ -62,7 +60,6 @@ export default function TimelineSheet({
   onClose,
   onClosed,
 }: TimelineSheetProps) {
-  const { t } = useTranslation();
   const cardIds = entry.featured.flatMap((item) => (item.card && item.id != null ? [item.id] : []));
   const rankings = useRankings(server, scenario, cardIds);
   // The guide is advice for Global's banners (JP's share their ids, so it would match there too).
@@ -74,7 +71,8 @@ export default function TimelineSheet({
     !entry.titles.length &&
     !entry.phases.length &&
     !entry.races.length &&
-    !entry.scouts.length;
+    !entry.scouts.length &&
+    !entry.parts.length;
   return (
     <Sheet open={open} onClose={onClose} onClosed={onClosed}>
       {entry.art && (
@@ -89,7 +87,8 @@ export default function TimelineSheet({
       <Rewards items={entry.items} fan={entry.fan} />
       <Schedule entry={entry} format={format} />
       <Titles titles={entry.titles} fan={entry.fan} />
-      {nothing && <p className={styles.empty}>{entry.note ?? t('timeline.nothingListed')}</p>}
+      {/* Its note (a paid scout's "Any ★3") where nothing else is listed; an empty sheet says nothing. */}
+      {nothing && entry.note && <p className={styles.empty}>{entry.note}</p>}
       <Parts entry={entry} lookup={lookup} format={format} onSelect={onSelect} />
       {cardIds.length > 0 && <RankNote scenario={scenario} server={server} upcoming={rankings?.upcoming} />}
       <Links news={entry.news} counterpart={entry.counterpart} />
@@ -102,24 +101,49 @@ function Header({ entry, format }: { entry: Entry; format: DateFormats }) {
   const days = daysOf(entry);
   return (
     <>
-      <Pill variant="kind" tone={entry.tone}>
-        {kindName(entry)}
-      </Pill>
+      <div className={styles.pills}>
+        <Pill variant="kind" tone={entry.tone} className={styles.kind}>
+          {kindName(entry)}
+        </Pill>
+        <StatusPill entry={entry} />
+        {entry.paid && <span className={clsx(styles.badge, styles.paid)}>{t('timeline.paidBadge')}</span>}
+      </div>
       <SheetTitle className={styles.title}>
         <FanTl fan={labelIsFan(entry, { title: true })}>{entryTitle(entry)}</FanTl>
       </SheetTitle>
-      {/* A div: the info's popup sits inside it. */}
+      {/* A div: the info's popup sits inside it. One span, so the (i) wraps with the text's end. */}
       <div className={styles.dates}>
-        <StatusBadge status={entry.status} />
-        {entry.paid && <span className={clsx(styles.badge, styles.paid)}>{t('timeline.paidBadge')}</span>}
-        {/* One item, so the (i) wraps with the text's end, not onto a line of its own. */}
         <span>
-          {dateRange(entry, format.time)}
+          {format.sheet(entry)}
           {days != null && ` · ${t('timeline.days', { count: days })}`}
           {entry.endPredicted && ` · ${t('timeline.endPredicted')}`} <Provenance entry={entry} format={format} />
         </span>
       </div>
     </>
+  );
+}
+
+// The status, and how long until it changes: a live entry's time left, an upcoming one's time to its start.
+function StatusPill({ entry }: { entry: Entry }) {
+  const { t } = useTranslation();
+  const now = Date.now();
+  const start = Date.parse(entry.start);
+  const end = entry.end ? Date.parse(entry.end) : null;
+  const left =
+    entry.status === 'live'
+      ? end != null && end > now && t('timeline.timeLeft', { duration: formatTimeLeft(end - now, { narrow: true }) })
+      : entry.status !== 'ended' &&
+        start > now &&
+        t('timeline.startsIn', { duration: formatTimeLeft(start - now, { narrow: true }) });
+  // The status alone on the pill; how long is left beside it, as plain text.
+  // (the two kept together: they wrap as one)
+  return (
+    <span className={styles.statusGroup}>
+      <span className={styles.status} data-status={entry.status}>
+        <span className={styles.statusName}>{t(`timeline.status.${entry.status}`)}</span>
+      </span>
+      {left && <span className={styles.timeLeft}>{left}</span>}
+    </span>
   );
 }
 
@@ -185,7 +209,13 @@ function Featured({ entry, rankings, advice }: { entry: Entry; rankings: RankRes
   if (!entry.featured.length) return null;
   return (
     <>
-      <h3 className={styles.heading}>{t(FEATURED_HEADING[entry.group])}</h3>
+      {/* The count beside the heading, not in it: the list says how many to a screen reader. */}
+      <div className={styles.headingRow}>
+        <h3 className={styles.heading}>{t(FEATURED_HEADING[entry.group])}</h3>
+        <span className={styles.count} aria-hidden="true">
+          {entry.featured.length}
+        </span>
+      </div>
       <ul className={styles.featured}>
         {entry.featured.map((item) => (
           <FeaturedItem key={item.key} item={item} rankings={rankings} advice={advice} fan={entry.fan} />
@@ -210,36 +240,41 @@ function FeaturedItem({
 }) {
   const { t } = useTranslation();
   const shouldPull = item.id != null ? advice?.[item.id]?.shouldPull : undefined;
-  return (
-    <li>
-      {/* NEW sits on the icon, leaving the rank row room for "See more". */}
-      <div className={styles.itemIcon}>
+  const content = (
+    <>
+      {/* NEW sits on the icon's bottom edge; the tile leaves room under it. */}
+      <span className={styles.itemIcon}>
         {item.icon && <img src={item.icon} alt="" loading="lazy" />}
         {item.isNew && <span className={clsx(styles.badge, styles.new)}>{t('timeline.new')}</span>}
-      </div>
-      <div className={styles.itemInfo}>
-        <span className={styles.itemName}>
-          <strong>
-            <FanTl fan={fan.has(item.name)}>{item.name}</FanTl>
-          </strong>
-          {item.title && (
-            <span className={styles.itemTitle} title={item.title}>
-              <FanTl fan={fan.has(item.title)}>{item.title}</FanTl>
-            </span>
-          )}
-        </span>
+      </span>
+      <span className={styles.itemInfo}>
+        <strong className={styles.itemName}>
+          <FanTl fan={fan.has(item.name)}>{item.name}</FanTl>
+        </strong>
+        {item.title && (
+          <span className={styles.itemTitle}>
+            <FanTl fan={fan.has(item.title)}>{item.title}</FanTl>
+          </span>
+        )}
         <span className={styles.itemMeta}>
           {item.card ? <CardRank id={item.id} rankings={rankings} /> : item.stars != null && STARS[item.stars]}
           {item.copies && <span>{t('timeline.copies', { count: item.copies })}</span>}
-          {item.card && item.id != null && (
-            <SeeMore href={cardUrl(item.id)} className={styles.cardLink}>
-              {t('timeline.seeMore')}
-            </SeeMore>
-          )}
         </span>
-        {/* Its own row: next to the rank it pushed "See more" to a second line on a phone. */}
-        {shouldPull && <ShouldPullLine pill={shouldPull} className={styles.pull} />}
-      </div>
+        {shouldPull && <ShouldPullChip pill={shouldPull} asked className={styles.pull} />}
+      </span>
+    </>
+  );
+  // A card's whole tile opens its page; a trainee has no page.
+  return (
+    <li>
+      {item.card && item.id != null ? (
+        <a className={clsx(styles.tile, styles.tileLink)} href={cardUrl(item.id)}>
+          {content}
+          <ChevronRight className={styles.chevron} size={20} aria-hidden="true" />
+        </a>
+      ) : (
+        <div className={styles.tile}>{content}</div>
+      )}
     </li>
   );
 }
@@ -252,8 +287,7 @@ function CardRank({ id, rankings }: { id: number | null; rankings: RankResult | 
     return (
       <span className={styles.rank}>
         {t('common.ranking')}
-        {stat && <img className={styles.rankStat} src={STAT_ICONS[stat]} alt="" />}
-        {stat && statName(stat)}
+        {stat && <TypePill stat={stat} plain />}
       </span>
     );
   const rank: CardRankValue | null | undefined = id == null ? undefined : rankings.ranks.get(id);
@@ -262,8 +296,7 @@ function CardRank({ id, rankings }: { id: number | null; rankings: RankResult | 
     <span className={styles.rank}>
       <span className={clsx(styles.rankTier, `tier-${rank.tier}`)}>{TIER_NAMES[rank.tier]}</span>
       {t('common.rank', { position: rank.position })}
-      <img className={styles.rankStat} src={STAT_ICONS[rank.stat]} alt="" />
-      {statName(rank.stat)}
+      <TypePill stat={rank.stat} plain />
     </span>
   );
 }
@@ -456,13 +489,13 @@ function Schedule({ entry, format }: { entry: Entry; format: DateFormats }) {
         {phases.map((phase, i) => {
           // (a "coming soon" post's schedule: what it doesn't give yet is the prediction's)
           const predicted = [phase.start, phase.end].some((d) => d?.status === 'predicted');
-          const dates = dateRange({ start: phase.start.date, end: phase.end?.date ?? null }, format.time);
+          const dates = format.sheet({ start: phase.start.date, end: phase.end?.date ?? null });
           return (
             <li key={phase.key} className={clsx(predicted && styles.predicted, ended(i) && styles.ended)}>
               <span className={styles.phaseName}>
                 {/* Every row keeps the dot's room, so the names line up. */}
                 {current >= 0 && (
-                  <span className={styles.dot}>
+                  <span className={styles.phaseDot}>
                     {i === current && (
                       <span className={styles.ping} role="img" aria-label={t('timeline.status.live')} />
                     )}
@@ -531,6 +564,24 @@ function Parts({
   );
 }
 
+// "Read announcement", the site after it; named in full for a screen reader.
+function NewsLink({ href, site }: { href: string; site: string }) {
+  const { t } = useTranslation();
+  return (
+    <a
+      className={clsx(styles.link, styles.newsLink)}
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={t('timeline.newsOn', { site })}
+    >
+      {t('timeline.news')}
+      <span className={styles.site}>{site}</span>
+      <ExternalLink size={15} aria-hidden="true" />
+    </a>
+  );
+}
+
 // Not LinkButton: the sheet's icons are 15 px (LinkButton's are 16).
 function Links({ news, counterpart }: { news: Entry['news']; counterpart: Entry['counterpart'] }) {
   const { t } = useTranslation();
@@ -545,18 +596,8 @@ function Links({ news, counterpart }: { news: Entry['news']; counterpart: Entry[
           {t('timeline.counterpart', { server: serverName(counterpart.server) })}
         </a>
       )}
-      {news && (
-        <a className={styles.link} href={news.url} target="_blank" rel="noreferrer">
-          {t('timeline.news', { site: news.site })}
-          <ExternalLink size={15} aria-hidden="true" />
-        </a>
-      )}
-      {umapyoi && (
-        <a className={styles.link} href={umapyoi} target="_blank" rel="noreferrer">
-          {t('timeline.umapyoi')}
-          <ExternalLink size={15} aria-hidden="true" />
-        </a>
-      )}
+      {news && <NewsLink href={news.url} site={news.site} />}
+      {umapyoi && <NewsLink href={umapyoi} site="umapyoi.net" />}
     </p>
   );
 }

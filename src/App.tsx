@@ -79,14 +79,20 @@ function Shell() {
   return (
     <div className={styles.app}>
       <header className={styles.topbar}>
-        {detail ? (
-          <button type="button" className={styles.backButton} onClick={goBack}>
-            <ArrowLeft size={18} aria-hidden="true" />
-            {t('common.back')}
-          </button>
-        ) : (
-          <h1>{t(TITLES[tab])}</h1>
-        )}
+        {/* The logo, home to the tier list; then the page's title (or Back, on a card's or scenario's page). */}
+        <div className={styles.brand}>
+          <a href={TAB_URLS.cards} className={styles.logo} aria-label={t('common.home')}>
+            <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
+          </a>
+          {detail ? (
+            <button type="button" className={styles.backButton} onClick={goBack}>
+              <ArrowLeft size={18} aria-hidden="true" />
+              {t('common.back')}
+            </button>
+          ) : (
+            <h1>{t(TITLES[tab])}</h1>
+          )}
+        </div>
         <Segmented
           label={t('common.server')}
           options={SERVER_KEYS.map((key) => ({ value: key, label: serverName(key) }))}

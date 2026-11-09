@@ -14,6 +14,7 @@ import { clockOptions, timeZoneOptions, useSettings } from '../settings.tsx';
 import { umapyoiGl, umapyoiJp } from '../umapyoi.ts';
 import { TAB_URLS, scenarioUrl } from '../routes.ts';
 import styles from './ScenarioPage.module.css';
+import { scenarioCssColor } from '../vividColor.ts';
 
 type Settings = ReturnType<typeof useSettings>['settings'];
 
@@ -98,7 +99,9 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
   const rankable = SERVER_ORDER.some((s) => getServerConfig(s).availableScenarios.includes(scenario.key));
   const [jp, en] = [scenario.jp_start_date, scenario.en_start_date];
   const links = linkList(scenario, settings);
-  const style = scenario.color ? ({ '--scenario-color': scenario.color } as CSSProperties) : undefined;
+  const style = scenario.color
+    ? ({ '--scenario-color': scenarioCssColor(scenario.color) } as CSSProperties)
+    : undefined;
 
   const openTierList = () => {
     onScenarioChange(scenario.key);

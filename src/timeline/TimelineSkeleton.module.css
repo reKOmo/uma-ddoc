@@ -1,0 +1,108 @@
+/* The shapes share one shimmer that sweeps across them all (background-attachment: fixed lines them up). */
+.skeleton {
+  --lane-height: 52px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.strip,
+.month,
+.days,
+.groupPill,
+.bar {
+  /* (a touch of the text's colour: the tile colour is too close to the page's to show here) */
+  background-color: color-mix(in srgb, var(--text) 8%, var(--bg));
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--panel) 70%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  background-attachment: fixed;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Scenarios 32 + months 24 + days 22: the real axis's rows. */
+.axis {
+  padding: 4px 0 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.strip {
+  height: 26px;
+  margin: 0 0 8px;
+}
+
+.month {
+  width: 90px;
+  height: 16px;
+  margin: 0 0 8px 12px;
+  border-radius: 6px;
+}
+
+.days {
+  height: 14px;
+  margin: 0 12px;
+  border-radius: 6px;
+}
+
+.group {
+  padding: 12px 0 4px;
+}
+
+.groupPill {
+  width: 140px;
+  height: 32px;
+  margin: 0 0 10px 8px;
+  border-radius: 999px;
+}
+
+.lane {
+  position: relative;
+  height: var(--lane-height);
+  margin-bottom: 4px;
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strip,
+  .month,
+  .days,
+  .groupPill,
+  .bar {
+    animation: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .skeleton {
+    --lane-height: 60px;
+  }
+}

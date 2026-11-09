@@ -10,6 +10,7 @@ import { ink } from '../timeline/scenarioStrip.ts';
 import { timeZoneOptions, useSettings } from '../settings.tsx';
 import { scenarioUrl } from '../routes.ts';
 import styles from './ScenariosPage.module.css';
+import { scenarioCssColor } from '../vividColor.ts';
 
 const SERVER_ORDER: Server[] = ['jp', 'gl'];
 
@@ -36,7 +37,10 @@ export default function ScenariosPage({ server }: { server: Server }) {
           const newestOn = SERVER_ORDER.filter((on) => isCurrent(s.key, on));
           const current = isCurrent(s.key, server);
           return (
-            <li key={s.key} style={s.color ? ({ '--scenario-color': s.color } as CSSProperties) : undefined}>
+            <li
+              key={s.key}
+              style={s.color ? ({ '--scenario-color': scenarioCssColor(s.color) } as CSSProperties) : undefined}
+            >
               <a href={scenarioUrl(s.key)} className={clsx(styles.item, current && styles.current)}>
                 {s.links.cover ? (
                   <img className={styles.thumb} src={s.links.cover} alt="" loading="lazy" />

@@ -75,7 +75,10 @@
   align-items: center;
   overflow: clip;
   color: #fff;
-  background-color: #444b55;
+  /* Behind (or instead of) the art: light, a mid tint of the bar's own colour, so transparent or missing art shows its
+     colour and no bar stands out darker than the rest (the fade darkens it under the white label); dark, the grey it
+     always was. */
+  background-color: light-dark(color-mix(in srgb, var(--tone) 55%, var(--bg)), #444b55);
   /* GameTora's banner PNGs (512×188) have a transparent margin round the banner itself
      (x 21–490, y 30–157; take 3px more for its rounded corners: 464×122). Size the image so
      that panel alone covers the bar: at least the bar's width, and at least the lane's height. */
@@ -121,7 +124,13 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.45));
+  /* Light theme: light, so the art shows (darkest behind the label, the text's shadow doing the rest); dark: as it was. */
+  background: linear-gradient(
+    90deg,
+    light-dark(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.82)) 0%,
+    light-dark(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.64)) 45%,
+    light-dark(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.45))
+  );
 }
 
 .bar strong,
@@ -130,7 +139,9 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  text-shadow:
+    0 1px 2px light-dark(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.8)),
+    0 0 6px light-dark(rgba(0, 0, 0, 0.6), transparent);
 }
 
 .bar strong {

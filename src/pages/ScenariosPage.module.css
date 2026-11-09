@@ -23,7 +23,7 @@
   background: var(--panel);
   border: 1px solid var(--border);
   border-left: 4px solid var(--scenario-color);
-  border-radius: 10px;
+  border-radius: 18px;
   transition:
     border-color 0.15s,
     background-color 0.15s;
@@ -45,7 +45,7 @@
   height: 64px;
   object-fit: contain;
   background: color-mix(in srgb, var(--scenario-color) 25%, var(--panel));
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .text {

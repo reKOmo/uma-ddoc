@@ -9,6 +9,9 @@ export type DateFormats = {
   long: DateFormat;
   short: DateFormat;
   time: DateFormat;
+  // The sheet's dates: "Thu, Nov 5, 10:00 PM – Sun, Nov 15, 9:59 PM UTC", the year only when it isn't this one, the
+  // zone once at the end.
+  sheet: (span: DateSpan) => string;
   // "Oct 2026": always with its year, so scrolling never loses it.
   month: (date: Date) => string;
   isJanuary: (date: Date) => boolean;
@@ -38,6 +41,24 @@ export function dateFormats(timeZone: 'utc' | 'local', clock: '12h' | '24h' = '1
       ...clockOptions(clock),
       ...(timeZone === 'utc' && { timeZoneName: 'short' }),
     }),
+    sheet: (span) => {
+      const thisYear = new Date().getUTCFullYear();
+      const otherYear = [span.start, span.end].some((date) => date && new Date(date).getUTCFullYear() !== thisYear);
+      const text = dateRange(
+        span,
+        dateFormat({
+          ...zone,
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          ...clockOptions(clock),
+          ...(otherYear && { year: 'numeric' }),
+        })
+      );
+      return timeZone === 'utc' ? i18n.t('timeline.inUtc', { dates: text }) : text;
+    },
     month: (date) => formatDate(date, { ...zone, month: 'short', year: 'numeric' }),
     isJanuary: (date) => (timeZone === 'utc' ? date.getUTCMonth() : date.getMonth()) === 0,
   };
