@@ -3,7 +3,7 @@
   border-collapse: collapse;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 18px;
   overflow: hidden;
   font-size: 0.85rem;
 }
@@ -32,7 +32,7 @@
 }
 
 .table tr.current th[scope="row"] {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .table .position {

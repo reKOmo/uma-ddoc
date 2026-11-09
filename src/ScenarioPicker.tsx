@@ -5,11 +5,12 @@ import { scenarioName } from './i18n/index.ts';
 import { SCENARIOS, isCurrent, isReleased, scenarioByKey } from './scenarioRelease.ts';
 import type { Server } from './servers.ts';
 import { ink } from './timeline/scenarioStrip.ts';
+import { scenarioCssColor } from './vividColor.ts';
 
 // A scenario's pill colour (none for a key data/scenarios.json lacks).
 const pillOf = (key: string): DropdownOption['pill'] => {
   const color = scenarioByKey(key)?.color;
-  return color ? { color, ink: ink(color) ?? undefined } : undefined;
+  return color ? { color: scenarioCssColor(color), ink: ink(color) ?? undefined } : undefined;
 };
 
 type PickerArgs = { scenarios: string[]; combined: string[]; server: Server; t: TFunction };

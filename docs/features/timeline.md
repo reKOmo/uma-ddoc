@@ -8,10 +8,14 @@
   **Both servers run exactly the same code, fed different data** (`src/timeline/`): every banner and event becomes an
   _entry_ (`entries.ts`, one shape whatever the server or source; every difference between the data files is read
   there and nowhere else), the page has no `server ===` branch, and one sheet (`TimelineSheet.tsx`, on `src/Sheet.tsx`: drag it down to close)
-  shows every banner and event alike: art, kind pill, name, status + dates, where its dates come from (predicted /
-  confirmed from JP's; paid), relations (re-run of / re-held / part of, each opening the other), featured items or
-  cards with their tier-list rank, other rewards, schedule, titles, parts, the post + umapyoi.net; sections without
-  content aren't shown. Cards rank in the server's own tier list (MLB, the selected scenario); when it lacks one of
+  shows every banner and event alike: art, then a row of pills (kind; status with how long is left: "Live · 6d 22h
+  left", "Predicted · starts in 23d" dashed, "Confirmed · …" solid; "Paid"), name, one muted date line (`format.sheet`:
+  weekday, the year only when it isn't this one, "UTC" once at the end) with where its dates come from behind an (i)
+  (predicted / confirmed from JP's; paid), relations (re-run of / re-held / part of, each opening the other), featured
+  items or cards as tiles (a card's whole tile opens its page: icon with NEW on its edge, name, title, square tier
+  chip + rank + stat, a "Pull? …" chip; two columns in the desktop dialog) with their tier-list rank, other rewards
+  (chips), schedule, titles, parts, then "See on <server>" and "Read announcement <site>" for the post and
+  umapyoi.net; sections without content aren't shown. The bars never show the time left; only the sheet does. Cards rank in the server's own tier list (MLB, the selected scenario); when it lacks one of
   them (an announced or predicted card on Global), in the one that also ranks JP's cards it doesn't have yet
   (`useRankings.ts`, as the card page's dashed future). Global's calendar continues into the
   future with JP's banners at their predicted Global dates (`ml/`), drawn half-transparent
@@ -41,9 +45,13 @@
   while one of its cards has a verdict shown; `VERDICTS`, `bannerVerdicts()` in `src/pullGuide.ts`; greyed out while
   support card banners are hidden).
   Hidden bars leave the lanes (a hidden event's parts of shown kinds stand on their own; the calendar's dates and the
-  sheets keep everything). **Search** (the toolbar's magnifier, `TimelineSearch.tsx` on downshift's combobox +
-  match-sorter's ranking; while open the field takes the toolbar's row, "Close" folds it back to the button with a
-  count of chips): typing only suggests, from this calendar's own entries (`searchIndex()` in `src/timeline/search.ts`):
+  sheets keep everything). While it loads, `TimelineSkeleton.tsx` stands in its shape (axis, groups, bars; a shimmer
+  that stops for reduced motion). **Search** (the toolbar's magnifier, `TimelineSearch.tsx` on downshift's combobox +
+  match-sorter's ranking; always open: a full-width row under the buttons on phones, where the buttons show only their
+  icons, `phoneIconOnly`; the start of the toolbar's row on desktop; the calendar follows its chips a moment later,
+  `useDeferredValue`, so a chip shows or goes at once; nothing suggested is highlighted until ↓, then ↑↓ move between the suggestions' wrapped rows,
+  `stepRow()` in `gridStep.ts`, and ←→ along them; Backspace in the empty field removes the last chip): typing only
+  suggests, from this calendar's own entries (`searchIndex()` in `src/timeline/search.ts`):
   characters (one per character through the card data, so both servers' banners and events match; named as Settings →
   Language names them, found by their English and Japanese names alike), card types, pull advice (when the guide covers the calendar's banners: a
   support card banner has a verdict when one of its cards has it, as in the filter), banner / event names, kinds, items, race courses, and the text

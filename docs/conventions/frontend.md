@@ -23,17 +23,28 @@ Radix Select (dropdown), `vaul` (sheets), `@dnd-kit` (drag to reorder), `lucide-
   shared classes, and a class other code or CSS looks up by name (keep it a plain class beside the module one, and say
   why).
 - Code never finds elements by class: `data-*` (`data-scroll-root`, `data-dragging`, `data-testid`) or roles.
-- Colour tokens on `:root` in `global.css` (with a dark override); never literal colours (tier colours `.tier-0`… are
+- **Look**: content in rounded panels (22px page sections, 18–20px tiles, 12px controls, 14px options), a 1px border on
+  pages, none on tiles inside a sheet (`--inset` fill instead); no drop shadows. Headings sentence case and bold, no
+  icons. Links are tinted chips (`LinkButton`, `SeeMore`: `--inset` fill, accent text). Choices are `--option-border`
+  outlined, `--selected` filled with an accent border when picked; neutral chips are `--chip`.
+  Colours stay vivid for fills, lines and borders; small coloured text uses an ink (`--accent-ink`, or the tone mixed
+  into `--text`) for WCAG AA. Scenario colours are their covers' made vivid (`vividColor()`, in `SCENARIOS`).
+- Colour tokens on `:root` in `global.css`, each `light-dark(light, dark)`: the device's theme, or Settings' theme
+  (`data-theme` on `<html>`, `src/theme.ts`; index.html sets it before the first paint); never literal colours (tier colours `.tier-0`… are
   the exception). An entry's or chip's colour is `data-tone={tone}`; its CSS reads `var(--tone)`.
+- A card's type is always `ui/TypePill.tsx` (its game icon + name): tinted in the type's colour on its own (the card
+  page), `plain` inline in a row, chip or dropdown. The icon alone is `ui/StatIcon.tsx`.
 - Icons: `lucide-react`; no text symbols as icons. Card and trainee icons are square: `object-fit: contain`.
 
 ## Components
 
-- **Reuse before writing markup**: `src/ui/` (LinkButton, SeeMore, FoldToggle, Pill, TierChip, Status, Segmented,
+- **Reuse before writing markup**: `src/ui/` (LinkButton, SeeMore, FoldToggle, Pill, TierChip, Status, Segmented, OptionCards,
+  TypePill, StatIcon,
   Section, SearchInput, ToolbarButton, CardRow), `src/FilterSheet.tsx`, `src/Sheet.tsx`, `src/Dropdown.tsx`. When two
   places need the same piece, make it a component. Never change how a page looks to make it fit a shared component:
   if one doesn't fit exactly, keep the page's markup.
-- Toggle groups: `ui/Segmented.tsx` (a `<fieldset>` of `aria-pressed` buttons).
+- Toggle groups: `ui/Segmented.tsx` (a `<fieldset>` of `aria-pressed` buttons); a setting's choices with a detail line:
+  `ui/OptionCards.tsx` (the same semantics, as cards side by side).
 - **Detail sheets are `src/Sheet.tsx`** (vaul's drawer: drag down to close on phones; a centred dialog on desktop),
   never a hand-made overlay; nothing may set the sheet's `transform`. Keep it rendered with `open` false while it
   closes (`onClosed` once it has slid away), or it vanishes instead of sliding. Its animation must never share the

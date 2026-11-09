@@ -18,6 +18,14 @@
   gap: 8px;
 }
 
+/* The search: a full-width row under the buttons on phones; on desktop first in the row, taking its free width. */
+.searchSlot {
+  display: flex;
+  flex: 1 0 100%;
+  order: 1;
+  min-width: 0;
+}
+
 .searchNote {
   display: flex;
   flex-wrap: wrap;
@@ -44,7 +52,7 @@
   color: var(--text);
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .navButton:disabled {
@@ -83,19 +91,15 @@
 }
 
 .zoom button:first-child {
-  border-radius: 8px 0 0 8px;
+  border-radius: 12px 0 0 12px;
 }
 
 .zoom button:last-child {
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 12px 12px 0;
 }
 
 .zoom button:disabled {
   opacity: 0.4;
-}
-
-.status {
-  padding: 0 12px;
 }
 
 .timeline {
@@ -127,6 +131,15 @@
 @media (min-width: 768px) {
   .header {
     padding: 16px 16px 12px;
+  }
+
+  .toolbar {
+    flex-wrap: nowrap;
+  }
+
+  .searchSlot {
+    flex: 1 1 auto;
+    order: -1;
   }
 
   .timeline {

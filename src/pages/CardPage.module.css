@@ -10,7 +10,7 @@
   width: min(100%, 300px);
   aspect-ratio: 3 / 4;
   object-fit: contain;
-  border-radius: 12px;
+  border-radius: 18px;
   background: var(--panel);
 }
 
@@ -51,8 +51,20 @@
 
 .tags {
   display: flex;
-  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   margin: 0;
+}
+
+/* The origin and rarity tags as tall as the type pill beside them (doubled: over the origin pill's own size). */
+.tags.tags > * {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  font-size: 0.9rem;
+  padding-block: 0;
 }
 
 .section {

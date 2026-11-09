@@ -25,7 +25,8 @@ test("a card page's See banner opens the banner, and its other-server link opens
   await page.getByRole('link', { name: 'See banner' }).click();
   await expect(page).toHaveURL(/#\/timeline\/gl\/\d+$/);
   await expect(sheet(page)).toBeVisible();
-  await sheet(page).getByRole('link', { name: /Japan/ }).click();
+  // (exact: a card tile's name can hold "Japan" too)
+  await sheet(page).getByRole('link', { name: 'See on Japan', exact: true }).click();
   await expect(server(page)).toHaveText('Japan');
   await expect(page).toHaveURL(/#\/timeline\/jp\/\d+$/);
   await expect(sheet(page)).toBeVisible();
@@ -34,8 +35,9 @@ test("a card page's See banner opens the banner, and its other-server link opens
 test('back from a card page reopens the sheet it came from', async ({ page }) => {
   await open(page, `#/timeline/gl/${BANNER}`);
   await expect(sheetTitle(page)).toContainText('Special Week');
+  // A card's whole tile opens its page.
   await sheet(page)
-    .getByRole('link', { name: /See more/ })
+    .getByRole('link', { name: /Special Week/ })
     .first()
     .click();
   await expect(page).toHaveURL(/#\/card\/\d+$/);

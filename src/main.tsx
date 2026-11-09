@@ -5,6 +5,9 @@ import './styles/global.css';
 import './i18n/index.ts';
 import App from './App.tsx';
 import './App.css';
+import { followTheme } from './theme.ts';
+
+followTheme();
 
 const root = document.getElementById('root');
 if (!root) throw new Error('No #root element in index.html');

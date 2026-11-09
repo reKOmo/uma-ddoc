@@ -16,7 +16,7 @@ import Dropdown from '../Dropdown.tsx';
 import ScenarioPicker from '../ScenarioPicker.tsx';
 import BackToTop from '../BackToTop.tsx';
 import { FilterButton, FilterSection, FilterSheet } from '../FilterSheet.tsx';
-import { STAT_ICONS } from '../statIcons.ts';
+import TypePill from '../ui/TypePill.tsx';
 import { cardUrl } from '../routes.ts';
 import { SearchInput } from '../ui/SearchInput.tsx';
 import { Segmented } from '../ui/Segmented.tsx';
@@ -141,7 +141,7 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
           <Dropdown
             label={t('common.stat')}
             value={stat}
-            options={STATS.map((key) => ({ value: key, label: statName(key), icon: STAT_ICONS[key] }))}
+            options={STATS.map((key) => ({ value: key, label: statName(key), content: <TypePill stat={key} plain /> }))}
             onChange={(value) => setStat(value as Stat)}
           />
         </div>

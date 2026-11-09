@@ -7,9 +7,10 @@ import { STAT_OF_TYPE } from '../tiers.ts';
 import { useAsync } from '../useAsync.ts';
 import { cardArt, cardPage } from '../gametora.ts';
 import BackToTop from '../BackToTop.tsx';
-import { serverName, statName } from '../i18n/index.ts';
+import { serverName } from '../i18n/index.ts';
 import LinkButton from '../ui/LinkButton.tsx';
 import Pill from '../ui/Pill.tsx';
+import TypePill from '../ui/TypePill.tsx';
 import Status from '../ui/Status.tsx';
 import { formatDay } from './RankChart.tsx';
 import Origins, { OriginPill } from './card/Origins.tsx';
@@ -96,7 +97,7 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
           <p className={styles.tags}>
             {origins && origins.length > 0 && <OriginPill origins={origins} />}
             <Pill variant="tag">{t(`rarity.${card.rarity}`)}</Pill>
-            {stat && <Pill variant="tag">{statName(stat)}</Pill>}
+            {stat && <TypePill stat={stat} />}
             {card.type === 'group' && <Pill variant="tag">{t('card.group')}</Pill>}
           </p>
           {gametora && (
