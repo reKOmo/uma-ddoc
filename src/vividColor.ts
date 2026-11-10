@@ -1,7 +1,13 @@
+import type { CSSProperties } from 'react';
+
 // A colour taken from art (a scenario's cover) made vivid for display: more saturated (near-greys stay grey) and in a
 // middle lightness, so a muted or very dark or pale cover still reads as its colour.
 // A scenario's colour for CSS: vivid in the light theme, the cover's own in dark (where muted colours sit well).
 export const scenarioCssColor = (hex: string): string => `light-dark(${vividColor(hex)}, ${hex})`;
+
+// The --scenario-color style for a scenario's colour, or none when it has no colour.
+export const scenarioStyle = (color: string | null | undefined): CSSProperties | undefined =>
+  color ? ({ '--scenario-color': scenarioCssColor(color) } as CSSProperties) : undefined;
 
 export function vividColor(hex: string): string {
   const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16) / 255);

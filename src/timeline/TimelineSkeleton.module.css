@@ -1,4 +1,4 @@
-/* The shapes share one shimmer that sweeps across them all (background-attachment: fixed lines them up). */
+/* Each shape sweeps its own shimmer: a transform on a pseudo-element, which the compositor moves without repainting. */
 .skeleton {
   --lane-height: 52px;
   flex: 1;
@@ -20,16 +20,26 @@
 .days,
 .groupPill,
 .bar {
+  position: relative;
+  overflow: hidden;
   /* (a touch of the text's colour: the tile colour is too close to the page's to show here) */
   background-color: color-mix(in srgb, var(--text) 8%, var(--bg));
+}
+
+.strip::after,
+.month::after,
+.days::after,
+.groupPill::after,
+.bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   background-image: linear-gradient(
     100deg,
     transparent 30%,
     color-mix(in srgb, var(--panel) 70%, transparent) 50%,
     transparent 70%
   );
-  background-size: 200% 100%;
-  background-attachment: fixed;
   animation: shimmer 1.4s ease-in-out infinite;
 }
 
@@ -83,21 +93,22 @@
 
 @keyframes shimmer {
   from {
-    background-position: 100% 0;
+    transform: translateX(100%);
   }
 
   to {
-    background-position: -100% 0;
+    transform: translateX(-100%);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .strip,
-  .month,
-  .days,
-  .groupPill,
-  .bar {
+  .strip::after,
+  .month::after,
+  .days::after,
+  .groupPill::after,
+  .bar::after {
     animation: none;
+    display: none;
   }
 }
 

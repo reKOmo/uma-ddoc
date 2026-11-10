@@ -1,4 +1,4 @@
-import { type CSSProperties, memo } from 'react';
+import { memo } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
@@ -9,14 +9,12 @@ import type { ScenarioSegment } from './scenarioStrip.ts';
 import type { Mark } from './data.ts';
 import styles from './TimelineAxis.module.css';
 import { scenarioUrl } from '../routes.ts';
-import { scenarioCssColor } from '../vividColor.ts';
+import { scenarioStyle } from '../vividColor.ts';
 
 // Label every day when there's room, else every 2nd day, else weekly. Weekly labels stop at the 22nd so they never
 // collide with the next month's 1st.
 const dayLabelStep = (px: number) => (px >= 16 ? 1 : px >= 8 ? 2 : 7);
 const showDayLabel = (date: number, step: number) => (date - 1) % step === 0 && (step < 7 || date <= 22);
-const scenarioStyle = (s: ScenarioSegment): CSSProperties | undefined =>
-  s.color ? ({ '--scenario-color': scenarioCssColor(s.color) } as CSSProperties) : undefined;
 
 type AxisProps = { timeline: Timeline; scenarios: ScenarioSegment[]; px: number; format: DateFormats };
 
@@ -42,7 +40,7 @@ export const TimelineAxis = memo(function TimelineAxis({ timeline, scenarios, px
                 s.ink === 'dark' && styles.inkDark,
                 s.ink === 'light' && styles.inkLight
               )}
-              style={{ left: from * px, width: (to - from) * px, ...scenarioStyle(s) }}
+              style={{ left: from * px, width: (to - from) * px, ...scenarioStyle(s.color) }}
               title={t('timeline.scenarioTitle', {
                 name: s.name,
                 status: t(`timeline.scenarioTag.${s.tag}`),
@@ -113,7 +111,7 @@ export const CalendarLines = memo(function CalendarLines({
           <div
             key={s.key}
             className={clsx(styles.scenarioLine, s.tag === 'predicted' && styles.tagPredicted)}
-            style={{ left: timeline.at(s.start) * px, ...scenarioStyle(s) }}
+            style={{ left: timeline.at(s.start) * px, ...scenarioStyle(s.color) }}
           />
         ))}
       <div className={styles.todayLine} style={{ left: timeline.today * px }} />

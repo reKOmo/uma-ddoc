@@ -10,11 +10,13 @@ export function stepRow(boxes: readonly Box[], from: number, direction: 1 | -1):
   if (row < 0) return -1;
   if (row >= rows.length) return from;
   const middle = (box: Box) => box.left + box.width / 2;
+  const origin = middle(boxes[from]);
+  const target = rows[row];
   let nearest = from;
   let distance = Number.POSITIVE_INFINITY;
   boxes.forEach((box, index) => {
-    const away = Math.abs(middle(box) - middle(boxes[from]));
-    if (Math.round(box.top) === rows[row] && away < distance) {
+    const away = Math.abs(middle(box) - origin);
+    if (Math.round(box.top) === target && away < distance) {
       nearest = index;
       distance = away;
     }

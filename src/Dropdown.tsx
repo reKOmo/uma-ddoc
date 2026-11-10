@@ -1,7 +1,7 @@
 // Radix Select underneath: keyboard, type-ahead, ARIA, touch and the popup's portal come from it. Every dropdown
 // uses it (not a <select>: phones' native pickers ignore option styling).
-// Options: { value, label, icon?, content?, pill?, group?, note?, badge?, italic?, disabled? }. `content`: shown in place
-// of the icon and label (the label still names it for the keyboard and screen readers). `pill` { color, ink: 'dark' |
+// Options: { value, label, content?, pill?, group?, note?, badge?, italic?, disabled? }. `content`: shown in place
+// of the label (the label still names it for the keyboard and screen readers). `pill` { color, ink: 'dark' |
 // 'light' } sets the label as a pill (the --ink-* token for its text); `disabled` options are greyed and skipped by the
 // keyboard. `roomy`: a bold label and a padded button, as Settings' other labels and option cards.
 
@@ -14,7 +14,6 @@ import styles from './Dropdown.module.css';
 export type DropdownOption = {
   value: string;
   label: string;
-  icon?: string;
   content?: ReactNode;
   pill?: { color: string; ink?: 'dark' | 'light' };
   group?: string;
@@ -62,7 +61,6 @@ export default function Dropdown({ label, value, options, onChange, roomy = fals
           {/* (Radix's Value span takes no className or style: the flex box is its child, .button > :first-child sizes it.) */}
           <Select.Value>
             <span className={styles.value}>
-              {selected?.icon && <img className={styles.icon} src={selected.icon} alt="" />}
               <Label option={selected} />
             </span>
           </Select.Value>
@@ -118,7 +116,6 @@ function Option({ option }: { option: DropdownOption }) {
           <Check size={16} aria-hidden="true" />
         </Select.ItemIndicator>
       </span>
-      {option.icon && <img className={styles.icon} src={option.icon} alt="" />}
       <Select.ItemText>
         <Label option={option} />
       </Select.ItemText>

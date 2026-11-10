@@ -24,7 +24,7 @@ const OPTIONS: DropdownOption[] = [
   { value: 'a', label: 'Alpha' },
   { value: 'g1', label: 'Grouped one', group: 'Averaged' },
   { value: 'b', label: 'Beta', italic: true, note: 'Not released yet' },
-  { value: 'c', label: 'Gamma', badge: 'Current', icon: 'icon.png' },
+  { value: 'c', label: 'Gamma', badge: 'Current' },
   { value: 'd', label: 'Delta', disabled: true, note: 'Not ranked' },
   { value: 'e', label: 'Epsilon', pill: { color: '#ff0000', ink: 'light' } },
 ];
@@ -77,16 +77,14 @@ describe('Dropdown opened', () => {
     expect(within(beta).getByText('Not released yet')).toBeTruthy();
     expect(within(beta).getByText('Beta').closest('[role="option"]')?.className).toMatch(/italic/);
     expect(within(screen.getByRole('option', { name: /Gamma/ })).getByText('Current')).toBeTruthy();
-    expect(screen.getByRole('option', { name: /Gamma/ }).querySelector('img')?.getAttribute('src')).toBe('icon.png');
     const pill = within(screen.getByRole('option', { name: /Epsilon/ })).getByText('Epsilon');
     expect(pill.style.getPropertyValue('--pill-color')).toBe('#ff0000');
   });
 
-  it('shows the selected option (icon, tooltip note) on the button', () => {
+  it('shows the selected option (label, tooltip note) on the button', () => {
     render(<Dropdown label="Pick" value="c" options={OPTIONS} onChange={() => {}} />);
     const button = screen.getByRole('combobox');
     expect(button.textContent).toContain('Gamma');
-    expect(button.querySelector('img')?.getAttribute('src')).toBe('icon.png');
     cleanup();
     render(<Dropdown label="Pick" value="b" options={OPTIONS} onChange={() => {}} />);
     expect(screen.getByRole('combobox').getAttribute('title')).toBe('Not released yet');
