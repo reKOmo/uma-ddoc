@@ -8,7 +8,7 @@ import { useLanguage } from '../translations.ts';
 import { useDragScroll } from '../useDragScroll.ts';
 import { type Mark, loadTimeline } from '../timeline/data.ts';
 import { useAsync } from '../useAsync.ts';
-import { buildTimeline } from '../timeline/layout.ts';
+import { ZOOMS, buildTimeline } from '../timeline/layout.ts';
 import { scenarioSegments } from '../timeline/scenarioStrip.ts';
 import { getCollapsed, saveCollapsed, useCollapsedStore } from '../timeline/collapsed.ts';
 import TimelineFilter from '../timeline/TimelineFilter.tsx';
@@ -24,13 +24,13 @@ import type { Entry } from '../timeline/entries.ts';
 import { endOfToday, middleOf, useCenterOn } from '../timeline/useCenterOn.ts';
 import { useCompactRows } from '../timeline/useCompactRows.ts';
 import { useRenderWindow } from '../timeline/useRenderWindow.ts';
+import { useStickyBars } from '../timeline/useStickyBars.ts';
 import { useTimelineFilters } from '../timeline/useTimelineFilters.ts';
 import { ToolbarButton } from '../ui/ToolbarButton.tsx';
 import { timelineUrl } from '../routes.ts';
 import type { Server } from '../servers.ts';
 import styles from './TimelinePage.module.css';
 
-const ZOOMS = [4, 8, 16, 32]; // pixels per day
 const MARK_ICONS: Record<string, LucideIcon> = { global: Globe };
 const NO_MARKS: Mark[] = [];
 
@@ -128,6 +128,7 @@ export default function TimelinePage({
 
   const { centerOn, centerOnMiddle, scrollToDay } = useCenterOn(scroller, timeline, px, linked);
   const range = useRenderWindow(scroller, timeline, px);
+  useStickyBars(scroller, px, !!timeline);
 
   function changeZoom(next: number) {
     centerOnMiddle();
@@ -143,7 +144,6 @@ export default function TimelinePage({
   const collapsed = useCollapsedStore((state) => state.collapsed);
   const toggleGroup = useCallback((key: string) => saveCollapsed(toggled(getCollapsed(), key)), []);
   const toggleParts = useCallback((key: string) => setUnfolded((old) => toggled(old, key)), []);
-  const at = useCallback((ms: number) => (timeline ? timeline.at(ms) : 0) * px, [timeline, px]);
 
   // (After the calendar is centred, above: it reads the new scroll position.)
   const { compact, toggleCompact, visible } = useCompactRows(scroller, timeline, groups, px);
@@ -283,9 +283,10 @@ export default function TimelinePage({
           {/* Half a screen of slack at the end, so today can always be centred. */}
           <div
             className={styles.canvas}
+            data-zoom={zoom}
             style={{ width: `calc(${timeline.days * px}px + 50vw)`, '--day': `${px}px` } as CSSProperties}
           >
-            <TimelineAxis timeline={timeline} scenarios={scenarios} px={px} format={format} />
+            <TimelineAxis timeline={timeline} scenarios={scenarios} px={px} format={format} range={range} />
             <CalendarLines timeline={timeline} scenarios={scenarios} marks={marks} px={px} format={format} />
             {groups.map((group) => (
               <LaneGroup
@@ -295,7 +296,7 @@ export default function TimelinePage({
                 visible={compact && visible?.groups === groups ? (visible.rows[group.key] ?? null) : null}
                 range={range}
                 onToggleGroup={toggleGroup}
-                at={at}
+                day={timeline.at}
                 format={format}
                 unfolded={unfolded}
                 focused={focused}

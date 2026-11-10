@@ -3,8 +3,8 @@ import type { Timeline } from './layout.ts';
 
 // Bars are drawn this far past each side of the screen (in screens), and drawn again once the screen comes within
 // REDRAW screens of the drawn range's edge: the whole history's bars took most of the Timeline's loading time.
-const AHEAD = 1.5;
-const REDRAW = 0.5;
+const AHEAD = 0.75;
+const REDRAW = 0.25;
 
 export type RenderWindow = { from: number; to: number };
 
