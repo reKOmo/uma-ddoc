@@ -27,6 +27,9 @@ afterEach(cleanup);
 
 const cards = cardsJson as CardsFile;
 const now = Date.parse('2026-10-13T00:00:00Z');
+// (only Date: the sheet's dates leave out this year, and its pill counts down from now)
+vi.useFakeTimers({ toFake: ['Date'] });
+vi.setSystemTime(now);
 const ids = Object.keys(cards).map(Number);
 const card = (id: number): BannerItem => ({
   id,
@@ -174,8 +177,9 @@ describe('TimelineSheet', () => {
     expectInOrder([
       art(container),
       screen.getByText(kindName(predicted)),
-      screen.getByRole('heading', { level: 2, name: entryTitle(predicted) }),
       screen.getByText(i18n.t('timeline.status.predicted')),
+      screen.getByText('starts in 19d 22h'),
+      screen.getByRole('heading', { level: 2, name: entryTitle(predicted) }),
       screen.getByText(/^Predicted from JP's dates \(May 1 – 8, 2025\); could be 4 days earlier/),
       screen.getByRole('heading', { level: 3, name: i18n.t('timeline.featuredCards') }),
       // "Ranking…", then the card's stat.
@@ -193,13 +197,14 @@ describe('TimelineSheet', () => {
       screen.getByRole('heading', { level: 2, name: 'Paid scout' }),
       screen.getByText(i18n.t('timeline.paid')),
       screen.getByText('Any ★3'),
-      screen.getByRole('link', { name: i18n.t('timeline.news', { site: 'umamusume.jp' }) }),
-      screen.getByRole('link', { name: i18n.t('timeline.umapyoi') }),
+      screen.getByRole('link', { name: i18n.t('timeline.newsOn', { site: 'umamusume.jp' }) }),
+      screen.getByRole('link', { name: i18n.t('timeline.newsOn', { site: 'umapyoi.net' }) }),
     ]);
-    expect(screen.getByText(/from Jan 1, 2026/)).toBeTruthy();
-    expect(screen.getByRole('link', { name: i18n.t('timeline.umapyoi') }).getAttribute('href')).toBe(
-      'https://umapyoi.net/news/3400?lang=jp'
-    );
+    // (this year's: no year)
+    expect(screen.getByText(/from Thu, Jan 1, 12:00\sAM UTC/)).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: i18n.t('timeline.newsOn', { site: 'umapyoi.net' }) }).getAttribute('href')
+    ).toBe('https://umapyoi.net/news/3400?lang=jp');
   });
 
   it('shows an event the same way: rewards, titles, its parts', () => {
@@ -213,8 +218,24 @@ describe('TimelineSheet', () => {
       screen.getByText(i18n.t('timeline.titles', { titles: ['Champion'] })),
       screen.getByRole('heading', { level: 3, name: i18n.t('timeline.includes') }),
       screen.getByRole('button', { name: new RegExp(kindName(events[1])) }),
-      screen.getByRole('link', { name: i18n.t('timeline.news', { site: 'umamusume.com' }) }),
+      screen.getByRole('link', { name: i18n.t('timeline.newsOn', { site: 'umamusume.com' }) }),
     ]);
+    // Live: its time left in the pill.
+    // (beside the pill, not on it)
+    expect(screen.getByText('7d left').closest('[data-status]')).toBeNull();
+  });
+
+  it('never says nothing is listed: an event with nothing shows only its header', () => {
+    renderSheet({ ...events[0], items: [], titles: [], parts: [] });
+    expect(screen.queryByText('Nothing listed.')).toBeNull();
+    expect(screen.queryByRole('heading', { level: 3 })).toBeNull();
+  });
+
+  it("opens a card's page from its whole tile, its pull advice a chip", () => {
+    renderSheet(predicted);
+    const tile = screen.getByRole('link', { name: new RegExp(predicted.featured[0].name) });
+    expect(tile.getAttribute('href')).toBe(`#/card/${predicted.featured[0].id}`);
+    expect(screen.queryByText(/^See more/)).toBeNull();
   });
 
   it("shows a part with its parent and its cards, ranked like a banner's", () => {
@@ -240,6 +261,47 @@ describe('TimelineSheet', () => {
     expect(row('round_2')?.textContent).toMatch(/· predicted$/);
     expect(row('round_1')?.textContent).not.toMatch(/predicted/);
     expect(events[0].endPredicted).toBe(false);
+  });
+
+  it('keeps the running phase un-greyed when its dates are predicted; only its countdown is', () => {
+    // (live now, 2026-10-13: its first phase running, both phases' dates predicted)
+    const [teatime] = eventEntries(
+      [
+        {
+          id: '1158',
+          kind: 'story',
+          name: 'Teatime',
+          parent: null,
+          start: at('2026-10-10T22:00:00Z'),
+          end: at('2026-10-24T21:59:00Z'),
+          cards: [],
+          items: [],
+          titles: [],
+          phases: [
+            {
+              key: 'event',
+              start: at('2026-10-10T22:00:00Z', 'predicted'),
+              end: at('2026-10-24T21:59:00Z', 'predicted'),
+            },
+            {
+              key: 'reward_collection',
+              start: at('2026-10-24T22:00:00Z', 'predicted'),
+              end: at('2026-10-27T21:59:00Z', 'predicted'),
+            },
+          ],
+          news_url: null,
+          image: null,
+          source: 'news',
+        },
+      ] satisfies GameEvent[],
+      { cards, now }
+    );
+    const { container } = renderSheet(teatime);
+    const rows = container.querySelectorAll('li');
+    const [running, next] = [...rows].filter((li) => li.textContent?.includes('predicted'));
+    expect(running.className).not.toMatch(/predicted/);
+    expect(running.querySelector('[class*="endsInPredicted"]')).toBeTruthy();
+    expect(next.className).toMatch(/predicted/);
   });
 });
 
@@ -320,6 +382,27 @@ describe('TimelineSheet: free scouts', () => {
       screen.getByText('50 free pulls'),
       screen.getByText(/· 5 × 10$/),
     ]);
-    expect(screen.queryByText(i18n.t('timeline.nothingListed'))).toBeNull();
+    expect(screen.queryByText('Nothing listed.')).toBeNull();
+  });
+});
+
+describe('dateFormats().sheet', () => {
+  // (Intl's narrow and thin spaces, as plain ones)
+  const plain = (text: string) => text.replace(/\s/g, ' ');
+  const span = { start: '2026-11-05T22:00:00Z', end: '2026-11-15T21:59:00Z' };
+
+  it('writes the weekday, leaves out this year and names UTC once, at the end', () => {
+    expect(plain(dateFormats('utc').sheet(span))).toBe('Thu, Nov 5, 10:00 PM – Sun, Nov 15, 9:59 PM UTC');
+    expect(plain(dateFormats('utc', '24h').sheet(span))).toBe('Thu, Nov 5, 22:00 – Sun, Nov 15, 21:59 UTC');
+  });
+
+  it('writes the years when a date is in another year', () => {
+    expect(plain(dateFormats('utc').sheet({ start: '2026-12-27T22:00:00Z', end: '2027-01-08T21:59:00Z' }))).toBe(
+      'Sun, Dec 27, 2026, 10:00 PM – Fri, Jan 8, 2027, 9:59 PM UTC'
+    );
+  });
+
+  it("doesn't name the viewer's own zone", () => {
+    expect(dateFormats('local').sheet(span)).not.toMatch(/UTC/);
   });
 });

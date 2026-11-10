@@ -1,20 +1,31 @@
-import { Fragment, memo, useEffect, useMemo, useRef } from 'react';
+import { type CSSProperties, Fragment, memo, useEffect, useMemo, useRef } from 'react';
 import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import type { Entry } from './entries.ts';
-import { type LaneGroupRows, type LaneItem, partCount } from './layout.ts';
+import { type LaneGroupRows, type LaneItem, ZOOMS, partCount } from './layout.ts';
 import type { DateFormats } from './format.ts';
 import type { RenderWindow } from './useRenderWindow.ts';
 import styles from './Lanes.module.css';
-import { barLabel, dateRange, kindName, raceLabel } from './format.ts';
+import { barLabel, dateRange, kindName, labelIsFan, raceLabel } from './format.ts';
+import { FanTl } from '../ui/FanTl.tsx';
+import i18n from '../i18n/index.ts';
 
 // Bars too short for a label are chips: no label, no art (name in the tooltip and sheet).
 const CHIP_WIDTH = 64;
-const MIN_WIDTH = 6;
+
+// Bars are placed in days (`--x`, `--w`) times the canvas's `--day`, and a bar lists the zoom levels it's a chip at
+// (`data-chip`, matched against the canvas's `data-zoom`): zooming changes CSS only, re-rendering no bar.
+const chipZooms = (days: number): string => ZOOMS.flatMap((px, i) => (days * px < CHIP_WIDTH ? [i] : [])).join(' ');
+const place = (day: (ms: number) => number, start: number, end: number) =>
+  ({ '--x': day(start), '--w': day(end) - day(start) }) as CSSProperties;
 
 type Callbacks = {
-  at: (ms: number) => number;
+  // (From LaneGroup's useTranslation: one hook per group, not per bar.)
+  t: TFunction;
+  // A time's day on the calendar (Timeline.at).
+  day: (ms: number) => number;
   format: DateFormats;
   unfolded: Set<string>;
   // The search's current match: ringed, and scrolled into view when it's drawn.
@@ -33,13 +44,13 @@ export const LaneGroup = memo(function LaneGroup({
   visible,
   range,
   onToggleGroup,
-  at,
+  day,
   format,
   unfolded,
   focused,
   onToggleParts,
   onSelect,
-}: Callbacks & {
+}: Omit<Callbacks, 't'> & {
   group: LaneGroupRows<Entry>;
   collapsed: boolean;
   visible: string | null;
@@ -64,10 +75,11 @@ export const LaneGroup = memo(function LaneGroup({
       </button>
       {!collapsed && (
         <Rows
+          t={t}
           rows={group.rows}
           shown={shown}
           range={range}
-          at={at}
+          day={day}
           format={format}
           unfolded={unfolded}
           focused={focused}
@@ -81,10 +93,11 @@ export const LaneGroup = memo(function LaneGroup({
 
 // Nested rows' ids are prefixed with their parent's key, as visibleRows() gives them.
 function Rows({
+  t,
   rows,
   shown,
   range,
-  at,
+  day,
   format,
   unfolded,
   focused,
@@ -116,8 +129,9 @@ function Rows({
             .map((item) => (
               <Bar
                 key={item.entry.key}
+                t={t}
                 item={item}
-                at={at}
+                day={day}
                 format={format}
                 open={unfolded.has(item.entry.key)}
                 focused={item.entry.key === focused}
@@ -128,16 +142,14 @@ function Rows({
         </div>
         {open.map((item) => (
           <div key={item.entry.key} className={styles.partRows} data-tone={item.entry.tone}>
-            <div
-              className={styles.partBand}
-              style={{ left: at(item.start), width: Math.max(at(item.end) - at(item.start), MIN_WIDTH) }}
-            />
+            <div className={styles.partBand} style={place(day, item.start, item.end)} />
             <Rows
+              t={t}
               rows={item.parts}
               shown={shown}
               range={range}
               prefix={`${item.entry.key}/`}
-              at={at}
+              day={day}
               format={format}
               unfolded={unfolded}
               focused={focused}
@@ -159,33 +171,52 @@ const TITLE_KEY: Partial<Record<Entry['status'], string>> = {
 
 // The whole bar is one button (`.bar-hit`) under the label and fold button, which stick to the screen's edges while
 // the bar runs off them. Memoised: folding one entry's parts re-renders its bar alone.
+// A bar's texts, worked out once per entry (per language and date format): bars are drawn again each time they scroll
+// into the drawn range, and the dates' Intl formatting was most of their cost.
+// `name`: without the race (the fold button's label).
+type BarText = { title: string; name: string; label: string; dates: string };
+// (By language, not by `t`: each group's useTranslation gives its own.)
+let barTexts: { language: string; format: DateFormats; of: WeakMap<Entry, BarText> } | null = null;
+function barText(entry: Entry, t: TFunction, format: DateFormats): BarText {
+  const { language } = i18n;
+  if (barTexts?.language !== language || barTexts.format !== format) barTexts = { language, format, of: new WeakMap() };
+  let text = barTexts.of.get(entry);
+  if (!text) {
+    const label = barLabel(entry);
+    const race = raceLabel(entry);
+    text = {
+      title: t(TITLE_KEY[entry.status] ?? 'timeline.barTitle', {
+        label,
+        kind: kindName(entry),
+        dates: dateRange(entry, format.long),
+      }),
+      name: label,
+      label: race ? t('timeline.withRace', { label, race }) : label,
+      dates: dateRange(entry, format.short),
+    };
+    barTexts.of.set(entry, text);
+  }
+  return text;
+}
+
 const Bar = memo(function Bar({
+  t,
   item,
-  at,
+  day,
   format,
   open,
   focused,
   onToggleParts,
   onSelect,
 }: Omit<Callbacks, 'unfolded' | 'focused'> & { item: LaneItem<Entry>; open: boolean; focused: boolean }) {
-  const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
   // (Also when it's first drawn: the page scrolls to its day first, which brings it into the drawn range.)
   useEffect(() => {
     if (focused) ref.current?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
   }, [focused]);
   const entry = item.entry;
-  const left = at(item.start);
-  const width = Math.max(at(item.end) - left, MIN_WIDTH);
-  const chip = width < CHIP_WIDTH;
   const parts = partCount(item);
-  const label = barLabel(entry);
-  const race = raceLabel(entry);
-  const title = t(TITLE_KEY[entry.status] ?? 'timeline.barTitle', {
-    label,
-    kind: kindName(entry),
-    dates: dateRange(entry, format.long),
-  });
+  const { title, name, label, dates } = barText(entry, t, format);
   return (
     <div
       ref={ref}
@@ -195,11 +226,11 @@ const Bar = memo(function Bar({
         focused && styles.focused,
         styles[entry.status],
         entry.endPredicted && styles.endPredicted,
-        chip && styles.chip,
         entry.art?.official && styles.officialArt,
         parts > 0 && styles.hasParts
       )}
-      style={{ left, width, ...(entry.art && !chip && { backgroundImage: `url(${entry.art.src})` }) }}
+      data-chip={chipZooms(day(item.end) - day(item.start))}
+      style={{ ...place(day, item.start, item.end), ...(entry.art && { backgroundImage: `url(${entry.art.src})` }) }}
     >
       <button
         type="button"
@@ -210,12 +241,12 @@ const Bar = memo(function Bar({
         aria-label={title}
         onClick={() => onSelect(entry)}
       />
-      {!chip && (
-        <span className={styles.barLabel} aria-hidden="true">
-          <strong>{race ? t('timeline.withRace', { label, race }) : label}</strong>
-          <small>{dateRange(entry, format.short)}</small>
-        </span>
-      )}
+      <span className={styles.barLabel} aria-hidden="true">
+        <strong>
+          <FanTl fan={labelIsFan(entry)}>{label}</FanTl>
+        </strong>
+        <small>{dates}</small>
+      </span>
       {parts > 0 && (
         // The button sticks to the track's right end, so it never slides back over the label.
         <span className={styles.barFoldTrack}>
@@ -223,7 +254,7 @@ const Bar = memo(function Bar({
             type="button"
             className={clsx(styles.barFold, open && styles.open)}
             aria-expanded={open}
-            aria-label={t(open ? 'timeline.hideParts' : 'timeline.showParts', { count: parts, name: label })}
+            aria-label={t(open ? 'timeline.hideParts' : 'timeline.showParts', { count: parts, name })}
             onClick={() => onToggleParts(entry.key)}
           >
             {`+${parts}`}

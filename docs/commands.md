@@ -28,6 +28,8 @@ pnpm update-jp         # JP news → new cards in data/jp_cards.json (augmented 
 pnpm update-global     # official news → Global's banners, card releases, scenario launches + events in data/ (needs scrape-gametora),
                        # then build-cards
 pnpm fetch-pull-guide  # pull advice + notes per card from Luh's Support Card Encyclopedia → generated/pull_guide.json (after predict-gl)
+pnpm fetch-umatl       # UmaTL's fan translations + Global's names for JP names → generated/translations.json (after predict-gl;
+                       # --build: from the tables already fetched)
 pnpm clone-upstream    # clone/update upstream main into upstream/ (for test:upstream)
 pnpm news:latest       # new + edited posts from umamusume.com/news → data/news/gl/posts.json (+ summary.md); periodic runs
 pnpm news:run          # the daily news run (scripts/news-run.sh, run by an automation): both servers' news:latest, the records, a commit

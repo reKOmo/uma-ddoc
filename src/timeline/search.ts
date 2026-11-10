@@ -4,6 +4,7 @@ import i18n from '../i18n/index.ts';
 import type { Verdict } from '../pullGuide.ts';
 import { STAT_OF_TYPE } from '../tiers.ts';
 import type { CardsFile } from '../../shared/schemas/card.ts';
+import { type Language, cardEnglish } from '../translations.ts';
 import type { Entry } from './entries.ts';
 import { courseName, kindName } from './format.ts';
 import { spanOf } from './layout.ts';
@@ -25,18 +26,21 @@ const normalize = (text: string): string =>
     .replace(/[^\p{L}\p{M}\p{N}]+/gu, ' ')
     .trim();
 
-// A character by id, with their names: JP's banners and events name them in Japanese, the card data has both.
-const characterNames = (cards: CardsFile): Map<number | null, CardsFile[string]['name']> =>
-  new Map(Object.values(cards).map((card) => [card.charId, card.name]));
+// A character by id, with one of their cards (the card data has both their names; JP's banners and events name them
+// in Japanese).
+const characterCards = (cards: CardsFile): Map<number | null, CardsFile[string]> =>
+  new Map(Object.values(cards).map((card) => [card.charId, card]));
 
 // `verdictsOf`: a support card banner's pull advice (the filter's: one of its cards has it), when the guide covers the
-// calendar.
+// calendar. `language`: how a character's chip names them (Settings → Language, as the calendar does; English without
+// it); both their names find it.
 export function searchIndex(
   entries: Entry[],
   cards: CardsFile,
-  verdictsOf: ((entry: Entry) => Set<Verdict>) | null = null
+  verdictsOf: ((entry: Entry) => Set<Verdict>) | null = null,
+  language: Language | null = null
 ): SearchIndex {
-  const names = characterNames(cards);
+  const byChar = characterCards(cards);
   const terms = new Map<string, Term>();
   const indexed = new Map<string, Indexed>();
   for (const entry of entries) {
@@ -46,14 +50,27 @@ export function searchIndex(
       value: string,
       label: string,
       { aliases = [], tone = null }: { aliases?: (string | null | undefined)[]; tone?: string | null } = {}
-    ) => own.push({ type, value, label, aliases: aliases.filter((a): a is string => !!a && a !== label), tone });
+    ) =>
+      own.push({
+        type,
+        value,
+        label,
+        aliases: [...new Set(aliases.filter((a): a is string => !!a && a !== label))],
+        tone,
+      });
     for (const item of entry.featured) {
       const card = item.card && item.id != null ? cards[item.id] : undefined;
       // A trainee's id is their character's and the outfit's (100101: Special Week's first).
       const charId = card?.charId ?? (!item.card && item.id != null ? Math.floor(item.id / 100) : null);
-      const name = charId != null ? names.get(charId) : undefined;
-      add('character', charId != null ? String(charId) : item.name, name?.en ?? item.name, {
-        aliases: [name?.jp, item.name],
+      const charCard = charId != null ? byChar.get(charId) : undefined;
+      const name = charCard?.name;
+      const label = charCard
+        ? language
+          ? (cardEnglish(cards, charCard.id, 'name', language) ?? name?.jp ?? name?.en)
+          : (name?.en ?? name?.jp)
+        : null;
+      add('character', charId != null ? String(charId) : item.name, label ?? item.name, {
+        aliases: [name?.en, name?.jp, item.name],
       });
       if (card) {
         const stat = STAT_OF_TYPE[card.type];
@@ -73,7 +90,10 @@ export function searchIndex(
     const titles = entry.featured.map((item) => item.title ?? '');
     indexed.set(entry.key, {
       keys: new Set(own.map(termKey)),
-      text: normalize([...own.flatMap((term) => [term.label, ...term.aliases]), ...titles].join(' ')),
+      // (The Japanese names translateEntries() replaced too.)
+      text: normalize(
+        [...own.flatMap((term) => [term.label, ...term.aliases]), ...titles, ...entry.originals].join(' ')
+      ),
     });
   }
   return { terms: [...terms.values()], entries: indexed };

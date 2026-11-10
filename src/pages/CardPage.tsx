@@ -7,9 +7,10 @@ import { STAT_OF_TYPE } from '../tiers.ts';
 import { useAsync } from '../useAsync.ts';
 import { cardArt, cardPage } from '../gametora.ts';
 import BackToTop from '../BackToTop.tsx';
-import { serverName, statName } from '../i18n/index.ts';
+import { serverName } from '../i18n/index.ts';
 import LinkButton from '../ui/LinkButton.tsx';
 import Pill from '../ui/Pill.tsx';
+import TypePill from '../ui/TypePill.tsx';
 import Status from '../ui/Status.tsx';
 import { formatDay } from './RankChart.tsx';
 import Origins, { OriginPill } from './card/Origins.tsx';
@@ -17,7 +18,9 @@ import PullAdvice from './card/PullAdvice.tsx';
 import RankOverTime from './card/RankOverTime.tsx';
 import ScenarioTierTable from './card/ScenarioTierTable.tsx';
 import { useOrigins, usePredictions, useScenarioRankings } from './card/hooks.ts';
-import { nameOf, titleOf } from './card/shared.ts';
+import { nameOf, otherNames, titleOf } from './card/shared.ts';
+import { useLanguage, useTranslations } from '../translations.ts';
+import { FanTl } from '../ui/FanTl.tsx';
 import './card.css'; // the Rank over time picker's size (a global class of the Dropdown's)
 import styles from './CardPage.module.css';
 
@@ -34,6 +37,8 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
   const released = releasedLoad.pending ? null : releasedLoad.data;
 
   const origins = useOrigins(cardId, server);
+  const language = useLanguage(server);
+  const tl = useTranslations();
   const stat = card && STAT_OF_TYPE[card.type];
   const rankings = useScenarioRankings(server, stat, !!stat && released === true);
   const predictions = usePredictions(server);
@@ -47,7 +52,7 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
     );
   }
 
-  const name = nameOf(cardId, server);
+  const name = nameOf(cardId, language);
   const scenarios = getServerConfig(server).availableScenarios;
   const combined = Object.keys(COMBINED);
   const rankOverTime = (
@@ -62,7 +67,8 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
       stat={stat}
     />
   );
-  const title = titleOf(cardId, server) ?? card.title.en;
+  const title = titleOf(cardId, language, tl);
+  const other = otherNames(cardId, language, tl);
   const gametora = cardPage(card.links.gametora);
 
   return (
@@ -70,12 +76,28 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
       <div className={styles.hero}>
         <img className={styles.art} src={cardArt(cardId)} alt={name} />
         <div className={styles.facts}>
-          <h1>{name}</h1>
-          {title && <p className={styles.title}>{title}</p>}
+          <div className={styles.names}>
+            <h1>
+              <span>{name}</span>
+              {other.name && <small className={styles.other}>{other.name}</small>}
+            </h1>
+            {title && (
+              <p className={styles.title}>
+                <span>
+                  <FanTl fan={title.fan}>{title.text}</FanTl>
+                </span>
+                {other.title && (
+                  <small className={styles.other}>
+                    <FanTl fan={other.title.fan}>{other.title.text}</FanTl>
+                  </small>
+                )}
+              </p>
+            )}
+          </div>
           <p className={styles.tags}>
             {origins && origins.length > 0 && <OriginPill origins={origins} />}
             <Pill variant="tag">{t(`rarity.${card.rarity}`)}</Pill>
-            {stat && <Pill variant="tag">{statName(stat)}</Pill>}
+            {stat && <TypePill stat={stat} />}
             {card.type === 'group' && <Pill variant="tag">{t('card.group')}</Pill>}
           </p>
           {gametora && (

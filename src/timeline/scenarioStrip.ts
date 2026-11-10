@@ -17,14 +17,16 @@ export type ScenarioSegment = {
   ink: Ink | null;
 };
 
-// WCAG relative luminance: dark text above ~0.4.
+// The text on a colour: dark or light, whichever contrasts more with it (WCAG; dark is --ink-dark, #1c1f24).
 export function ink(color: string | null): Ink | null {
   if (!color) return null;
   const [r, g, b] = [1, 3, 5].map((i) => {
     const c = Number.parseInt(color.slice(i, i + 2), 16) / 255;
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.4 ? 'dark' : 'light';
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const DARK = 0.0135;
+  return (luminance + 0.05) / (DARK + 0.05) > 1.05 / (luminance + 0.05) ? 'dark' : 'light';
 }
 
 export function scenarioSegments(

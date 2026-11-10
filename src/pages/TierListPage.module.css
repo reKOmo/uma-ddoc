@@ -31,7 +31,7 @@
   color: var(--muted);
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   user-select: none;
 }
@@ -81,7 +81,7 @@
   margin-bottom: 8px;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
 }
 
@@ -203,10 +203,11 @@
   right: 3px;
   padding: 1px 4px;
   font-size: var(--card-lb);
-  font-weight: 600;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.65);
-  border-radius: 4px;
+  font-weight: 700;
+  /* (light: the accent; dark: the translucent black it always was) */
+  color: light-dark(var(--accent-text), #fff);
+  background: light-dark(var(--accent), rgba(0, 0, 0, 0.65));
+  border-radius: 999px;
 }
 
 .card figcaption {

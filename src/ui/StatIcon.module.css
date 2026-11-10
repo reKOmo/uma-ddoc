@@ -1,0 +1,7 @@
+.icon {
+  flex: none;
+  width: 1.35em;
+  height: 1.35em;
+  object-fit: contain;
+  vertical-align: middle;
+}

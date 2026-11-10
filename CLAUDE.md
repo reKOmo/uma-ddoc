@@ -13,6 +13,10 @@ scenarios), deployed to GitHub Pages; no backend, all data is generated at build
 - **`generated/` is build output** (gitignored): never edit or commit it. **`data/` is committed**; files there built
   from the stored news (`global_events.json`, `jp_events.json`…) are rebuilt by `update-global` / `update-jp`, never
   edited by hand.
+- **Never look at UmaTL's data** (its terms forbid use with generative models, AI agents included): don't read, print,
+  grep or fetch `generated/translations.json`, `generated/raw/umatl_*` or UmaTL's repos, and never feed them to a
+  model. `pnpm fetch-umatl` prints counts only; for screenshots or the DOM run **`pnpm dev:ai`** (fan translations
+  masked), never `pnpm dev`. Tests use made-up strings. `.claude/settings.json` enforces part of this. [UmaTL](docs/data/umatl.md)
 - **Use a maintained library before hand-writing a mechanism**; write the least code that does the job; comments only
   say why. Details: [code style](docs/conventions/code-style.md).
 - **Anything beyond a small, clear change starts with an interview and a plan, not code**; a plan doc only for really
@@ -48,6 +52,7 @@ Every other command (data updates, news, predictions): [docs/commands.md](docs/c
 - Data: [pipeline overview](docs/data/pipeline.md) · [card data](docs/data/cards.md) ·
   [GameTora](docs/data/gametora.md) · [official news](docs/data/news.md) · [events + the model](docs/data/events.md) ·
   [JP cards, banners, events](docs/data/jp.md) · [post classifiers + gold sets](docs/data/classifier.md) · [scenarios](docs/data/scenarios.md) ·
-  [predictions (ml/)](docs/data/predictions.md) · [pull guide](docs/data/pull-guide.md)
+  [predictions (ml/)](docs/data/predictions.md) · [pull guide](docs/data/pull-guide.md) ·
+  [UmaTL translations](docs/data/umatl.md)
 - [Ranking semantics + upstream parity](docs/ranking.md) · [testing](docs/testing.md) ·
   [CI workflows](docs/ci.md)

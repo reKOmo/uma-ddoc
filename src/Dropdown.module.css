@@ -19,7 +19,7 @@
   text-align: left;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   transition:
     border-color 0.15s,
@@ -35,8 +35,20 @@
   border-color: var(--accent);
 }
 
+/* Settings': the label like its other labels, the button padded like its option cards. */
+.roomy {
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.roomy .button {
+  padding: 8px 12px 8px 14px;
+}
+
 /* The selected option on the button: Radix's Value span (the button's first child, no class of its own) around
-   .value, which lays the icon and label out. */
+   .value, which lays the label out. */
 .button > :first-child {
   flex: 1;
   min-width: 0;
@@ -64,13 +76,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.icon {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
 }
 
 .pill {
@@ -109,7 +114,7 @@
   font-size: 0.9rem;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 14px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
 }
 
@@ -157,7 +162,7 @@
   flex: none;
   width: 16px;
   height: 16px;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .note {

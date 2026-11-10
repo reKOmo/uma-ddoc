@@ -68,7 +68,8 @@ export const formatDateRange = (
 export const formatNumber = (value: number): string => new Intl.NumberFormat(locale()).format(value);
 
 // A short span's two largest units, in the UI's locale: "2 days, 5 hours", "3 hours, 20 minutes", "20 minutes".
-export function formatTimeLeft(ms: number): string {
+// (`narrow`: "6d 22h", for a pill.)
+export function formatTimeLeft(ms: number, { narrow = false } = {}): string {
   const minutes = Math.max(1, Math.round(ms / 60000));
   const units: [number, string][] = [
     [Math.floor(minutes / 1440), 'day'],
@@ -80,7 +81,9 @@ export function formatTimeLeft(ms: number): string {
     .slice(first, first + 2)
     .filter(([value]) => value > 0)
     .map(([value, name]) =>
-      new Intl.NumberFormat(locale(), { style: 'unit', unit: name, unitDisplay: 'long' }).format(value)
+      new Intl.NumberFormat(locale(), { style: 'unit', unit: name, unitDisplay: narrow ? 'narrow' : 'long' }).format(
+        value
+      )
     );
   return new Intl.ListFormat(locale(), { style: 'narrow', type: 'unit' }).format(parts);
 }

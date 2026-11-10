@@ -20,7 +20,7 @@
   object-fit: contain;
   background: radial-gradient(circle, color-mix(in srgb, var(--scenario-color) 35%, var(--panel)), var(--panel) 70%);
   border: 2px solid var(--scenario-color);
-  border-radius: 16px;
+  border-radius: 20px;
 }
 
 .body {
@@ -102,7 +102,7 @@
   padding: 0 14px;
   font: inherit;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-ink);
   text-decoration: none;
   background: var(--panel);
   border: 1px solid var(--accent);
@@ -121,7 +121,7 @@
   align-items: stretch;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 18px;
 }
 
 .side {
@@ -159,7 +159,7 @@
 
 .gap {
   display: contents;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .gap svg {
@@ -190,7 +190,7 @@
 }
 
 .confirmed {
-  color: var(--accent);
+  color: var(--accent-ink);
   border: 1px solid var(--accent);
 }
 
@@ -224,7 +224,7 @@
   text-decoration: none;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 14px;
 }
 
 .links a:hover {
@@ -259,7 +259,7 @@
   text-decoration: none;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 14px;
 }
 
 .nav a:hover {

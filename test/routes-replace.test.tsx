@@ -6,6 +6,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { useEffect } from 'react';
 
+// (the tab bar's sliding highlight measures layout jsdom doesn't have)
+vi.mock('../src/TabHighlight.tsx', () => ({ default: () => null }));
 vi.mock('../src/pages/TimelinePage.tsx', () => ({
   default: ({ linkId }: { linkId?: string }) => {
     // As the real page does on mount (no sheet open yet): the address becomes the plain Timeline's.

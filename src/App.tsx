@@ -16,6 +16,7 @@ import ScenariosPage from './pages/ScenariosPage.tsx';
 import { useTranslation } from 'react-i18next';
 import { ALIAS, PATTERNS, TAB_URLS, isServer, useHashLocation } from './routes.ts';
 import { Segmented } from './ui/Segmented.tsx';
+import TabHighlight from './TabHighlight.tsx';
 import styles from './App.module.css';
 
 const TABS = [
@@ -75,18 +76,26 @@ function Shell() {
     if (linkServer && linkServer !== server) changeServer(linkServer);
   }, [location]);
 
+  // (state, not a ref: the highlight measures it once it's attached)
+  const [tabbar, setTabbar] = useState<HTMLElement | null>(null);
   const tierListProps = { server, scenario, onScenarioChange: setScenario };
   return (
     <div className={styles.app}>
       <header className={styles.topbar}>
-        {detail ? (
-          <button type="button" className={styles.backButton} onClick={goBack}>
-            <ArrowLeft size={18} aria-hidden="true" />
-            {t('common.back')}
-          </button>
-        ) : (
-          <h1>{t(TITLES[tab])}</h1>
-        )}
+        {/* The logo, home to the tier list; then the page's title (or Back, on a card's or scenario's page). */}
+        <div className={styles.brand}>
+          <a href={TAB_URLS.cards} className={styles.logo} aria-label={t('common.home')}>
+            <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
+          </a>
+          {detail ? (
+            <button type="button" className={styles.backButton} onClick={goBack}>
+              <ArrowLeft size={18} aria-hidden="true" />
+              {t('common.back')}
+            </button>
+          ) : (
+            <h1>{t(TITLES[tab])}</h1>
+          )}
+        </div>
         <Segmented
           label={t('common.server')}
           options={SERVER_KEYS.map((key) => ({ value: key, label: serverName(key) }))}
@@ -129,11 +138,15 @@ function Shell() {
           </Route>
         </Switch>
       </main>
-      <nav className={styles.tabbar}>
+      <nav className={styles.tabbar} ref={setTabbar}>
+        <TabHighlight nav={tabbar} tab={tab} />
         {TABS.map(({ url, label, Icon }) => (
           <a key={url} href={url} aria-current={url === tab ? 'page' : undefined}>
             <Icon className={styles.tabIcon} size={22} aria-hidden="true" />
-            {t(label)}
+            {/* (data-text: the bold width held open, so the open tab's bold label never moves the others) */}
+            <span className={styles.tabLabel} data-text={t(label)}>
+              {t(label)}
+            </span>
           </a>
         ))}
       </nav>

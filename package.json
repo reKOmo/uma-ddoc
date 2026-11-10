@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:ai": "VITE_AI_PREVIEW=1 vite",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "biome check",
@@ -27,6 +28,7 @@
     "rank": "node tierlist/cli.ts",
     "scrape-gametora": "node scripts/scrape-gametora.ts",
     "fetch-pull-guide": "node scripts/fetch-pull-guide.ts",
+    "fetch-umatl": "node scripts/fetch-umatl.ts",
     "news:latest": "node scripts/fetch-news-latest.ts",
     "news:latest:jp": "node scripts/fetch-news-latest.ts --server jp",
     "news:all": "node scripts/fetch-news-all.ts",

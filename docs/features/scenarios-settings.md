@@ -11,9 +11,14 @@
   server's tier list ranks it) and previous / next scenario (on top on phones, at the bottom on desktop; CSS order
   only). On desktop the key art is a sticky column on the left, everything else beside it (`.scenario-body`). Opened from a segment of the banner calendar's scenario strip (that one is per server) or an entry on the
   Scenarios tab (which stays highlighted); the page isn't a tab.
-- **Settings** (`#/settings`, a tab) — Times (one section): time zone UTC (default, as the game announces them; "UTC" written after
+- **Settings** (`#/settings`, a tab): each section its own panel; choices as option cards side by side (a check on the
+  chosen one, `src/ui/OptionCards.tsx`), Language's two as dropdowns side by side. Theme: System (the device's light or dark, default), Light or Dark,
+  applied before the first paint. Times (one section): time zone UTC (default, as the game announces them; "UTC" written after
   times) or the viewer's timezone (not named); a 12- or 24-hour clock (default: the browser's, from its locale's hour
   cycle; settings stored before it existed get the browser's too); scenario names Global (Unity, TB, GC; JP's where Global has none yet, the default) or JP
   (Aoharu, MANT, GL); JP news on umapyoi.net in Japanese (the original, default: `?lang=jp`) or English (umapyoi's
-  translation, `?lang=en`), for every umapyoi.net link to a JP post (`src/umapyoi.ts`); remembered in the browser. At the bottom, About: version (package.json), the Cygames
-  disclaimer, and credits linking GameTora and the original tier list (Euophrys' Uma Tiers).
+  translation, `?lang=en`), for every umapyoi.net link to a JP post (`src/umapyoi.ts`); Language: per server
+  Japanese / Official English / All English (+ GameTora's and UmaTL's), Global's default All English, JP's Japanese
+  ([UmaTL](../data/umatl.md)); remembered in the browser. At the bottom, About: version (package.json), the Cygames
+  disclaimer, and credits linking GameTora, the original tier list (Euophrys' Uma Tiers), the pull guide, Umapyoi and
+  UmaTL.

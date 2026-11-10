@@ -19,6 +19,8 @@ vi.mock('../src/pages/CardPage.tsx', stub('card'));
 vi.mock('../src/pages/SettingsPage.tsx', stub('settings'));
 vi.mock('../src/pages/ScenarioPage.tsx', stub('scenario'));
 vi.mock('../src/pages/ScenariosPage.tsx', stub('scenarios'));
+// (the tab bar's sliding highlight measures layout jsdom doesn't have)
+vi.mock('../src/TabHighlight.tsx', () => ({ default: () => null }));
 
 import App from '../src/App.tsx';
 import { createElement } from 'react';

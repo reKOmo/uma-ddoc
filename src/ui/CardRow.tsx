@@ -6,7 +6,7 @@ export type CardRowProps = {
   href: string;
   icon: string;
   name: string;
-  title?: string | null;
+  title?: ReactNode;
   meta?: ReactNode;
   className?: string;
 };
