@@ -147,9 +147,10 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     events.ts        pure: EVENT_GROUPS, items with currencies first (itemList()), withPredicted()
     format.ts        dateFormats(timeZone), dateRange(), kindName(), barLabel(), entryTitle()
     useRankings.ts   MLB ranks of a sheet's cards (server's own tier list, else looking ahead)
-    useCenterOn.ts, useCompactRows.ts, useRenderWindow.ts, useTimelineFilters.ts  the Timeline page's centring
-                     (linked entry / the end of today, zoom), compact mode's measuring, the time range whose bars are drawn (1.5
-                     screens each side; the rest of history isn't rendered), and its hidden / order / verdict filtering
+    useCenterOn.ts, useCompactRows.ts, useRenderWindow.ts, useStickyBars.ts, useTimelineFilters.ts  the Timeline page's
+                     centring (linked entry / the end of today, zoom), compact mode's measuring, the time range whose bars and
+                     day labels are drawn (0.75 screens each side; the rest of history isn't rendered), which bars' label /
+                     fold button are sticky (only those crossing the screen's edge), and its hidden / order / verdict filtering
     TimelineSheet.tsx  the one sheet for every entry, in sections (Header, Provenance, Relations, Featured,
                      Rewards, Schedule, Titles, Parts, RankNote, Links)
     TimelineAxis.tsx scenario strip + months + days; CalendarLines (scenario starts, today, marks)

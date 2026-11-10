@@ -7,6 +7,7 @@ import { type DateFormats, dateRange } from './format.ts';
 import type { Timeline } from './layout.ts';
 import type { ScenarioSegment } from './scenarioStrip.ts';
 import type { Mark } from './data.ts';
+import type { RenderWindow } from './useRenderWindow.ts';
 import styles from './TimelineAxis.module.css';
 import { scenarioUrl } from '../routes.ts';
 import { scenarioStyle } from '../vividColor.ts';
@@ -18,10 +19,19 @@ const showDayLabel = (date: number, step: number) => (date - 1) % step === 0 && 
 
 type AxisProps = { timeline: Timeline; scenarios: ScenarioSegment[]; px: number; format: DateFormats };
 
-// Memoised like the lanes: a label per day.
-export const TimelineAxis = memo(function TimelineAxis({ timeline, scenarios, px, format }: AxisProps) {
+// Memoised like the lanes. Day labels only in the drawn range, like the bars (useRenderWindow): the whole history's
+// thousands of them made every zoom's layout slow.
+export const TimelineAxis = memo(function TimelineAxis({
+  timeline,
+  scenarios,
+  px,
+  format,
+  range,
+}: AxisProps & { range: RenderWindow | null }) {
   const { t } = useTranslation();
   const step = dayLabelStep(px);
+  const from = range ? timeline.at(range.from) : 0;
+  const to = range ? timeline.at(range.to) : 0;
   return (
     <div className={styles.axis}>
       <ul className={styles.axisScenarios} aria-label={t('timeline.scenarios')}>
@@ -80,7 +90,7 @@ export const TimelineAxis = memo(function TimelineAxis({ timeline, scenarios, px
       </div>
       <div className={styles.axisDays}>
         {timeline.dayDates
-          .filter(({ date }) => showDayLabel(date, step))
+          .filter(({ day, date }) => day >= from - step && day < to && showDayLabel(date, step))
           .map(({ day, date }) => (
             <span
               key={day}
