@@ -1,9 +1,9 @@
 // Hidden entries leave the lanes (a hidden event's parts of shown kinds stand on their own); the dates and sheets keep
-// everything. A support card banner stays while one of its cards has a shown pull verdict. A search keeps only its
+// everything. With pull verdicts picked, a support card banner stays while one of its cards has a picked one. A search keeps only its
 // results (search.ts), matches the filter hides included unless the filter says otherwise.
 import { useCallback, useMemo } from 'react';
 import { cards } from '../../tierlist/cards.ts';
-import { type Verdict, bannerVerdicts, loadPullGuide } from '../pullGuide.ts';
+import { type Verdict, VERDICTS, bannerVerdicts, loadPullGuide } from '../pullGuide.ts';
 import { useAsync } from '../useAsync.ts';
 import type { Entry } from './entries.ts';
 import { getHidden, saveHidden, useHiddenStore } from './hidden.ts';
@@ -48,8 +48,9 @@ export function useTimelineFilters(entries: Entry[] | null, chips: Term[], langu
   const override = useSearchOverrideStore((state) => state.override);
   const { groups, search } = useMemo(() => {
     if (!entries || !index) return { groups: NO_GROUPS, search: null };
+    const picked = !!verdictsOf && VERDICTS.some((v) => hidden.has(pullKey(v)));
     const pullShown = (entry: Entry) =>
-      entry.group !== 'cards' || !verdictsOf || [...verdictsOf(entry)].some((v) => !hidden.has(pullKey(v)));
+      entry.group !== 'cards' || !verdictsOf || !picked || [...verdictsOf(entry)].some((v) => hidden.has(pullKey(v)));
     const filtered = (e: Entry) => !hidden.has(e.kind) && pullShown(e);
     const results = chips.length ? searchResults(entries, chips, index) : null;
     const shown = (e: Entry) => (!results || results.shown.has(e.key)) && ((results && override) || filtered(e));
