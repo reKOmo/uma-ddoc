@@ -6,6 +6,7 @@
     "settings": "Settings"
   },
   "common": {
+    "home": "Umaddoc: home",
     "server": "Server",
     "scenario": "Scenario",
     "stat": "Type",
@@ -131,6 +132,7 @@
     "characters": "Trainees",
     "supportCards": "Support cards",
     "barLabel": "{{name}} +{{count}}",
+    "untranslated": "{{kind}}: {{name}}",
     "withRace": "{{label}} · {{race}}",
     "aboutDates": "About these dates",
     "status": {
@@ -146,7 +148,6 @@
     "featuredCards": "Featured cards",
     "featuredTrainees": "Featured trainees",
     "new": "new",
-    "seeMore": "See more",
     "notRanked": "Not ranked yet",
     "rankNote": "Ranks are for MLB copies in the {{scenario}} tier list.",
     "showGroup": "Show {{name}}",
@@ -180,19 +181,21 @@
     "freePulls_other": "{{count}} free pulls",
     "tenTimes": "{{times}} × 10",
     "upcomingRankNote": "Cards not on {{server}} yet are ranked as if they were out.",
-    "nothingListed": "Nothing listed.",
     "copies_one": "{{count}} copy",
     "copies_other": "{{count}} copies",
     "range": "{{min}}–{{max}}",
     "titles": "Titles: {{titles, list}}",
-    "news": "See on {{site}}",
+    "news": "Read announcement",
+    "newsOn": "Read the announcement on {{site}}",
     "counterpart": "See on {{server}}",
-    "umapyoi": "See on umapyoi.net",
     "items": "Other rewards",
     "itemCount": "{{name}} × {{count}}",
     "includes": "Includes",
     "schedule": "Schedule",
     "endsIn": "ends in {{duration}}",
+    "timeLeft": "{{duration}} left",
+    "startsIn": "starts in {{duration}}",
+    "inUtc": "{{dates}} UTC",
     "showParts_one": "Show {{count}} part of {{name}}",
     "showParts_other": "Show {{count}} parts of {{name}}",
     "hideParts": "Hide the parts of {{name}}",
@@ -203,7 +206,7 @@
       "banners": "Banners",
       "events": "Events",
       "pullHeading": "Pull advice",
-      "pullNote": "Support card banners stay when one of their cards has a ticked verdict.",
+      "pullNote": "Pick verdicts to keep only the support card banners where one of their cards has one; none picked shows them all.",
       "pullOff": "Support card banners are hidden.",
       "noAdvice": "No advice",
       "showAll": "Show all",
@@ -225,14 +228,10 @@
       "searchOverride": "Search overrides filters"
     },
     "search": {
-      "button": "Search",
       "label": "Search the calendar",
       "placeholder": "Character, card type, event, item…",
-      "close": "Close",
       "clear": "Clear search",
       "remove": "Remove {{name}}",
-      "chipCount_one": "{{count}} search term",
-      "chipCount_other": "{{count}} search terms",
       "textOption": "Anything with “{{text}}”",
       "position_one": "{{position}} of {{count}} match",
       "position_other": "{{position}} of {{count}} matches",
@@ -421,6 +420,7 @@
   "pullGuide": {
     "upcomingBanner": "Upcoming banner",
     "shouldPull": "Should pull?",
+    "pullChip": "Pull? {{verdict}}",
     "verdict": {
       "yes": "Yes",
       "no": "No",
@@ -451,6 +451,12 @@
   },
   "settings": {
     "title": "Settings",
+    "theme": "Theme",
+    "themeHint": "Light or dark, or as your device is set.",
+    "themeSystem": "System",
+    "themeSystemDetail": "As your device",
+    "themeLight": "Light",
+    "themeDark": "Dark",
     "times": "Times",
     "timesHint": "The game announces banners in UTC. Show days and times in UTC or in your own timezone, on a 12- or 24-hour clock (yours by default).",
     "timeZone": "Time zone",
@@ -494,7 +500,25 @@
       "umapyoi": {
         "name": "Umapyoi",
         "description": "Game news"
+      },
+      "umatl": {
+        "name": "UmaTL",
+        "description": "Fan translations of names Global hasn't released, marked on the page"
       }
-    }
+    },
+    "language": "Language",
+    "languageHint": "How cards, banners and events are named on each server: as JP writes them (on Global, where JP has a name), in Global's official English (Japanese where Global has none yet), or with GameTora's and UmaTL's fan translations filling the gaps (marked \"Translation from UmaTL\").",
+    "fanTlGlobal": "Global",
+    "jpNames": "JP",
+    "namesJp": "Japanese",
+    "namesJpDetail": "As JP writes them",
+    "namesOfficial": "Official English",
+    "namesOfficialDetail": "Global's names, else Japanese",
+    "namesAll": "All English",
+    "namesAllDetail": "+ GameTora & UmaTL"
+  },
+  "fanTl": {
+    "mark": "Translation from UmaTL",
+    "more": "Click to know more"
   }
 }

@@ -1,0 +1,26 @@
+/* One size wherever it sits (a dropdown's button is small text): the icon 1.4em of it. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pill img {
+  width: 1.4em;
+  height: 1.4em;
+}
+
+/* The type's colour as a tint, its text a darker (dark theme: lighter) shade of it. */
+.tinted {
+  padding: 4px 14px 4px 6px;
+  color: color-mix(in srgb, var(--tone) 45%, var(--text));
+  background: color-mix(in srgb, var(--tone) 18%, var(--panel));
+  border-radius: 999px;
+}
+
+.plain {
+  font-weight: 600;
+}

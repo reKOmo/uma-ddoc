@@ -14,6 +14,9 @@ type Dated<E extends LaneEntry> = E & { start: string };
 
 export const DAY = 24 * 60 * 60 * 1000;
 
+// The Timeline's zoom levels, in pixels per day.
+export const ZOOMS = [4, 8, 16, 32];
+
 const UTC = { hours: 'UTCHours', date: 'UTCDate', month: 'UTCMonth' } as const;
 const LOCAL = { hours: 'Hours', date: 'Date', month: 'Month' } as const;
 

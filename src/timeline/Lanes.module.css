@@ -71,11 +71,16 @@
   position: absolute;
   top: 0;
   bottom: 0;
+  left: calc(var(--x) * var(--day));
+  width: max(calc(var(--w) * var(--day)), 6px);
   display: flex;
   align-items: center;
   overflow: clip;
   color: #fff;
-  background-color: #444b55;
+  /* Behind (or instead of) the art: light, a mid tint of the bar's own colour, so transparent or missing art shows its
+     colour and no bar stands out darker than the rest (the fade darkens it under the white label); dark, the grey it
+     always was. */
+  background-color: light-dark(color-mix(in srgb, var(--tone) 55%, var(--bg)), #444b55);
   /* GameTora's banner PNGs (512×188) have a transparent margin round the banner itself
      (x 21–490, y 30–157; take 3px more for its rounded corners: 464×122). Size the image so
      that panel alone covers the bar: at least the bar's width, and at least the lane's height. */
@@ -98,7 +103,8 @@
 }
 
 .barLabel {
-  position: sticky;
+  /* Positioned even when not sticky: above the bar's shade (::before), as the sticky label is. */
+  position: relative;
   left: 0;
   display: flex;
   flex-direction: column;
@@ -107,6 +113,12 @@
   max-width: 100cqw;
   padding: 0 8px;
   pointer-events: none;
+}
+
+/* Sticky only while the bar crosses the screen's edge (useStickyBars): a sticky box is a compositor layer of its own,
+   and hundreds of them made scrolling and zooming slow. */
+.bar[data-stuck-start] .barLabel {
+  position: sticky;
 }
 
 /* The label keeps its room free (a margin a sticky label never slides into); the fold button sits back in it (a
@@ -121,7 +133,13 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.45));
+  /* Light theme: light, so the art shows (darkest behind the label, the text's shadow doing the rest); dark: as it was. */
+  background: linear-gradient(
+    90deg,
+    light-dark(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.82)) 0%,
+    light-dark(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.64)) 45%,
+    light-dark(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.45))
+  );
 }
 
 .bar strong,
@@ -130,7 +148,9 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  text-shadow:
+    0 1px 2px light-dark(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.8)),
+    0 0 6px light-dark(rgba(0, 0, 0, 0.6), transparent);
 }
 
 .bar strong {
@@ -218,13 +238,33 @@
   }
 }
 
-.bar.chip {
+/* A chip at the canvas's zoom (data-chip, Lanes.tsx): no label, no art. */
+.bar:is(
+  [data-zoom="0"] [data-chip~="0"],
+  [data-zoom="1"] [data-chip~="1"],
+  [data-zoom="2"] [data-chip~="2"],
+  [data-zoom="3"] [data-chip~="3"]
+) {
   overflow: visible;
+  /* biome-ignore lint/complexity/noImportantStyles: over the art's inline style (Lanes.tsx). */
+  background-image: none !important;
   background-color: color-mix(in srgb, var(--tone) 70%, #222);
   border-left-width: 0;
 }
 
-.bar.chip::before {
+.bar:is(
+  [data-zoom="0"] [data-chip~="0"],
+  [data-zoom="1"] [data-chip~="1"],
+  [data-zoom="2"] [data-chip~="2"],
+  [data-zoom="3"] [data-chip~="3"]
+)::before,
+.bar:is(
+    [data-zoom="0"] [data-chip~="0"],
+    [data-zoom="1"] [data-chip~="1"],
+    [data-zoom="2"] [data-chip~="2"],
+    [data-zoom="3"] [data-chip~="3"]
+  )
+  .barLabel {
   display: none;
 }
 
@@ -242,8 +282,8 @@
 }
 
 .barFold {
-  position: sticky;
-  right: 4px;
+  /* Positioned even when not sticky: above the bar's shade and its button (.barHit). */
+  position: relative;
   display: inline-flex;
   flex: none;
   margin-right: 4px;
@@ -265,7 +305,19 @@
   pointer-events: auto;
 }
 
-.bar.chip .barFold {
+/* (Sticky only while the bar crosses the screen's edge, as its label.) */
+.bar[data-stuck-end] .barFold {
+  position: sticky;
+  right: 4px;
+}
+
+.bar:is(
+    [data-zoom="0"] [data-chip~="0"],
+    [data-zoom="1"] [data-chip~="1"],
+    [data-zoom="2"] [data-chip~="2"],
+    [data-zoom="3"] [data-chip~="3"]
+  )
+  .barFold {
   position: absolute;
   top: 50%;
   left: calc(100% + 2px);
@@ -287,6 +339,8 @@
 
 .partBand {
   position: absolute;
+  left: calc(var(--x) * var(--day));
+  width: max(calc(var(--w) * var(--day)), 6px);
   top: -2px;
   bottom: 0;
   z-index: 1;

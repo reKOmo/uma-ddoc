@@ -1,102 +1,86 @@
 /* Wins over App.css's .page max-width. */
 .settingsPage:global(.page) {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   max-width: 640px;
 }
 
-.group,
+/* Each setting (and About) its own panel. */
+.setting,
 .about {
-  padding: 16px;
+  padding: 18px;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-.setting + .setting {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
+  border-radius: 22px;
 }
 
 .setting h2,
 .about h2 {
-  margin: 0 0 4px;
-  font-size: 1.05rem;
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
-.subSetting + .subSetting {
-  margin-top: 12px;
+.subSetting {
+  margin-top: 14px;
 }
 
 .subLabel {
   display: block;
-  margin-bottom: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* Global's and JP's names side by side. */
+.dropdowns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .hint {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-size: 0.875rem;
-  line-height: 1.4;
+  line-height: 1.45;
   color: var(--muted);
 }
 
-/* Long option names wrap instead of overflowing. */
-.toggle {
-  width: fit-content;
-  max-width: 100%;
-}
-
-.toggle button {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  align-content: center;
-  justify-content: center;
-  column-gap: 6px;
-  min-width: 0;
-  min-height: 32px;
-  padding: 4px 12px;
-  font-size: 0.8rem;
-  overflow-wrap: anywhere;
-}
-
-.optionLabel {
-  font-weight: 600;
-}
-
-.optionDetail {
-  font-size: 0.75rem;
-  opacity: 0.75;
+/* A sub-setting's hint is the section's; the first label sits closer under it. */
+.hint + .subSetting {
+  margin-top: 0;
 }
 
 .about {
-  margin-top: 32px;
+  margin-top: 4px;
 }
 
 .aboutApp {
   margin: 0 0 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--muted);
 }
 
 .aboutText {
   margin: 0 0 12px;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   line-height: 1.5;
   color: var(--muted);
 }
 
 .aboutText a {
-  color: var(--accent);
+  font-weight: 600;
+  color: var(--accent-ink);
 }
 
 .about h3 {
-  margin: 20px 0 8px;
+  margin: 20px 0 10px;
   font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -115,13 +99,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 48px;
-  padding: 10px 12px;
+  min-height: 56px;
+  padding: 10px 14px;
   color: var(--text);
   text-decoration: none;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--inset);
+  border: 2px solid transparent;
+  border-radius: 16px;
   transition: border-color 0.1s;
 }
 
@@ -135,7 +119,7 @@
 }
 
 .credits a:hover svg {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .credits strong {

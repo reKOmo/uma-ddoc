@@ -18,7 +18,25 @@ test('settings survive a reload, stored as before', async ({ page }) => {
     jpNewsLanguage: 'jp',
     // Added later; the browser's (Playwright's Chromium is en-US: 12-hour).
     clock: '12h',
+    fanTlGlobal: 'all',
+    jpNames: 'jp',
+    theme: 'system',
   });
+});
+
+test('the theme setting switches the colours, and survives a reload', async ({ page }) => {
+  await open(page, '#/settings');
+  const theme = page.getByRole('group', { name: 'Theme' });
+  const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  await theme.getByRole('button', { name: /Light/ }).click();
+  const light = await background();
+  await theme.getByRole('button', { name: /Dark/ }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  expect(await background()).not.toBe(light);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await theme.getByRole('button', { name: /System/ }).click();
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme', /./);
 });
 
 test("an older version's settings load", async ({ page }) => {
@@ -26,11 +44,18 @@ test("an older version's settings load", async ({ page }) => {
     'uma-ddoc.settings': JSON.stringify({ timeZone: 'local', scenarioNames: 'jp', jpNewsLanguage: 'en' }),
   });
   const pressed = page.getByRole('main').getByRole('button', { pressed: true });
-  await expect(pressed).toHaveCount(4);
-  await expect(pressed.nth(0)).toContainText('Local');
+  await expect(pressed).toHaveCount(5);
+  // Added later (no theme stored): the device's.
+  await expect(pressed.nth(0)).toContainText('System');
+  await expect(pressed.nth(1)).toContainText('Local');
   // It stored no clock: the browser's.
-  await expect(pressed.nth(1)).toContainText('12-hour');
-  await expect(pressed.nth(2)).toContainText('JP');
+  await expect(pressed.nth(2)).toContainText('12-hour');
+  await expect(pressed.nth(3)).toContainText('JP');
+  await expect(pressed.nth(4)).toContainText('English');
+  // Added later (the names' dropdowns): their defaults.
+  const main = page.getByRole('main');
+  await expect(main.getByRole('combobox', { name: /^Global/ })).toContainText('All English');
+  await expect(main.getByRole('combobox', { name: /^JP/ })).toContainText('Japanese');
 });
 
 test('garbage in storage gives the defaults, not a crash', async ({ page }) => {

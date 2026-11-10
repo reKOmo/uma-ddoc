@@ -1,19 +1,20 @@
 // Radix Select underneath: keyboard, type-ahead, ARIA, touch and the popup's portal come from it. Every dropdown
 // uses it (not a <select>: phones' native pickers ignore option styling).
-// Options: { value, label, icon?, pill?, group?, note?, badge?, italic?, disabled? }. `pill` { color, ink: 'dark' |
+// Options: { value, label, content?, pill?, group?, note?, badge?, italic?, disabled? }. `content`: shown in place
+// of the label (the label still names it for the keyboard and screen readers). `pill` { color, ink: 'dark' |
 // 'light' } sets the label as a pill (the --ink-* token for its text); `disabled` options are greyed and skipped by the
-// keyboard.
+// keyboard. `roomy`: a bold label and a padded button, as Settings' other labels and option cards.
 
 import * as Select from '@radix-ui/react-select';
 import clsx from 'clsx';
 import { Check, ChevronDown } from 'lucide-react';
-import { type CSSProperties, useId, useRef } from 'react';
+import { type CSSProperties, type ReactNode, useId, useRef } from 'react';
 import styles from './Dropdown.module.css';
 
 export type DropdownOption = {
   value: string;
   label: string;
-  icon?: string;
+  content?: ReactNode;
   pill?: { color: string; ink?: 'dark' | 'light' };
   group?: string;
   note?: string;
@@ -27,9 +28,10 @@ type DropdownProps = {
   value: string;
   options: DropdownOption[];
   onChange: (value: string) => void;
+  roomy?: boolean;
 };
 
-export default function Dropdown({ label, value, options, onChange }: DropdownProps) {
+export default function Dropdown({ label, value, options, onChange, roomy = false }: DropdownProps) {
   const id = useId();
   const viewport = useRef<HTMLDivElement>(null);
 
@@ -47,7 +49,7 @@ export default function Dropdown({ label, value, options, onChange }: DropdownPr
   }
 
   return (
-    <div className={styles.dropdown}>
+    <div className={clsx(styles.dropdown, roomy && styles.roomy)}>
       <span id={`${id}-label`}>{label}</span>
       <Select.Root value={selected?.value} onValueChange={onChange}>
         <Select.Trigger
@@ -59,7 +61,6 @@ export default function Dropdown({ label, value, options, onChange }: DropdownPr
           {/* (Radix's Value span takes no className or style: the flex box is its child, .button > :first-child sizes it.) */}
           <Select.Value>
             <span className={styles.value}>
-              {selected?.icon && <img className={styles.icon} src={selected.icon} alt="" />}
               <Label option={selected} />
             </span>
           </Select.Value>
@@ -115,7 +116,6 @@ function Option({ option }: { option: DropdownOption }) {
           <Check size={16} aria-hidden="true" />
         </Select.ItemIndicator>
       </span>
-      {option.icon && <img className={styles.icon} src={option.icon} alt="" />}
       <Select.ItemText>
         <Label option={option} />
       </Select.ItemText>
@@ -125,8 +125,9 @@ function Option({ option }: { option: DropdownOption }) {
   );
 }
 
-// An option's label: plain, or a pill in its colour.
+// An option's label: its own content, plain, or a pill in its colour.
 function Label({ option }: { option?: DropdownOption }) {
+  if (option?.content) return <span className={styles.label}>{option.content}</span>;
   if (!option?.pill) return <span className={styles.label}>{option?.label}</span>;
   const ink = option.pill.ink === 'dark' ? styles.inkDark : option.pill.ink === 'light' ? styles.inkLight : undefined;
   return (

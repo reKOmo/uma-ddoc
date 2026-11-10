@@ -21,7 +21,8 @@ export default defineConfig({
     { name: 'visual-desktop', use: { ...devices['Desktop Chrome'] }, testMatch: 'visual.spec.ts' },
   ],
   webServer: {
-    command: `pnpm dev --port ${PORT} --strictPort`,
+    // Masked UmaTL text (`dev:ai`): failure output and traces reach AI agents, who must never see it (docs/data/umatl.md).
+    command: `pnpm dev:ai --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}/`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

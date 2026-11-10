@@ -1,6 +1,7 @@
 // <FilterButton count countTitle onClick disabled />, <FilterSheet open onClose title action>…</FilterSheet>
 // <FilterSection heading note off chips onToggle onAll />: `chips` [{ key, label, shown, tone }] (`tone`: a `data-tone`
 // of src/styles/global.css), `onToggle(key)`, `onAll(shown)` (true: All, false: None); `off` greys the section out.
+// With a `catchAll` chip (ticked while nothing else is), All ticks it, there's no None and no `onAll`.
 
 import type { ReactNode } from 'react';
 import { Check, SlidersHorizontal } from 'lucide-react';
@@ -15,9 +16,11 @@ export type FilterButtonProps = {
   countTitle?: string;
   onClick: () => void;
   disabled?: boolean;
+  /** Only the icon on phones (the label still names it, and shows on desktop). */
+  phoneIconOnly?: boolean;
 };
 
-export function FilterButton({ count, countTitle, onClick, disabled }: FilterButtonProps) {
+export function FilterButton({ count, countTitle, onClick, disabled, phoneIconOnly }: FilterButtonProps) {
   const { t } = useTranslation();
   return (
     <button
@@ -26,9 +29,10 @@ export function FilterButton({ count, countTitle, onClick, disabled }: FilterBut
       onClick={onClick}
       disabled={disabled}
       aria-haspopup="dialog"
+      title={phoneIconOnly ? t('filter.button') : undefined}
     >
       <SlidersHorizontal size={18} aria-hidden="true" />
-      {t('filter.button')}
+      <span className={phoneIconOnly ? styles.phoneHidden : undefined}>{t('filter.button')}</span>
       {count > 0 && (
         <span className={styles.filterCount} title={countTitle}>
           {count}
@@ -64,6 +68,7 @@ export type FilterChip<K extends string | number = string> = {
   shown: boolean;
   /** A `data-tone` of src/styles/global.css. */
   tone?: string;
+  catchAll?: boolean;
 };
 
 export type FilterSectionProps<K extends string | number = string> = {
@@ -72,7 +77,7 @@ export type FilterSectionProps<K extends string | number = string> = {
   off?: boolean;
   chips: FilterChip<K>[];
   onToggle: (key: K) => void;
-  onAll: (shown: boolean) => void;
+  onAll?: (shown: boolean) => void;
 };
 
 export function FilterSection<K extends string | number>({
@@ -85,17 +90,24 @@ export function FilterSection<K extends string | number>({
 }: FilterSectionProps<K>) {
   const { t } = useTranslation();
   if (!chips.length) return null;
+  const catchAll = chips.find((chip) => chip.catchAll);
   return (
     <section className={clsx('filter-section', off && 'off')}>
       <div className="filter-section-head">
         <h3>{heading}</h3>
         <div className={styles.filterAll}>
-          <button type="button" onClick={() => onAll(true)} disabled={off || chips.every((chip) => chip.shown)}>
+          <button
+            type="button"
+            onClick={() => (catchAll ? onToggle(catchAll.key) : onAll?.(true))}
+            disabled={off || (catchAll ? catchAll.shown : chips.every((chip) => chip.shown))}
+          >
             {t('filter.all')}
           </button>
-          <button type="button" onClick={() => onAll(false)} disabled={off || chips.every((chip) => !chip.shown)}>
-            {t('filter.none')}
-          </button>
+          {!catchAll && (
+            <button type="button" onClick={() => onAll?.(false)} disabled={off || chips.every((chip) => !chip.shown)}>
+              {t('filter.none')}
+            </button>
+          )}
         </div>
       </div>
       {note && <p className="filter-note">{note}</p>}

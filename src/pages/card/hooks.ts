@@ -9,6 +9,7 @@ import type { Origin } from '../../cardOrigins.ts';
 import { loadPredictions } from '../../predictions.ts';
 import { loadEntries } from '../../timeline/data.ts';
 import { useAsync } from '../../useAsync.ts';
+import { useLanguage } from '../../translations.ts';
 
 // The server's predicted release dates (only Global has them): undefined while loading, null without any.
 export function usePredictions(server: Server): PredictionsFile | null | undefined {
@@ -65,9 +66,10 @@ export type Origins = EntryOrigin[];
 
 // Where the card comes from on the selected server (cardOrigins(), oldest first), null while loading.
 export function useOrigins(cardId: number, server: Server): Origins | null | undefined {
+  const language = useLanguage(server);
   const { data, pending } = useAsync(
-    async () => cardOrigins<Entry, Server>(cardId, { [server]: await loadEntries(server) }),
-    [cardId, server]
+    async () => cardOrigins<Entry, Server>(cardId, { [server]: await loadEntries(server, { language }) }),
+    [cardId, server, language]
   );
   return pending ? null : data;
 }

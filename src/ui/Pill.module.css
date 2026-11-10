@@ -41,7 +41,9 @@
   background: #2f9e6e;
 }
 
+/* Its colour, --verdict, by its tone (others mix it: the sheet's pull chip). */
 .verdict {
+  color: var(--verdict);
   padding: 4px 14px;
   font-size: 1.15rem;
   font-weight: 700;
@@ -50,23 +52,23 @@
 }
 
 .verdict[data-tone="yes"] {
-  color: var(--rank-up);
+  --verdict: var(--rank-up);
 }
 
 .verdict[data-tone="no"] {
-  color: var(--rank-down);
+  --verdict: var(--rank-down);
 }
 
 .verdict[data-tone="free"] {
-  color: var(--global-line);
+  --verdict: var(--global-line);
 }
 
 .verdict[data-tone="whale"] {
-  color: var(--caution);
+  --verdict: var(--caution);
 }
 
 .verdict[data-tone="dolphin"] {
-  color: var(--accent);
+  --verdict: var(--accent);
 }
 
 .label {
