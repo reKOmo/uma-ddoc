@@ -1,7 +1,9 @@
 [
 {"id": 3542, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": []},
+{"id": 3539, "category": "event", "kind": "factor_research", "phase": "announced", "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 3538, "category": "other", "kind": "issue", "phase": null, "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": []},
 {"id": 3537, "category": "other", "kind": "issue", "phase": null, "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": []},
+{"id": 3534, "category": "banner", "kind": null, "phase": "announced", "name": null, "source": "model", "confidence": 1.0, "flag": null, "units": []},
 {"id": 3533, "category": "other", "kind": "update", "phase": null, "name": null, "source": "model", "confidence": 1.0, "flag": null, "units": []},
 {"id": 3532, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
 {"id": 3531, "category": "other", "kind": "update", "phase": "started", "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
@@ -16,6 +18,7 @@
 {"id": 3522, "category": "other", "kind": "update", "phase": null, "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
 {"id": 3521, "category": "event", "kind": "legend_race", "phase": "started", "name": null, "source": "model", "confidence": 0.983, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
 {"id": 3520, "category": "event", "kind": "legend_race", "phase": "announced", "name": null, "source": "model", "confidence": 0.992, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
+{"id": 3519, "category": "event", "kind": "special", "phase": "ended", "name": null, "source": "model", "confidence": 0.995, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 3518, "category": "event", "kind": "special", "phase": "started", "name": null, "source": "model", "confidence": 0.996, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
 {"id": 3517, "category": "event", "kind": "special", "phase": "announced", "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 3516, "category": "other", "kind": "scenario", "phase": "started", "name": null, "source": "model", "confidence": 0.963, "flag": null, "units": []},
