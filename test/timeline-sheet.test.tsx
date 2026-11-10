@@ -262,6 +262,47 @@ describe('TimelineSheet', () => {
     expect(row('round_1')?.textContent).not.toMatch(/predicted/);
     expect(events[0].endPredicted).toBe(false);
   });
+
+  it('keeps the running phase un-greyed when its dates are predicted; only its countdown is', () => {
+    // (live now, 2026-10-13: its first phase running, both phases' dates predicted)
+    const [teatime] = eventEntries(
+      [
+        {
+          id: '1158',
+          kind: 'story',
+          name: 'Teatime',
+          parent: null,
+          start: at('2026-10-10T22:00:00Z'),
+          end: at('2026-10-24T21:59:00Z'),
+          cards: [],
+          items: [],
+          titles: [],
+          phases: [
+            {
+              key: 'event',
+              start: at('2026-10-10T22:00:00Z', 'predicted'),
+              end: at('2026-10-24T21:59:00Z', 'predicted'),
+            },
+            {
+              key: 'reward_collection',
+              start: at('2026-10-24T22:00:00Z', 'predicted'),
+              end: at('2026-10-27T21:59:00Z', 'predicted'),
+            },
+          ],
+          news_url: null,
+          image: null,
+          source: 'news',
+        },
+      ] satisfies GameEvent[],
+      { cards, now }
+    );
+    const { container } = renderSheet(teatime);
+    const rows = container.querySelectorAll('li');
+    const [running, next] = [...rows].filter((li) => li.textContent?.includes('predicted'));
+    expect(running.className).not.toMatch(/predicted/);
+    expect(running.querySelector('[class*="endsInPredicted"]')).toBeTruthy();
+    expect(next.className).toMatch(/predicted/);
+  });
 });
 
 describe('TimelineSheet: free scouts', () => {

@@ -16,6 +16,7 @@ import ScenariosPage from './pages/ScenariosPage.tsx';
 import { useTranslation } from 'react-i18next';
 import { ALIAS, PATTERNS, TAB_URLS, isServer, useHashLocation } from './routes.ts';
 import { Segmented } from './ui/Segmented.tsx';
+import TabHighlight from './TabHighlight.tsx';
 import styles from './App.module.css';
 
 const TABS = [
@@ -75,6 +76,8 @@ function Shell() {
     if (linkServer && linkServer !== server) changeServer(linkServer);
   }, [location]);
 
+  // (state, not a ref: the highlight measures it once it's attached)
+  const [tabbar, setTabbar] = useState<HTMLElement | null>(null);
   const tierListProps = { server, scenario, onScenarioChange: setScenario };
   return (
     <div className={styles.app}>
@@ -135,11 +138,15 @@ function Shell() {
           </Route>
         </Switch>
       </main>
-      <nav className={styles.tabbar}>
+      <nav className={styles.tabbar} ref={setTabbar}>
+        <TabHighlight nav={tabbar} tab={tab} />
         {TABS.map(({ url, label, Icon }) => (
           <a key={url} href={url} aria-current={url === tab ? 'page' : undefined}>
             <Icon className={styles.tabIcon} size={22} aria-hidden="true" />
-            {t(label)}
+            {/* (data-text: the bold width held open, so the open tab's bold label never moves the others) */}
+            <span className={styles.tabLabel} data-text={t(label)}>
+              {t(label)}
+            </span>
           </a>
         ))}
       </nav>
