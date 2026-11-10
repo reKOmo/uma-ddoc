@@ -9,17 +9,18 @@
   --panel: light-dark(#ffffff, #1e1b23);
   --text: light-dark(#241b30, #ece8f1);
   --muted: light-dark(#6b6178, #a69fb1);
-  --border: light-dark(#ece4f3, #2e2a35);
+  --border: light-dark(#ddd2e7, #2e2a35);
   --accent: light-dark(#d6457a, #ef6c9b);
   --accent-text: light-dark(#ffffff, #1a1016);
   /* The accent as small text (links, labels): a deeper pink in light, 4.5:1 on every background. The vivid --accent is
      for fills, lines and icons. */
   --accent-ink: light-dark(#b53a68, #ef6c9b);
-  /* A tile inside a panel or sheet; a choice's border and selected fill; a neutral chip. */
-  --inset: light-dark(#f3eef8, #2a2631);
-  --option-border: light-dark(#e7deef, #3a3541);
+  /* A tile inside a panel or sheet; a choice's border and selected fill; a neutral chip. (Light: deep enough that
+     panels, tiles and choices stand off the pale page, with --muted and --accent-ink still 4.5:1 on them.) */
+  --inset: light-dark(#ede5f4, #2a2631);
+  --option-border: light-dark(#d3c6e0, #3a3541);
   --selected: light-dark(#fbeaf1, #3a1f2c);
-  --chip: light-dark(#efe9f5, #2e2a35);
+  --chip: light-dark(#ede5f4, #2e2a35);
   --gridline: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
   --rank-up: light-dark(#1f8a4c, #4cc47f);
   --rank-down: light-dark(#c8372d, #f07167);
