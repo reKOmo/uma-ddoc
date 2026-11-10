@@ -66,7 +66,7 @@ export function latestAdvice(guide: PullGuide, cardId: number): Advice | NoBanne
 }
 
 // The pills an advice can have, then 'none' for advice without one (or no advice).
-export const VERDICTS = ['yes', 'no', 'free', 'whale', 'dolphin', 'none'] as const;
+export const VERDICTS = ['yes', 'free', 'dolphin', 'whale', 'no', 'none'] as const;
 export type Verdict = (typeof VERDICTS)[number];
 
 // An advice's pill without its "+"s ("whale++" → 'whale'), or 'none'.

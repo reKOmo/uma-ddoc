@@ -206,7 +206,7 @@
       "banners": "Banners",
       "events": "Events",
       "pullHeading": "Pull advice",
-      "pullNote": "Support card banners stay when one of their cards has a ticked verdict.",
+      "pullNote": "Pick verdicts to keep only the support card banners where one of their cards has one; none picked shows them all.",
       "pullOff": "Support card banners are hidden.",
       "noAdvice": "No advice",
       "showAll": "Show all",
