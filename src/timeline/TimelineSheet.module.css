@@ -541,6 +541,11 @@
   color: var(--accent-ink);
 }
 
+/* A countdown to a predicted end: greyed, as a predicted row is. */
+.endsInPredicted {
+  color: var(--muted);
+}
+
 .schedule .ended {
   color: var(--muted);
 }

@@ -491,7 +491,12 @@ function Schedule({ entry, format }: { entry: Entry; format: DateFormats }) {
           const predicted = [phase.start, phase.end].some((d) => d?.status === 'predicted');
           const dates = format.sheet({ start: phase.start.date, end: phase.end?.date ?? null });
           return (
-            <li key={phase.key} className={clsx(predicted && styles.predicted, ended(i) && styles.ended)}>
+            // The phase running now isn't greyed out for its predicted dates: it is happening; only its countdown,
+            // to a predicted end, is.
+            <li
+              key={phase.key}
+              className={clsx(predicted && i !== current && styles.predicted, ended(i) && styles.ended)}
+            >
               <span className={styles.phaseName}>
                 {/* Every row keeps the dot's room, so the names line up. */}
                 {current >= 0 && (
@@ -504,7 +509,7 @@ function Schedule({ entry, format }: { entry: Entry; format: DateFormats }) {
                 <span>
                   {t(`events.phase.${phase.key}`)}
                   {i === current && currentEnd && (
-                    <span className={styles.endsIn}>
+                    <span className={clsx(styles.endsIn, predicted && styles.endsInPredicted)}>
                       {t('timeline.endsIn', { duration: formatTimeLeft(Date.parse(currentEnd) - now) })}
                     </span>
                   )}

@@ -97,6 +97,7 @@
 }
 
 .tabbar {
+  position: relative;
   display: flex;
   flex-shrink: 0;
   padding-bottom: env(safe-area-inset-bottom);
@@ -118,6 +119,51 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* The open tab's pill (TabHighlight.tsx): one element under the tabs, sliding from tab to tab. */
+.tabHighlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--selected);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.tabHighlight[data-placed] {
+  transition:
+    translate 0.3s cubic-bezier(0.3, 0.7, 0.2, 1),
+    width 0.3s cubic-bezier(0.3, 0.7, 0.2, 1),
+    height 0.3s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabHighlight[data-placed] {
+    transition: none;
+  }
+}
+
+/* (above the sliding pill) */
+.tabbar a {
+  position: relative;
+}
+
+.tabLabel {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* An invisible bold copy: the label's width is its bold width whether it's open or not. */
+.tabLabel::after {
+  content: attr(data-text);
+  height: 0;
+  overflow: hidden;
+  font-weight: 600;
+  visibility: hidden;
+  user-select: none;
+  pointer-events: none;
+}
+
 /* aria-current, not a class: screen readers announce it and the tests look it up. */
 .tabbar a[aria-current="page"] {
   color: var(--accent-ink);
@@ -134,9 +180,6 @@
 }
 
 /* The open tab's icon on a pill (phones; the desktop tabs are a row of words). */
-.tabbar a[aria-current="page"] .tabIcon {
-  background: var(--selected);
-}
 
 @media (min-width: 768px) {
   .tabbar {
@@ -157,16 +200,51 @@
     padding: 0;
   }
 
-  .tabbar a[aria-current="page"] .tabIcon {
-    background: none;
-  }
-
   .tabbar a {
     flex: 0 0 auto;
     flex-direction: row;
     gap: 6px;
-    min-height: 48px;
+    min-height: 40px;
+    margin: 4px 0;
     padding: 0 16px;
     font-size: 0.95rem;
+    border-radius: 999px;
+  }
+}
+
+/* Hover (mouse and pen only: a tap would leave it stuck on a phone): the text darkens, the icon's pill tints. */
+@media (hover: hover) {
+  .tabbar a,
+  .tabIcon {
+    transition:
+      color 0.15s,
+      background-color 0.15s;
+  }
+
+  .tabbar a:hover {
+    color: var(--text);
+  }
+
+  .tabbar a:hover .tabIcon {
+    background: var(--inset);
+  }
+
+  .tabbar a[aria-current="page"]:hover {
+    color: var(--accent-ink);
+  }
+
+  .tabbar a[aria-current="page"]:hover .tabIcon {
+    background: none;
+  }
+}
+
+@media (hover: hover) and (min-width: 768px) {
+  .tabbar a:hover .tabIcon,
+  .tabbar a[aria-current="page"]:hover {
+    background: none;
+  }
+
+  .tabbar a:hover {
+    background: var(--inset);
   }
 }
