@@ -35,8 +35,6 @@
   border-color: var(--accent);
 }
 
-/* The selected option on the button: Radix's Value span (the button's first child, no class of its own) around
-   .value, which lays the icon and label out. */
 /* Settings': the label like its other labels, the button padded like its option cards. */
 .roomy {
   gap: 8px;
@@ -49,6 +47,8 @@
   padding: 8px 12px 8px 14px;
 }
 
+/* The selected option on the button: Radix's Value span (the button's first child, no class of its own) around
+   .value, which lays the label out. */
 .button > :first-child {
   flex: 1;
   min-width: 0;
@@ -76,13 +76,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.icon {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
 }
 
 .pill {

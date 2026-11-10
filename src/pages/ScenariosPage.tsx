@@ -1,5 +1,4 @@
 import clsx from 'clsx';
-import type { CSSProperties } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatDate, scenarioName, serverName } from '../i18n/index.ts';
@@ -10,7 +9,7 @@ import { ink } from '../timeline/scenarioStrip.ts';
 import { timeZoneOptions, useSettings } from '../settings.tsx';
 import { scenarioUrl } from '../routes.ts';
 import styles from './ScenariosPage.module.css';
-import { scenarioCssColor } from '../vividColor.ts';
+import { scenarioStyle } from '../vividColor.ts';
 
 const SERVER_ORDER: Server[] = ['jp', 'gl'];
 
@@ -37,10 +36,7 @@ export default function ScenariosPage({ server }: { server: Server }) {
           const newestOn = SERVER_ORDER.filter((on) => isCurrent(s.key, on));
           const current = isCurrent(s.key, server);
           return (
-            <li
-              key={s.key}
-              style={s.color ? ({ '--scenario-color': scenarioCssColor(s.color) } as CSSProperties) : undefined}
-            >
+            <li key={s.key} style={scenarioStyle(s.color)}>
               <a href={scenarioUrl(s.key)} className={clsx(styles.item, current && styles.current)}>
                 {s.links.cover ? (
                   <img className={styles.thumb} src={s.links.cover} alt="" loading="lazy" />

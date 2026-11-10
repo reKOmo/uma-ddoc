@@ -8,17 +8,9 @@ export const isStat = (value: string): value is Stat => (STATS as readonly strin
 
 // A card type, everywhere one is shown: its icon and name, on a pill tinted in the type's colour, or `plain` (inline
 // in a row, a chip or a dropdown).
-export default function TypePill({
-  stat,
-  plain = false,
-  className,
-}: {
-  stat: Stat;
-  plain?: boolean;
-  className?: string;
-}) {
+export default function TypePill({ stat, plain = false }: { stat: Stat; plain?: boolean }) {
   return (
-    <span className={clsx(styles.pill, plain ? styles.plain : styles.tinted, className)} data-tone={`type-${stat}`}>
+    <span className={clsx(styles.pill, plain ? styles.plain : styles.tinted)} data-tone={`type-${stat}`}>
       <StatIcon stat={stat} />
       {statName(stat)}
     </span>
