@@ -1,10 +1,10 @@
-# Umamusume news — 2026-11-11 23:44 UTC
+# Umamusume news — 2026-11-12 23:44 UTC
 
-0 new, 1 edited.
+1 new, 0 edited.
 
-## Edited
+## New
 
-- [Issue with Racing Carnival event](https://umamusume.com/news/100119/) — other / issue
+- [The Racing Carnival event has ended!](https://umamusume.com/news/1152/) — other / misc, ended
 
 
 ## Global repository (data/)
