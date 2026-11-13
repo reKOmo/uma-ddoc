@@ -1,6 +1,11 @@
-# Umamusume news (JP) — 2026-11-11 23:44 UTC
+# Umamusume news (JP) — 2026-11-13 23:44 UTC
 
-0 new, 1 edited.
+2 new, 1 edited.
+
+## New
+
+- [Google Play版アップデートに伴うデータの再ダウンロードに関するお知らせ](https://umamusume.jp/news/detail/?id=3549) — other / update
+- [『7th EVENT in LOS ANGELES』返金と公演グッズの通信販売に関するご案内](https://umamusume.jp/news/detail/?id=3548) — other / community
 
 ## Edited
 

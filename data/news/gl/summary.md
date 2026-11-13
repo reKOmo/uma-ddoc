@@ -1,10 +1,10 @@
-# Umamusume news — 2026-11-12 23:44 UTC
+# Umamusume news — 2026-11-13 23:44 UTC
 
 1 new, 0 edited.
 
 ## New
 
-- [The Racing Carnival event has ended!](https://umamusume.com/news/1152/) — other / misc, ended
+- [Information regarding LA concert cancellation reimbursement and online merchandise sales](https://umamusume.com/news/100120/) — other / misc
 
 
 ## Global repository (data/)
