@@ -169,6 +169,7 @@
 {"id": 1097, "category": "other", "kind": "update", "phase": null, "name": null, "source": "gold", "confidence": null, "flag": null, "units": []},
 {"id": 1094, "category": "event", "kind": "gift", "phase": null, "name": "Training Booster Giveaway", "source": "gold", "confidence": null, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 1093, "category": "event", "kind": "celebration", "phase": "started", "name": "Holiday Celebration Part 2", "source": "gold", "confidence": null, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "part", "kind": "special"}, {"role": "part", "kind": "gift"}, {"role": "part", "kind": "gift"}, {"role": "part", "kind": "gift"}, {"role": "part", "kind": "campaign"}]},
+{"id": 1092, "category": "event", "kind": "campaign", "phase": null, "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 1091, "category": "event", "kind": "campaign", "phase": null, "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 1090, "category": "event", "kind": "campaign", "phase": null, "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 1089, "category": "banner", "kind": null, "phase": "started", "name": null, "source": "gold", "confidence": null, "flag": null, "units": []},
