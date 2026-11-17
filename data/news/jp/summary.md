@@ -1,11 +1,6 @@
-# Umamusume news (JP) — 2026-11-16 23:44 UTC
+# Umamusume news (JP) — 2026-11-17 23:44 UTC
 
-2 new, 1 edited.
-
-## New
-
-- [育成ウマ娘が新登場！セレクトピックアップ サポートカードガチャも開催！](https://umamusume.jp/news/detail/?id=3547) — banner, started
-- [「継承専用ウマ娘まとめて獲得」の継承における相性ボーナスの不具合について](https://umamusume.jp/news/detail/?id=3550) — other / issue
+0 new, 1 edited.
 
 ## Edited
 
