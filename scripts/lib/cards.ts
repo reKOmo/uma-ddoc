@@ -27,7 +27,7 @@ const GAMETORA_TYPES: Record<GametoraCard['type'], CardType> = {
 // A limit break's stats and the card's fields (upstream's lists have no `events`).
 export type UpstreamCard = Omit<JoinedCard, 'events'>;
 
-const statsOf = ({ id, limit_break, char_name, type, group, rarity, ...stats }: UpstreamCard): LbStats => stats;
+export const statsOf = ({ id, limit_break, char_name, type, group, rarity, ...stats }: UpstreamCard): LbStats => stats;
 
 // A GameTora support card → a history entry (data/jp_cards.json), in our names (type wisdom, rarity SSR…). The frozen
 // cards are exactly this; a card from the news takes its JP fields from the news (scripts/lib/jp-cards.ts).

@@ -98,6 +98,25 @@ export type CardStats = z.infer<typeof CardStatsSchema>;
 export const CardStatsFileSchema = z.record(IdKey, CardStatsSchema);
 export type CardStatsFile = z.infer<typeof CardStatsFileSchema>;
 
+// data/<gl|jp>_card_stats.json: a server's card list, ours instead of upstream's <server>.js, converted from the
+// game's master.mdb (scripts/convert-mdb.ts), by id: upstream's codes (type, group, rarity), its per-server name and
+// LB0…LB4. `source`: the mdb's sha256; `skipped`: cards with an effect the converter doesn't know
+// (upstream's rows when it has the card, else left out).
+export const StoredCardSchema = z.strictObject({
+  type: z.int(),
+  group: z.boolean(),
+  rarity: z.int(),
+  charName: z.string(),
+  lb: z.array(LbStatsSchema).length(5),
+});
+export type StoredCard = z.infer<typeof StoredCardSchema>;
+export const StoredCardStatsFileSchema = z.strictObject({
+  source: z.strictObject({ sha256: z.string().regex(/^[0-9a-f]{64}$/) }),
+  skipped: z.array(z.strictObject({ id: z.int(), unknown: z.array(z.string()) })),
+  cards: z.record(IdKey, StoredCardSchema),
+});
+export type StoredCardStatsFile = z.infer<typeof StoredCardStatsFileSchema>;
+
 // data/jp_cards.json: our history of JP's cards, by id (the first 563 frozen from GameTora, newer ones from the JP
 // news, augmented from GameTora: those carry news_url).
 export const JpCardSchema = z.strictObject({

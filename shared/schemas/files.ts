@@ -6,6 +6,7 @@ import {
   GlobalCardsFileSchema,
   JpCardsFileSchema,
   JpPendingFileSchema,
+  StoredCardStatsFileSchema,
 } from './card.ts';
 import { CmRewardsFileSchema, EventPairsFileSchema, EventsFileSchema, PredictedEventsFileSchema } from './event.ts';
 import { GametoraCardsFileSchema, GametoraEventsFileSchema, GametoraTraineesFileSchema } from './gametora.ts';
@@ -20,6 +21,8 @@ import { TranslationsFileSchema, UmatlMdbSchema, UmatlTextDataSchema } from './t
 export const DATA_FILES: Record<string, z.ZodType> = {
   'data/global_banners.json': BannerFileSchema,
   'data/global_cards.json': GlobalCardsFileSchema,
+  // + 'data/jp_card_stats.json' once JP's is converted from its master.mdb too.
+  'data/gl_card_stats.json': StoredCardStatsFileSchema,
   'data/global_events.json': EventsFileSchema,
   'data/jp_banners.json': BannerFileSchema,
   'data/jp_cards.json': JpCardsFileSchema,
