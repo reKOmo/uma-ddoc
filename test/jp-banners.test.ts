@@ -9,6 +9,7 @@ import {
   regularBanners,
 } from '../scripts/lib/jp-banners.ts';
 import { BANNERS_FILE as GLOBAL_BANNERS_FILE } from '../scripts/lib/global.ts';
+import { readPending } from '../scripts/lib/jp-cards.ts';
 import { postsFile } from '../scripts/lib/news-api.ts';
 import { ja } from '../scripts/lib/news-lang/ja.ts';
 import { GENERATED_DIR } from '../scripts/lib/paths.ts';
@@ -346,11 +347,20 @@ describe.skipIf(!posts.length || !existsSync(JP_BANNERS_FILE))('the stored JP ba
     const again = applyJpNews({ posts: scouts, jp, cards, global, trainees });
     expect(withoutPulls(again.jp)).toEqual(withoutPulls(stored));
     // Unresolved: only a trainee debuting on a banner made from the news (no earlier banner names it, and the news
-    // gives no trainee ids); every card and every known trainee resolves.
+    // gives no trainee ids), or a card from the news GameTora doesn't list yet (data/jp_cards_pending.json, no id);
+    // every other card and every known trainee resolves.
     const named = new Set(
       [...stored.characters].filter((b) => !b.from_news).flatMap((b) => b.featured.map((f) => `${f.title}${f.name}`))
     );
+    const pending = new Set(readPending().map((c) => `${c.title.jp}${c.name.jp}`));
     for (const { banner, item } of again.unresolved) {
+      const card = stored.cards.find((x) => x.id === banner);
+      if (card) {
+        expect(card.from_news && pending.has(`${item.title}${item.name}`), `${banner} ${item.title}${item.name}`).toBe(
+          true
+        );
+        continue;
+      }
       const b = stored.characters.find((x) => x.id === banner);
       expect(b?.from_news, `${banner} ${item.title}${item.name}`).toBe(true);
       expect(named.has(`${item.title}${item.name}`), `${item.title}${item.name}`).toBe(false);
