@@ -1,20 +1,16 @@
-# Umamusume news — 2026-11-09 23:44 UTC
+# Umamusume news — 2026-11-17 23:44 UTC
 
-3 new, 1 edited.
+2 new, 0 edited.
 
 ## New
 
-- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1165/) — banner, started
-- [The story event Sweet Memories Teatime is here!](https://umamusume.com/news/1159/) — event / story, started
-- [New title missions are here!](https://umamusume.com/news/1168/) — event / missions, started
-
-## Edited
-
-- [Issue with Racing Carnival event](https://umamusume.com/news/100119/) — other / issue
+- [The league selection period for the Champions Meeting: Aquarius Cup has begun!](https://umamusume.com/news/1178/) — event / champions_meeting, league_selection
+- [Valentine's Day celebration coming soon!](https://umamusume.com/news/1172/) — event / celebration, announced
 
 
 ## Global repository (data/)
 
-- Added missions event "New title missions" (2026-11-09)
-- Updated story event "Sweet Memories Teatime" (2026-11-09) — cards: [Fondente Smile] Hishi Akebono; titles: Sweet Memories Teatime
+- Added gift event "Special Valentine's gift" (2026-11-24)
+- Added celebration event "Valentine's Day celebration" (2026-11-24)
+- Updated champions_meeting event "Aquarius Cup" (2026-11-17) — titles: Aquarius Cup Platinum, Aquarius Cup Gold, Aquarius Cup Silver, Aquarius Cup Bronze
 - Unsure: post 1168 "New title missions are here!" is event/missions by the rules, other/update by the model: label it (pnpm gold:review)
