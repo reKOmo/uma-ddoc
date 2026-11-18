@@ -157,13 +157,14 @@ describe('withPredicted', () => {
   ]);
   const ids = (events: GameEvent[]) => events.map((e) => e.id);
 
-  it('adds the predicted events after the real ones, hiding one 14 days past its predicted start', () => {
+  it('adds the predicted events after the real ones, hiding one 7 days past its predicted end', () => {
     const all = ['1', '1-m1', 'jp-3000', 'jp-3000-m1', 'jp-3444', 'jp-3500', 'jp-3500-m1', 'jp-3379', 'jp-3400'];
     // jp-3000 (a story predicted for Sep 20) stays though Global's real story 1 has started since: JP's events come to
     // Global, at times later than predicted.
     expect(ids(withPredicted(real, predicted.events, Date.parse('2026-10-01T00:00:00Z')))).toEqual(all);
-    // 14 days past its start it's hidden, its mission set with it.
-    expect(ids(withPredicted(real, predicted.events, Date.parse('2026-10-10T00:00:00Z')))).toEqual(
+    // Up to 7 days past its end (Sep 30) it stays; then it's hidden, its mission set with it.
+    expect(ids(withPredicted(real, predicted.events, Date.parse('2026-10-07T00:00:00Z')))).toEqual(all);
+    expect(ids(withPredicted(real, predicted.events, Date.parse('2026-10-08T00:00:00Z')))).toEqual(
       all.filter((id) => !id.startsWith('jp-3000'))
     );
     expect(withPredicted(real, [])).toEqual(real);
@@ -197,11 +198,18 @@ if (existsSync(PREDICTED_FILE))
 
 describe.each(predictedFiles)('predicted events (%s)', { tags: ['data'] }, (name, file) => {
   // (Not the fixture: it was predicted from older data, which Global's news has since caught up with.)
-  it.skipIf(name === 'the fixture')("come after Global's latest real event of their kind", () => {
+  // Only those still to come when predicted: a past one Global's news lacks stays shown however newer real events are.
+  // (A confirmed start is the official schedule's: Global can run two events of one JP day in either order.)
+  it.skipIf(name === 'the fixture')("come after Global's latest real event of their kind, if still to come", () => {
     const latest = (kind: string) =>
       Math.max(...globalEvents.filter((e) => e.kind === kind && !e.parent).map((e) => Date.parse(e.start.date)));
     const early = file.events.filter(
-      (e) => !e.parent && latest(e.kind) > -Infinity && Date.parse(e.start.date) <= latest(e.kind)
+      (e) =>
+        !e.parent &&
+        e.start.status !== 'confirmed' &&
+        Date.parse(e.start.date) > Date.parse(file.source.fitted_at) &&
+        latest(e.kind) > -Infinity &&
+        Date.parse(e.start.date) <= latest(e.kind)
     );
     expect(early.map((e) => `${e.id} ${e.kind} ${e.start.date}`)).toEqual([]);
   });

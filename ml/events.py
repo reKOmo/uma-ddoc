@@ -30,7 +30,7 @@ after the hand entries and Global's banners): the JP event's start day in JST �
 Predicted events → generated/predicted_global_events.json (optional for the site, like predicted banners):
   { source: { predicted_from, fitted_at }, events: [event…] }, newest first. Every top-level JP event with no pair
   starting at most LOOKBACK JP days before the last JP day Global's card releases have reached (the banners' anchor)
-  and predicted to start on Global at most SHOWN_DAYS ago, with its parts: JP's fields
+  and predicted to end on Global at most SHOWN_DAYS ago (its start if JP's has no end), with its parts: JP's fields
   (kind, name in Japanese, cards, items, titles, phases, races, free scout windows, image, news_url = the JP post,
   source) and
   id 'jp-<JP id>', parent 'jp-<JP parent id>' | null, start / end: the top-level event's predicted Global start (its JST
@@ -63,10 +63,10 @@ DAY_MS = 86_400_000
 TOL = 10  # days a pair may be off its expected Global day
 # An unpaired JP event from up to LOOKBACK JP days before Global's progress is still predicted (JP 1122 started on the
 # very day Global's card releases had reached, and its Global post was misread: it vanished), as long as its predicted
-# Global start is at most SHOWN_DAYS ago: the Timeline hides a predicted event that long past its start
-# (src/timeline/events.ts' withPredicted(), the same 14 days).
+# Global end is at most SHOWN_DAYS ago: the Timeline hides a predicted event that long past its end
+# (src/timeline/events.ts' withPredicted(), the same 7 days).
 LOOKBACK = 30
-SHOWN_DAYS = 14
+SHOWN_DAYS = 7
 
 ZODIAC = {
     'aries': 'アリエス', 'taurus': 'タウラス', 'gemini': 'ジェミニ', 'cancer': 'キャンサー', 'leo': 'レオ',
@@ -452,10 +452,11 @@ def predict_events(predict, anchor_jp, known, pairs, fitted_at):
 
         shown_from = epoch_days(fitted_at) - SHOWN_DAYS
         for e, day, m in zip(todo, days, margin):
-            if day < shown_from:
-                continue
             start = iso_at(day, GLOBAL_START_HOUR)
             offset = pd.Timestamp(start).value // 1_000_000 - pd.Timestamp(e['start']).value // 1_000_000
+            # (no JP end: its start)
+            if epoch_days(shift(e['end'], offset) or start) < shown_from:
+                continue
             # confirmed: only a JP day known_dates.json's `dates` give (hand_known_days()), not one known otherwise
             emit(e, offset, m, jst_day(e['start']) in confirmed_days)
     # A paired celebration's JP parts Global's post doesn't list, under Global's celebration at JP's offset from its

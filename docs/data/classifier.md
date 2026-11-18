@@ -116,8 +116,8 @@ and classifies before asking the AI, whose answers are keyed by the classified e
 ## The JP rule
 
 What JP has, Global gets. `ml/events.py` predicts every unpaired JP event from up to 30 JP days before Global's card
-progress whose predicted Global start is at most 14 days ago (JP 1122 started on the very day Global's releases had
-reached and was never predicted); the Timeline hides a predicted event 14 days past its predicted start
+progress whose predicted Global end is at most 7 days ago (JP 1122 started on the very day Global's releases had
+reached and was never predicted); the Timeline hides a predicted event 7 days past its predicted end
 (`withPredicted(real, predicted, now)`), not when a newer real event of its kind starts.
 
 A paired celebration's parts pair by the art id Global reuses (JP's おみくじ and Global's Lucky Draw are both

@@ -86,7 +86,7 @@
   Global's calendar also shows **predicted events** (`generated/predicted_global_events.json`, optional like the
   predicted banners): every JP event Global hasn't had yet at its predicted Global date, in the same groups,
   half-transparent (nearly solid when its start is confirmed), with JP's names and art; the sheet says "Predicted from the JP event
-  of … ± N days" and links JP's announcement. A prediction stays until 14 days past its predicted start, then is
+  of … ± N days" and links JP's announcement. A prediction stays until 7 days past its predicted end (its start if JP's has none), then is
   hidden with its parts (`withPredicted()`, `src/timeline/events.ts`): JP's events come to Global, at times later than
   predicted, so a newer real event of its kind doesn't remove it; one Global's news announces is paired and no longer
   predicted (`ml/events.py`).
