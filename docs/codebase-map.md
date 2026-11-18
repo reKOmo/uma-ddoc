@@ -22,6 +22,8 @@ scripts/
   build-cards.ts     raw inputs → generated/cards.json + card_stats/<gl|jp>_card_stats.json (buildCardFiles())
   build-schemas.ts   schemas/*.json from shared/schemas/ (z.toJSONSchema)
   lib/cards.ts       pure: buildCards() (the merge, + the round-trip check against upstream's lists)
+  convert-mdb.ts     a server's master.mdb → data/<gl|jp>_card_stats.json (its card list, instead of upstream's)
+  lib/mdb-cards.ts   convertMdb() (upstream's db-convert.py ported), cardRows() (ours, else upstream's), the file's read/write
   scrape-gametora.ts  GameTora: support card list + JP event history (generated/raw/), JP scenarios (data/)
   update-global.ts   data/news/ → Global's banners + card releases in data/, appends to data/news/gl/summary.md
   update-jp.ts       data/news/jp/ → new cards in data/jp_cards.json (+ build-cards), data/jp_banners.json +

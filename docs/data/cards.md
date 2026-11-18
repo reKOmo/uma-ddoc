@@ -24,6 +24,23 @@
     `joinCards()` rebuilds upstream's exact arrays plus `events` per card (verified by `buildCards()` and
     `test/data.test.ts`).
 
+- **Our card stats from master.mdb** (`scripts/lib/mdb-cards.ts`, `pnpm convert-mdb` → `data/<gl|jp>_card_stats.json`):
+  upstream builds its gl.js / jp.js by hand with `db-convert.py` from its own master.mdb, which lags behind the game.
+  Ours is that script ported line for line (same queries and float order: on Global build 26069163 all 1,325 rows
+  deep-equal upstream's), run on the server's mdb. The file is that server's card list, by id
+  (upstream's codes, per-server name, LB0…LB4, one card per line): `buildCardFiles()` reads it instead of upstream's
+  list (`cardRows()`), so nothing is combined at build time; a server without a file (JP for now) uses upstream's.
+  Upstream's lists are still downloaded, for the comparisons and icons. A card with an effect, unique bonus or
+  command_id the port doesn't know isn't converted (`skipped`, named in the PR) rather than ranked with wrong numbers:
+  `convert-mdb` keeps upstream's rows for it when upstream has the card, else it's left out; add the effect to both the
+  port and, ideally, upstream. Where both have a card, ours is used: `test/data.test.ts`'s data test and the PR's
+  `mismatch` list name the cards that differ from upstream's (the port drifted, upstream's script changed, or a game
+  update upstream hasn't caught up with). `pnpm test:upstream` ranks with our list on both sides, so it compares the
+  calculation alone. The mdb also holds cards not yet released on the server, as upstream's lists do (e.g.
+  `start_date` 2099 placeholders), so ranking them changes nothing.
+  **JP from its own mdb:** `pnpm update-cards && pnpm convert-mdb <jp master.mdb> --server jp` writes
+  `data/jp_card_stats.json`, and builds use it from then on; add it to `DATA_FILES` (`shared/schemas/files.ts`) so the
+  schema test checks it. JP's `char_name`s come from that mdb's `text_data`, in Japanese, as upstream's jp.js has them.
 - **`raw/gametora_cards.json`** is GameTora's `support-cards` file cut to what `buildCards()` reads (ids, names,
   titles, type, rarity, JP `release`, `obtained`, `url_name`: the page's slug, not derivable from the name);
   `fromGametora()` turns an entry into `data/jp_cards.json`'s shape (a news card takes its JP fields from the news).

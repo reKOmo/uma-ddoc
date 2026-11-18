@@ -23,6 +23,7 @@
     "test:visual": "playwright test --project visual-phone --project visual-desktop",
     "update-cards": "node scripts/update-cards.ts",
     "build-cards": "node scripts/build-cards.ts",
+    "convert-mdb": "node scripts/convert-mdb.ts",
     "build-schemas": "node scripts/build-schemas.ts",
     "clone-upstream": "node scripts/clone-upstream.ts",
     "rank": "node tierlist/cli.ts",

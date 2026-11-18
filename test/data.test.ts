@@ -8,12 +8,28 @@ import gl from '../generated/raw/upstream/gl.js';
 import jp from '../generated/raw/upstream/jp.js';
 import events from '../generated/raw/upstream/card-events.js';
 import { present } from './helpers.ts';
+import { cardRows, readCardStats } from '../scripts/lib/mdb-cards.ts';
 
-const SOURCE = { gl, jp };
+const UPSTREAM = { gl, jp };
+// Each server's list: ours where we store it (from master.mdb), else upstream's (scripts/build-cards.ts).
+const SOURCE = { gl: cardRows('gl', gl), jp: cardRows('jp', jp) };
+
+describe.each(['gl', 'jp'] as const)('%s stats from master.mdb', { tags: ['data'] }, (server) => {
+  // Fails when the port (scripts/lib/mdb-cards.ts) drifted from upstream's db-convert.py, upstream's script changed,
+  // or a game update changed a card upstream hasn't caught up with: compare the two by hand.
+  it.skipIf(!readCardStats(server))("match upstream's list for every card both have", () => {
+    const upstream = new Map(UPSTREAM[server].map((c) => [`${c.id}/${c.limit_break}`, c]));
+    const different = SOURCE[server].filter((c) => {
+      const theirs = upstream.get(`${c.id}/${c.limit_break}`);
+      return theirs && !isDeepStrictEqual(c, theirs);
+    });
+    expect(different.map((c) => `${c.id}/${c.limit_break}`)).toEqual([]);
+  });
+});
 
 for (const server of ['gl', 'jp'] as const) {
   describe(`${server} data`, () => {
-    it(`loadCards rebuilds upstream's ${server} card list exactly`, async () => {
+    it(`loadCards rebuilds upstream's ${server} card list exactly (or ours from master.mdb)`, async () => {
       expect(isDeepStrictEqual(withoutEvents(await loadCards(server)), SOURCE[server])).toBe(true);
     });
 

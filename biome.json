@@ -10,6 +10,7 @@
     "includes": [
       "**",
       "!data/global_*.json",
+      "!data/*_card_stats.json",
       "!data/jp_*.json",
       "!data/scenarios.json",
       "!data/news/*/posts.json",

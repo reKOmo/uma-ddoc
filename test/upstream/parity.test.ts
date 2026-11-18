@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { cardRows } from '../../scripts/lib/mdb-cards.ts';
 import { UPSTREAM_DIR } from '../../scripts/lib/upstream.ts';
 import sources from '../../generated/sources.json' with { type: 'json' };
 import { STATS, presetDecks, rankCards } from '../../tierlist/index.ts';
@@ -19,9 +20,11 @@ if (!existsSync(`${UPSTREAM_DIR}src/components/tierlist-calc.js`)) {
 
 const { processCards } = await import('../../upstream/src/components/tierlist-calc.js');
 const upstreamScenarios = await import('../../upstream/src/scenarios.js');
+// A server's cards are ours where we store them (from master.mdb, scripts/build-cards.ts): the same list on both
+// sides, so this compares the calculation alone.
 const UPSTREAM_CARDS = {
-  gl: (await import('../../upstream/src/cards/gl.js')).default,
-  jp: (await import('../../upstream/src/cards/jp.js')).default,
+  gl: cardRows('gl', (await import('../../upstream/src/cards/gl.js')).default),
+  jp: cardRows('jp', (await import('../../upstream/src/cards/jp.js')).default),
 };
 
 // Upstream's UI glue: merges weights, filters cards by type, as its UI does.
