@@ -8,6 +8,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // Playwright's default is half the cores: 2 on GitHub's 4-vCPU runners, and the static server leaves room for 4.
+  workers: process.env.CI ? 4 : undefined,
   reporter: process.env.CI ? 'github' : 'list',
   timeout: 60_000,
   expect: { timeout: 15_000 },
@@ -21,8 +23,10 @@ export default defineConfig({
     { name: 'visual-desktop', use: { ...devices['Desktop Chrome'] }, testMatch: 'visual.spec.ts' },
   ],
   webServer: {
-    // Masked UmaTL text (`dev:ai`): failure output and traces reach AI agents, who must never see it (docs/data/umatl.md).
-    command: `pnpm dev:ai --port ${PORT} --strictPort`,
+    // Masked UmaTL text (`VITE_AI_PREVIEW`): failure output and traces reach AI agents, who must never see it
+    // (docs/data/umatl.md). A build, not the dev server: each fresh page loads a few bundles instead of every module
+    // (the suite runs about twice as fast) and the tests cover what gets deployed.
+    command: `pnpm preview:ai --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}/`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

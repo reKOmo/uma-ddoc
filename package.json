@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite",
     "dev:ai": "VITE_AI_PREVIEW=1 vite",
+    "preview:ai": "VITE_AI_PREVIEW=1 vite build --outDir dist-ai --emptyOutDir && vite preview --outDir dist-ai",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "biome check",

@@ -1,6 +1,8 @@
 # Dependencies and build output
 node_modules/
 dist/
+# pnpm preview:ai (the e2e tests' server): a build with fan translations masked at runtime
+dist-ai/
 
 # Build-time data, never committed: card data (`pnpm update-cards`), JP banners + card links
 # (`pnpm scrape-gametora`) and predictions (`pnpm predict-gl`).
