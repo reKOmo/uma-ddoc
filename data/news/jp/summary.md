@@ -1,6 +1,10 @@
-# Umamusume news (JP) — 2026-11-17 23:44 UTC
+# Umamusume news (JP) — 2026-11-18 23:44 UTC
 
-0 new, 1 edited.
+1 new, 1 edited.
+
+## New
+
+- [Facebookによるデータ連携機能メンテナンスのお知らせ](https://umamusume.jp/news/detail/?id=3554) — other / maintenance
 
 ## Edited
 
