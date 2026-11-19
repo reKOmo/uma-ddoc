@@ -417,6 +417,8 @@ export const ja: JapaneseLexicon = {
   ],
   // Story events with a typo in one post's name ("白焔の乱華" / "白焔の爛華"): the same dates make them one.
   sameDates: ['story'],
+  // (ホープフルステークス' 12/27–29 and 東京大賞典's 12/28–30 overlap: two campaigns, as on Global)
+  ownPosts: /^「育成報酬」ピース追加キャンペーン$/,
   // Posts at the same stage about one event each give some of its windows: their dates add up.
   unionDates: true,
   // Cups and Leagues of Heroes are announced up to two months ahead, without dates ("9月下旬「チャンピオンズミーティング

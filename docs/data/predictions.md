@@ -18,14 +18,20 @@ gave, shown as JP's. Announced Global dates go in
 - **Global ↔ JP events and predicted Global events** (`ml/events.py`, run by `predict-gl`): each Global top-level
   event is paired with JP's (`generated/event_pairs.json`: `{ pairs: [{ gl, jp, kind, how, gl_start, jp_start, dev_days,
   anchor }], rejected: [… why] }`): `how` = `post` (same post id, the commonest; a JP celebration's part too, after its top-level events; and a Global part with a post of
-  its own, never an anchor: Global's 1093-0 Sparkly Magic Show ↔ JP's 1093-1), `card` (story events' SSR), `name`
+  its own, never an anchor: Global's 1093-0 Sparkly Magic Show ↔ JP's 1093-1), `card` (story events' SSR, an event of the same kind), `name`
   (Champions Meeting cups, EN ↔ JP: Taurus Cup ↔ タウラス杯…; a small table of recurring specials / celebrations,
-  `NAMES`, `CUPS`) or `order` (Legend Races); every pair keeps Global's order = JP's per kind and lies within 10 days of
-  where JP's card releases put it (else rejected: 2, events Global moved). 94 pairs on 2026-10-12 (story 20/20, CM
+  `NAMES`, `CUPS`; only between the JP events its same-named Global neighbours are paired with) or `order` (Legend
+  Races). A `post` / `card` pair is the same event whatever its dates: more than 10 days off where JP's card releases
+  put it, it's kept but not an anchor (Global moved it: 11 on 2026-11-19, Star Piece campaigns up to 27 days late);
+  any other pair must lie within those 10 days and keep Global's order = JP's per kind, around the post / card pairs
+  (else rejected: none on 2026-11-19). 94 pairs on 2026-10-12 (story 20/20, CM
   20/20, LR 15/15, …); unpaired: mostly 2025 gifts/campaigns whose 2021 JP posts aren't in the archive, Transfer
   Requests (GameTora has none). Predicted events: every JP event (all kinds, user decision) after the JP date Global
   has caught up to with no pair, at the same predicted Global date as banners (22:00 UTC, no JP weekend; a known date
-  exactly), JP's durations, parts, phases and free scout windows shifted with their top-level event, JP's races as they are; `generated/predicted_global_events.json`
+  exactly), JP's durations, parts, phases and free scout windows shifted with their top-level event (one window of a
+  celebration's part, JP's 1143 Star Pieces inside 1142-3, where that part goes: its pair's or its celebration's,
+  days scaled by the Global / JP lengths, else the celebration's prediction; Global ran the 2026 G1 celebration 11 days
+  late, in 13 days to JP's 24), JP's races as they are; `generated/predicted_global_events.json`
   `{ source, events: [JP event fields + id 'jp-<jp id>', parent 'jp-…', predicted, jp_id, jp_start, jp_end] }`, every
   date status `predicted` (starts with `lo` / `hi`: ± the margin), a start `confirmed` on a known JP day (below). 368
   top-level + 616 parts on 2026-10-12. Paired Global events get the dates their news lacks filled in from their JP pair

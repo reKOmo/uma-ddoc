@@ -92,7 +92,11 @@ const globalBanners = (): Promise<[ArtBannerFile, ArtBannerFile | null]> =>
 const PAIRS = Object.values(
   import.meta.glob<EventPairsFile>('../../generated/event_pairs.json', { import: 'default' })
 );
-const loadPairs = async (): Promise<EventPairsFile['pairs']> => (PAIRS[0] ? (await PAIRS[0]()).pairs : []);
+// (a rejected pair still counts as one event for the predictions, which neither predict its JP side nor anchor on it)
+const loadPairs = async (): Promise<{ gl: string; jp: string }[]> => {
+  const file = PAIRS[0] ? await PAIRS[0]() : null;
+  return file ? [...file.pairs, ...file.rejected] : [];
+};
 const bannerIds = (...files: (Banners | null | undefined)[]): Set<string> =>
   new Set(files.flatMap((f) => (f ? [...f.characters, ...f.cards] : [])).map((b) => String(b.id)));
 

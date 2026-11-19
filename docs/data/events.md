@@ -56,7 +56,8 @@
   Mission sets get the reward names of their post's sentence about the missions ("rewards including carats, monies
   and Support Points"), never amounts (posts don't give per-set amounts).
   Merging (`buildEvents()`): same kind + name and overlapping dates (a cup counts from its league selection, so a
-  "coming soon" post dated there meets it; the frequent "Bonus Star Piece" posts stay apart, as do two celebration
+  "coming soon" post dated there meets it; the frequent "Bonus Star Piece" posts stay apart, overlapping too unless
+  they start together, `lang.ownPosts`: JP's ホープフルステークス 12/27–29 and 東京大賞典 12/28–30 are two, as do two celebration
   series' parts: New Beginnings' Star Pieces aren't Fall G1's; an event with a post of its own that a celebration's
   post lists too becomes that celebration's part, the Daily Free 10x Scout); a post with a period but
   "has ended" joins the latest such event that started before it, within 14 days; a post announcing an event without

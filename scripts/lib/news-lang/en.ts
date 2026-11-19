@@ -231,6 +231,7 @@ export const en: Lexicon = {
   // "… has begun as of 10:00 p.m., Jul 22, 2026 (UTC)!", "… is set to begin at 3:00 p.m., Jul 23, 2026 (UTC)!"
   starts: /\b(?:as of|from|starting)\b|^at\b|set to (?:begin|kick off) at|will begin at/i,
   opening: (line) => /\(UTC\)/.test(line),
+  ownPosts: /^Bonus Star Piece rewards/i,
   // A period line: short, not a bullet point (bullets in period sections are fine print with other dates).
   periodLine: (line) => line.length < 90 && !/^[•・*]/.test(line),
   // A Champions Meeting's schedule headings (keys: CM_PHASES in events.js).

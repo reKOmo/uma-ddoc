@@ -235,6 +235,9 @@ export type Lexicon = {
   blockName?: (block: Block) => string | null;
   // JP: kinds whose events with the very same dates are one event (a typo in one post's name).
   sameDates?: string[];
+  // Events whose every post is one of its own (a Star Piece campaign is one race's): two such posts are one event only
+  // with the very same start, however their dates overlap.
+  ownPosts?: RegExp;
   // JP: posts at the same stage about one event each give some of its windows: their dates add up.
   unionDates?: boolean;
   // JP: days within which a post announcing an event without dates joins the event (default 45).

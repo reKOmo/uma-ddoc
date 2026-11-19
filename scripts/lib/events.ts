@@ -690,7 +690,13 @@ export function buildEvents(
       series(e) === series(f) && (owner(e) === owner(f) || f.kind === 'shop' || e.start === f.start);
     // (A standalone post and a part are one event, unless the post is one window of the part's: its own bar.)
     const joins = (e: Fragment) =>
-      e.parent && f.parent ? relisted(e) : e.parent ? !windowOf(e, f) : f.parent ? !windowOf(f, e) : true;
+      e.parent && f.parent
+        ? relisted(e)
+        : e.parent
+          ? !windowOf(e, f)
+          : f.parent
+            ? !windowOf(f, e)
+            : e.start === f.start || !lang.ownPosts?.test(f.name ?? '');
     const match = f.start
       ? same.find((e) => overlap(e, f) && joins(e))
       : same
