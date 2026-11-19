@@ -7,7 +7,7 @@
   banners' and events' alike), so going back to the Timeline from a card's page reopens the sheet.
   **Both servers run exactly the same code, fed different data** (`src/timeline/`): every banner and event becomes an
   _entry_ (`entries.ts`, one shape whatever the server or source; every difference between the data files is read
-  there and nowhere else), the page has no `server ===` branch, and one sheet (`TimelineSheet.tsx`, on `src/Sheet.tsx`: drag it down to close)
+  there and nowhere else), the page has no `server ===` branch, and one sheet (`TimelineSheet.tsx`, on `src/ui/Sheet.tsx`: drag it down to close)
   shows every banner and event alike: art, then a row of pills (kind; status with how long is left: "Live · 6d 22h
   left", "Predicted · starts in 23d" dashed, "Confirmed · …" solid; "Paid"), name, one muted date line (`format.sheet`:
   weekday, the year only when it isn't this one, "UTC" once at the end) with where its dates come from behind an (i)
@@ -42,7 +42,7 @@
   localStorage, try/catch, the same for both servers): a toggle per banner section (trainee, support card) and event
   kind the calendar has, in its groups' order; when the pull guide covers any of the calendar's banners (Global's), a
   toggle per pull-advice verdict (Yes / No / Free / If Whale / If Dolphin / No advice: a support card banner stays
-  while one of its cards has a verdict shown; `VERDICTS`, `bannerVerdicts()` in `src/pullGuide.ts`; greyed out while
+  while one of its cards has a verdict shown; `VERDICTS`, `bannerVerdicts()` in `src/lib/pullGuide.ts`; greyed out while
   support card banners are hidden).
   Hidden bars leave the lanes (a hidden event's parts of shown kinds stand on their own; the calendar's dates and the
   sheets keep everything). While it loads, `TimelineSkeleton.tsx` stands in its shape (axis, groups, bars; a shimmer
@@ -80,13 +80,13 @@
   ground, JP's time of day; "vary from race to race" for League of Heroes / Dream Team; a predicted event's marked as
   JP's), other rewards (carats, monies, shards first; ranges for
   Champions Meetings), its schedule (a cup's league selection, rounds, final round steps; a story event's period and reward collection…), titles, its parts (open them; a
-  "Support cards" pill on those giving one), the news post and umapyoi.net's copy of it (`src/umapyoi.ts`: JP's in
+  "Support cards" pill on those giving one), the news post and umapyoi.net's copy of it (`src/lib/umapyoi.ts`: JP's in
   Japanese, `news/<id>?lang=jp`; Global's `en/news/<id>`; every event with a post has both, GameTora-filled ones none).
   News-made banners' sheets link both too.
   Global's calendar also shows **predicted events** (`generated/predicted_global_events.json`, optional like the
   predicted banners): every JP event Global hasn't had yet at its predicted Global date, in the same groups,
   half-transparent (nearly solid when its start is confirmed), with JP's names and art; the sheet says "Predicted from the JP event
-  of … ± N days" and links JP's announcement. A prediction stays until 14 days past its predicted start, then is
+  of … ± N days" and links JP's announcement. A prediction stays until 7 days past its predicted end (its start if JP's has none), then is
   hidden with its parts (`withPredicted()`, `src/timeline/events.ts`): JP's events come to Global, at times later than
   predicted, so a newer real event of its kind doesn't remove it; one Global's news announces is paired and no longer
   predicted (`ml/events.py`).

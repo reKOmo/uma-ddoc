@@ -1,17 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { copiesDoubt, itemDoubt } from '../scripts/lib/event-rewards.ts';
-import {
-  FIELD_VERSIONS,
-  applyAnswer,
-  askedFields,
-  mergeAnswer,
-  question,
-  staleFields,
-} from '../scripts/lib/event-questions.ts';
-import { parseJson } from '../scripts/lib/ai.ts';
-import { ja } from '../scripts/lib/news-lang/ja.ts';
-import type { AskedEvent } from '../scripts/lib/event-questions.ts';
-import type { Question } from '../scripts/lib/ai.ts';
+import { copiesDoubt, itemDoubt } from '../scripts/lib/events/rewards.ts';
+import { applyAnswer } from '../scripts/lib/ai/answers.ts';
+import { FIELD_VERSIONS, askedFields, mergeAnswer, question, staleFields } from '../scripts/lib/ai/questions.ts';
+import { parseJson } from '../scripts/lib/ai/client.ts';
+import { jp } from '../scripts/lib/news/lang/jp.ts';
+import type { AskedEvent } from '../scripts/lib/ai/questions-spec.ts';
+import type { Question } from '../scripts/lib/ai/client.ts';
 import type { AiAnswer } from '../shared/schemas/news.ts';
 import { fixture } from './helpers.ts';
 
@@ -211,7 +205,7 @@ describe('asking again', () => {
 });
 
 // JP's posts (Japanese, times in JST, years mostly left out): made-up text in their style.
-const TEXT_JA = [
+const TEXT_JP = [
   '12/26 12:00から「ゆく年くる年ログインボーナス」を開催中です！',
   '開催期間中にログインすると、1日ジュエルを150個、最大で2250個のジュエルをプレゼントいたします！',
   'SSRサポートカード「[ためしの一枚]サンプルウマ娘」を、ログインボーナスで最大2枚獲得できます！',
@@ -219,7 +213,7 @@ const TEXT_JA = [
   '開催期間',
   '12/26 12:00 ～ 1/9 4:59',
 ];
-const eventJa = (fields: Partial<TestEvent> = {}): TestEvent => ({
+const eventJp = (fields: Partial<TestEvent> = {}): TestEvent => ({
   id: '2314-3',
   posted: '2025-12-20T03:00:00.000Z',
   kind: 'login_bonus',
@@ -230,14 +224,14 @@ const eventJa = (fields: Partial<TestEvent> = {}): TestEvent => ({
   cards: [{ id: 99999, rarity: 'SSR', title: 'ためしの一枚', name: 'サンプルウマ娘', copies: null }],
   items: [{ name: 'Carats', count: 150, local: 'ジュエル' }],
   titles: [],
-  text: TEXT_JA.join('\n'),
+  text: TEXT_JP.join('\n'),
   doubts: { items: 'per day', dates: 'from a sentence' },
   ...fields,
 });
 
 describe('JP questions', () => {
   it('asks in JP terms: times in JST, the post date, cards as the posts write them', () => {
-    const q = question(eventJa(), { all: true, lang: ja });
+    const q = question(eventJp(), { all: true, lang: jp });
     expect(q.system).toMatch(/JST/);
     expect(q.system).not.toMatch(/UTC/);
     expect(q.user).toContain('(2025-12-26 12:00 to 2026-01-09 04:59 JST, as read so far)');
@@ -247,7 +241,7 @@ describe('JP questions', () => {
     expect(properties(q).kind.enum).toContain('special');
     // Kinds only for a celebration's sub-events (JP's top-level events can be `special` too).
     expect(
-      properties(question(eventJa({ parent: null, kind: 'special' }), { all: true, lang: ja }))
+      properties(question(eventJp({ parent: null, kind: 'special' }), { all: true, lang: jp }))
     ).not.toHaveProperty('kind');
   });
 
@@ -258,7 +252,7 @@ describe('JP questions', () => {
 });
 
 describe('JP answers', () => {
-  const apply = (answer: unknown, fields?: Partial<TestEvent>) => applyAnswer(eventJa(fields), answer, { lang: ja });
+  const apply = (answer: unknown, fields?: Partial<TestEvent>) => applyAnswer(eventJp(fields), answer, { lang: jp });
 
   it('maps item names to Global names, keeping the Japanese, and multiplies', () => {
     const e = apply({
@@ -280,7 +274,7 @@ describe('JP answers', () => {
     expect(copies(3)).toBeNull();
     const named = { text: 'ミッションをクリアすると「[ためしの一枚]サンプルウマ娘」などの報酬を獲得できます！' };
     expect(
-      applyAnswer(eventJa(named), { cards: [{ title: 'ためしの一枚', copies: 1 }] }, { lang: ja }).cards[0].copies
+      applyAnswer(eventJp(named), { cards: [{ title: 'ためしの一枚', copies: 1 }] }, { lang: jp }).cards[0].copies
     ).toBeNull();
   });
 
@@ -288,7 +282,7 @@ describe('JP answers', () => {
     const e = apply({ start: '2025-12-26 12:00', end: '2025-01-09 04:59' }); // the year slipped: still January after
     expect(e.start).toBe('2025-12-26T03:00:00.000Z');
     expect(e.end).toBe('2026-01-08T19:59:00.000Z');
-    expect(apply({ start: '2026-02-30 12:00', end: null }).start).toBe(eventJa().start); // no such day
+    expect(apply({ start: '2026-02-30 12:00', end: null }).start).toBe(eventJp().start); // no such day
     expect(apply({ start: '2027-12-26 12:00', end: null }).start).toBe('2025-12-26T03:00:00.000Z'); // the post's year
   });
 
@@ -298,7 +292,7 @@ describe('JP answers', () => {
     expect(named('ログインボーナス')).toBe('対象のトレーナー');
     expect(named('冬のログインボーナス')).toBe('対象のトレーナー'); // not in the text
     const kind = (fields: Partial<TestEvent>) =>
-      applyAnswer(eventJa(fields), { kind: 'special' }, { lang: ja, trustModel: true }).kind;
+      applyAnswer(eventJp(fields), { kind: 'special' }, { lang: jp, trustModel: true }).kind;
     expect(kind({})).toBe('special');
     expect(kind({ parent: null, kind: 'campaign' })).toBe('campaign');
   });

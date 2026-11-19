@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { categorize, plain } from '../scripts/lib/post-categories.ts';
+import { categorize, plain } from '../scripts/lib/news/categorize.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import { fixture } from './helpers.ts';
 

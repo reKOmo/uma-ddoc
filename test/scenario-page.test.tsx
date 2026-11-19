@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import '../src/i18n/index.ts';
 import ScenarioPage from '../src/pages/ScenarioPage.tsx';
 import ScenariosPage from '../src/pages/ScenariosPage.tsx';
-import { SCENARIOS, isCurrent, isReleased, scenarioByKey } from '../src/scenarioRelease.ts';
+import { SCENARIOS, isCurrent, isReleased, scenarioByKey } from '../src/lib/scenarioRelease.ts';
 
 afterEach(cleanup);
 

@@ -3,10 +3,10 @@ import type { LucideIcon } from 'lucide-react';
 import { Eye, ListOrdered, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { FilterButton, FilterSection, FilterSheet } from '../FilterSheet.tsx';
+import { FilterButton, FilterSection, FilterSheet } from '../ui/FilterSheet.tsx';
 import GroupOrder, { type LaneGroup } from './GroupOrder.tsx';
 import styles from './TimelineFilter.module.css';
-import type { Verdict } from '../pullGuide.ts';
+import type { Verdict } from '../lib/pullGuide.ts';
 import { saveSearchOverride, useSearchOverrideStore } from './searchOverride.ts';
 
 type TabKey = 'show' | 'order';

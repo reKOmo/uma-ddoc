@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { bannerPost } from '../scripts/lib/banner-posts.ts';
-import { postsFile } from '../scripts/lib/news-api.ts';
+import { bannerPost } from '../scripts/lib/banners/posts.ts';
+import { postsFile } from '../scripts/lib/news/api.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import { fixture, present } from './helpers.ts';
 

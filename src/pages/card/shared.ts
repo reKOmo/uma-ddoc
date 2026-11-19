@@ -1,9 +1,9 @@
 import { cards } from '../../../tierlist/cards.ts';
-import { cardEnglish, hasJapanese, type Language, type TranslationsFile } from '../../translations.ts';
+import { cardEnglish, hasJapanese, type Language, type TranslationsFile } from '../../lib/translations.ts';
 
 export const LIMIT_BREAKS = [0, 1, 2, 3, 4];
 
-// A card's name and title in the server's language (src/translations.ts): the English it shows (Global's, GameTora's),
+// A card's name and title in the server's language (src/lib/translations.ts): the English it shows (Global's, GameTora's),
 // else the title UmaTL's where the language allows fan translations, else as JP writes them.
 export const nameOf = (id: number, language: Language): string | undefined => {
   const name = cards[id]?.name;

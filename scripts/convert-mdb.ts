@@ -10,9 +10,9 @@ import { DatabaseSync } from 'node:sqlite';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual, parseArgs } from 'node:util';
 import type { CardsFile } from '../shared/schemas/card.ts';
-import type { UpstreamCard } from './lib/cards.ts';
-import { convertMdb, toStored, withUpstreamForSkipped, writeCardStats } from './lib/mdb-cards.ts';
-import type { Server } from './lib/news-text.ts';
+import type { UpstreamCard } from './lib/cards/build.ts';
+import { convertMdb, toStored, withUpstreamForSkipped, writeCardStats } from './lib/cards/mdb.ts';
+import type { Server } from './lib/news/text.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { UPSTREAM_RAW } from './lib/upstream.ts';
 
@@ -65,7 +65,7 @@ export async function convert(server: Server, mdbPath: string, messagePath?: str
       `master.mdb ${source.sha256.slice(0, 12)}: ${ours.size} cards.`,
       added.length && `New, not in upstream's list yet:\n${added.map((id) => `- ${label(id)}`).join('\n')}`,
       skipped.length &&
-        `Skipped, effects the converter doesn't know (add them to scripts/lib/mdb-cards.ts):\n${skipped
+        `Skipped, effects the converter doesn't know (add them to scripts/lib/cards/mdb.ts):\n${skipped
           .map(
             (s) =>
               `- ${label(s.id)}: ${s.unknown.join(', ')} (${upstream.has(s.id) ? "upstream's rows kept" : 'left out'})`

@@ -1,12 +1,12 @@
 // Banner files load only when a page asks for them.
 import { cards } from '../../tierlist/cards.ts';
-import { SERVERS } from '../servers.ts';
-import { type ArtBannerFile, withArt } from '../gametora.ts';
+import { SERVERS } from '../lib/servers.ts';
+import { type ArtBannerFile, withArt } from '../lib/gametora.ts';
 import { withPredicted } from './events.ts';
 import { type Counterpart, type Entry, bannerEntries, eventEntries, linkFreeScouts } from './entries.ts';
 import { globalProgress } from './globalProgress.ts';
 import { type JapaneseNames, japaneseEntries, translateEntries } from './translate.ts';
-import { type Language, loadTranslations, toJapanese } from '../translations.ts';
+import { type Language, loadTranslations, toJapanese } from '../lib/translations.ts';
 import type { BannerFile } from '../../shared/schemas/banner.ts';
 import type {
   EventPairsFile,
@@ -23,7 +23,7 @@ export type Mark = { key: string; at: number; window: { from: number; to: number
 
 const BANNERS = {
   global: () => import('../../data/global_banners.json'), // ours: seeded from GameTora, kept up from the news
-  jp: () => import('../../data/jp_banners.json'), // ours: GameTora's history + the JP news (scripts/lib/jp-banners.js)
+  jp: () => import('../../data/jp_banners.json'), // ours: GameTora's history + the JP news (scripts/lib/banners/jp.ts)
 };
 // Optional: an empty glob when the file hasn't been generated.
 const PREDICTED: Partial<Record<BannerName, (() => Promise<BannerFile>)[]>> = {
@@ -92,7 +92,11 @@ const globalBanners = (): Promise<[ArtBannerFile, ArtBannerFile | null]> =>
 const PAIRS = Object.values(
   import.meta.glob<EventPairsFile>('../../generated/event_pairs.json', { import: 'default' })
 );
-const loadPairs = async (): Promise<EventPairsFile['pairs']> => (PAIRS[0] ? (await PAIRS[0]()).pairs : []);
+// (a rejected pair still counts as one event for the predictions, which neither predict its JP side nor anchor on it)
+const loadPairs = async (): Promise<{ gl: string; jp: string }[]> => {
+  const file = PAIRS[0] ? await PAIRS[0]() : null;
+  return file ? [...file.pairs, ...file.rejected] : [];
+};
 const bannerIds = (...files: (Banners | null | undefined)[]): Set<string> =>
   new Set(files.flatMap((f) => (f ? [...f.characters, ...f.cards] : [])).map((b) => String(b.id)));
 
@@ -131,7 +135,7 @@ const loadFiles = (server: Server): Promise<[Banners, EventsFile]> => {
   const name = SERVERS[server].banners as BannerName;
   return Promise.all([loadBanners(name), loadEvents(name)]);
 };
-// `language`: the names' (src/translations.ts), as the files write them by default.
+// `language`: the names' (src/lib/translations.ts), as the files write them by default.
 type Options = { now?: number; language?: Language };
 async function toEntries(server: Server, banners: Banners, events: EventsFile, options: Options): Promise<Entry[]> {
   const { now = Date.now(), language } = options;

@@ -40,9 +40,10 @@ export function itemList(items: EventItem[]): EventItem[] {
     .map(({ item }) => item);
 }
 
-// A predicted event (with its parts) shows until 14 days past its predicted start, Global's news or not: JP's events
-// come to Global, at times later than predicted (ml/events.py writes them for as long, its SHOWN_DAYS).
-const SHOWN_MS = 14 * 24 * 3600 * 1000;
+// A predicted event (with its parts) shows until 7 days past its predicted end (its start if JP's has none), Global's
+// news or not: JP's events come to Global, at times later than predicted (ml/events.py writes them for as long, its
+// SHOWN_DAYS).
+const SHOWN_MS = 7 * 24 * 3600 * 1000;
 
 export function withPredicted(real: GameEvent[], predicted: PredictedEvent[], now: number = Date.now()): GameEvent[] {
   const byId = new Map(predicted.map((event) => [event.id, event] as const));
@@ -50,6 +51,7 @@ export function withPredicted(real: GameEvent[], predicted: PredictedEvent[], no
     const parent = event.parent && byId.get(event.parent);
     return parent && parent !== event ? top(parent) : event;
   };
-  const kept = predicted.filter((event) => Date.parse(top(event).start.date) + SHOWN_MS >= now);
+  const shownUntil = (event: PredictedEvent) => Date.parse((event.end ?? event.start).date) + SHOWN_MS;
+  const kept = predicted.filter((event) => shownUntil(top(event)) >= now);
   return [...real, ...kept];
 }

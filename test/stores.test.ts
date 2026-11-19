@@ -30,7 +30,7 @@ const GARBAGE = ['{not json', 'null', '42', '"text"', '[]', '{"a":'];
 
 describe('settings', () => {
   const KEY = 'uma-ddoc.settings';
-  const load = () => import('../src/settingsStore.ts');
+  const load = () => import('../src/state/settingsStore.ts');
 
   it('loads the stored JSON, each field checked', async () => {
     data.set(KEY, JSON.stringify({ timeZone: 'local', scenarioNames: 'nope', jpNewsLanguage: 'en', extra: 1 }));
@@ -100,7 +100,7 @@ describe('settings', () => {
 
 describe('tier list filters', () => {
   const KEY = 'uma-ddoc.tierListFilters';
-  const load = () => import('../src/tierListFilters.ts');
+  const load = () => import('../src/state/tierListFilters.ts');
   const stored = { stat: 'guts', shown: { SSR: [4], SR: [], R: [0, 4] }, query: 'kita', size: 2 };
 
   it('loads the stored JSON', async () => {

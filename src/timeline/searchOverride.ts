@@ -1,7 +1,7 @@
 // Whether the Timeline's search shows matches the filter hides (default on; the filter's Show tab switches it).
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { rawStorage } from '../rawStorage.ts';
+import { rawStorage } from '../state/rawStorage.ts';
 
 const KEY = 'uma-ddoc.timelineSearchOverride';
 

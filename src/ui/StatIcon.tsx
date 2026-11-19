@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import type { Stat } from '../../tierlist/index.ts';
-import { STAT_ICONS } from '../statIcons.ts';
+import { STAT_ICONS } from '../lib/statIcons.ts';
 import styles from './StatIcon.module.css';
 
 // A card type's game icon, sized to the text around it. Decorative beside the type's name; `label` when it stands alone.

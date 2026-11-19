@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { CardsFileSchema } from '../shared/schemas/card.ts';
-import { buildCards, fromGametora } from '../scripts/lib/cards.ts';
+import { buildCards, fromGametora } from '../scripts/lib/cards/build.ts';
 import { joinCards, withoutEvents } from '../tierlist/join-cards.ts';
-import type { UpstreamCard } from '../scripts/lib/cards.ts';
+import type { UpstreamCard } from '../scripts/lib/cards/build.ts';
 import type { GametoraType } from '../shared/schemas/common.ts';
 import type { GametoraCard } from '../shared/schemas/gametora.ts';
 import type { JpCard, JpCardsFile } from '../shared/schemas/card.ts';

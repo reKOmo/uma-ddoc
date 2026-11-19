@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isReleased } from '../src/scenarioRelease.ts';
+import { isReleased } from '../src/lib/scenarioRelease.ts';
 import scenarioData from '../data/scenarios.json' with { type: 'json' };
 import { present } from './helpers.ts';
 

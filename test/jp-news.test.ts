@@ -1,9 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { postsFile } from '../scripts/lib/news-api.ts';
-import { ja } from '../scripts/lib/news-lang/ja.ts';
-import { norm, parsePeriodJa } from '../scripts/lib/news-text.ts';
-import { categorize } from '../scripts/lib/post-categories.ts';
+import { postsFile } from '../scripts/lib/news/api.ts';
+import { jp } from '../scripts/lib/news/lang/jp.ts';
+import { norm, parsePeriodJp } from '../scripts/lib/news/text.ts';
+import { categorize } from '../scripts/lib/news/categorize.ts';
 import samples from './fixtures/jp-news-samples.json' with { type: 'json' };
 import type { NewsPost } from '../shared/schemas/news.ts';
 import { fixture, present } from './helpers.ts';
@@ -17,41 +17,41 @@ const post = (title: string, { id = 3000, label = 1, message = '' }: PostOptions
     message,
   });
 const of = (title: string, options?: PostOptions) => {
-  const { category, kind, phase, name } = categorize(post(title, options), ja);
+  const { category, kind, phase, name } = categorize(post(title, options), jp);
   return { category, kind, phase, name };
 };
 
-describe('parsePeriodJa', () => {
+describe('parsePeriodJp', () => {
   const at = '2026-09-30T03:00:00Z';
   it('reads JST periods into UTC, ends at their shown minute', () => {
-    expect(parsePeriodJa('9/30 12:00 ～ 10/13 11:59', at)).toEqual({
+    expect(parsePeriodJp('9/30 12:00 ～ 10/13 11:59', at)).toEqual({
       start: '2026-09-30T03:00:00.000Z',
       end: '2026-10-13T02:59:00.000Z',
     });
-    expect(parsePeriodJa('8/9 12:00 〜 8/12 4:59', '2026-08-09T03:00:00Z').end).toBe('2026-08-11T19:59:00.000Z');
+    expect(parsePeriodJp('8/9 12:00 〜 8/12 4:59', '2026-08-09T03:00:00Z').end).toBe('2026-08-11T19:59:00.000Z');
   });
   it('takes the year nearest the post, and an end before its start a year later', () => {
-    expect(parsePeriodJa('12/26 12:00 ～ 1/8 11:59', '2025-12-26T03:00:00Z')).toEqual({
+    expect(parsePeriodJp('12/26 12:00 ～ 1/8 11:59', '2025-12-26T03:00:00Z')).toEqual({
       start: '2025-12-26T03:00:00.000Z',
       end: '2026-01-08T02:59:00.000Z',
     });
     // a January window in a December post
-    expect(parsePeriodJa('1/1 5:00 ～ 1/30 4:59', '2025-12-25T03:00:00Z').start).toBe('2025-12-31T20:00:00.000Z');
+    expect(parsePeriodJp('1/1 5:00 ～ 1/30 4:59', '2025-12-25T03:00:00Z').start).toBe('2025-12-31T20:00:00.000Z');
   });
   it('keeps given years, open ends and opening sentences', () => {
-    expect(parsePeriodJa('2024/5/24 12:00 ～ 2025/3/31 11:59', at)).toEqual({
+    expect(parsePeriodJp('2024/5/24 12:00 ～ 2025/3/31 11:59', at)).toEqual({
       start: '2024-05-24T03:00:00.000Z',
       end: '2025-03-31T02:59:00.000Z',
     });
-    expect(parsePeriodJa('3/11 12:00 ～ 終了日時未定', '2026-03-10T03:00:00Z')).toEqual({
+    expect(parsePeriodJp('3/11 12:00 ～ 終了日時未定', '2026-03-10T03:00:00Z')).toEqual({
       start: '2026-03-11T03:00:00.000Z',
       end: null,
     });
-    expect(parsePeriodJa('2026年2月24日（火）12:00から', at).start).toBe('2026-02-24T03:00:00.000Z');
-    expect(parsePeriodJa('8/9 12:00から、レジェンドレースを開催中です！', '2026-08-09T03:00:00Z').start).toBe(
+    expect(parsePeriodJp('2026年2月24日（火）12:00から', at).start).toBe('2026-02-24T03:00:00.000Z');
+    expect(parsePeriodJp('8/9 12:00から、レジェンドレースを開催中です！', '2026-08-09T03:00:00Z').start).toBe(
       '2026-08-09T03:00:00.000Z'
     );
-    expect(parsePeriodJa('注意事項', at)).toEqual({ start: null, end: null });
+    expect(parsePeriodJp('注意事項', at)).toEqual({ start: null, end: null });
   });
 });
 
@@ -140,7 +140,7 @@ const file = postsFile('jp');
 describe.skipIf(!existsSync(file))('the stored JP news', { tags: ['data'] }, () => {
   const posts: NewsPost[] = JSON.parse(readFileSync(file, 'utf8'));
   const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
-  const categories = new Map(posts.map((p) => [String(p.announce_id), categorize(p, ja)]));
+  const categories = new Map(posts.map((p) => [String(p.announce_id), categorize(p, jp)]));
   const category = (id: string) => present(categories.get(id), `post ${id}`);
   const BANNER_SAMPLES: Record<string, string> = samples.banner;
 

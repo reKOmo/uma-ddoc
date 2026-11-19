@@ -15,7 +15,7 @@ gained a gift note) is no gold until it's labelled again (`gold.ts` `stale()`; t
 the update summary says "Edited since labelled", the review page shows it unreviewed and saves the post's version).
 
 - **Units:** a post cut at its header art as `eventBlocks()` does, its intro (text before the first art) a unit of its
-  own (`scripts/lib/gold.ts` `units()`), so a celebration's intro and the part after it ("…the New Year's Countdown
+  own (`scripts/lib/news/gold.ts` `units()`), so a celebration's intro and the part after it ("…the New Year's Countdown
   Login Bonus has begun!") are two. An event post has one unit label per unit, other posts none.
 - **`pnpm gold:review`** (localhost:5190, `scripts/gold-review.ts` + `gold-review/`): a local page with each post's
   units next to its label, today's rules' and the same-id JP post's (Global's in-game posts reuse JP's ids); posts the
@@ -81,7 +81,7 @@ role/kind 2026-11-08: Global 99.0 → 99.4%, newest 97.5 → 98.0%; JP 98.4 → 
   posts. Regularization (C 0.3–30) changes nothing; the unit misses are rare unit types (special Home screens).
 - **JP** (2026-10-22): the same split. Posts: the rules 99.6% (newest 99.9%) vs the model's 99.6% (99.7%: it takes two
   shops for banners), so the rules decide, the model flags; units the model 98.4% (newest 97.8%) vs the rules' 93.9%
-  (92.1%); phase 99.8% / 100% both. JP's title rules (`ja.ts`) gained, checked on every gold post: さんぽ →
+  (92.1%); phase 99.8% / 100% both. JP's title rules (`news/lang/jp.ts`) gained, checked on every gold post: さんぽ →
   `uma_outing`, 新春レース応援 → `campaign`, お悩み相談 → `misc`, and a one-part celebration (a part's art after
   "本キャンペーンでは…" / "キャンペーンの詳細は、下記"). Left to the gold labels and the model's flag: the "開催決定"
   announced celebrations and the update / release celebrations. JP's art ids give the series too (leading digits, or
@@ -91,7 +91,7 @@ role/kind 2026-11-08: Global 99.0 → 99.4%, newest 97.5 → 98.0%; JP 98.4 → 
 
 `update-jp` / `update-global` run both commands first when `ml/.venv` exists (`pnpm setup-ml`; news:run sets it up
 and classifies before asking the AI, whose answers are keyed by the classified events' ids) and build the events from
-`categories.json` (`scripts/lib/categories.ts`; a post missing from it falls back to the rules):
+`categories.json` (`scripts/lib/news/categories.ts`; a post missing from it falls back to the rules):
 
 - **Cutting** (`postEvents()`, given a post's labels): a celebration is its `event` units (its own text and period,
   never a part's); each `part` unit a sub-event of its kind (an in-game event's sentence, "The in-game event, X, is set
@@ -102,7 +102,7 @@ and classifies before asking the AI, whose answers are keyed by the classified e
   "campaign", turns "Part 2 of the X" into "X Part 2" and capitalizes "Special Missions"; fixed names for parts a
   sentence only describes: Limited-time Missions, Discounted Carats; a card gift its sentence doesn't name is the one
   card its "Gift Contents" list (138 / 141 gold part names, in-sample; 607-1's "Special Valentine's gift" is right
-  too, the other two are only on the banner art). JP: `ja.ts` `partName()`: a pair of paid scouts, a rental boost or
+  too, the other two are only on the banner art). JP: `news/lang/jp.ts` `partName()`: a pair of paid scouts, a rental boost or
   story unlock told in a sentence, a daily gift, else its quoted name; `cleanName` drops a card's "SSR" (665 / 678).
 - **Merging** (`buildEvents()`; `pnpm news:merges` lists every merge by kind): parts of two celebration posts are one
   event only within one series (name without "Part N") and only a shop re-listed with new items or a part with the
@@ -116,8 +116,8 @@ and classifies before asking the AI, whose answers are keyed by the classified e
 ## The JP rule
 
 What JP has, Global gets. `ml/events.py` predicts every unpaired JP event from up to 30 JP days before Global's card
-progress whose predicted Global start is at most 14 days ago (JP 1122 started on the very day Global's releases had
-reached and was never predicted); the Timeline hides a predicted event 14 days past its predicted start
+progress whose predicted Global end is at most 7 days ago (JP 1122 started on the very day Global's releases had
+reached and was never predicted); the Timeline hides a predicted event 7 days past its predicted end
 (`withPredicted(real, predicted, now)`), not when a newer real event of its kind starts.
 
 A paired celebration's parts pair by the art id Global reuses (JP's おみくじ and Global's Lucky Draw are both

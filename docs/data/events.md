@@ -1,10 +1,10 @@
 # Events and the model for doubted fields
 
-- **Events** (`scripts/lib/events.ts` → `data/global_events.json`): Global's in-game events from the news alone (no
+- **Events** (`scripts/lib/events/build.ts` → `data/global_events.json`): Global's in-game events from the news alone (no
   GameTora; Global's upcoming ones are predicted from JP's: "Global ↔ JP events" below). **Everything with dates of its
   own is a bar** (except inside one event: Champions Meeting rounds, reward collection, repeated windows stay in its
   bar), newest first: `{ id, kind, name, parent, start, end, cards, items, titles, phases?, races?, scouts?, news_url, image, source }`
-  (`phases`: a Champions Meeting's, JP League of Heroes', else any event whose post gives two or more of `lang.eventPhases`: event, tallying, results, reward collection). `races` (`scripts/lib/event-races.ts`, wording in `lang.race`): every event whose
+  (`phases`: a Champions Meeting's, JP League of Heroes', else any event whose post gives two or more of `lang.eventPhases`: event, tallying, results, reward collection). `races` (`scripts/lib/events/races.ts`, wording in `lang.race`): every event whose
   post has a "Race Condition(s)" section (Champions Meetings, Legend Races, the Racing Carnival, Dream Team), `{ name,
   opponent, track, surface, distance, category, direction, course, season, weather, ground, time, variable }` as keys
   the app translates; read word by word from "Tenno Sho (Spring) / Kyoto / Turf / 3,200m (Long) / Right-Handed / Outer
@@ -25,7 +25,7 @@
   champions_meeting, legend_race, transfer_requests, uma_outing, special, celebration, and a celebration's sub-events
   campaign / gift / login_bonus / missions / shop / sale (campaign is also single bonus posts: Star Pieces, race
   tickets, free scouts). `name` null for Legend Races and Transfer Requests (the UI shows the kind).
-  From posts (`postEvents()`): event posts (`categorize()`; "ending soon" reminders skipped) are cut into blocks at their
+  From posts (`postEvents()`, `events/fragments.ts`; a celebration's sub-events: `events/celebration.ts`): event posts (`categorize()`; "ending soon" reminders skipped) are cut into blocks at their
   header art (`eventBlocks()`: `<figure><img …/header_<8 digits>_…>`; scout art isn't a boundary; the intro goes with
   the first block; h2–h4 are all headings). A one-event post stays one event whatever art it shows (story events and
   Champions Meetings use extra pictures). A celebration post is several: block 0 is the celebration (id = post id),
@@ -41,7 +41,7 @@
   1155's "the Unity Cup Halved TP Costs event has begun!"; not `lang.contentSentence`, "the special … home screen is
   available!"): these decide only the rules' unit labels, a feature of the unit classifier (rules 93.6 → 96.3% of
   Global's gold units, 2026-11-08), since every stored post is classified. A celebration without a
-  period of its own runs from its opening sentence's date to its last sub-event's end. Dates (`blockPeriod()`): the
+  period of its own runs from its opening sentence's date to its last sub-event's end. Dates (`headingPeriod()` / `openingPeriod()`, `events/dates.ts`): the
   block's period headings (main ones first: availability / event / sale / league selection; never reward collection, expiry,
   registration, matching, sneak peek, ranking, exchange), every short non-bullet line under them; "Gift Timing" lists
   run first → last moment; else an opening "As of / From … (UTC)" sentence. "has ended" posts give no dates. A
@@ -55,8 +55,9 @@
   Every date is `{ date, status }` ([pipeline](pipeline.md#dates)): `news` here, `gametora` for GameTora's.
   Mission sets get the reward names of their post's sentence about the missions ("rewards including carats, monies
   and Support Points"), never amounts (posts don't give per-set amounts).
-  Merging (`buildEvents()`): same kind + name and overlapping dates (a cup counts from its league selection, so a
-  "coming soon" post dated there meets it; the frequent "Bonus Star Piece" posts stay apart, as do two celebration
+  Merging (`buildEvents()`, its passes in `events/merge.ts`): same kind + name and overlapping dates (a cup counts from its league selection, so a
+  "coming soon" post dated there meets it; the frequent "Bonus Star Piece" posts stay apart, overlapping too unless
+  they start together, `lang.ownPosts`: JP's ホープフルステークス 12/27–29 and 東京大賞典 12/28–30 are two, as do two celebration
   series' parts: New Beginnings' Star Pieces aren't Fall G1's; an event with a post of its own that a celebration's
   post lists too becomes that celebration's part, the Daily Free 10x Scout); a post with a period but
   "has ended" joins the latest such event that started before it, within 14 days; a post announcing an event without
@@ -73,7 +74,7 @@
   dates, cards), Legend Race, mission set and special-event run matches it, and every Champions Meeting's end (its
   start is earlier on purpose: league selection); ours only has less (the Trainer Aptitude Test's / Racing Carnival's
   reward-collection days after their event period, mission sets the news hasn't announced).
-- **Free scouts** (`scripts/lib/free-scouts.ts`, wording in `lang.scouts`, both servers): a daily free scout campaign
+- **Free scouts** (`scripts/lib/events/free-scouts.ts`, wording in `lang.scouts`, both servers): a daily free scout campaign
   (Global's "Daily Free 10x Scout" / a celebration's "Daily Free Scout"; JP's 「1日1回10連ガチャ無料キャンペーン」 /
   「毎日ガチャ1回無料キャンペーン」) gets `scouts` `[{ scout, type, banner, start, end, size, scouts }]`: each eligible scout
   as the post names it ("• Spotlight Support Card Scout" + its window on the next line; JP: 「・… ガチャ」, or a list under
@@ -96,7 +97,7 @@
   the same windows. Global's counts equal Luh's on every banner both give but 30073 (the post gives 6, Luh 5;
   `test/free-scouts.test.ts` lists the differences); JP's 30153 count (11) is the trainee banner's, Luh put it on the
   card banner.
-- **A model for what the rules doubt** (`scripts/lib/ai.ts`, `event-questions.ts`, `ai-events.ts`, `pnpm news:ai`): the
+- **A model for what the rules doubt** (`scripts/lib/ai/client.ts`, `ai/questions.ts` + its `-en` / `-jp` / `-spec` files, `ai/answers.ts`, `ai-events.ts`, `pnpm news:ai`): the
   rules stay the extractor; each event records its `doubts` ({ field: why }: an amount in a sentence they didn't read or
   given per day (`itemDoubt()`), copies given in several places or talked about but not read (`copiesDoubt()`), a
   sub-event name from a heading instead of a sentence, a name that's a kind's generic word or (English) starts
@@ -111,7 +112,7 @@
   System prompt: answer only from the text, never guess or assume a default; null is better than a wrong answer.
   Answers are stored in `data/news/gl/ai_answers.json` by event aiKey (id + a hash of its text and context, so an edited
   post is asked again) with per-field versions (`FIELD_VERSIONS`: bump one when its question changes, so only that
-  field is re-asked) and applied at build time by `applyAnswer()`, rules first: a doubted or empty field takes the
+  field is re-asked) and applied at build time by `applyAnswer()` (`ai/answers.ts`), rules first: a doubted or empty field takes the
   answer, a value the rules are sure of is never touched. An answer is used only if it checks out: item and event
   names in the text (not a kind's generic name like "Legend Race"; "carat gifts" → Carats), amounts up to 10 million,
   copies of a card the rules found that the post gives (as a digit or word, in a line about the card or copies/times;

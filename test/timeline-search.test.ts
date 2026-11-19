@@ -3,7 +3,7 @@ import { jumpTarget, searchIndex, searchResults, textTerm } from '../src/timelin
 import type { Entry } from '../src/timeline/entries.ts';
 import type { Term } from '../src/timeline/search.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
-import { type Language, languageOf } from '../src/translations.ts';
+import { type Language, languageOf } from '../src/lib/translations.ts';
 import { fixture, present } from './helpers.ts';
 
 const cards = fixture<CardsFile>({

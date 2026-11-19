@@ -33,7 +33,10 @@ jp_changed=$(sed -n 's/^changed=//p' "$jp_out")
 # With OPENROUTER_API_KEY set this runs every time, new posts or not: events the model couldn't answer last time
 # (its free models are often rate-limited) are asked again, and finding them needs the card data and the classified
 # posts. With every event answered the model gets no requests.
-if [ "$gl_update" = true ] || [ "$jp_update" = true ] || [ -n "${OPENROUTER_API_KEY:-}" ]; then
+# It also runs while a card or trainee the JP news announced waits on GameTora's lists (scripts/news-pending.ts): the
+# first run after GameTora has it fills it in, new posts or not.
+pending=$(node scripts/news-pending.ts)
+if [ "$gl_update" = true ] || [ "$jp_update" = true ] || [ "$pending" = true ] || [ -n "${OPENROUTER_API_KEY:-}" ]; then
   # Both records need card names and titles (generated/cards.json: upstream's lists, data/jp_cards.json, and
   # GameTora's support card list for cards newer than it); JP's banners are our own (data/jp_banners.json).
   echo '== Card data'

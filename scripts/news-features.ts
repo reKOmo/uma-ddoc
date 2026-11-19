@@ -9,13 +9,13 @@
 import { writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import type { GoldLabel, NewsPost } from '../shared/schemas/news.ts';
-import { blockLines } from './lib/event-blocks.ts';
-import { type Twin, readGold, ruleLabel, stale, twins, units } from './lib/gold.ts';
-import { loadPosts, serverArg } from './lib/news-api.ts';
-import { lexicon } from './lib/news-lang/index.ts';
-import type { Server } from './lib/news-text.ts';
+import { blockLines } from './lib/events/blocks.ts';
+import { type Twin, readGold, ruleLabel, stale, twins, units } from './lib/news/gold.ts';
+import { loadPosts, serverArg } from './lib/news/api.ts';
+import { lexicon } from './lib/news/lang/index.ts';
+import type { Server } from './lib/news/text.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
-import { plain, postSignals } from './lib/post-categories.ts';
+import { plain, postSignals } from './lib/news/categorize.ts';
 
 export const featuresFile = (server: Server = 'gl'): string =>
   `${GENERATED_DIR}news_features${server === 'gl' ? '' : `_${server}`}.json`;

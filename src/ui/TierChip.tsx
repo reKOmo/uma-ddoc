@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { TIER_NAMES } from '../tiers.ts';
+import { TIER_NAMES } from '../lib/tiers.ts';
 import styles from './TierChip.module.css';
 
 export type TierChipProps = {

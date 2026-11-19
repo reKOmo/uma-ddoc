@@ -17,7 +17,7 @@
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
-  /* Mouse drag-to-pan (src/useDragScroll.ts); touch screens ignore cursors. */
+  /* Mouse drag-to-pan (src/hooks/useDragScroll.ts); touch screens ignore cursors. */
   cursor: grab;
 }
 

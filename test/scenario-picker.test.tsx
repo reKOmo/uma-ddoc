@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
-// The app's dropdown (src/Dropdown.tsx) and the scenario one built on it (src/ScenarioPicker.tsx),
+// The app's dropdown (src/ui/Dropdown.tsx) and the scenario one built on it (src/ui/ScenarioPicker.tsx),
 // closed (opening and choosing: dropdown.test.tsx).
 
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import '../src/i18n/index.ts';
-import Dropdown from '../src/Dropdown.tsx';
-import ScenarioPicker, { scenarioPickerOptions } from '../src/ScenarioPicker.tsx';
+import Dropdown from '../src/ui/Dropdown.tsx';
+import ScenarioPicker, { scenarioPickerOptions } from '../src/ui/ScenarioPicker.tsx';
 import i18n from '../src/i18n/index.ts';
-import { SCENARIOS, isCurrent, isReleased } from '../src/scenarioRelease.ts';
+import { SCENARIOS, isCurrent, isReleased } from '../src/lib/scenarioRelease.ts';
 
 afterEach(cleanup);
 

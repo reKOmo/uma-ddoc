@@ -1,0 +1,380 @@
+// The English news' wording (Global, umamusume.com): what the shared parsers read Global's posts with. The structure
+// (what each pattern is for) is the Lexicon type in index.ts.
+
+import { parsePeriod } from '../text.ts';
+import type { Lexicon } from './index.ts';
+
+const PHASE_WORDS =
+  /\s*(?:is here|are here|is coming.*|coming soon|(?:is )?now (?:available|underway)|out now|has begun|has ended|ending soon|added)!?$/i;
+
+// A celebration's or campaign's name: the title without its phase, a leading "A special" or tagline ("Up to 100 free scouts! …"),
+// a trailing "event" or "!". "<name> events" celebrates a thing whose name can have a "!" of its own ("Unity Cup: Shine
+// On, Team Spirit! events are here!"), so it's that name as it is, not a tagline.
+const campaignName = (title: string) => {
+  const bare = title.replace(PHASE_WORDS, '');
+  const of = bare.match(/^(.+?)\s+(?:events|campaigns)$/i);
+  if (of) return of[1];
+  return bare
+    .replace(/^.*!\s+(?=\S)/, '')
+    .replace(/^(?:An?|The) (?:special )?/i, '')
+    .replace(/\s+event$|!$/i, '')
+    .replace(/^"(.*)"$/, '$1');
+};
+
+// A celebration part's name from sentence shapes the patterns (`subNames`) don't read: a numbered part of a named
+// mission set, an event that "begins" or "will begin", and fixed names for parts a sentence only describes (checked
+// against the gold set's part names, data/news/gl/gold.json).
+function subName(sentence: string): string | null {
+  const part = sentence.match(/launching part (\d+) of (?:the )?.*?"([^"]+)"/i);
+  if (part) return `${part[2]} Part ${part[1]}`;
+  if (/^(?:we're adding )?new limited-time missions/i.test(sentence)) return 'Limited-time Missions';
+  if (/^(?:special missions|.*updating daily, special missions)/i.test(sentence)) return 'Special Missions';
+  if (/discounted carats|carats (?:are being sold )?at a lower price|purchase carats at a lower price/i.test(sentence))
+    return 'Discounted Carats';
+  const items = sentence.match(/receive up to \d+ "([^"]+)" items/i);
+  if (items) return `${items[1]} giveaway`;
+  const anniversary = sentence.match(/^(?:To celebrate the game's (.+?), we've sent|As an? (.+?) gift, we have sent)/i);
+  if (anniversary) return `${anniversary[1] ?? anniversary[2]} gift`;
+  const card = sentence.match(/gifted with the SSR Support Card "?(\[[^\]]+\] [^"!]+)"?!/i);
+  if (card) return card[1];
+  const named = sentence.match(
+    /^(?:[A-Z][a-z]{2} \d+ )?(?:the |an? )?(.+?)(?: event| campaign)? (?:begins at|will begin|will be available|starts from|has started|is in progress)/i
+  );
+  if (named) return named[1];
+  return (
+    sentence.match(/gifted all trainers with (.+?)!/i)?.[1] ??
+    sentence.match(/"([^"]+)" has been added/i)?.[1] ??
+    sentence.match(/sending (?:another |a second |a )?(?:set of )?(.+?) gifts? to/i)?.[1] ??
+    null
+  );
+}
+
+export const en: Lexicon = {
+  server: 'gl',
+  cardLang: 'en',
+  // Dates: parsePeriod(text, dateRef(posted)) (the post's UTC year fills a missing one).
+  // (dateRef gives a year here; Number() only tells the type checker.)
+  parsePeriod: (text, ref) => parsePeriod(text, Number(ref)),
+  dateRef: (posted) => new Date(posted).getUTCFullYear(),
+  // A post's HTML before any parser reads it (nothing to fix in English posts).
+  clean: (html) => html,
+
+  // Posts that are never in-game news: the community id series (200001…: X giveaways, letters, guidelines).
+  community: (post) => Number(post.announce_id) > 200000,
+
+  phases: [
+    [/league selection period/i, 'league_selection'],
+    [/coming soon|is coming/i, 'announced'],
+    [/ending soon/i, 'ending'],
+    [/has ended/i, 'ended'],
+    [/is here|are here|now available|out now|has begun|available!|underway/i, 'started'],
+  ],
+
+  // [title pattern, category, kind, name]: the first match wins. name is a capture group's index or a function of the
+  // match.
+  rules: [
+    [/^Check out all the latest updates/i, 'other', 'roundup'],
+    [/^Main Story|Uncaps?\b|^Changes to/i, 'other', 'update'],
+    [/\bissues?\b|Error Code/i, 'other', 'issue'],
+    [/Champions Meeting: (.+? Cup)/i, 'event', 'champions_meeting', 1],
+    [/story event "?(.+?)"? (?:is here|is coming|has ended)/i, 'event', 'story', 1],
+    [/Legend Race/i, 'event', 'legend_race'],
+    [/Transfer Requests/i, 'event', 'transfer_requests'],
+    [/Uma Outing/i, 'event', 'uma_outing', () => 'Uma Outing'],
+    [/^The (?:collab(?:oration)? )?event "?(.+?)"? (?:is here|is coming|has ended)/i, 'event', 'special', 1],
+    [/^(?:An?|The) (.+?)(?: collab(?:oration)?)? event (?:is here|is coming)/i, 'event', 'special', 1],
+    [/Showtime/i, 'event', 'special', (m) => campaignName(m.input)],
+    [/new Career scenario "(.+?)"/i, 'other', 'scenario', 1],
+    [/WebStore|Starter Packs/i, 'other', 'sale'],
+    [/Gift to Celebrate|Release Celebration Event|song present|outfits!$/i, 'event', 'gift'],
+    [/Giveaway|present\b|Giving Thanks|Free .*Crystals|\bGift$/i, 'event', 'gift', (m) => campaignName(m.input)],
+    [/login bonus/i, 'event', 'login_bonus', (m) => campaignName(m.input)],
+    [/missions\b/i, 'event', 'missions', (m) => m.input.match(/"([^"]+)"/)?.[1] ?? campaignName(m.input)],
+    [/Celebration|^New Beginnings\b/i, 'event', 'celebration', (m) => campaignName(m.input)],
+    [
+      /Bonus Star Piece|Race Rally|Daily Race (?:Tickets|attempts)|Free 10[x-] ?Scout|Free Retries|Commemoration/i,
+      'event',
+      'campaign',
+      (m) => campaignName(m.input),
+    ],
+    [/Maintenance/i, 'other', 'maintenance'],
+    [
+      /Update|Introducing|^New .*(?:added|coming soon|now available)|Adjustment|Recommended Devices|Timing of Addition/i,
+      'other',
+      'update',
+    ],
+  ],
+
+  // Checked against the gold set (data/news/gl/gold.json): every post listing "included events" is a celebration,
+  // every one opening with a gift "to all trainers" a gift.
+  signals: [
+    ['included_events', 'body', /details (?:of|on) (?:the )?included (?:events|campaigns)/i],
+    ['gift_opening', 'opening', /(?:sent|gifted|gift(?:ing)? of)\b[^.!]*\b(?:all|every) (?:our )?trainers/i],
+    ['gift_to_all', 'body', /(?:sent|gifted|gift(?:ing)? of)\b[^.!]*\b(?:all|every) (?:our )?trainers/i],
+    ['login_bonus_opening', 'opening', /login bonus/i],
+    ['event_story', 'title', /event story/i],
+    ['regarding', 'title', /^Regarding\b/i],
+    ['limited_time', 'body', /limited[- ]time|for a limited time|availability period/i],
+  ],
+  revise: (rule, has, title) => {
+    // A notice about something past ("Regarding the … Giveaway Gift Contents") is no event.
+    if (rule.category === 'event' && has('regarding')) return { category: 'other', kind: 'misc', name: null };
+    if (rule.category === 'banner' || rule.kind === 'community') return rule;
+    // A celebration whose title says no "Celebration" ("New Beginnings Part 1", "G1 Race Commemoration").
+    if (has('included_events')) return { category: 'event', kind: 'celebration', name: campaignName(title) };
+    if (rule.category === 'other' && has('gift_opening'))
+      return { category: 'event', kind: 'gift', name: campaignName(title) };
+    if (rule.kind === 'campaign' && has('login_bonus_opening')) return { ...rule, kind: 'login_bonus' };
+    return rule;
+  },
+
+  titleName: (title) => title.replace(/!$/, ''),
+  displayName: (name) => name.charAt(0).toUpperCase() + name.slice(1),
+
+  // A banner's art (<img …gacha_banner_<id>_….png>): split on (the capture keeps it), and its URL + gacha id.
+  bannerArt: /(<img[^>]*\ssrc="[^"]*gacha_banner_\d+_[^"]*"[^>]*>)/,
+  bannerArtSrc: /src="([^"]*gacha_banner_(\d+)_[^"]*)"/,
+  bannerCard: /^(?:[•・■]\s*)?(SSR|SR|R)\s+\[([^\]]+)\]\s+(.+)$/,
+  bannerTrainee: /^(★{1,3})\s+\[([^\]]+)\]\s+(.+)$/,
+  // "Trainee Umamusume" (older posts: "Umamusume") → character, "Support Cards" → support.
+  bannerType: (heading) =>
+    /Trainee|^Umamusume$/i.test(heading) ? 'character' : /Support Card/i.test(heading) ? 'support' : null,
+  bannerPeriod: /period$/i,
+  scoutPeriod: /scout.*period$/i,
+  paidPost: /paid carats/i,
+
+  // Header art (<figure><img …></figure>) starts a block; scout art doesn't.
+  blockArt: /<figure>\s*<img[^>]*\ssrc="([^"]+)"[^>]*>\s*<\/figure>/gi,
+  notBlockArt: /gacha_banner_/,
+  artId: /_(\d{8,9})(?:_|\.)/,
+
+  numbers: { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 },
+  // Same item, other spelling → the name we show (keyed without a trailing "gift(s)": "150-carat gifts" are Carats).
+  aliases: {
+    carat: 'Carats',
+    carats: 'Carats',
+    monies: 'Monies',
+    supportpt: 'Support Points',
+    supportpoints: 'Support Points',
+    friendpt: 'Friend Points',
+  },
+  // An item's name: no leading amount ("300 carats", "150-carat gifts"; not the "1.5" of "1.5-Year…"), capitalised;
+  // what has no letter isn't one.
+  itemAmountPrefix: /^\d[\d,]*(?=[\s-])[\s-]+/,
+  itemNameChar: /[a-z]/i,
+  aliasKey: (key) => key.replace(/gifts?$/, ''),
+  showItem: (name) => name.replace(/^./, (c) => c.toUpperCase()),
+  // Prices, fees and purchases aren't rewards (a sale's "Paid Carats × 1,500", a "30 carats" entry fee).
+  notReward: /\b(?:fees?|costs?|prices?|purchases?|discount(?:ed)?|paid|limited supply|times only)\b/i,
+  // Lines that talk about cards that only boost an event (story events' bonus cards, rankings), not ones it gives.
+  notGiven: /bonus card|event bonus|boost|most frequently|ranking|perk|unique|issue/i,
+  copies: /(?:a total of|up to)\s+(\w+)\s+(?:copies|copy)|(?:obtained|received)\s+up to\s+(\w+)\s+times/i,
+  // "[Title] Name"
+  cardMention: /\[([^\]]+)\]\s*([^\],.!?"”()]+)/g,
+  login: /^login days?\s*(\d+)(?:\s*[-–]\s*(\d+))?\s*:\s*/i,
+  // "10:00 p.m., Oct 7, 2026 (UTC) – Item × 3" or, without "(UTC)", "10:00 p.m., Nov 25 – Item × 3"
+  dated:
+    /^.*?(?:\(UTC\)|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.? \d{1,2}(?:, \d{4})?)\s*[–-]\s*/i,
+  item: /^(?:[•・■*-]\s*)?(.+?)\s*[×x]\s*([\d,]+)\s*$/,
+  itemBullet: /^[•・■*-]\s*/,
+  // A list line that is a sentence isn't an item.
+  sentenceEnd: /[.!?]$/,
+  // "we've sent a gift of 3,000 carats", "you can obtain 500 carats as a holiday gift" (not entry fees or prices);
+  // "a gift of 564 carats, up to a total maximum of 5,640!" counts the total
+  proseTotal: /up to a total (?:maximum )?of (\d[\d,]*)/i,
+  proseAmount: /\b(\d[\d,]*)\s+carats\b/i,
+  proseItem: /carat/i,
+  proseGift: /gift|sent|receive|obtain|earn/i,
+  proseName: 'Carats',
+  // "Main Rewards" bullets name rewards without amounts; so do "rewards like/including …" sentences.
+  mainRewards: /^main rewards$/i,
+  bullet: /^[•・]\s*/,
+  rewardsLike: /rewards?,? (?:like|including|such as)/i,
+  // Rewards worth naming even when the post gives no amount.
+  mentioned: [
+    ['Carats', /\bcarats\b/i],
+    ['Monies', /\bmonies\b/i],
+    ['Support Points', /\bsupport points?\b/i],
+    ['Rainbow Crystal Shards', /rainbow crystal shards?/i],
+    ['Support Card Scout Tickets', /support card scout tickets?/i],
+    ['Trainee Scout Tickets', /trainee (?:umamusume )?scout tickets?/i],
+    // A voucher lets you pick a card (or trainee): named as the post names it ("1.5-Year Anniversary SSR Voucher").
+    [null, /(?:[A-Z0-9][\w.-]* ){0,4}SSR (?:Support Card )?Vouchers?/],
+  ],
+  mentionedName: (s) => s.replace(/s$/, ''),
+  // Player titles: "Event-Exclusive Title: X", or the bullets under "Event-Exclusive Titles".
+  title: /Event-Exclusive Title:\s*(.+)$/i,
+  titleList: /Event-Exclusive Titles$/i,
+  // A mission set: a line "X Missions" (not a sentence) followed by its period.
+  missionSet: (name) => /Missions$/.test(name) && name.split(' ').length <= 8,
+  missionBullet: /^[•・■]\s*/,
+
+  // doubts: "150-carat gifts", "500 carats", "50,000 Monies" in a sentence (not an "Item × N" list line)
+  amount:
+    /(\d[\d,]*)[\s-]+(carats?|monies|support (?:points?|pt)|friend (?:points?|pt)|(?:rainbow |gold )?crystal shards?|scout tickets?|star pieces?)\b/i,
+  amountWord: (word) => word.replace(/s$/, '').slice(0, 6),
+  per: /\b(?:each|every|per)\s+(?:day|login|period|availability period|week)\b|\bseries of\b|\bdaily\b/i,
+  // "up to two times in the Login Bonus, and up to three times in the Missions, for a maximum of five times"
+  copiesCount: /\b\w+\s+(?:copies|times)\b/gi,
+  copiesTalk: /\bcop(?:y|ies)\b|\b\w+ times\b/i,
+  // A line after one naming a card that goes on about copies ("It can be obtained up to two times…").
+  copiesNext: /\bcop(?:y|ies)\b|\btimes\b/i,
+
+  // Headings that hold an event's own period (not when rewards can be collected, gifts expire, a final round runs…).
+  period: /period|timing/i,
+  notOwn: /reward collection|expiry|registration|matching|sneak peek|ranking|exchange/i,
+  // A Champions Meeting starts with its league selection (before the post's "Event Availability Period", round 1 on).
+  main: /availability period|event period|sale period|league selection period/i,
+  // A "Gift Timing" list is moments, not periods: from the first to the last.
+  timing: /timing/i,
+  // "As of 10:00 p.m., Oct 7, 2026 (UTC), …", "From 3:00 p.m., Oct 8, 2026 (UTC), we're kicking off …",
+  // "… has begun as of 10:00 p.m., Jul 22, 2026 (UTC)!", "… is set to begin at 3:00 p.m., Jul 23, 2026 (UTC)!"
+  starts: /\b(?:as of|from|starting)\b|^at\b|set to (?:begin|kick off) at|will begin at/i,
+  opening: (line) => /\(UTC\)/.test(line),
+  ownPosts: /^Bonus Star Piece rewards/i,
+  // A period line: short, not a bullet point (bullets in period sections are fine print with other dates).
+  periodLine: (line) => line.length < 90 && !/^[•・*]/.test(line),
+  // A Champions Meeting's schedule headings (keys: CM_PHASES in events.js).
+  cmPhases: [
+    ['league_selection', /^league selection period$/i],
+    ['round_1', /^round 1$/i],
+    ['round_2', /^round 2$/i],
+    ['final_registration', /^final round: registration period$/i],
+    ['final_matching', /^final round: matching period$/i],
+    ['final_race', /^final round: race period$/i],
+  ],
+  eventPhases: [
+    ['event', /^(?:event )?availability period$|^event period$/i],
+    ['tallying', /^tallying period$/i],
+    ['results', /^results announcement period$/i],
+    ['reward_collection', /^reward collection\b/i],
+  ],
+  // "The in-game collaboration event with Tokyo Mega Illumination, Sparkly Magic Show, is set to kick off at …"
+  inGameEvent: /^The in-game (?:collaboration )?event\b.*?, (.+?), is set to (?:begin|kick off)/i,
+  // A celebration's sub-event: its opening sentence without its date, the names in it, else a heading that names it.
+  subOpening: /^(?:As of|From|At|Starting(?: from)?|Beginning (?:from|at))\s.*?\(UTC\),\s*/i,
+  subName,
+  subNames: [
+    /(?:Missions|event) "([^"]+)"/i,
+    /available in the (.+?) under/i,
+    /added to the (.+?)[!.](?:\s|$)/i,
+    /kicking off an? (.+?)(?: event)?!/i,
+    /sending (?:another |a )?(?:set of )?(.+?) gifts/i,
+    /sent (a gift of .+?) to all/i,
+    /gifted with the (.+?)!(?:\s|$)/i,
+    /adding (bonus .+?) to/i,
+    /^(?:the |an? )?(?!following|new items)(.+?)(?: event)? (?:has begun|have begun|is (?:now )?underway|is now live|(?:is|are) (?:now )?available|will appear|is set to begin)/i,
+  ],
+  cleanName: (s) =>
+    s
+      .replace(/["“”]/g, '')
+      .trim()
+      // "Part 2 of the 1st Anniversary Login Bonus" → "1st Anniversary Login Bonus Part 2"
+      .replace(/^Part (\d+) of (?:the )?(.+)$/i, '$2 Part $1')
+      .replace(/\s+campaign$/i, '')
+      // "Golshi Week Celebration Hijack special missions": an event's missions are named as one
+      .replace(/\bspecial missions$/i, 'Special Missions')
+      .replace(/^./, (c) => c.toUpperCase()),
+  // A card gift its sentence doesn't name ("We're sending a unique SSR Support Card … to all trainers!"): the one card
+  // its "Gift Contents" list.
+  blockName: (block) => {
+    const lines = block.sections.find((s) => /contents/i.test(s.heading))?.lines ?? [];
+    return lines.length === 1 && /^\[[^\]]+\] \S/.test(lines[0]) ? lines[0] : null;
+  },
+  // (headings that never name an event: "Eligible Trainers", "How to Receive", "Gift Period")
+  notNameHeading: /important|details|contents|eligible|how to|period/i,
+  // [kind, pattern] in order; a sub-event's name and opening sentence decide first, its headings only when they don't.
+  subKinds: [
+    ['login_bonus', /login bonus/i],
+    ['missions', /missions\b/i],
+    ['sale', /sale period|sale details|discounted|paid carats/i],
+    ['shop', /shop|exchange|daily sale/i],
+    ['gift', /gift|present|giveaway/i],
+  ],
+  // A block with gift/reward contents gives something (a sub-event even without a period).
+  gives: /gift contents|reward contents/i,
+  contentSentence: /\bhome screens? (?:is|are) (?:now )?available/i,
+  // The post's sentence about its mission sets' rewards ("By completing these missions, you can earn rewards
+  // including carats, monies and Support Points!").
+  missionRewards: (line) => /missions/i.test(line) && /rewards?/i.test(line),
+  // "you will be able to perform a 10x scout on one of the currently available Scouts, up to a maximum of 10 times",
+  // "you can perform a free single scout each day", "draw one free scout per day", "scout once per day for free";
+  // then "• Spotlight Support Card Scout" + its window ("… (UTC) (10 days)", or "(9 days total)" on the line after).
+  scouts: {
+    daily:
+      /\bperform (?:a|one) (?:free )?(?:single|10x) scout|free (?:single |10x )?scouts? (?:each|per) day|once per day for free/i,
+    ten: /\b10x\b|\b10-scout/i,
+    scout: (line) => (/^• .+ Scout$/i.test(line) ? (/Support Card/i.test(line) ? 'support' : 'character') : null),
+    name: (line) => line.replace(/^•\s*/, ''),
+    named: (sentence) =>
+      /Support Card Scout/i.test(sentence) ? 'support' : /Pretty Derby Scout/i.test(sentence) ? 'character' : null,
+    days: /\((\d+) days?(?: total)?\)/i,
+    total: /up to a maximum of (\d+) times/i,
+    resetHour: 15,
+  },
+  race: {
+    heading: /^Race Conditions?$/i,
+    parts: (line) => line.split('/').map((part) => part.trim()),
+    words: (part) => part.split(/\s*[()]\s*/).filter(Boolean),
+    // Older posts label some parts ("Weather: Sunny / Turf: Firm"), Dream Team its season.
+    key: (word) =>
+      word
+        .toLowerCase()
+        .replace(/^(?:weather|turf|season):\s*/, '')
+        .replace(/\s+/g, ''),
+    vocabulary: {
+      tokyo: { track: 'tokyo' },
+      nakayama: { track: 'nakayama' },
+      kyoto: { track: 'kyoto' },
+      hanshin: { track: 'hanshin' },
+      chukyo: { track: 'chukyo' },
+      sapporo: { track: 'sapporo' },
+      hakodate: { track: 'hakodate' },
+      fukushima: { track: 'fukushima' },
+      niigata: { track: 'niigata' },
+      kokura: { track: 'kokura' },
+      oi: { track: 'oi' },
+      kawasaki: { track: 'kawasaki' },
+      funabashi: { track: 'funabashi' },
+      morioka: { track: 'morioka' },
+      longchamp: { track: 'longchamp' },
+      santaanitapark: { track: 'santa_anita' },
+      delmar: { track: 'del_mar' },
+      turf: { surface: 'turf' },
+      dirt: { surface: 'dirt' },
+      sprint: { category: 'sprint' },
+      mile: { category: 'mile' },
+      medium: { category: 'medium' },
+      long: { category: 'long' },
+      'right-handed': { direction: 'right' },
+      'left-handed': { direction: 'left' },
+      straight: { direction: 'straight' },
+      inner: { course: 'inner' },
+      outer: { course: 'outer' },
+      'outer→inner': { course: 'outer_to_inner' },
+      spring: { season: 'spring' },
+      summer: { season: 'summer' },
+      fall: { season: 'autumn' },
+      autumn: { season: 'autumn' },
+      winter: { season: 'winter' },
+      sunny: { weather: 'sunny' },
+      cloudy: { weather: 'cloudy' },
+      rain: { weather: 'rainy' },
+      rainy: { weather: 'rainy' },
+      snow: { weather: 'snowy' },
+      snowy: { weather: 'snowy' },
+      firm: { ground: 'firm' },
+      good: { ground: 'good' },
+      soft: { ground: 'soft' },
+      heavy: { ground: 'heavy' },
+      // (JP's 昼 / 夕 / 夜: Global's Aquarius Cup, JP's 昼, says "Afternoon".)
+      afternoon: { time: 'day' },
+      evening: { time: 'evening' },
+      night: { time: 'night' },
+    },
+    opponents: /^Weather \/ Track Conditions?$/i,
+    opponent: /^•\s*(.+?):\s*(.+)$/,
+    variable: /conditions (?:other than the season )?are variable|decided at random/i,
+    tracks: /^Racecourses?:\s*(.+)$/i,
+  },
+};

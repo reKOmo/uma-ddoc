@@ -1,10 +1,12 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import type { Server } from '../scripts/lib/news-text.ts';
-import { canClassify, heldOutCategories, readCategories } from '../scripts/lib/categories.ts';
-import { type Merge, buildEvents, readAnswers } from '../scripts/lib/events.ts';
-import { readGold } from '../scripts/lib/gold.ts';
-import { loadPosts } from '../scripts/lib/news-api.ts';
-import { lexicon } from '../scripts/lib/news-lang/index.ts';
+import type { Server } from '../scripts/lib/news/text.ts';
+import { canClassify, heldOutCategories, readCategories } from '../scripts/lib/news/categories.ts';
+import type { Merge } from '../scripts/lib/events/merge.ts';
+import { buildEvents } from '../scripts/lib/events/build.ts';
+import { readAnswers } from '../scripts/lib/events/files.ts';
+import { readGold } from '../scripts/lib/news/gold.ts';
+import { loadPosts } from '../scripts/lib/news/api.ts';
+import { lexicon } from '../scripts/lib/news/lang/index.ts';
 
 // The stored news replayed post by post, as the news workflow meets it: a new post never wipes or changes the kind of
 // an event the older posts made, and an event post the gold set knows always makes (or joins) one. (Global's 1122,

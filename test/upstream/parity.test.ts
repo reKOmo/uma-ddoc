@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { cardRows } from '../../scripts/lib/mdb-cards.ts';
+import { cardRows } from '../../scripts/lib/cards/mdb.ts';
 import { UPSTREAM_DIR } from '../../scripts/lib/upstream.ts';
 import sources from '../../generated/sources.json' with { type: 'json' };
 import { STATS, presetDecks, rankCards } from '../../tierlist/index.ts';

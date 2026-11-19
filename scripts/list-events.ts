@@ -4,8 +4,9 @@ import { existsSync, readFileSync } from 'node:fs';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { EventItem } from '../shared/schemas/event.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
-import { loadPosts } from './lib/news-api.ts';
-import { buildEvents, readAnswers, readCmTable } from './lib/events.ts';
+import { loadPosts } from './lib/news/api.ts';
+import { buildEvents } from './lib/events/build.ts';
+import { readAnswers, readCmTable } from './lib/events/files.ts';
 
 const cardsFile = `${GENERATED_DIR}cards.json`;
 // TODO(ts): JSON.parse's any: cards.json is written by build-cards in CardsFile's shape

@@ -3,8 +3,8 @@ import clsx from 'clsx';
 import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDate } from '../i18n/index.ts';
-import type { HistoryPoint } from '../rankHistory.ts';
-import { useDragScroll } from '../useDragScroll.ts';
+import type { HistoryPoint } from '../lib/rankHistory.ts';
+import { useDragScroll } from '../hooks/useDragScroll.ts';
 import TierChip from '../ui/TierChip.tsx';
 import styles from './RankChart.module.css';
 

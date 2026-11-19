@@ -1,9 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { type UpstreamCard, buildCards } from './lib/cards.ts';
-import { CARDS_FILE as GLOBAL_CARDS_FILE } from './lib/global.ts';
-import { JP_CARDS_FILE, readJpCards } from './lib/jp-cards.ts';
-import { SERVERS, cardRows, cardStatsFile } from './lib/mdb-cards.ts';
+import { type UpstreamCard, buildCards } from './lib/cards/build.ts';
+import { CARDS_FILE as GLOBAL_CARDS_FILE } from './lib/banners/global.ts';
+import { JP_CARDS_FILE, readJpCards } from './lib/cards/jp.ts';
+import { SERVERS, cardRows, cardStatsFile } from './lib/cards/mdb.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { readSources } from './lib/sources.ts';
 import { UPSTREAM_RAW } from './lib/upstream.ts';

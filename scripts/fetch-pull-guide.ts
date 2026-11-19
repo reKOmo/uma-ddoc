@@ -4,10 +4,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { paced } from './lib/http.ts';
-import { BANNERS_FILE } from './lib/global.ts';
+import { BANNERS_FILE } from './lib/banners/global.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { writeSources } from './lib/sources.ts';
-import { SHEET_URL, byBanner, parseSheetList, parseTab, parseUpdated, tabUrl } from './lib/pull-guide.ts';
+import { SHEET_URL, byBanner, parseSheetList, parseTab, parseUpdated, tabUrl } from './lib/cards/pull-guide.ts';
 import type { BannerFile } from '../shared/schemas/banner.ts';
 import type { PullGuide } from '../shared/schemas/pullGuide.ts';
 

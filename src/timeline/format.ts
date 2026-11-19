@@ -1,5 +1,5 @@
 import i18n, { formatDate, formatDateRange } from '../i18n/index.ts';
-import { clockOptions, timeZoneOptions } from '../settings.tsx';
+import { clockOptions, timeZoneOptions } from '../state/settings.tsx';
 import type { Entry } from './entries.ts';
 import { DAY } from './layout.ts';
 

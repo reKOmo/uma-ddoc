@@ -1,7 +1,7 @@
 # Card data
 
 - **Card ids are the same on Global and JP and in GameTora's data.** Global has a subset
-  of JP's cards. The card data (`scripts/lib/cards.ts`) is:
+  of JP's cards. The card data (`scripts/lib/cards/build.ts`) is:
   - `generated/cards.json`: every card upstream or `data/jp_cards.json` has (a card only GameTora lists isn't one:
     `update-jp` warns), what the site shows: `{ id, charId, type, rarity, name: { en, jp }, title: { en, jp }, release: { gl, jp
     }, source, links: { gametora }, images: { icon } }`. Readable strings (type `speed`…`wisdom`, `friend`, `group`;
@@ -16,7 +16,7 @@
     (`url_name`, e.g. `30321-duramente`; the current list's, else the history's); the app links
     `https://gametora.com/umamusume/supports/<slug>` (`/supports/<id>` alone is a 404). `images.icon`: upstream's at
     its commit, null for cards upstream lacks. No GameTora URLs: the app builds the full art and icons from the id
-    (`src/gametora.ts`).
+    (`src/lib/gametora.ts`).
   - `generated/card_stats/<gl|jp>_card_stats.json`: the calculation's inputs per server, `{ [id]: { charName,
     events, lb: [LB0…LB4 stats] } }`. `charName` is upstream's per-server name (each in its own language, which
     `scenarioLink` relies on; a group card's is a member's, as upstream has it); `events` the card's event rewards
@@ -24,7 +24,7 @@
     `joinCards()` rebuilds upstream's exact arrays plus `events` per card (verified by `buildCards()` and
     `test/data.test.ts`).
 
-- **Our card stats from master.mdb** (`scripts/lib/mdb-cards.ts`, `pnpm convert-mdb` → `data/<gl|jp>_card_stats.json`):
+- **Our card stats from master.mdb** (`scripts/lib/cards/mdb.ts`, `pnpm convert-mdb` → `data/<gl|jp>_card_stats.json`):
   upstream builds its gl.js / jp.js by hand with `db-convert.py` from its own master.mdb, which lags behind the game.
   Ours is that script ported line for line (same queries and float order: on Global build 26069163 all 1,325 rows
   deep-equal upstream's), run on the server's mdb. The file is that server's card list, by id

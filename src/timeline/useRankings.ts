@@ -4,11 +4,11 @@
 // without stats yet) is null.
 import { useEffect, useState } from 'react';
 import { type Stat, rankByUsefulness } from '../../tierlist/index.ts';
-import { STAT_OF_TYPE, cardRanks } from '../tiers.ts';
+import { STAT_OF_TYPE, cardRanks } from '../lib/tiers.ts';
 import { cards } from '../../tierlist/cards.ts';
-import { SHEET_ANIMATION_MS } from '../Sheet.tsx';
+import { SHEET_ANIMATION_MS } from '../ui/Sheet.tsx';
 import type { CardsFile } from '../../shared/schemas/card.ts';
-import type { SERVERS } from '../servers.ts';
+import type { SERVERS } from '../lib/servers.ts';
 
 // Computed once the sheet has slid in: a ranking blocks the page for a few hundred ms.
 export type CardRank = { tier: number; position: number; stat: Stat };

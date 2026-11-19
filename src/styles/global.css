@@ -1,6 +1,6 @@
 :root {
   /* Each colour light and dark (light-dark()): the device's choice, unless Settings' theme sets data-theme on <html>
-     (src/theme.ts). color-scheme also gives the browser's own scrollbars and controls the same theme. */
+     (src/state/theme.ts). color-scheme also gives the browser's own scrollbars and controls the same theme. */
   color-scheme: light dark;
   /* Colours stay vivid for fills, lines and borders; small coloured text meets WCAG AA (4.5:1) through an ink: the
      accent's --accent-ink, tinted text (pills, chips) mixing its tone into --text. White on the vivid accent is ~4.2:1:

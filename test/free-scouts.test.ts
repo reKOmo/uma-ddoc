@@ -1,15 +1,21 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { readCategories } from '../scripts/lib/categories.ts';
-import { eventFragments } from '../scripts/lib/events.ts';
-import { applyAnswer } from '../scripts/lib/event-questions.ts';
-import { type ScoutWindow, bannerOf, scoutWindows, windowScouts, withFreePulls } from '../scripts/lib/free-scouts.ts';
+import { readCategories } from '../scripts/lib/news/categories.ts';
+import { eventFragments } from '../scripts/lib/events/fragments.ts';
+import { applyAnswer } from '../scripts/lib/ai/answers.ts';
+import {
+  type ScoutWindow,
+  bannerOf,
+  scoutWindows,
+  windowScouts,
+  withFreePulls,
+} from '../scripts/lib/events/free-scouts.ts';
 import type { BannerFile } from '../shared/schemas/banner.ts';
 import type { PullGuide } from '../shared/schemas/pullGuide.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
 import { fixture } from './helpers.ts';
-import { postsFile } from '../scripts/lib/news-api.ts';
-import { en, ja } from '../scripts/lib/news-lang/index.ts';
+import { postsFile } from '../scripts/lib/news/api.ts';
+import { en, jp as jpLexicon } from '../scripts/lib/news/lang/index.ts';
 
 const windows = (lines: string[], year = 2026) => scoutWindows(lines, year, en);
 
@@ -112,7 +118,7 @@ describe('scoutWindows', () => {
 });
 
 describe('scoutWindows (JP)', () => {
-  const jp = (lines: string[], posted: string) => scoutWindows(lines, posted, ja);
+  const jp = (lines: string[], posted: string) => scoutWindows(lines, posted, jpLexicon);
 
   it('reads a window per scout, checked against 最大N回 (1190; resets at 5:00 JST)', () => {
     const read = jp(
@@ -290,7 +296,7 @@ describe.skipIf(!existsSync(postsFile('gl')))('the stored news: free scouts', { 
 
 describe.skipIf(!existsSync(postsFile('jp')))('the stored JP news: free scouts', { tags: ['data'] }, () => {
   const posts = JSON.parse(readFileSync(postsFile('jp'), 'utf8'));
-  const free = eventFragments(posts, {}, ja, readCategories('jp')).filter((f) => f.scouts);
+  const free = eventFragments(posts, {}, jpLexicon, readCategories('jp')).filter((f) => f.scouts);
 
   it('reads every free scout campaign, the stated totals and days matching', () => {
     expect(free.length).toBeGreaterThan(50);

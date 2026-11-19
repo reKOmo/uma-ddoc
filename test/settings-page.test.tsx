@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import '../src/i18n/index.ts';
 import SettingsPage from '../src/pages/SettingsPage.tsx';
-import { DEFAULTS, getSettings, setSetting } from '../src/settingsStore.ts';
+import { DEFAULTS, getSettings, setSetting } from '../src/state/settingsStore.ts';
 import pkg from '../package.json' with { type: 'json' };
 
 beforeEach(() => {

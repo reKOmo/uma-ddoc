@@ -10,9 +10,9 @@ import { type DatedMoment, dated } from '../shared/schemas/common.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
 import type { KnownDatesFile } from '../shared/schemas/predictions.ts';
 import { DATA_DIR, GENERATED_DIR, newsDir } from './lib/paths.ts';
-import { bannerPost } from './lib/banner-posts.ts';
-import { loadPosts } from './lib/news-api.ts';
-import { scenarioPost } from './lib/news.ts';
+import { bannerPost } from './lib/banners/posts.ts';
+import { loadPosts } from './lib/news/api.ts';
+import { scenarioPost } from './lib/news/scenario-posts.ts';
 import {
   BANNERS_FILE,
   CARDS_FILE,
@@ -21,13 +21,14 @@ import {
   englishNames,
   readJson,
   writeGlobal,
-} from './lib/global.ts';
+} from './lib/banners/global.ts';
 import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.ts';
-import { readJpBanners, regularBanners } from './lib/jp-banners.ts';
-import { buildEvents, readAnswers, readCmTable, readEvents, writeEvents } from './lib/events.ts';
-import { readCategories, refreshCategories, unsureLines } from './lib/categories.ts';
-import { keepEventFills } from './lib/dates.ts';
-import { withFreePulls } from './lib/free-scouts.ts';
+import { readJpBanners, regularBanners } from './lib/banners/jp.ts';
+import { buildEvents } from './lib/events/build.ts';
+import { readAnswers, readCmTable, readEvents, writeEvents } from './lib/events/files.ts';
+import { readCategories, refreshCategories, unsureLines } from './lib/news/categories.ts';
+import { keepEventFills } from './lib/fills.ts';
+import { withFreePulls } from './lib/events/free-scouts.ts';
 import { ensureCards } from './update-cards.ts';
 import { buildCardFiles } from './build-cards.ts';
 

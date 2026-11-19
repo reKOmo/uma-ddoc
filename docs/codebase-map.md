@@ -11,69 +11,87 @@ tierlist/          ranking code (runs in Node and the browser)
   join-cards.ts      joinCards() (+ `events` per card), withoutEvents(), TYPE_CODES / RARITY_CODES (cards.json's
                      strings ↔ upstream's codes)
   cli.ts             `pnpm rank`
-scripts/
-  lib/paths.ts       ROOT, GENERATED_DIR, DATA_DIR, newsDir(server) (every script's paths)
-  lib/http.ts        sleep(), paced(): one request at a time with a pause between (every fetching script's pacing)
-  lib/sources.ts     generated/sources.json (file → where its data came from): readSources(), writeSources()
-  lib/upstream.ts    everything that knows about the upstream repo (REPO, DATA_FILES,
-                     UPSTREAM_DIR, UPSTREAM_RAW, download)
+scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
   clone-upstream.ts  shallow clone (or fetch + reset) of upstream main into upstream/
   update-cards.ts    download upstream's card data into generated/raw/upstream/; exports ensureCards()
   build-cards.ts     raw inputs → generated/cards.json + card_stats/<gl|jp>_card_stats.json (buildCardFiles())
   build-schemas.ts   schemas/*.json from shared/schemas/ (z.toJSONSchema)
-  lib/cards.ts       pure: buildCards() (the merge, + the round-trip check against upstream's lists)
   convert-mdb.ts     a server's master.mdb → data/<gl|jp>_card_stats.json (its card list, instead of upstream's)
-  lib/mdb-cards.ts   convertMdb() (upstream's db-convert.py ported), cardRows() (ours, else upstream's), the file's read/write
   scrape-gametora.ts  GameTora: support card list + JP event history (generated/raw/), JP scenarios (data/)
   update-global.ts   data/news/ → Global's banners + card releases in data/, appends to data/news/gl/summary.md
   update-jp.ts       data/news/jp/ → new cards in data/jp_cards.json (+ build-cards), data/jp_banners.json +
                      data/jp_events.json, appends to data/news/jp/summary.md
-  lib/jp-cards.ts    pure: newsCards() (every support card the JP news shows, at its first appearance),
-                     applyNewsCards() (→ the history + pending, GameTora augmenting; GameTora-only cards listed),
-                     data/jp_cards.json + jp_cards_pending.json readers/writers, updateJpCards()
-  lib/gametora-events.ts  GameTora's JP story events / Champions Meetings / Legend Races → fills in jp_events.json
-  lib/jp-banners.ts  pure: applyJpNews() (JP news → data/jp_banners.json), regularBanners() (what Global and ml/ read),
-                     reader / writer
-  lib/news-lang/     the news' wording per language, read by every parser below (`lang`, English by default):
-                     en.ts (Global), ja.ts + ja-banners.ts + ja-races.ts (JP), index.ts (lexicon(server))
-  lib/global.ts      pure: applyNews() (news posts + JP banners → Global banners/releases), data/ reader/writer
-  lib/dates.ts       pure: keepEventFills() / keepBannerFills() (a rebuild from the news keeps predict-gl's fills)
-  lib/event-blocks.ts  pure: eventBlocks() (a post cut at its header art into blocks: intro + h2–h4 sections)
-  lib/event-rewards.ts pure: cardsIn() (cards by lookup), itemsIn(), titlesIn(), missionsIn()
-  lib/event-races.ts pure: blockRaces() (an event's races from its race conditions), raceConditions() (one line)
-  lib/events.ts      pure: postEvents() (a post → its events, with doubts), eventFragments(), buildEvents() (mission
-                     sets as bars, merged over posts, answers applied), cmPhases() (a cup's schedule), cmItems()
-                     (Champions Meeting range from the hand table), data/ readers/writers (events, answers)
-  lib/free-scouts.ts pure: a free scout campaign's windows (scoutWindows(), counted()), its banners (bannerOf()),
-                     each banner's free pulls (withFreePulls())
-  lib/event-questions.ts  pure: what a model is asked about an event (askedFields(), question(): prompt + examples
-                     + JSON schema), staleFields() / mergeAnswer() (per-field versions), applyAnswer() (checks + rules first)
-  lib/ai.ts          the model client: Ollama (native /api/chat) or OpenRouter (OpenAI-style), aiConfig(), ask()
   ai-events.ts       `pnpm news:ai` (ask about doubted fields, store answers; --compare to test a model)
   list-events.ts     `pnpm news:events` (the events the news makes, printed, nothing written)
   list-merges.ts     `pnpm news:merges` (which posts joined which event, and how; nothing written)
-  lib/colors.ts      main colour (PNGs decoded by pngjs) of an image, for scenario covers
-  lib/scenarios.ts   Career scenarios (data/scenarios.json): SCENARIO_NAMES (slug → key + JP/Global short names, by hand),
-                     mergeGametora() (JP side), applyScenarioNews() (Global side, from the news)
   fetch-pull-guide.ts  Luh's Support Card Encyclopedia (Google Sheet) → generated/pull_guide.json
   fetch-umatl.ts     UmaTL's tables → generated/raw/umatl_*.json → generated/translations.json
-  lib/umatl.ts       pure: buildTranslations() (UmaTL + Global's names joined with our JP data), cleanText(), textKey()
-  lib/pull-guide.ts  pure: the sheet's HTML view → entries (dates, Pull?, notes) → advice per banner (findBanner())
   fetch-news-latest.ts  new/edited posts → data/news/<server>/posts.json + summary.md (incremental, news:run)
   fetch-news-all.ts  the whole archive → data/news/<server>/posts.json (one-off, resumable)
   fetch-news-umapyoi.ts  older posts from umapyoi.net's mirror → data/news/<server>/posts.json (one-off, resumable)
   categorize-news.ts `pnpm news:categories`
   gold-review.ts     `pnpm gold:review`: a local Vite page (gold-review/) to label every Global post by hand → gold.json
   news-features.ts   `pnpm news:features`: each Global post's features for ml/categorize.py → generated/news_features.json
-  lib/categories.ts  data/news/gl/categories.json (ml/categorize.py's labels, which buildEvents() reads over the rules):
+  lib/paths.ts       ROOT, GENERATED_DIR, DATA_DIR, newsDir(server) (every script's paths)
+  lib/http.ts        sleep(), paced(): one request at a time with a pause between (every fetching script's pacing)
+  lib/sources.ts     generated/sources.json (file → where its data came from): readSources(), writeSources()
+  lib/upstream.ts    everything that knows about the upstream repo (REPO, DATA_FILES,
+                     UPSTREAM_DIR, UPSTREAM_RAW, download)
+  lib/fills.ts       pure: keepEventFills() / keepBannerFills() (a rebuild from the news keeps predict-gl's fills)
+  lib/colors.ts      main colour (PNGs decoded by pngjs) of an image, for scenario covers
+  lib/scenarios.ts   Career scenarios (data/scenarios.json): SCENARIO_NAMES (slug → key + JP/Global short names, by hand),
+                     mergeGametora() (JP side), applyScenarioNews() (Global side, from the news)
+  lib/umatl.ts       pure: buildTranslations() (UmaTL + Global's names joined with our JP data), cleanText(), textKey()
+  lib/news/          the official news
+    api.ts           the news API client per server (gl / jp; gentle pacing), posts.json reader/writer, --server
+    text.ts          pure: HTML → lines/sections, period dates (parsePeriod, parsePeriodJp), shared by the news parsers
+    lang/            the news' wording per language, read by every parser (`lang`, English by default):
+                     en.ts (Global), jp.ts + jp-banners.ts + jp-races.ts (JP), index.ts (lexicon(server))
+    categorize.ts    pure: categorize(post) → banner / event (+ kind) / other, phase, name
+    categories.ts    data/news/gl/categories.json (ml/categorize.py's labels, which buildEvents() reads over the rules):
                      readCategories(), refreshCategories() (features + the classifiers, when ml/.venv exists)
-  lib/gold.ts        the gold set (data/news/gl/gold.json): units() (a post cut for labelling), ruleLabel() (today's rules'
+    gold.ts          the gold set (data/news/gl/gold.json): units() (a post cut for labelling), ruleLabel() (today's rules'
                      label, the pre-fill), jpCategories() (the same-id JP post's), reader/writer
-  lib/news-api.ts    the news API client per server (gl / jp; gentle pacing), posts.json reader/writer, --server
-  lib/news-text.ts   pure: HTML → lines/sections, period dates (parsePeriod), shared by the news parsers
-  lib/post-categories.ts  pure: categorize(post) → banner / event (+ kind) / other, phase, name
-  lib/banner-posts.ts  pure: bannerPost(post) → a scout post's banners (gacha id, type, period, art, featured list)
-  lib/news.ts        pure: the first parser (toRecord), still used for scenarios and events
+    scenario-posts.ts  pure: scenarioPost() (a post's scenario mentions, for scenarios.ts)
+  lib/banners/       scout banners from the news
+    posts.ts         pure: bannerPost(post) → a scout post's banners (gacha id, type, period, art, featured list)
+    global.ts        pure: applyNews() (news posts + JP banners → Global banners/releases), data/ reader/writer,
+                     shared helpers (readJson(), bannerList(), endOfMinute(), pickMain())
+    jp.ts            pure: applyJpNews() (JP news → data/jp_banners.json), regularBanners() (what Global and ml/ read),
+                     reader / writer
+  lib/cards/         support cards
+    build.ts         pure: buildCards() (the merge, + the round-trip check against upstream's lists)
+    mdb.ts           convertMdb() (upstream's db-convert.py ported), cardRows() (ours, else upstream's), the file's read/write
+    jp.ts            pure: newsCards() (every support card the JP news shows, at its first appearance),
+                     applyNewsCards() (→ the history + pending, GameTora augmenting; GameTora-only cards listed),
+                     data/jp_cards.json + jp_cards_pending.json readers/writers, updateJpCards()
+    pull-guide.ts    pure: the sheet's HTML view → entries (dates, Pull?, notes) → advice per banner (findBanner())
+  lib/events/        in-game events from the news (docs/data/events.md)
+    build.ts         pure: buildEvents() (fragments → answers applied → merged → output), cmItems() (Champions
+                     Meeting range from the hand table)
+    fragments.ts     pure: postEvents() (a post → its events: singleEvent() or a celebration's), missionBars(),
+                     eventFragments()
+    celebration.ts   pure: a celebration post cut into sub-events, by the classified units
+                     (groupsFromUnits()) or the rules (groupsFromRules(), splitOpening())
+    blocks.ts        pure: eventBlocks() (a post cut at its header art into blocks: intro + h2–h4 sections)
+    dates.ts         pure: a block's period (headingPeriod(), openingPeriod()), cmPhases() (a cup's schedule)
+    names.ts         pure: a sub-event's name and kind (subEventName(), subEventKind())
+    rewards.ts       pure: cardsIn() (cards by lookup), itemsIn(), titlesIn(), missionsIn()
+    races.ts         pure: blockRaces() (an event's races from its race conditions), raceConditions() (one line)
+    free-scouts.ts   pure: a free scout campaign's windows (scoutWindows(), counted()), its banners (bannerOf()),
+                     each banner's free pulls (withFreePulls())
+    doubts.ts        pure: the Fragment type, withDoubts(), rewards(), aiKey()
+    merge.ts         pure: posts about the same event merged (mergePosts(), joinUndated(), resolveParents(),
+                     spanParts())
+    gametora.ts      GameTora's JP story events / Champions Meetings / Legend Races → fills in jp_events.json
+    files.ts         data/ readers/writers (events, answers, Champions Meeting table)
+  lib/ai/            a model for the event fields the rules doubt
+    client.ts        the model client: Ollama (native /api/chat) or OpenRouter (OpenAI-style), aiConfig(), ask()
+    questions.ts     pure: what a model is asked about an event (askedFields(), question(): prompt + examples
+                     + JSON schema), staleFields() / mergeAnswer() (per-field versions)
+    questions-en.ts / questions-jp.ts  each language's question set (system prompt, fields, made-up examples);
+                     shared parts in questions-spec.ts
+    answers.ts       pure: applyAnswer() (a model's answer checked, then applied rules first)
 src/                 (components' styles: `X.module.css` beside each, `camelCaseOnly` names; global ones below)
   main.tsx           mounts App (StrictMode); imports styles/global.css first, then App.css
   styles/global.css  what is global on purpose: colour tokens (light, dark), resets, tier colours (.tier-0…7), and the
@@ -85,19 +103,55 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   routes.ts          every address the app links to, built here (cardUrl, scenarioUrl, timelineUrl, TAB_URLS): no page
                      writes `#/…` by hand; wouter's patterns; `useHashLocation`: one location for the whole app,
                      changed only by `hashchange` (the Timeline's replaceState of the open sheet must not re-route)
-  useAsync.ts        useAsync(load, deps) → { data, error, pending }: loads, ignoring a superseded run (pages' data)
-  rawStorage.ts      the persisted stores' localStorage adapter: each store keeps its own stored format (never
+  hooks/
+    useAsync.ts      useAsync(load, deps) → { data, error, pending }: loads, ignoring a superseded run (pages' data)
+    useDragScroll.ts mouse drag-to-pan (marks the scroller data-dragging)
+    useMediaQuery.ts DESKTOP: the desktop layout's breakpoint
+  state/             what the app remembers (zustand stores) and the settings
+    rawStorage.ts    the persisted stores' localStorage adapter: each store keeps its own stored format (never
                      zustand's { state, version } wrapper), every access guarded (private windows)
-  settingsStore.ts   user settings (zustand + persist; getSetting / setSetting / subscribe for non-React readers):
+    settingsStore.ts user settings (zustand + persist; getSetting / setSetting / subscribe for non-React readers):
                      timeZone 'utc' | 'local', scenarioNames 'global' | 'jp', jpNewsLanguage 'jp' | 'en',
                      fanTlGlobal / jpNames 'jp' | 'official' | 'all'
-  tierListFilters.ts the Cards tab's stat / LB filter / search / card size (zustand store): getFilters(),
-                     saveFilters(), DEFAULTS, SIZES, isDefault()
-  settings.tsx       useSettings() (the settings store's hook); App calls it so plain readers like scenarioName()
+    settings.tsx     useSettings() (the settings store's hook); App calls it so plain readers like scenarioName()
                      refresh on change
+    tierListFilters.ts  the Cards tab's stat / LB filter / search / card size (zustand store): getFilters(),
+                     saveFilters(), DEFAULTS, SIZES, isDefault()
+    theme.ts         the theme on <html> (data-theme) and the browser bar's colour
   ui/                the shared components (each with its module): LinkButton, SeeMore, FoldToggle, FanTl (the "Translation from UmaTL" mark), Pill (tag / kind
                      / status / verdict / label), TierChip, Status, Segmented, Section, SearchInput, ToolbarButton,
                      CardRow; pages use them where they look identical, else keep their own markup
+    BackToTop.tsx    floating "back to top" button (the tier list, the card page), watches the [data-scroll-root]
+                     scroll container
+    Dropdown.tsx     the app's dropdown on Radix Select (every dropdown uses it; keeps a global `dropdown-button`
+                     class on its button for card.css)
+    FilterSheet.tsx  the app's filter (Cards tab, Timeline): FilterButton (count), FilterSheet (on Sheet.tsx: title +
+                     a reset), FilterSection (toggle chips coloured by data-tone, All / None); changes apply at once;
+                     FilterSheet.css: its section classes (filter-section, -head, filter-note), shared with the pages
+    Sheet.tsx        the app's detail sheet on vaul's drawer: phones, a bottom sheet dragged down to close (down arrow);
+                     desktop (hooks/useMediaQuery.ts' DESKTOP), a centred near-square dialog, fading, × button, no drag
+                     (`handleOnly`); focus, Escape, click outside, scroll lock; its heading is a <SheetTitle>
+    ScenarioPicker.tsx  scenario dropdown on top of it (italic + note when unreleased)
+    TabHighlight.tsx the open tab's pill, sliding from tab to tab
+  lib/               the app's data: loaders and pure helpers
+    servers.ts       SERVERS: gl/jp ↔ banner file names
+    tiers.ts         toTiers(), cardRanks(), TIER_NAMES, STAT_OF_TYPE
+    gametora.ts      GameTora's URLs built from ids (no data file stores them): cardPage(slug), cardArt(id),
+                     cardIcon(id, cards) (upstream's icon from cards.json, else GameTora's), traineeIcon(charId, id),
+                     bannerArt(id, 'global' | 'jp'), withArt(file, art, cards) (a banner file's art + item icons, filled
+                     by timeline/data.ts when it loads one; `officialArt`: the news' art, over GameTora's; ArtBanner…)
+    rankHistory.ts   pure: a card's position at each release date (marks predicted ones)
+    cardOrigins.ts   pure: cardOrigins() (a card's banners and events, as Timeline entries, oldest first; generic: the
+                     origins keep the entries given), originKinds()
+    predictions.ts   optional loader for generated/predicted_gl_releases.json
+    translations.ts  optional loader for generated/translations.json; languageOf() / useLanguage() (the Names settings)
+    pullGuide.ts     optional loader for generated/pull_guide.json (card page's "Pull advice"), upcomingBanner(),
+                     currentAdvice(), latestAdvice(), sheetLink()
+    umapyoi.ts       umapyoiUrl(news_url): umapyoi.net's copy of an official post (JP's in Japanese)
+    statIcons.ts     STAT_ICONS: the game's stat type icons by stat key (src/icons/stats/<stat>.png, committed: 70×70,
+                     from upstream's src/icons/utx_ico_obtain_00–05), bundled; the Cards tab's Stat picker shows them
+    scenarioRelease.ts  SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
+    vividColor.ts    a colour from art (a scenario's cover) made vivid for display
   pages/SettingsPage.tsx               the Settings tab
   pages/TierListPage.tsx               the Cards tab
   pages/TimelinePage.tsx               the Timeline tab: loads a server's timeline, draws its groups and marks, opens
@@ -106,36 +160,10 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   pages/card/        PullAdvice, Origins (+ OriginPill), RankOverTime, ScenarioTierTable; hooks.ts (usePredictions,
                      useOrigins, useScenarioRankings, useUpcomingRanking), shared.ts
   pages/card.css     global on purpose: the Rank over time picker's size (`.history-controls .dropdown-button`)
-  gametora.ts        GameTora's URLs built from ids (no data file stores them): cardPage(slug), cardArt(id),
-                     cardIcon(id, cards) (upstream's icon from cards.json, else GameTora's), traineeIcon(charId, id),
-                     bannerArt(id, 'global' | 'jp'), withArt(file, art, cards) (a banner file's art + item icons, filled
-                     by timeline/data.ts when it loads one; `officialArt`: the news' art, over GameTora's; ArtBanner…)
   pages/ScenariosPage.tsx              the Scenarios tab (list)
   pages/ScenarioPage.tsx               one scenario
   pages/RankChart.tsx                  SVG step chart of rank over time: fixed rank axis, sideways-scrolling
                                        plot (20px/month, quarters + years labelled), crosshair tooltip
-  rankHistory.ts     pure: a card's position at each release date (marks predicted ones)
-  cardOrigins.ts     pure: cardOrigins() (a card's banners and events, as Timeline entries, oldest first; generic: the
-                     origins keep the entries given), originKinds()
-  predictions.ts     optional loader for generated/predicted_gl_releases.json
-  translations.ts    optional loader for generated/translations.json; languageOf() / useLanguage() (the Names settings)
-  pullGuide.ts       optional loader for generated/pull_guide.json (card page's "Pull advice"), upcomingBanner(),
-                     currentAdvice(), latestAdvice(), sheetLink()
-  umapyoi.ts         umapyoiUrl(news_url): umapyoi.net's copy of an official post (JP's in Japanese)
-  BackToTop.tsx      floating "back to top" button (the tier list, the card page), watches the [data-scroll-root]
-                     scroll container
-  Dropdown.tsx       the app's dropdown on Radix Select (every dropdown uses it; keeps a global `dropdown-button`
-                     class on its button for card.css)
-  statIcons.ts       STAT_ICONS: the game's stat type icons by stat key (src/icons/stats/<stat>.png, committed: 70×70,
-                     from upstream's src/icons/utx_ico_obtain_00–05), bundled; the Cards tab's Stat picker shows them
-  FilterSheet.tsx    the app's filter (Cards tab, Timeline): FilterButton (count), FilterSheet (on Sheet.tsx: title +
-                     a reset), FilterSection (toggle chips coloured by data-tone, All / None); changes apply at once;
-                     FilterSheet.css: its section classes (filter-section, -head, filter-note), shared with the pages
-  Sheet.tsx          the app's detail sheet on vaul's drawer: phones, a bottom sheet dragged down to close (down arrow);
-                     desktop (useMediaQuery.ts' DESKTOP), a centred near-square dialog, fading, × button, no drag
-                     (`handleOnly`); focus, Escape, click outside, scroll lock; its heading is a <SheetTitle>
-  ScenarioPicker.tsx scenario dropdown on top of it (italic + note when unreleased);
-                     scenarioRelease.ts: SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
   timeline/          the Timeline, the same for both servers:
     data.ts          loadTimeline(server) → { entries, others() } (others: marks + counterparts, from the other
                      server's files, loaded after the calendar is drawn), loadEntries(server) (entries alone: the card page)
@@ -174,11 +202,8 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     scenarioStrip.ts pure: scenario segments (launch → next launch, cover colour + text ink) for the calendar's strip
     globalProgress.ts pure: where Global is in JP's history (window between banners + linear estimate)
     translate.ts     pure: translateEntries() (Japanese names → English by the language; fan names, originals)
-  tiers.ts           toTiers(), cardRanks(), TIER_NAMES, STAT_OF_TYPE
-  servers.ts         SERVERS: gl/jp ↔ banner file names
   i18n/index.ts      i18next setup; statName/serverName/scenarioName/lbName, formatDate
   i18n/en.json       every UI string (English)
-  useDragScroll.ts   mouse drag-to-pan (marks the scroller data-dragging)
 shared/schemas/      zod schemas + their types for every data file (card, banner, event, scenario, pullGuide, news,
                      predictions, sources, gametora, common); files.ts: each data file's schema, the JSON Schemas
 schemas/             JSON Schemas generated from shared/schemas/ (`pnpm build-schemas`; pull_guide.json points at its

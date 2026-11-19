@@ -4,12 +4,12 @@ import type { Ranked, Stat } from '../../../tierlist/index.ts';
 import type { Server } from '../../../tierlist/cards.ts';
 import type { PredictionsFile } from '../../../shared/schemas/predictions.ts';
 import type { Entry } from '../../timeline/entries.ts';
-import { cardOrigins } from '../../cardOrigins.ts';
-import type { Origin } from '../../cardOrigins.ts';
-import { loadPredictions } from '../../predictions.ts';
+import { cardOrigins } from '../../lib/cardOrigins.ts';
+import type { Origin } from '../../lib/cardOrigins.ts';
+import { loadPredictions } from '../../lib/predictions.ts';
 import { loadEntries } from '../../timeline/data.ts';
-import { useAsync } from '../../useAsync.ts';
-import { useLanguage } from '../../translations.ts';
+import { useAsync } from '../../hooks/useAsync.ts';
+import { useLanguage } from '../../lib/translations.ts';
 
 // The server's predicted release dates (only Global has them): undefined while loading, null without any.
 export function usePredictions(server: Server): PredictionsFile | null | undefined {

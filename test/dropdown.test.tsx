@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import Dropdown, { type DropdownOption } from '../src/Dropdown.tsx';
+import Dropdown, { type DropdownOption } from '../src/ui/Dropdown.tsx';
 
 // jsdom lacks some APIs Radix Select uses.
 beforeAll(() => {

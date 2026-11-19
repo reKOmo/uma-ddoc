@@ -6,10 +6,13 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import type { CardsFile } from '../shared/schemas/card.ts';
-import { readCategories } from './lib/categories.ts';
-import { type Merge, buildEvents, eventFragments, readAnswers, readCmTable } from './lib/events.ts';
-import { loadPosts, serverArg } from './lib/news-api.ts';
-import { lexicon } from './lib/news-lang/index.ts';
+import { readCategories } from './lib/news/categories.ts';
+import { buildEvents } from './lib/events/build.ts';
+import type { Merge } from './lib/events/merge.ts';
+import { eventFragments } from './lib/events/fragments.ts';
+import { readAnswers, readCmTable } from './lib/events/files.ts';
+import { loadPosts, serverArg } from './lib/news/api.ts';
+import { lexicon } from './lib/news/lang/index.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
 
 const FAR_DAYS = 7;

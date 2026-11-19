@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cardOrigins, originKinds } from '../src/cardOrigins.ts';
+import { cardOrigins, originKinds } from '../src/lib/cardOrigins.ts';
 import type { Entry } from '../src/timeline/entries.ts';
 import { fixture } from './helpers.ts';
 

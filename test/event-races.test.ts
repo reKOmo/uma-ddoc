@@ -1,12 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { blockRaces, raceConditions } from '../scripts/lib/event-races.ts';
-import { eventBlocks, joinBlocks } from '../scripts/lib/event-blocks.ts';
-import { buildEvents } from '../scripts/lib/events.ts';
-import { postsFile } from '../scripts/lib/news-api.ts';
-import { en, ja } from '../scripts/lib/news-lang/index.ts';
+import { blockRaces, raceConditions } from '../scripts/lib/events/races.ts';
+import { eventBlocks, joinBlocks } from '../scripts/lib/events/blocks.ts';
+import { buildEvents } from '../scripts/lib/events/build.ts';
+import { postsFile } from '../scripts/lib/news/api.ts';
+import { en, jp } from '../scripts/lib/news/lang/index.ts';
 import { GENERATED_DIR } from '../scripts/lib/paths.ts';
-import type { Block, Lexicon } from '../scripts/lib/news-lang/index.ts';
+import type { Block, Lexicon } from '../scripts/lib/news/lang/index.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 
@@ -103,7 +103,7 @@ describe('race conditions', () => {
   });
 
   it('reads JP lines: time of day, a named race in brackets, one race per line, Global names', () => {
-    const [cup] = blockRaces(block(['対象レース', 'ロンシャン 芝 2400m（中距離） 右 秋 晴 不良 昼']), ja);
+    const [cup] = blockRaces(block(['対象レース', 'ロンシャン 芝 2400m（中距離） 右 秋 晴 不良 昼']), jp);
     expect(cup).toMatchObject({ track: 'longchamp', category: 'medium', ground: 'heavy', time: 'day' });
     const races = blockRaces(
       block([
@@ -111,7 +111,7 @@ describe('race conditions', () => {
         '天皇賞（春） 京都 芝 3200m（長距離） 右・外 春 晴 良 昼',
         '天皇賞（春） 阪神 芝 3200m（長距離） 右・外→内 春 曇 稍重 昼',
       ]),
-      ja
+      jp
     );
     expect(races.map((r) => [r.name, r.track, r.course, r.ground])).toEqual([
       ['Tenno Sho (Spring)', 'kyoto', 'outer', 'firm'],
@@ -123,7 +123,7 @@ describe('race conditions', () => {
         ['対象レース', 'スワンステークス 京都 芝 1400m（短距離） 右・外 秋'],
         ['天候・バ場・時間帯', '・VSバンブーメモリー：晴 良 昼', '・VSケイエスミラクル：曇 良 昼']
       ),
-      ja,
+      jp,
       names
     );
     expect(split.map((r) => [r.name, r.opponent, r.weather])).toEqual([
@@ -135,7 +135,7 @@ describe('race conditions', () => {
   it("marks a League of Heroes' weather and ground as random", () => {
     const [race] = blockRaces(
       block(['対象レース', '新潟 芝 1000m（短距離）直線 夏 昼', '※天候とバ場状態はランダムに決定します。']),
-      ja
+      jp
     );
     expect(race).toMatchObject({ direction: 'straight', distance: 1000, variable: true, weather: null });
   });
@@ -147,7 +147,7 @@ const cards: CardsFile = existsSync(cardsFile) ? read<CardsFile>(cardsFile) : {}
 
 describe.each([
   ['gl', en],
-  ['jp', ja],
+  ['jp', jp],
 ] as [string, Lexicon][])('the stored %s news', { tags: ['data'] }, (server, lang) => {
   const file = postsFile(server as 'gl' | 'jp');
   it.skipIf(!existsSync(file))('knows every word of every race line, and every race name', () => {

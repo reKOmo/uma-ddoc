@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bannerArt, cardArt, cardIcon, cardPage, traineeIcon, withArt } from '../src/gametora.ts';
+import { bannerArt, cardArt, cardIcon, cardPage, traineeIcon, withArt } from '../src/lib/gametora.ts';
 import type { BannerFile } from '../shared/schemas/banner.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import { fixture, present } from './helpers.ts';

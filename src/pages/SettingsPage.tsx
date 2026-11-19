@@ -2,10 +2,10 @@ import clsx from 'clsx';
 import { ExternalLink } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 import pkg from '../../package.json' with { type: 'json' };
-import Dropdown from '../Dropdown.tsx';
+import Dropdown from '../ui/Dropdown.tsx';
 import { OptionCards } from '../ui/OptionCards.tsx';
-import { SETTING_OPTIONS, localTimeZone, useSettings } from '../settings.tsx';
-import type { Settings, SettingName } from '../settingsStore.ts';
+import { SETTING_OPTIONS, localTimeZone, useSettings } from '../state/settings.tsx';
+import type { Settings, SettingName } from '../state/settingsStore.ts';
 import styles from './SettingsPage.module.css';
 
 const PULL_GUIDE_URL = 'https://docs.google.com/spreadsheets/d/1zZOBxjcgJEKna7ftYKq0AlZS25Q3hE_occ7kXB-Q6MQ';

@@ -10,7 +10,7 @@ import type { Mark } from './data.ts';
 import type { RenderWindow } from './useRenderWindow.ts';
 import styles from './TimelineAxis.module.css';
 import { scenarioUrl } from '../routes.ts';
-import { scenarioStyle } from '../vividColor.ts';
+import { scenarioStyle } from '../lib/vividColor.ts';
 
 // Label every day when there's room, else every 2nd day, else weekly. Weekly labels stop at the 22nd so they never
 // collide with the next month's 1st.

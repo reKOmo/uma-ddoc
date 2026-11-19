@@ -4,7 +4,7 @@ import type { Server } from '../../../tierlist/cards.ts';
 import type { Ranked, Stat } from '../../../tierlist/index.ts';
 import { scenariosOf } from '../../../tierlist/index.ts';
 import { lbName, scenarioName, serverName, statName } from '../../i18n/index.ts';
-import { cardRanks } from '../../tiers.ts';
+import { cardRanks } from '../../lib/tiers.ts';
 import TierChip from '../../ui/TierChip.tsx';
 import { LIMIT_BREAKS } from './shared.ts';
 import styles from './ScenarioTierTable.module.css';

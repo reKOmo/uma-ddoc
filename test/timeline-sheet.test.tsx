@@ -9,12 +9,12 @@ import type { CardsFile } from '../shared/schemas/card.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
 import { type Entry, bannerEntries, eventEntries, linkFreeScouts } from '../src/timeline/entries.ts';
 import { dateFormats, entryTitle, kindName } from '../src/timeline/format.ts';
-import { type ArtBannerFile, withArt } from '../src/gametora.ts';
+import { type ArtBannerFile, withArt } from '../src/lib/gametora.ts';
 import cardsJson from '../generated/cards.json' with { type: 'json' };
 import { at } from './helpers.ts';
 
 // The sheet (vaul's drawer) renders into a portal: the sheet's content inline instead.
-vi.mock('../src/Sheet.tsx', () => ({
+vi.mock('../src/ui/Sheet.tsx', () => ({
   default: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   SheetTitle: ({ className, children }: { className?: string; children: ReactNode }) => (
     <h2 className={className}>{children}</h2>

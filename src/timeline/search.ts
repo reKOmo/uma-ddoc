@@ -1,10 +1,10 @@
 // The Timeline's search: chips picked from what this calendar has (characters, card types, pull advice, names, kinds,
 // items, races) or typed as text. Chips of one type are alternatives; chips of different types must all match.
 import i18n from '../i18n/index.ts';
-import type { Verdict } from '../pullGuide.ts';
-import { STAT_OF_TYPE } from '../tiers.ts';
+import type { Verdict } from '../lib/pullGuide.ts';
+import { STAT_OF_TYPE } from '../lib/tiers.ts';
 import type { CardsFile } from '../../shared/schemas/card.ts';
-import { type Language, cardEnglish } from '../translations.ts';
+import { type Language, cardEnglish } from '../lib/translations.ts';
 import type { Entry } from './entries.ts';
 import { courseName, kindName } from './format.ts';
 import { spanOf } from './layout.ts';

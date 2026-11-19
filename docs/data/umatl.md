@@ -3,7 +3,7 @@
 What Global hasn't released yet only has Japanese names in our data (JP's cards, banners, events). `pnpm fetch-umatl`
 (`scripts/fetch-umatl.ts`, pure part `scripts/lib/umatl.ts`) builds `generated/translations.json` (schema
 `shared/schemas/translations.ts`): English for those names, each marked `fan` (UmaTL's fan translation) or official.
-The app applies it at display time (`src/translations.ts`, `src/timeline/translate.ts`); without the file, names stay as
+The app applies it at display time (`src/lib/translations.ts`, `src/timeline/translate.ts`); without the file, names stay as
 the data has them.
 
 ## Terms (they constrain the design)

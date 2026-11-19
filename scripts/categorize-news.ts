@@ -2,9 +2,9 @@
 
 import { parseArgs } from 'node:util';
 import type { NewsPost } from '../shared/schemas/news.ts';
-import { loadPosts, serverArg } from './lib/news-api.ts';
-import { lexicon } from './lib/news-lang/index.ts';
-import { type Categorized, categorize, plain } from './lib/post-categories.ts';
+import { loadPosts, serverArg } from './lib/news/api.ts';
+import { lexicon } from './lib/news/lang/index.ts';
+import { type Categorized, categorize, plain } from './lib/news/categorize.ts';
 
 const server = serverArg();
 const lang = lexicon(server);

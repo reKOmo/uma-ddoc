@@ -38,7 +38,7 @@
   release date (a few Global promo cards) are left out. The last step runs on to today,
   so where upstream's card lists lag the game the line is just flat at the end.
   **On Global it continues as a dashed line** through JP's cards Global doesn't have yet, at
-  their predicted dates (`generated/predicted_gl_releases.json` via `src/predictions.ts`,
+  their predicted dates (`generated/predicted_gl_releases.json` via `src/lib/predictions.ts`,
   optional). They're ranked with `rankByUsefulness(…, { upcoming: true })`: JP's stats
   (identical to Global's for every shared card), English names via another card of the same
   character; existing cards' scores don't change (averaged rankings keep the Global-only
@@ -48,5 +48,5 @@
   banners or cards (ml/data.py `is_promo()`: status 'promo'; ml/banners.py drops them from predicted banners and skips a
   banner of nothing else). One Global does get comes from the news like any release.
 - Server keys: `gl` / `jp` for tier-list code, `global` / `jp` for banner files
-  (`src/servers.ts` maps them). GameTora card types map to stat tabs via `STAT_OF_TYPE`
+  (`src/lib/servers.ts` maps them). GameTora card types map to stat tabs via `STAT_OF_TYPE`
   (`intelligence` → `wisdom`, `group` → `friend`).

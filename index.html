@@ -13,7 +13,7 @@
     <link rel="apple-touch-icon" href="/icon.svg" />
     <title>Umaddoc</title>
     <script>
-      // Settings' theme before the first paint, so a chosen one never flashes the device's (src/theme.ts keeps it).
+      // Settings' theme before the first paint, so a chosen one never flashes the device's (src/state/theme.ts keeps it).
       try {
         const theme = JSON.parse(localStorage.getItem('uma-ddoc.settings') || '{}').theme;
         if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;

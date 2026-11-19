@@ -1,12 +1,12 @@
 # JP: cards, banners, events from the JP news
 
-- **News → JP cards** (`scripts/lib/jp-cards.ts`, `pnpm update-jp`, first step; user decision 2026-10-12): a JP card
+- **News → JP cards** (`scripts/lib/cards/jp.ts`, `pnpm update-jp`, first step; user decision 2026-10-12): a JP card
   the history (`data/jp_cards.json`) lacks comes from the JP news; GameTora augments it once its list has it.
   `newsCards(posts)`: every support card the news shows, at its first appearance — scout posts' featured lists
-  (`bannerPost(post, ja)`, every rarity and scout, paid too) plus any other card line in a scout post (`ja.bannerCard`:
+  (`bannerPost(post, jp)`, every rarity and scout, paid too) plus any other card line in a scout post (`jp.bannerCard`:
   a select-pickup scout's new R card under its own heading after the candidates), a story event's own SSR
-  (`ja.eventCard`: 「イベント限定SSRサポートカード「[…]…」」, quoted or, at a line's end, not) and a card an event
-  part gives (`ja.giftCard` on a line with プレゼント/獲得/お贈り, not `notGiven`: 「SSRサポートカード「[…]…」をプレゼント」,
+  (`jp.eventCard`: 「イベント限定SSRサポートカード「[…]…」」, quoted or, at a line's end, not) and a card an event
+  part gives (`jp.giftCard` on a line with プレゼント/獲得/お贈り, not `notGiven`: 「SSRサポートカード「[…]…」をプレゼント」,
   「「SSR[…]…」を最大2枚プレゼント」), from `eventFragments()` (so summary blocks and scouts inside celebrations aren't read;
   `cardsIn()` and data/jp_events.json are untouched). From the news, never overwritten: `title.jp` / `name.jp` (as the
   post writes them, title in brackets; a title cut short joins the history's / the longest spelling), `rarity`,
@@ -26,10 +26,10 @@
   titles, slug, release.jp, source); the 12 others (collab/promo and main-story SSRs) are named in no event or scout
   post (some only in ぱかライブTV summaries), so they're GameTora-only warnings. Over all 563, the news finds 394; the
   only release differences are 2021–22 cards whose first archived banner is a later re-run.
-- **News → JP banners** (`scripts/lib/jp-banners.ts`, `pnpm update-jp`): `data/jp_banners.json` is GameTora's history
+- **News → JP banners** (`scripts/lib/banners/jp.ts`, `pnpm update-jp`): `data/jp_banners.json` is GameTora's history
   (seeded once, 366 banners) with the JP news merged over it, rebuilt from every post each time (idempotent; seeded
   entries never lost; GameTora's banners aren't scraped any more). No GameTora URLs (seeded banners have no `image`,
-  items no `icon`: the app builds them, `src/gametora.ts`); `image` is only a news-made banner's official art. A
+  items no `icon`: the app builds them, `src/lib/gametora.ts`); `image` is only a news-made banner's official art. A
   banner GameTora has gets `news_url`, `news_image` (official art, shown over GameTora's; dates stay
   GameTora's: all 574 post/GameTora pairs agree on start, end and type, so the dates a post gives are status `news`, the
   rest `gametora`) and the R cards the post lists,
@@ -37,7 +37,7 @@
   Collection 30xxx, paid 50xxx) are made from the post (`from_news: true`, featured resolved: supports by cards.json
   title.jp + name.jp, trainees by title + name on the items of data/jp_banners.json and data/global_banners.json, and
   a trainee no banner has shown yet (a debut) by GameTora's trainee list (`generated/raw/gametora_trainees.json`, from
-  `scrape-gametora`; until GameTora lists it, by name only, id null, and listed in update-jp's summary; once stored it
+  `scrape-gametora`; until GameTora lists it, by name only, id null, and listed in update-jp's summary; while one is (or a card is pending) the news run rescrapes GameTora and rebuilds the records daily, new posts or not, `scripts/news-pending.ts`; once stored it
   resolves from our banners without the list); a card still pending, see above, stays id null). `paid: true` per banner (gacha id ≥ 50000; a post
   can mix both). Re-runs (decision 6): the original keeps its dates and gets `rerun: { id, start, end }`; the re-run is
   GameTora's banner with the same featured starting then (`rerunOf`; it gets its original's post and
@@ -51,31 +51,31 @@
   (every JP banner has a label) and shows `name` under the sheet's art, `note` in place of the empty featured list. `regularBanners()` (and ml/data.py's `jp_banners()`) is what
   Global's news pairing, `globalProgress` and `ml/` read: no paid banners, no string ids, GameTora's featured (no
   `from_news` items), so their output didn't change. The Timeline shows paid badges and links re-runs both ways.
-- **JP events** (`buildEvents(posts, { lang: ja, categories })` → `data/jp_events.json`, `pnpm update-jp`): Global's
+- **JP events** (`buildEvents(posts, { lang: jp, categories })` → `data/jp_events.json`, `pnpm update-jp`): Global's
   model, JP wording; each post's category and an event post's parts come from JP's gold set and classifiers
   (`data/news/jp/categories.json`, [classifier](classifier.md)), the cutting below only where no label is. Celebration posts are cut at part art (`header_…`, `banner_…`, `header_CP_/EV_…`, bare `<img>` too; the
   intro is its own block; scout links and paid gachas, card-copy summaries and feature news aren't parts). Periods are
   JST; gifts run to their 対象のトレーナー deadline; Champions Meetings have Global's phases (the headings never changed
   since 2022), League of Heroes its own (team formation, main stage, extra stage registration / matching / votes /
   race). Races from 対象レース (with 昼/夕/夜; a Legend Race's 天候・バ場 list splits it by opponent, named as Global's
-  cards name them; race names Global's from the hand table in `news-lang/ja-races.ts`: the race test lists a missing
+  cards name them; race names Global's from the hand table in `news/lang/jp-races.ts`: the race test lists a missing
   one). Items: Global's canonical name where Global has the item (Carats, Monies, Support Points, shards, tickets, Toughness 30,
-  Alarm Clock, hint books, "N Anniversary SSR Voucher": `aliases` + `showItem` in `news-lang/ja.ts`) with
+  Alarm Clock, hint books, "N Anniversary SSR Voucher": `aliases` + `showItem` in `news/lang/jp.ts`) with
   the Japanese one in `local`, else the Japanese name; paid packs, costs and exchanges excluded. Cards by title.jp +
   name.jp; campaign copies per part from the post's summary (「…」で最大2枚). A sale part doesn't stretch its
   celebration (`notSpanning`: a pack stays on sale a year or more). Before mid-2022, where the news archive is thin,
   GameTora's JP story events (with their SSR), Champions Meetings (from round 1: GameTora has no league selection;
   phases round_1 → final_race) and Legend Races fill in (`source: 'gametora'`, ids `gt-story-<id>` / `gt-cm-<id>` /
-  `gt-lr-…`, no news_url or art; `scripts/lib/gametora-events.ts`, from `generated/raw/gametora_events.json`; news
+  `gt-lr-…`, no news_url or art; `scripts/lib/events/gametora.ts`, from `generated/raw/gametora_events.json`; news
   events always win; without the raw file the fills in data/ are kept). Checked
   against GameTora's JP event data on 2026-10-11 (a one-off script): every story event from mid-2022 (44/45 with the
   SSR; the miss is a 2021 announcement naming none), Champions Meeting (36/36: round 1 = GameTora's start, same end)
   and Legend Race (48/48) matches; before mid-2022 the archive is thin (2021: 96 posts).
 - **The model on JP events** (`news:ai --server jp`): the questions are per language (`QUESTIONS` in
-  event-questions.ts: Japanese SYSTEM / FIELDS / made-up EXAMPLES; English's unchanged, so Global's stored answers
+  ai/questions.ts, from ai/questions-en.ts / ai/questions-jp.ts: Japanese SYSTEM / FIELDS / made-up EXAMPLES; English's unchanged, so Global's stored answers
   still match). JP times are JST: the model gets the post date and answers dates in JST as the post writes them; the
   code converts them to UTC with the year nearest the post. Sub-event kinds also allow `special` (an event embedded in
-  a celebration post). Answer names go through the JP lexicon (`itemName(raw, ja)`, `local`). Run locally with
+  a celebration post). Answer names go through the JP lexicon (`itemName(raw, jp)`, `local`). Run locally with
   `gemma4:26b` on 2026-10-11/12: all 268 doubted (+ empty-field) JP fragments answered (312 stored, ~1 h); applied, it
   changed 56 events: sub-events named by their own sentence instead of the celebration, events embedded in celebration
   posts typed `special` and merged into their own post's event (no more duplicates), mission sets listed twice merged

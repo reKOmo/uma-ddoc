@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parsePeriod } from '../scripts/lib/news-text.ts';
+import { parsePeriod } from '../scripts/lib/news/text.ts';
 
 describe('parsePeriod', () => {
   it.each([

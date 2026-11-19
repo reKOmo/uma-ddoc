@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { bannerEntries, bannerStatus, eventEntries } from '../src/timeline/entries.ts';
-import { withArt } from '../src/gametora.ts';
+import { withArt } from '../src/lib/gametora.ts';
 import { withPredicted } from '../src/timeline/events.ts';
 import cardsJson from '../generated/cards.json' with { type: 'json' };
 import globalBannersJson from '../data/global_banners.json' with { type: 'json' };
