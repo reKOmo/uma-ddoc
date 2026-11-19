@@ -37,7 +37,7 @@
   Collection 30xxx, paid 50xxx) are made from the post (`from_news: true`, featured resolved: supports by cards.json
   title.jp + name.jp, trainees by title + name on the items of data/jp_banners.json and data/global_banners.json, and
   a trainee no banner has shown yet (a debut) by GameTora's trainee list (`generated/raw/gametora_trainees.json`, from
-  `scrape-gametora`; until GameTora lists it, by name only, id null, and listed in update-jp's summary; once stored it
+  `scrape-gametora`; until GameTora lists it, by name only, id null, and listed in update-jp's summary; while one is (or a card is pending) the news run rescrapes GameTora and rebuilds the records daily, new posts or not, `scripts/news-pending.ts`; once stored it
   resolves from our banners without the list); a card still pending, see above, stays id null). `paid: true` per banner (gacha id ≥ 50000; a post
   can mix both). Re-runs (decision 6): the original keeps its dates and gets `rerun: { id, start, end }`; the re-run is
   GameTora's banner with the same featured starting then (`rerunOf`; it gets its original's post and
