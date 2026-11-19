@@ -1,4 +1,4 @@
-// Entries' Japanese names in English (src/translations.ts' language): Global's names, GameTora's (card data), then
+// Entries' Japanese names in English (src/lib/translations.ts' language): Global's names, GameTora's (card data), then
 // UmaTL's fan translations where the language allows them. Only Japanese names are touched; what has no English
 // stays as it is.
 import type { CardsFile } from '../../shared/schemas/card.ts';
@@ -10,7 +10,7 @@ import {
   cardEnglish,
   hasJapanese,
   translates,
-} from '../translations.ts';
+} from '../lib/translations.ts';
 import type { Entry, Featured } from './entries.ts';
 
 // Global's names as JP writes them (Settings → Language: Japanese): cards by id, the rest by JP's own (banners share

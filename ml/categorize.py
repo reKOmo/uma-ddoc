@@ -11,7 +11,7 @@ JP's for Global, Global's gold label for JP; and today's rules' answer, so they 
   unit   an event post's unit: event / none, or part/<kind> ("part/campaign"); a gold `continues` counts as none (in
          the gold set it only ever follows a none: more of nothing)
 
-The post's category + kind stay the rules' (they score best on the gold set: post-categories.ts + en.ts' `revise`);
+The post's category + kind stay the rules' (they score best on the gold set: news/categorize.ts + en.ts' `revise`);
 the post model checks them. Phase and units are the models'.
 
 Writes data/news/<server>/categories.json, one post per line, newest first:

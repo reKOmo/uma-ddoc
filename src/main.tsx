@@ -5,7 +5,7 @@ import './styles/global.css';
 import './i18n/index.ts';
 import App from './App.tsx';
 import './App.css';
-import { followTheme } from './theme.ts';
+import { followTheme } from './state/theme.ts';
 
 followTheme();
 

@@ -10,12 +10,12 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dated } from '../../shared/schemas/common.ts';
 import type { Scenario, ScenariosFile, StartDate } from '../../shared/schemas/scenario.ts';
-import type { ScenarioMention } from './news.ts';
+import type { ScenarioMention } from './news/scenario-posts.ts';
 import { imageColor } from './colors.ts';
-import { ja } from './news-lang/ja.ts';
-import { norm as normAny } from './news-text.ts'; // keeps kana and kanji, unlike norm() below
+import { jp as jpLexicon } from './news/lang/jp.ts';
+import { norm as normAny } from './news/text.ts'; // keeps kana and kanji, unlike norm() below
 import { DATA_DIR } from './paths.ts';
-import { categorize } from './post-categories.ts';
+import { categorize } from './news/categorize.ts';
 import type { NewsPost } from '../../shared/schemas/news.ts';
 
 export const SCENARIOS_FILE = `${DATA_DIR}scenarios.json`;
@@ -41,7 +41,7 @@ export type GametoraScenario = {
   start_ja?: number | null;
 };
 
-// A scenario post (news.ts' scenarioPost()): the Global launches read here.
+// A scenario post (news/scenario-posts.ts' scenarioPost()): the Global launches read here.
 type ScenarioPost = { id: number; posted: string | null; scenarios: ScenarioMention[] };
 
 // The shape of a file on disk: older ones have one `full` name.
@@ -181,7 +181,7 @@ export function applyScenarioNews({ posts, scenarios }: { posts: ScenarioPost[];
   return { scenarios: result, changed, unmatched: [...new Set(unmatched)] };
 }
 
-// JP's launch posts (育成シナリオ「X」公開！: categorize(post, ja) → other / scenario, name X) → each scenario's
+// JP's launch posts (育成シナリオ「X」公開！: categorize(post, jpLexicon) → other / scenario, name X) → each scenario's
 // links.umapyoi_jp, matched by its Japanese name (spacing and punctuation aside). Pure; returns the scenarios and the
 // names it couldn't match.
 export function applyJpScenarioNews({ posts, scenarios }: { posts: NewsPost[]; scenarios: ScenarioDraft[] }): {
@@ -191,7 +191,7 @@ export function applyJpScenarioNews({ posts, scenarios }: { posts: NewsPost[]; s
   const result = scenarios.map((s) => ({ ...s, links: { ...s.links } }));
   const unmatched: string[] = [];
   for (const post of [...posts].sort((a, b) => a.post_at.localeCompare(b.post_at))) {
-    const c = categorize(post, ja);
+    const c = categorize(post, jpLexicon);
     if (c.kind !== 'scenario' || !c.name) continue;
     const entry = result.find((s) => s.full_jp && normAny(s.full_jp) === normAny(c.name));
     if (entry) entry.links.umapyoi_jp = c.id;

@@ -3,17 +3,17 @@ import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Trophy } from 'luc
 import { useTranslation } from 'react-i18next';
 import { getServerConfig } from '../../tierlist/scenarios.ts';
 import { formatDateRange, formatDateTime, formatDuration, scenarioName, serverName } from '../i18n/index.ts';
-import { DATE_FIELD, SCENARIOS, isCurrent, launchTag, scenarioByKey } from '../scenarioRelease.ts';
+import { DATE_FIELD, SCENARIOS, isCurrent, launchTag, scenarioByKey } from '../lib/scenarioRelease.ts';
 import type { Scenario, StartDate } from '../../shared/schemas/scenario.ts';
-import type { Server } from '../servers.ts';
+import type { Server } from '../lib/servers.ts';
 import { Section } from '../ui/Section.tsx';
 import Status from '../ui/Status.tsx';
 import { ink } from '../timeline/scenarioStrip.ts';
-import { clockOptions, timeZoneOptions, useSettings } from '../settings.tsx';
-import { umapyoiGl, umapyoiJp } from '../umapyoi.ts';
+import { clockOptions, timeZoneOptions, useSettings } from '../state/settings.tsx';
+import { umapyoiGl, umapyoiJp } from '../lib/umapyoi.ts';
 import { TAB_URLS, scenarioUrl } from '../routes.ts';
 import styles from './ScenarioPage.module.css';
-import { scenarioStyle } from '../vividColor.ts';
+import { scenarioStyle } from '../lib/vividColor.ts';
 
 type Settings = ReturnType<typeof useSettings>['settings'];
 

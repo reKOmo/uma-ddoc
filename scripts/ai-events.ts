@@ -4,16 +4,16 @@
 import { parseArgs } from 'node:util';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { GENERATED_DIR } from './lib/paths.ts';
-import { loadPosts, serverArg } from './lib/news-api.ts';
-import { Unavailable, aiConfig, ask } from './lib/ai.ts';
-import { applyAnswer } from './lib/event-answers.ts';
-import type { Field } from './lib/event-questions-spec.ts';
-import { mergeAnswer, question, staleFields } from './lib/event-questions.ts';
-import { readCategories } from './lib/categories.ts';
-import { type Fragment, eventFragments } from './lib/event-fragments.ts';
-import { readAnswers, writeAnswers } from './lib/events-files.ts';
-import { norm } from './lib/event-rewards.ts';
-import { lexicon } from './lib/news-lang/index.ts';
+import { loadPosts, serverArg } from './lib/news/api.ts';
+import { Unavailable, aiConfig, ask } from './lib/ai/client.ts';
+import { applyAnswer } from './lib/ai/answers.ts';
+import type { Field } from './lib/ai/questions-spec.ts';
+import { mergeAnswer, question, staleFields } from './lib/ai/questions.ts';
+import { readCategories } from './lib/news/categories.ts';
+import { type Fragment, eventFragments } from './lib/events/fragments.ts';
+import { readAnswers, writeAnswers } from './lib/events/files.ts';
+import { norm } from './lib/events/rewards.ts';
+import { lexicon } from './lib/news/lang/index.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { AiAnswer } from '../shared/schemas/news.ts';
 

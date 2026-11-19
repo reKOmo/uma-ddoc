@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DatabaseSync } from 'node:sqlite';
-import type { UpstreamCard } from '../scripts/lib/cards.ts';
-import { convertMdb, toRows, toStored, withUpstreamForSkipped } from '../scripts/lib/mdb-cards.ts';
+import type { UpstreamCard } from '../scripts/lib/cards/build.ts';
+import { convertMdb, toRows, toStored, withUpstreamForSkipped } from '../scripts/lib/cards/mdb.ts';
 
 // The four tables convertMdb reads, with master.mdb's columns; made-up cards.
 const LEVELS = ['init', ...[5, 10, 15, 20, 25, 30, 35, 40, 45, 50].map((l) => `limit_lv${l}`)];

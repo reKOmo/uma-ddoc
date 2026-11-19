@@ -5,15 +5,15 @@ import { Trans } from 'react-i18next';
 import en from '../src/i18n/en.json' with { type: 'json' };
 import i18n, { lbName } from '../src/i18n/index.ts';
 import { COMBINED, STATS } from '../tierlist/index.ts';
-import { SERVERS } from '../src/servers.ts';
-import { CM_PHASES } from '../scripts/lib/event-dates.ts';
-import { EVENT_KINDS } from '../scripts/lib/events.ts';
-import { ja } from '../scripts/lib/news-lang/ja.ts';
-import { en as enLexicon } from '../scripts/lib/news-lang/en.ts';
+import { SERVERS } from '../src/lib/servers.ts';
+import { CM_PHASES } from '../scripts/lib/events/dates.ts';
+import { EVENT_KINDS } from '../scripts/lib/events/build.ts';
+import { jp } from '../scripts/lib/news/lang/jp.ts';
+import { en as enLexicon } from '../scripts/lib/news/lang/en.ts';
 import { EVENT_GROUPS } from '../src/timeline/events.ts';
 import { LANE_GROUPS } from '../src/timeline/layout.ts';
 import { TERM_TYPES } from '../src/timeline/search.ts';
-import { ORIGIN_KINDS } from '../src/cardOrigins.ts';
+import { ORIGIN_KINDS } from '../src/lib/cardOrigins.ts';
 import { cards } from '../tierlist/cards.ts';
 import { present } from './helpers.ts';
 
@@ -81,8 +81,8 @@ describe('catalogs', () => {
       ...EVENT_KINDS.map((k) => `events.kind.${k}`),
       ...EVENT_GROUPS.map(([k]) => `events.group.${k}`),
       ...CM_PHASES.map(([k]) => `events.phase.${k}`),
-      ...present(ja.schedules, 'JP schedules').league_of_heroes.map(([k]) => `events.phase.${k}`),
-      ...[...enLexicon.eventPhases, ...ja.eventPhases].map(([k]) => `events.phase.${k}`),
+      ...present(jp.schedules, 'JP schedules').league_of_heroes.map(([k]) => `events.phase.${k}`),
+      ...[...enLexicon.eventPhases, ...jp.eventPhases].map(([k]) => `events.phase.${k}`),
       ...['show', 'order'].map((k) => `timeline.filter.tab.${k}`),
       ...TERM_TYPES.flatMap((k) => [`timeline.search.type.${k}`, `timeline.search.group.${k}`]),
       ...[1, 2, 3, 4].map((n) => `tierList.size.${n}`),

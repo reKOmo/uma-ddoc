@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { umapyoiUrl } from '../src/umapyoi.ts';
+import { umapyoiUrl } from '../src/lib/umapyoi.ts';
 
 describe('umapyoiUrl', () => {
   it("links JP's posts in Japanese and Global's on the English mirror, by the official post id", () => {

@@ -9,11 +9,11 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import react from '@vitejs/plugin-react';
 import { createServer, type Plugin } from 'vite';
 import { GoldLabelSchema, type NewsPost } from '../shared/schemas/news.ts';
-import { readGold, ruleLabel, twins, units, withRuleLabels, writeGold } from './lib/gold.ts';
-import { loadPosts, serverArg } from './lib/news-api.ts';
-import { newsUrl } from './lib/news-text.ts';
+import { readGold, ruleLabel, twins, units, withRuleLabels, writeGold } from './lib/news/gold.ts';
+import { loadPosts, serverArg } from './lib/news/api.ts';
+import { newsUrl } from './lib/news/text.ts';
 import { ROOT } from './lib/paths.ts';
-import { plain } from './lib/post-categories.ts';
+import { plain } from './lib/news/categorize.ts';
 
 const site = serverArg();
 const posts = [...loadPosts(site).values()];

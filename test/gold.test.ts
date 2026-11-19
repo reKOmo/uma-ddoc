@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { goldFile, readGold, ruleLabel, stale, units } from '../scripts/lib/gold.ts';
-import { loadPosts } from '../scripts/lib/news-api.ts';
+import { goldFile, readGold, ruleLabel, stale, units } from '../scripts/lib/news/gold.ts';
+import { loadPosts } from '../scripts/lib/news/api.ts';
 
 describe('the gold set', () => {
   const posts = loadPosts('gl');

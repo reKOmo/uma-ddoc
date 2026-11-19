@@ -1,11 +1,11 @@
 // Typed with our own types: test/data.test.ts and test/upstream/parity.test.ts check they rebuild upstream's modules exactly.
 
 declare module '*/raw/upstream/gl.js' {
-  const cards: import('../scripts/lib/cards.ts').UpstreamCard[];
+  const cards: import('../scripts/lib/cards/build.ts').UpstreamCard[];
   export default cards;
 }
 declare module '*/raw/upstream/jp.js' {
-  const cards: import('../scripts/lib/cards.ts').UpstreamCard[];
+  const cards: import('../scripts/lib/cards/build.ts').UpstreamCard[];
   export default cards;
 }
 declare module '*/raw/upstream/card-events.js' {
@@ -14,11 +14,11 @@ declare module '*/raw/upstream/card-events.js' {
 }
 
 declare module '*/upstream/src/cards/gl.js' {
-  const cards: import('../scripts/lib/cards.ts').UpstreamCard[];
+  const cards: import('../scripts/lib/cards/build.ts').UpstreamCard[];
   export default cards;
 }
 declare module '*/upstream/src/cards/jp.js' {
-  const cards: import('../scripts/lib/cards.ts').UpstreamCard[];
+  const cards: import('../scripts/lib/cards/build.ts').UpstreamCard[];
   export default cards;
 }
 declare module '*/upstream/src/components/tierlist-calc.js' {

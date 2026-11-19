@@ -58,7 +58,7 @@ card): check the rule against whatever the data holds.
   cards on no banner), `latestAdvice`, `sheetLink`, `verdictOf` / `bannerVerdicts` (the Timeline filter).
 - `news.test.ts`: the first parser (periods, kinds, banner ids + art, featured).
 - `post-categories.test.ts`: categories, event kinds, phases and names from real titles; community posts never events.
-- `jp-news.test.ts`: `parsePeriodJa` (JST, year nearest the post, open ends), JP `categorize()` (kinds, names, phases,
+- `jp-news.test.ts`: `parsePeriodJp` (JST, year nearest the post, open ends), JP `categorize()` (kinds, names, phases,
   admin posts kept out, celebrations by part art, labels), `norm()` on Japanese; over the stored JP news: scouts exactly
   where scout art is, the fixture samples (`test/fixtures/jp-news-samples.json`, ids sampled per kind) by group.
 - `jp-banners.test.ts`: JP scout posts (first list, periods, R cards, paid per banner, re-runs) on fixtures,

@@ -3,14 +3,14 @@
 - **Tier list** (the "Cards" tab, `#/`) — ranks support cards per server, scenario and stat. The calculation
   started as a copy of [Euophrys/umamusume-tierlist](https://github.com/Euophrys/umamusume-tierlist)'s
   (MIT, see `tierlist/LICENSE`) and is maintained here now; tests compare it with upstream.
-  A rarity × LB filter (the Filter button beside the search box, a sheet like the Timeline's: `src/FilterSheet.tsx`, a
+  A rarity × LB filter (the Filter button beside the search box, a sheet like the Timeline's: `src/ui/FilterSheet.tsx`, a
   section of LB chips per rarity with All / None, a count on the button of LBs changed from the defaults; at its bottom
   "Card size": Small / Medium / Large (the default) / Huge, a display preference "Reset filters" keeps) picks which
   copies are shown (default: MLB of everything, plus
   LB0 and LB3 of SSR and SR); tiers are banded on the full ranking, so filtering doesn't move cards between tiers.
   A search box filters by character name and card title (English + Japanese, from `generated/cards.json`; every
   word must match, accents/punctuation ignored); like the LB filter, it doesn't move cards between tiers.
-  Stat, LB filter, search and card size are remembered (`src/tierListFilters.ts`: kept across pages and in localStorage); the
+  Stat, LB filter, search and card size are remembered (`src/state/tierListFilters.ts`: kept across pages and in localStorage); the
   scenario is App's (kept across pages, not reloads). "Reset filters" (by the filter sheet's title; disabled at the defaults) restores stat, LB filter and search (card size is kept),
   scenario = the server's default.
   A tier's label (S, A…; a ⌃ pinned to the top of the strip says so) folds it to a slim row ("› N cards hidden · Show"), to compare the tiers around it; while any
@@ -24,7 +24,7 @@
   and the newer cards that passed it — continued dashed into the future on Global with
   predicted release dates of JP's cards (when it'll drop a tier). Above the tiers, pull advice from Luh's Umamusume
   Support Card Encyclopedia (a public Google Sheet), only for the card's next Global banner, real or predicted (or the one
-  running; `upcomingBanner()` + `currentAdvice()` in `src/pullGuide.ts`), in one box:
+  running; `upcomingBanner()` + `currentAdvice()` in `src/lib/pullGuide.ts`), in one box:
   - "Upcoming banner", on the banner's art like the Timeline's bars (same crop of GameTora's margin, dark
     gradient, shadowed text, "See banner" a solid accent (pink) button): its status badge + dates as in the Timeline's sheet (Settings timezone; the guide's
     own date for event/story/shop cards, on no banner), then the label pill (Rerun when the banner's `featured`
@@ -39,7 +39,7 @@
     (only for a banner the news gives none for), then the notes as one paragraph (`notesParagraph()` at build time: a full stop added where a sentence has none).
   - The box's footer (under both halves): a centred "See more on Luh's encyclopedia" (the card's row in the sheet). The guide's disclaimer (with a link
     to the sheet) is in About, not on the card page.
-  - "Available on" (`Origins`, `src/cardOrigins.ts`): every banner featuring the card and event giving it on the
+  - "Available on" (`Origins`, `src/lib/cardOrigins.ts`): every banner featuring the card and event giving it on the
     selected server only (a card not on Global yet: Global's predicted ones), oldest first (a toggle
     reverses it), the first shown and the rest folded; a kind pill (Banner / Paid banner / Story event / Gift: gifts,
     login bonuses, missions, campaigns / Shop; else the event's own kind) in one colour per kind (not the Timeline's: a banner there takes its main card's type), Re-run when the card

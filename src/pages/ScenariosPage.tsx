@@ -2,14 +2,14 @@ import clsx from 'clsx';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatDate, scenarioName, serverName } from '../i18n/index.ts';
-import { DATE_FIELD, SCENARIOS, isCurrent, launchTag } from '../scenarioRelease.ts';
+import { DATE_FIELD, SCENARIOS, isCurrent, launchTag } from '../lib/scenarioRelease.ts';
 import type { StartDate } from '../../shared/schemas/scenario.ts';
-import type { Server } from '../servers.ts';
+import type { Server } from '../lib/servers.ts';
 import { ink } from '../timeline/scenarioStrip.ts';
-import { timeZoneOptions, useSettings } from '../settings.tsx';
+import { timeZoneOptions, useSettings } from '../state/settings.tsx';
 import { scenarioUrl } from '../routes.ts';
 import styles from './ScenariosPage.module.css';
-import { scenarioStyle } from '../vividColor.ts';
+import { scenarioStyle } from '../lib/vividColor.ts';
 
 const SERVER_ORDER: Server[] = ['jp', 'gl'];
 

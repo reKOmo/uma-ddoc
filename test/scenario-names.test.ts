@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect } from 'vitest';
 import { scenarioName } from '../src/i18n/index.ts';
-import { setSetting } from '../src/settingsStore.ts';
+import { setSetting } from '../src/state/settingsStore.ts';
 
 afterEach(() => setSetting('scenarioNames', 'global'));
 

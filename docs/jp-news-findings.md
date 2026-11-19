@@ -42,7 +42,7 @@ Sample ids per kind are in `test/fixtures/jp-news-samples.json`.
 ## Titles → category, kind, phase
 
 Draft rules (first match wins, after the label check) classify every one of the 2,663 titles; the runnable drafts
-are in the session scratchpad (`classify.mjs`), to become `news-lang/ja.js`. Totals: banner 469 · event 1,031 · other
+are in the session scratchpad (`classify.mjs`), to become `news/lang/ja.js`. Totals: banner 469 · event 1,031 · other
 1,163. Key rules and order:
 
 | order | title                                                                                                                                                                                | →                                                                                                      |

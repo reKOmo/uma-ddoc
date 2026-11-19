@@ -13,12 +13,12 @@ import {
   requests,
   savePosts,
   serverArg,
-} from './lib/news-api.ts';
-import { categorize, plain } from './lib/post-categories.ts';
-import { lexicon } from './lib/news-lang/index.ts';
-import { newsUrl } from './lib/news-text.ts';
+} from './lib/news/api.ts';
+import { categorize, plain } from './lib/news/categorize.ts';
+import { lexicon } from './lib/news/lang/index.ts';
+import { newsUrl } from './lib/news/text.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
-import type { Categorized } from './lib/post-categories.ts';
+import type { Categorized } from './lib/news/categorize.ts';
 
 const server = serverArg();
 const MAX_PAGES = 5; // more than that and something's off

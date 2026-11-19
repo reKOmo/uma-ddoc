@@ -1,13 +1,13 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { CM_PHASES } from '../scripts/lib/event-dates.ts';
-import { EVENT_KINDS, buildEvents } from '../scripts/lib/events.ts';
-import { eventsFile } from '../scripts/lib/events-files.ts';
-import { postEvents } from '../scripts/lib/event-fragments.ts';
-import { cardIndex } from '../scripts/lib/event-rewards.ts';
-import { cmPhasesFrom, cutEvents, fillFromGametora, gametoraEvents } from '../scripts/lib/gametora-events.ts';
-import { postsFile } from '../scripts/lib/news-api.ts';
-import { ja } from '../scripts/lib/news-lang/ja.ts';
+import { CM_PHASES } from '../scripts/lib/events/dates.ts';
+import { EVENT_KINDS, buildEvents } from '../scripts/lib/events/build.ts';
+import { eventsFile } from '../scripts/lib/events/files.ts';
+import { postEvents } from '../scripts/lib/events/fragments.ts';
+import { cardIndex } from '../scripts/lib/events/rewards.ts';
+import { cmPhasesFrom, cutEvents, fillFromGametora, gametoraEvents } from '../scripts/lib/events/gametora.ts';
+import { postsFile } from '../scripts/lib/news/api.ts';
+import { jp as jpLexicon } from '../scripts/lib/news/lang/jp.ts';
 import { GENERATED_DIR } from '../scripts/lib/paths.ts';
 import { EVENT_GROUPS } from '../src/timeline/events.ts';
 import { eventEntries } from '../src/timeline/entries.ts';
@@ -29,21 +29,21 @@ const cardsFile = `${GENERATED_DIR}cards.json`;
 const cards: CardsFile = existsSync(cardsFile) ? read<CardsFile>(cardsFile) : {};
 // Card lookups need GameTora's Japanese titles (pnpm scrape-gametora).
 const withJp = cards['30113']?.title?.jp != null;
-const index = cardIndex(cards, ja);
+const index = cardIndex(cards, jpLexicon);
 
 const file = postsFile('jp');
 describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
   const posts = read<NewsPost[]>(file);
   const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
   const post = (id: number) => present(byId.get(String(id)), `post ${id}`);
-  const of = (id: number) => postEvents(post(id), { index, lang: ja });
+  const of = (id: number) => postEvents(post(id), { index, lang: jpLexicon });
   const one = (id: number) => {
     const events = of(id);
     expect(events).toHaveLength(1);
     return events[0];
   };
   // (the dates alone: every one here is the news')
-  const build = (...ids: number[]) => buildEvents(ids.map(post), { cards, lang: ja }).map(plainDates);
+  const build = (...ids: number[]) => buildEvents(ids.map(post), { cards, lang: jpLexicon }).map(plainDates);
   const copies = (e: { cards: EventCard[] }) => e.cards.map((c) => [c.id, c.copies]);
 
   it('reads a story event: dates in JST, its SSR and its title', () => {
@@ -105,7 +105,7 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
     const e = one(3380);
     expect(e).toMatchObject({ kind: 'league_of_heroes', name: null, start: '2026-08-11T03:00:00.000Z' });
     expect(present(e.phases, 'phases').map((p) => p.key)).toEqual(
-      present(ja.schedules, 'JP schedules').league_of_heroes.map(([key]) => key)
+      present(jpLexicon.schedules, 'JP schedules').league_of_heroes.map(([key]) => key)
     );
     expect(e.titles).toContain('英雄譚');
     expect(e.titles.some((t) => t.includes('○'))).toBe(false);
@@ -205,7 +205,7 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
         'event'
       ).items
     ).toEqual([{ name: 'Monies', count: 600000, local: 'マニー' }]);
-    const [missions] = buildEvents([post(3233)], { lang: ja })
+    const [missions] = buildEvents([post(3233)], { lang: jpLexicon })
       .filter((e) => e.parent === '3233-1')
       .map(plainDates);
     expect(missions).toMatchObject({
@@ -213,7 +213,7 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
       name: '帝王賞応援の期間限定ミッション',
       start: '2026-06-24T20:00:00.000Z',
     });
-    expect(buildEvents([post(3233)], { lang: ja }).filter((e) => e.parent === '3233-1')).toHaveLength(4);
+    expect(buildEvents([post(3233)], { lang: jpLexicon }).filter((e) => e.parent === '3233-1')).toHaveLength(4);
     // "「目覚まし時計」×50、「タフネス30」×10" on ten dated rows
     expect(
       present(
@@ -462,7 +462,7 @@ describe.skipIf(!existsSync(stored))('the stored JP events', { tags: ['data'] },
     const keys = CM_PHASES.map(([key]) => key);
     for (const e of since('champions_meeting', '2022-06'))
       expect({ id: e.id, phases: e.phases?.map((p) => p.key) }).toEqual({ id: e.id, phases: keys });
-    const loh = present(ja.schedules, 'JP schedules').league_of_heroes.map(([key]) => key);
+    const loh = present(jpLexicon.schedules, 'JP schedules').league_of_heroes.map(([key]) => key);
     for (const e of since('league_of_heroes', '2023-05'))
       expect({ id: e.id, phases: e.phases?.map((p) => p.key) }).toEqual({ id: e.id, phases: loh });
   });

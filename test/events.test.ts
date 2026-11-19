@@ -1,13 +1,13 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { eventBlocks } from '../scripts/lib/event-blocks.ts';
-import { cardIndex, cardsIn, itemsIn, missionsIn, titlesIn } from '../scripts/lib/event-rewards.ts';
-import { EVENT_KINDS, buildEvents, cmItems } from '../scripts/lib/events.ts';
-import { postEvents } from '../scripts/lib/event-fragments.ts';
-import { SUB_EVENT_KINDS } from '../scripts/lib/event-questions-spec.ts';
-import { en } from '../scripts/lib/news-lang/en.ts';
-import { postsFile } from '../scripts/lib/news-api.ts';
-import { categorize } from '../scripts/lib/post-categories.ts';
+import { eventBlocks } from '../scripts/lib/events/blocks.ts';
+import { cardIndex, cardsIn, itemsIn, missionsIn, titlesIn } from '../scripts/lib/events/rewards.ts';
+import { EVENT_KINDS, buildEvents, cmItems } from '../scripts/lib/events/build.ts';
+import { postEvents } from '../scripts/lib/events/fragments.ts';
+import { SUB_EVENT_KINDS } from '../scripts/lib/ai/questions-spec.ts';
+import { en } from '../scripts/lib/news/lang/en.ts';
+import { postsFile } from '../scripts/lib/news/api.ts';
+import { categorize } from '../scripts/lib/news/categorize.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { CmRewardsFile } from '../shared/schemas/event.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
@@ -219,7 +219,7 @@ const CELEBRATION = post(
 );
 
 describe('lexicon subKinds', () => {
-  // (And 'campaign', the kind of a sub-event nothing matches, is one too.) Not ja's: it names 'special'.
+  // (And 'campaign', the kind of a sub-event nothing matches, is one too.) Not jp's: it names 'special'.
   it("only names kinds a model may answer (en's)", () => {
     expect(en.subKinds.filter(([kind]) => !SUB_EVENT_KINDS.includes(kind))).toEqual([]);
   });

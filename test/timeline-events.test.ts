@@ -3,8 +3,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { EVENT_GROUPS, itemList, withPredicted } from '../src/timeline/events.ts';
 import { eventEntries } from '../src/timeline/entries.ts';
 import { DAY, laneGroups, partCount } from '../src/timeline/layout.ts';
-import { CM_PHASES } from '../scripts/lib/event-dates.ts';
-import { EVENT_KINDS } from '../scripts/lib/events.ts';
+import { CM_PHASES } from '../scripts/lib/events/dates.ts';
+import { EVENT_KINDS } from '../scripts/lib/events/build.ts';
 import en from '../src/i18n/en.json' with { type: 'json' };
 import globalEventsJson from '../data/global_events.json' with { type: 'json' };
 import jpEventsJson from '../data/jp_events.json' with { type: 'json' };
@@ -111,7 +111,7 @@ describe.each(SERVERS)('the event data (%s)', { tags: ['data'] }, (_, events) =>
   it('gives every Champions Meeting its schedule, in order', () => {
     const keys = CM_PHASES.map(([key]) => key);
     // (Only an announcement without dates of its own has none. JP's cups dated by GameTora start at round 1, the
-    // league selection unknown: scripts/lib/gametora-events.js.)
+    // league selection unknown: scripts/lib/events/gametora.ts.)
     const fromRound1 = (e: GameEvent) => e.start.date === e.phases?.find((p) => p.key === 'round_1')?.start.date;
     for (const e of events.filter((x) => x.kind === 'champions_meeting' && (x.end || x.phases?.length)))
       expect({ id: e.id, phases: e.phases?.map((p) => p.key) }).toEqual({

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { setSetting } from '../src/settingsStore.ts';
-import { followTheme } from '../src/theme.ts';
+import { setSetting } from '../src/state/settingsStore.ts';
+import { followTheme } from '../src/state/theme.ts';
 
 const meta = (media: string) => {
   const node = document.createElement('meta');

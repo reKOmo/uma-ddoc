@@ -1,6 +1,6 @@
 // Each scenario runs from its launch to the next one's (end null for the newest); times in ms.
 import type { Scenario } from '../../shared/schemas/scenario.ts';
-import { type LaunchTag, launchTag } from '../scenarioRelease.ts';
+import { type LaunchTag, launchTag } from '../lib/scenarioRelease.ts';
 
 const DATE_FIELD = { gl: 'en_start_date', jp: 'jp_start_date' } as const;
 

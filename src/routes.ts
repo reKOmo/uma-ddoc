@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import type { BaseLocationHook } from 'wouter';
 import { navigate } from 'wouter/use-hash-location';
-import type { Server } from './servers.ts';
+import type { Server } from './lib/servers.ts';
 
 // Hash routes, so GitHub Pages never has to serve a deep link. Every link in the app is built here.
 // The Timeline keeps `#/timeline/<server>/<id>` in the address while a sheet is open (replaced, not pushed), so going

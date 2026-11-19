@@ -1,20 +1,20 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { bannerPost } from '../scripts/lib/banner-posts.ts';
+import { bannerPost } from '../scripts/lib/banners/posts.ts';
 import {
   applyJpNews,
   GAMETORA_TRAINEES_FILE,
   isRegular,
   JP_BANNERS_FILE,
   regularBanners,
-} from '../scripts/lib/jp-banners.ts';
-import { BANNERS_FILE as GLOBAL_BANNERS_FILE } from '../scripts/lib/global.ts';
-import { readPending } from '../scripts/lib/jp-cards.ts';
-import { postsFile } from '../scripts/lib/news-api.ts';
-import { ja } from '../scripts/lib/news-lang/ja.ts';
+} from '../scripts/lib/banners/jp.ts';
+import { BANNERS_FILE as GLOBAL_BANNERS_FILE } from '../scripts/lib/banners/global.ts';
+import { readPending } from '../scripts/lib/cards/jp.ts';
+import { postsFile } from '../scripts/lib/news/api.ts';
+import { jp as jpLexicon } from '../scripts/lib/news/lang/jp.ts';
 import { GENERATED_DIR } from '../scripts/lib/paths.ts';
-import type { Banner as ScoutBanner, BannerPost } from '../scripts/lib/banner-posts.ts';
-import type { ApplyJpNewsResult } from '../scripts/lib/jp-banners.ts';
+import type { Banner as ScoutBanner, BannerPost } from '../scripts/lib/banners/posts.ts';
+import type { ApplyJpNewsResult } from '../scripts/lib/banners/jp.ts';
 import type { Banner, BannerFile, BannerId, BannerItem } from '../shared/schemas/banner.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { GametoraTrainee } from '../shared/schemas/gametora.ts';
@@ -24,7 +24,8 @@ import { at, fixture, present } from './helpers.ts';
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8'));
 const posts = existsSync(postsFile('jp')) ? readJson<NewsPost[]>(postsFile('jp')) : [];
 const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
-const scout = (id: number) => present(bannerPost(present(byId.get(String(id)), `post ${id}`), ja), `scouts of ${id}`);
+const scout = (id: number) =>
+  present(bannerPost(present(byId.get(String(id)), `post ${id}`), jpLexicon), `scouts of ${id}`);
 const banner = (id: number, gachaId: number) =>
   present(
     scout(id).banners.find((b) => b.gachaId === gachaId),
@@ -294,7 +295,7 @@ describe.skipIf(!posts.length || !existsSync(JP_BANNERS_FILE))('the stored JP ba
     ...stored.cards.map((b): ['support', Banner] => ['support', b]),
   ];
   const gametora = new Map(all.filter(([, b]) => !b.from_news).map(([type, b]) => [b.id, { type, b }]));
-  const scouts = posts.map((p) => bannerPost(p, ja)).filter((s) => s !== null);
+  const scouts = posts.map((p) => bannerPost(p, jpLexicon)).filter((s) => s !== null);
 
   it('agree with GameTora on every banner a post shows (start, end to the minute, type)', () => {
     let checked = 0;

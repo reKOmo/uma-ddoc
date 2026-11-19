@@ -47,7 +47,7 @@ days, scenario launches, predictions), is `{ date, status, lo?, hi?, source? }` 
   JP pair (status `predicted`, `ml/events.py` `write_fills()`, recomputed each run); `update-global` keeps a banner's end
   `confirmed` from `known_dates.json` when the post gives none, and gives a news banner without an end JP's length
   (`predicted`). A rebuild from the news carries the fills over for the dates the news still lacks
-  (`scripts/lib/dates.ts`). Pure predictions (nothing on Global yet) stay in `generated/predicted_global_*.json`.
+  (`scripts/lib/fills.ts`). Pure predictions (nothing on Global yet) stay in `generated/predicted_global_*.json`.
 - The Timeline fades a bar whose end is only predicted (`Entry.endPredicted`); the sheet says "end predicted" and marks
   schedule rows with a predicted date.
 

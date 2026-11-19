@@ -11,9 +11,16 @@ import {
   parseSheetList,
   parseTab,
   parseUpdated,
-} from '../scripts/lib/pull-guide.ts';
-import { bannerVerdicts, currentAdvice, latestAdvice, sheetLink, upcomingBanner, verdictOf } from '../src/pullGuide.ts';
-import type { Listed } from '../scripts/lib/pull-guide.ts';
+} from '../scripts/lib/cards/pull-guide.ts';
+import {
+  bannerVerdicts,
+  currentAdvice,
+  latestAdvice,
+  sheetLink,
+  upcomingBanner,
+  verdictOf,
+} from '../src/lib/pullGuide.ts';
+import type { Listed } from '../scripts/lib/cards/pull-guide.ts';
 import type { Banner } from '../shared/schemas/banner.ts';
 import type { Advice, PullGuide } from '../shared/schemas/pullGuide.ts';
 import { at, fixture, present } from './helpers.ts';

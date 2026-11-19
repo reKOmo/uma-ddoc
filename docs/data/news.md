@@ -19,7 +19,7 @@
   **Global's in-game posts reuse JP's post ids** for the same content (Global's 1076 story event is JP's 1076; its
   1065 Sagittarius Cup JP's 1065): the strongest way to pair events across servers.
 - **Official JP news** (`umamusume.jp/api/ajax/pr_info_index` / `pr_info_detail`, **GET** with query params; a POST
-  gets the site's HTML; `scripts/lib/news-api.ts`' `SERVERS.jp`): same pacing. The index is paged from 1 with
+  gets the site's HTML; `scripts/lib/news/api.ts`' `SERVERS.jp`): same pacing. The index is paged from 1 with
   `total_page_count`, and lists **every** post the site serves (317 on 2026-10-11, ids 107…3497): all of them from
   2026-07-23 on (id 3348; about the last 2½ months), plus 188 older ones it kept, scattered back to April 2023 and a
   few from the 2021 launch (rules, the known-issues post 155, updated often, sits among the newest), so index order
@@ -39,7 +39,7 @@
   2,663 JP posts in all (317 official, 2,346 from umapyoi; per year 96 / 380 / 541 / 592 / 614 / 440 for 2021–2026),
   every id umapyoi lists, none without a message or time; 1,485 umapyoi posts have header art (old ones checked: still
   served).
-- **Post categories** (`scripts/lib/post-categories.ts`): `categorize(post)` → `{ category: banner | event | other,
+- **Post categories** (`scripts/lib/news/categorize.ts`): `categorize(post)` → `{ category: banner | event | other,
   kind, phase, name, banners }`, from the title (very regular; first matching rule wins), the id series and, for
   banners, the body. Event kinds: story, champions_meeting, legend_race, transfer_requests, uma_outing, special
   (named one-offs), celebration (multi-part: anniversaries, holidays, Fall G1), campaign (single bonuses: Star Pieces,
@@ -48,14 +48,14 @@
   news:run whether data/ needs rebuilding. Global's answer is revised by template phrases in the body (`en.ts`
   `signals` / `revise`), and Global's events are built from the gold set and the classifiers' labels
   (`data/news/gl/categories.json`) over these rules: [classifier](classifier.md).
-- **Banner posts** (`scripts/lib/banner-posts.ts`): `bannerPost(post)` → `{ id, url, posted, paid, banners: [{
+- **Banner posts** (`scripts/lib/banners/posts.ts`): `bannerPost(post)` → `{ id, url, posted, paid, banners: [{
   gachaId, type: character | support, start, end, image, featured }] }`. Each banner's art sits under a "Trainee
   Umamusume" / "Support Cards" heading (its type) and is followed by its own list (`★★★ [Title] Name` / `SSR [Title]
   Name`, each once); its period is the scout period above it. Headings at every level (h2–h4: older posts use h3;
   `sections(html, '234')`); older posts say "Umamusume" for trainees. `paid`: the post's scouts cost paid carats (the
   one-off guaranteed scouts), left out like JP's special banners. Verified against the first parser on all 32 banner
   posts (same ids, dates, art, items).
-- **News → Global banners** (`scripts/lib/global.ts`, fed `bannerPost()`s): scout posts show each banner's art as
+- **News → Global banners** (`scripts/lib/banners/global.ts`, fed `bannerPost()`s): scout posts show each banner's art as
   `gacha_banner_<id>_….png`, and `<id>` is the game's gacha id, which Global shares with JP (Global reruns JP's
   banners under JP's ids; 130/132 seeded Global banners match JP's id and cards). So a news banner is JP's banner
   of that id (featured ids, rates, types) with the post's dates and official art, names/titles paired with
@@ -68,10 +68,10 @@
   news alone it rebuilt 30134/30135 identical to GameTora's. A banner whose id JP lacks, or whose type (from the post)
   isn't JP's, is skipped (listed in the summary); so are paid scouts.
 
-- **One parser, two languages** (`scripts/lib/news-lang/`): the news parsers (post-categories, banner-posts,
-  event-blocks, event-rewards, events) are shared and take a lexicon `lang` (English by default): every pattern they
+- **One parser, two languages** (`scripts/lib/news/lang/`): the news parsers (news/categorize, banners/posts,
+  events/blocks, events/rewards, events/) are shared and take a lexicon `lang` (English by default): every pattern they
   read a post with (title rules, phases, period headings, item / copies / login patterns, sub-event kinds, art, CM phase
-  headings) plus hooks: `parsePeriod` + `dateRef` (EN: the post's UTC year; JP: `parsePeriodJa`, JST, the year nearest
+  headings) plus hooks: `parsePeriod` + `dateRef` (EN: the post's UTC year; JP: `parsePeriodJp`, JST, the year nearest
   the post), `clean(html)` (JP: zero-width spaces, full-width digits, unquoted attributes, line breaks at headings),
   `community(post)`, a rule's kind as a function of the post. JP-only behaviour sits behind optional hooks English
   doesn't set (scouts: `firstList`, `paidBanner`, `periodLabel`, `rerunPeriod`; events: `introBlock`, `blockRole`,
@@ -79,7 +79,7 @@
   **A change to the shared code must leave Global's output byte-identical** (`update-global` before/after, `news:events`).
   `norm()` keeps letters of every script (kana, kanji). What the JP posts look like, and the user's decisions:
   [docs/jp-news-findings.md](../jp-news-findings.md). Names stay as the posts give them: no machine translation (umapyoi's `title_english`) or model translation.
-- **JP categories** (`news-lang/ja.ts`): label 2/3 = community (≈ EN's 200001 series; label 5 is one maintenance post),
+- **JP categories** (`news/lang/jp.ts`): label 2/3 = community (≈ EN's 200001 series; label 5 is one maintenance post),
   scouts by their art (exactly the 466 posts with `gacha_banner_` art), then anchored title rules (`^ストーリーイベント「…」
   (開催決定|開催|終了)！$`, `^(レースイベント|M/D|N月下旬)「チャンピオンズミーティング X」`, …) so event-named bug posts stay
   other. JP kinds Global lacks: `league_of_heroes` (no name, in UNNAMED_KINDS), `factor_research` (因子研究),

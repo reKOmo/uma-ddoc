@@ -2,7 +2,7 @@
 // Walks each post's link to the next older one (olderId()) until the chain ends. JP's index is read in full first,
 // so posts the index lacks are found too. Stored posts aren't refetched: a rerun resumes, `pnpm news:latest` catches edits.
 
-import { fetchPost, indexPage, loadPosts, olderId, requests, savePosts, serverArg } from './lib/news-api.ts';
+import { fetchPost, indexPage, loadPosts, olderId, requests, savePosts, serverArg } from './lib/news/api.ts';
 
 const server = serverArg();
 

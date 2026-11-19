@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { rawStorage } from '../rawStorage.ts';
+import { rawStorage } from '../state/rawStorage.ts';
 
 const KEY = 'uma-ddoc.timelineCompact';
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { type TranslationInputs, buildTranslations, cleanText } from '../scripts/lib/umatl.ts';
 import { type JapaneseNames, japaneseEntries, translateEntries } from '../src/timeline/translate.ts';
-import { cardEnglish, type Language, languageOf } from '../src/translations.ts';
+import { cardEnglish, type Language, languageOf } from '../src/lib/translations.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { Entry, Featured } from '../src/timeline/entries.ts';
 import type { TranslationsFile } from '../shared/schemas/translations.ts';

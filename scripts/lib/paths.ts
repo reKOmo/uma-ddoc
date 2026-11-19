@@ -1,4 +1,4 @@
-import type { Server } from './news-text.ts';
+import type { Server } from './news/text.ts';
 
 export const ROOT: string = new URL('../../', import.meta.url).pathname;
 export const GENERATED_DIR: string = `${ROOT}generated/`;

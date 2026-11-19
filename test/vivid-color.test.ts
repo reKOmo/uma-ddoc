@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ink } from '../src/timeline/scenarioStrip.ts';
-import { vividColor } from '../src/vividColor.ts';
+import { vividColor } from '../src/lib/vividColor.ts';
 
 const saturation = (hex: string) => {
   const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16) / 255);

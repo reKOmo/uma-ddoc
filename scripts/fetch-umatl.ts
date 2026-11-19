@@ -8,10 +8,10 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import { BANNERS_FILE, readJson } from './lib/global.ts';
-import { readEvents } from './lib/events-files.ts';
-import { readGametoraEvents } from './lib/gametora-events.ts';
-import { GAMETORA_TRAINEES_FILE, readJpBanners } from './lib/jp-banners.ts';
+import { BANNERS_FILE, readJson } from './lib/banners/global.ts';
+import { readEvents } from './lib/events/files.ts';
+import { readGametoraEvents } from './lib/events/gametora.ts';
+import { GAMETORA_TRAINEES_FILE, readJpBanners } from './lib/banners/jp.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { writeSources } from './lib/sources.ts';
 import {

@@ -68,7 +68,7 @@ export const RaceSchema = z.strictObject({
 });
 export type Race = z.infer<typeof RaceSchema>;
 
-// A daily free scout campaign's window (scripts/lib/free-scouts.ts): the eligible scout as the post names it, its type
+// A daily free scout campaign's window (scripts/lib/events/free-scouts.ts): the eligible scout as the post names it, its type
 // (null: the name doesn't say) and banner (null: none matched), single or 10x, and the free scouts a player who logs
 // in every day gets in it (pulls: scouts × size).
 export const FreeScoutSchema = z.strictObject({

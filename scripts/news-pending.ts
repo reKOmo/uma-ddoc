@@ -5,8 +5,8 @@
 // yet). news-run.sh then scrapes GameTora and rebuilds the records even with no new posts, so they fill in on the first
 // run after GameTora lists them.
 
-import { readPending } from './lib/jp-cards.ts';
-import { readJpBanners } from './lib/jp-banners.ts';
+import { readPending } from './lib/cards/jp.ts';
+import { readJpBanners } from './lib/banners/jp.ts';
 
 const banners = readJpBanners();
 const unresolved = [...banners.characters, ...banners.cards].some((b) => b.featured.some((item) => item.id == null));

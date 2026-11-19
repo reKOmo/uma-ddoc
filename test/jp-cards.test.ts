@@ -1,9 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { GAMETORA_CARDS_FILE } from '../scripts/build-cards.ts';
-import { JP_CARDS_FILE, applyNewsCards, newsCards } from '../scripts/lib/jp-cards.ts';
-import { postsFile } from '../scripts/lib/news-api.ts';
-import type { NewsCard } from '../scripts/lib/jp-cards.ts';
+import { JP_CARDS_FILE, applyNewsCards, newsCards } from '../scripts/lib/cards/jp.ts';
+import { postsFile } from '../scripts/lib/news/api.ts';
+import type { NewsCard } from '../scripts/lib/cards/jp.ts';
 import type { JpCard, JpCardsFile } from '../shared/schemas/card.ts';
 import type { GametoraCard } from '../shared/schemas/gametora.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';

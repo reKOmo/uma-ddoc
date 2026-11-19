@@ -6,19 +6,19 @@ import { pathToFileURL } from 'node:url';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
 import type { GametoraCard } from '../shared/schemas/gametora.ts';
-import { readCategories, refreshCategories, unsureLines } from './lib/categories.ts';
-import { buildEvents } from './lib/events.ts';
-import { readAnswers, readEvents, writeEvents } from './lib/events-files.ts';
-import { fillFromGametora, readGametoraEvents } from './lib/gametora-events.ts';
-import { readJpBanners, updateJpBanners, writeJpBanners } from './lib/jp-banners.ts';
-import { withFreePulls } from './lib/free-scouts.ts';
-import { loadPosts } from './lib/news-api.ts';
-import { ja } from './lib/news-lang/ja.ts';
+import { readCategories, refreshCategories, unsureLines } from './lib/news/categories.ts';
+import { buildEvents } from './lib/events/build.ts';
+import { readAnswers, readEvents, writeEvents } from './lib/events/files.ts';
+import { fillFromGametora, readGametoraEvents } from './lib/events/gametora.ts';
+import { readJpBanners, updateJpBanners, writeJpBanners } from './lib/banners/jp.ts';
+import { withFreePulls } from './lib/events/free-scouts.ts';
+import { loadPosts } from './lib/news/api.ts';
+import { jp as jpLexicon } from './lib/news/lang/jp.ts';
 import { GENERATED_DIR, newsDir } from './lib/paths.ts';
-import { readJson } from './lib/global.ts';
+import { readJson } from './lib/banners/global.ts';
 import { ensureCards } from './update-cards.ts';
 import { GAMETORA_CARDS_FILE, buildCardFiles } from './build-cards.ts';
-import { updateJpCards } from './lib/jp-cards.ts';
+import { updateJpCards } from './lib/cards/jp.ts';
 import { applyJpScenarioNews, readScenarios, writeScenarios } from './lib/scenarios.ts';
 
 const SUMMARY_FILE = `${newsDir('jp')}summary.md`;
@@ -52,7 +52,7 @@ export async function updateJp(): Promise<JpUpdate> {
   const fromNews = buildEvents(posts, {
     cards,
     answers: readAnswers('jp'),
-    lang: ja,
+    lang: jpLexicon,
     categories,
     banners: readJpBanners(),
   });

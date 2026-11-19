@@ -11,10 +11,10 @@ import { paced } from './lib/http.ts';
 import { DATA_DIR, GENERATED_DIR } from './lib/paths.ts';
 import { type GametoraScenario, fillColors, mergeGametora, readScenarios, writeScenarios } from './lib/scenarios.ts';
 import { writeSources } from './lib/sources.ts';
-import { GAMETORA_EVENTS_FILE, GAMETORA_EVENT_FILES, type GametoraRecord, cutEvents } from './lib/gametora-events.ts';
+import { GAMETORA_EVENTS_FILE, GAMETORA_EVENT_FILES, type GametoraRecord, cutEvents } from './lib/events/gametora.ts';
 import { GAMETORA_CARDS_FILE, buildCardFiles } from './build-cards.ts';
-import { readJpCards } from './lib/jp-cards.ts';
-import { GAMETORA_TRAINEES_FILE } from './lib/jp-banners.ts';
+import { readJpCards } from './lib/cards/jp.ts';
+import { GAMETORA_TRAINEES_FILE } from './lib/banners/jp.ts';
 
 const CARD_FIELDS = [
   'support_id',
@@ -98,7 +98,7 @@ export async function scrapeGametora(): Promise<void> {
   writeSources({
     'raw/gametora_cards.json': { url: `${SITE}/umamusume/supports`, fetched_at: new Date().toISOString() },
   });
-  // Only for a trainee debuting on a JP banner (the news names it without an id); jp-banners.ts resolves the rest from
+  // Only for a trainee debuting on a JP banner (the news names it without an id); banners/jp.ts resolves the rest from
   // our own banners.
   // TODO(ts): as above, GameTora's rows (only the trainee fields read here).
   const trainees = (data['character-cards'] as Row[]).map((c) => ({

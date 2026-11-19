@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { scenarioPost } from '../scripts/lib/news.ts';
+import { scenarioPost } from '../scripts/lib/news/scenario-posts.ts';
 import { applyJpScenarioNews, applyScenarioNews, mergeGametora } from '../scripts/lib/scenarios.ts';
-import type { ScenarioMention } from '../scripts/lib/news.ts';
+import type { ScenarioMention } from '../scripts/lib/news/scenario-posts.ts';
 import type { GametoraScenario, ScenarioDraft } from '../scripts/lib/scenarios.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import type { StartDate } from '../shared/schemas/scenario.ts';

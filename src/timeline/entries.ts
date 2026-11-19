@@ -10,7 +10,7 @@ import type {
   PredictedEvent,
   Race,
 } from '../../shared/schemas/event.ts';
-import { type ArtBanner, type ArtBannerFile, type ArtItem, cardIcon } from '../gametora.ts';
+import { type ArtBanner, type ArtBannerFile, type ArtItem, cardIcon } from '../lib/gametora.ts';
 import { DAY } from './layout.ts';
 
 export type { ArtBanner, ArtBannerFile, ArtItem };

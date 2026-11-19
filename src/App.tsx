@@ -4,19 +4,19 @@ import { Redirect, Route, Router, Switch, useLocation, useRoute } from 'wouter';
 import { ArrowLeft, CalendarRange, Route as RouteIcon, Settings, Trophy } from 'lucide-react';
 import { getServerConfig } from '../tierlist/scenarios.ts';
 import { scenarioOptions } from '../tierlist/index.ts';
-import { SERVERS, type Server } from './servers.ts';
+import { SERVERS, type Server } from './lib/servers.ts';
 import { serverName } from './i18n/index.ts';
 import TierListPage from './pages/TierListPage.tsx';
 import TimelinePage from './pages/TimelinePage.tsx';
 import CardPage from './pages/CardPage.tsx';
 import SettingsPage from './pages/SettingsPage.tsx';
-import { useSettings } from './settings.tsx';
+import { useSettings } from './state/settings.tsx';
 import ScenarioPage from './pages/ScenarioPage.tsx';
 import ScenariosPage from './pages/ScenariosPage.tsx';
 import { useTranslation } from 'react-i18next';
 import { ALIAS, PATTERNS, TAB_URLS, isServer, useHashLocation } from './routes.ts';
 import { Segmented } from './ui/Segmented.tsx';
-import TabHighlight from './TabHighlight.tsx';
+import TabHighlight from './ui/TabHighlight.tsx';
 import styles from './App.module.css';
 
 const TABS = [

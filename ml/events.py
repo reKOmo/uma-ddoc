@@ -480,7 +480,7 @@ def ms(iso):
 
 
 def window_of(part, e):
-    """e is one window of the part's period (scripts/lib/event-merge.ts' windowOf(), which keeps such a post its own event):
+    """e is one window of the part's period (scripts/lib/events/merge.ts' windowOf(), which keeps such a post its own event):
     less than half its length, within it give or take a day."""
     end = lambda x: ms(x['end'] or x['start'])  # noqa: E731
     return (end(e) - ms(e['start']) < (end(part) - ms(part['start'])) / 2

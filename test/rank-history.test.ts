@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { rankHistory } from '../src/rankHistory.ts';
+import { rankHistory } from '../src/lib/rankHistory.ts';
 import { present } from './helpers.ts';
 
 // Sorted by score, as rankByUsefulness returns it; card 2 also has an LB0 copy.

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { applyNews, englishNames } from '../scripts/lib/global.ts';
-import type { BannerPost } from '../scripts/lib/banner-posts.ts';
+import { applyNews, englishNames } from '../scripts/lib/banners/global.ts';
+import type { BannerPost } from '../scripts/lib/banners/posts.ts';
 import type { BannerFile, BannerItem } from '../shared/schemas/banner.ts';
 import type { CardsFile, GlobalCardsFile } from '../shared/schemas/card.ts';
 import { at, fixture, present } from './helpers.ts';

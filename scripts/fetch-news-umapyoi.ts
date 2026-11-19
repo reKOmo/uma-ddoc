@@ -5,7 +5,7 @@
 
 import { parseArgs } from 'node:util';
 import { paced } from './lib/http.ts';
-import { loadPosts, savePosts, serverArg } from './lib/news-api.ts';
+import { loadPosts, savePosts, serverArg } from './lib/news/api.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 
 type UmapyoiPost = {
