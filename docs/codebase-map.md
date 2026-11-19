@@ -56,7 +56,10 @@ scripts/
   lib/free-scouts.ts pure: a free scout campaign's windows (scoutWindows(), counted()), its banners (bannerOf()),
                      each banner's free pulls (withFreePulls())
   lib/event-questions.ts  pure: what a model is asked about an event (askedFields(), question(): prompt + examples
-                     + JSON schema), staleFields() / mergeAnswer() (per-field versions), applyAnswer() (checks + rules first)
+                     + JSON schema), staleFields() / mergeAnswer() (per-field versions)
+  lib/event-questions-en.ts / -ja.ts  each language's question set (system prompt, fields, made-up examples);
+                     shared parts in event-questions-spec.ts
+  lib/event-answers.ts  pure: applyAnswer() (a model's answer checked, then applied rules first)
   lib/ai.ts          the model client: Ollama (native /api/chat) or OpenRouter (OpenAI-style), aiConfig(), ask()
   ai-events.ts       `pnpm news:ai` (ask about doubted fields, store answers; --compare to test a model)
   list-events.ts     `pnpm news:events` (the events the news makes, printed, nothing written)

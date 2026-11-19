@@ -1,16 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { copiesDoubt, itemDoubt } from '../scripts/lib/event-rewards.ts';
-import {
-  FIELD_VERSIONS,
-  applyAnswer,
-  askedFields,
-  mergeAnswer,
-  question,
-  staleFields,
-} from '../scripts/lib/event-questions.ts';
+import { applyAnswer } from '../scripts/lib/event-answers.ts';
+import { FIELD_VERSIONS, askedFields, mergeAnswer, question, staleFields } from '../scripts/lib/event-questions.ts';
 import { parseJson } from '../scripts/lib/ai.ts';
 import { ja } from '../scripts/lib/news-lang/ja.ts';
-import type { AskedEvent } from '../scripts/lib/event-questions.ts';
+import type { AskedEvent } from '../scripts/lib/event-questions-spec.ts';
 import type { Question } from '../scripts/lib/ai.ts';
 import type { AiAnswer } from '../shared/schemas/news.ts';
 import { fixture } from './helpers.ts';

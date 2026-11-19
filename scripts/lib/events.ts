@@ -24,7 +24,7 @@ import type { AiAnswersFile, NewsPost, PostCategory } from '../../shared/schemas
 import { type Fragment, eventFragments } from './event-fragments.ts';
 import { type Merge, joinUndated, mergeItems, mergePosts, resolveParents, spanParts } from './event-merge.ts';
 import type { cardIndex } from './event-rewards.ts';
-import { applyAnswer } from './event-questions.ts';
+import { applyAnswer } from './event-answers.ts';
 import { bannerOf } from './free-scouts.ts';
 
 export type BuildOptions = {

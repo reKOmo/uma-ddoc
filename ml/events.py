@@ -55,6 +55,7 @@ import json
 import re
 import unicodedata
 from collections import defaultdict
+from dataclasses import dataclass, field
 
 import numpy as np
 import pandas as pd
@@ -225,124 +226,155 @@ def lis_keep(pairs):
     return keep
 
 
-def pair_events(ref):
-    """ref: JP days (array) → expected Global days. Returns { pairs, rejected }."""
-    gl_all, gl_top, gl_parts = load('gl')
-    jp_all, jp_top, jp_parts = load('jp')
-    jp_days = np.array([jst_day(e['start']) for e in jp_top])
-    expected = dict(zip((e['id'] for e in jp_top), ref(jp_days)))
-    pairs, rejected = [], []
-    paired_gl, paired_jp = set(), set()
+@dataclass
+class Pairing:
+    """The state the pairing rules share: the loaded events, JP's expected Global days, the pairs so far and which
+    events are paired."""
+    ref: object
+    gl_all: list
+    gl_top: list
+    gl_parts: dict
+    jp_all: list
+    jp_top: list
+    jp_parts: dict
+    expected: dict = field(init=False)
+    pairs: list = field(default_factory=list)
+    rejected: list = field(default_factory=list)
+    paired_gl: set = field(default_factory=set)
+    paired_jp: set = field(default_factory=set)
 
-    def day_pair(gl, jp):
-        """(JP day, Global day) the pair's dates compare: their starts, or both cups' round 1 (a GameTora cup starts
-        at round 1, the news' at the league selection)."""
-        r1 = lambda e: next((p['start'] for p in e.get('phases') or [] if p['key'] == 'round_1'), None)  # noqa: E731
-        if r1(gl) and r1(jp):
-            return jst_day(r1(jp)), utc_day(r1(gl))
-        return jst_day(jp['start']), utc_day(gl['start'])
+    def __post_init__(self):
+        jp_days = np.array([jst_day(e['start']) for e in self.jp_top])
+        self.expected = dict(zip((e['id'] for e in self.jp_top), self.ref(jp_days)))
+        self.gl_sorted = sorted(self.gl_top, key=lambda e: e['start'])
+        # (JP's parts too, after its top-level events: an event Global runs on its own can be part of a JP celebration,
+        # Global's 1109 Sparkly Magic Show JP's 1093-1 KIRARI MAGIC SHOW, from the same post)
+        self.jp_posts = defaultdict(list)
+        for jp in self.jp_top + [e for e in self.jp_all if e['parent']]:
+            for i in post_ids(jp):
+                self.jp_posts[i].append(jp)
+        self.jp_cards = {jp['id']: cards_of(jp, self.jp_parts) for jp in self.jp_top}
+        self.jp_keys = defaultdict(list)
+        for jp in self.jp_top:
+            key = name_key(jp, 'jp')
+            if key:
+                self.jp_keys[key].append(jp)
 
-    def record(gl, jp, how, **extra):
+    def record(self, gl, jp, how, **extra):
         jp_day, gl_day = day_pair(gl, jp)
         return {
             'gl': gl['id'], 'jp': jp['id'], 'kind': jp['kind'], 'how': how,
-            'gl_start': gl['start'], 'jp_start': jp['start'], 'dev_days': round(float(gl_day - ref(np.array([jp_day]))[0]), 1),
+            'gl_start': gl['start'], 'jp_start': jp['start'],
+            'dev_days': round(float(gl_day - self.ref(np.array([jp_day]))[0]), 1),
             **extra, 'jp_day': jp_day, 'gl_day': gl_day,
         }
 
-    def take(pair, gl, jp):
+    def take(self, pair, gl, jp):
         """Keeps a pair whose Global day fits. One that doesn't: a post or card pair is the same event all the same
         (Global moved it), kept but never an anchor; another is rejected (reported), its events still counting as
         paired: neither is paired again, nor is the JP one predicted."""
-        paired_gl.add(gl['id'])
-        paired_jp.add(jp['id'])
+        self.paired_gl.add(gl['id'])
+        self.paired_jp.add(jp['id'])
         if abs(pair['dev_days']) <= TOL:
-            pairs.append(pair)
+            self.pairs.append(pair)
         elif pair['how'] in SURE:
-            pairs.append({**pair, 'anchor': False})
+            self.pairs.append({**pair, 'anchor': False})
         else:
-            rejected.append({**{k: v for k, v in pair.items() if k != 'anchor'},
-                             'why': f'{pair["dev_days"]:+.0f} days off the expected Global day'})
+            self.rejected.append({**{k: v for k, v in pair.items() if k != 'anchor'},
+                                  'why': f'{pair["dev_days"]:+.0f} days off the expected Global day'})
 
-    # (JP's parts too, after its top-level events: an event Global runs on its own can be part of a JP celebration,
-    # Global's 1109 Sparkly Magic Show JP's 1093-1 KIRARI MAGIC SHOW, from the same post)
-    by_post = defaultdict(list)
-    for jp in jp_top + [e for e in jp_all if e['parent']]:
-        for i in post_ids(jp):
-            by_post[i].append(jp)
-    jp_cards = {jp['id']: cards_of(jp, jp_parts) for jp in jp_top}
-    jp_keys = defaultdict(list)
-    for jp in jp_top:
-        key = name_key(jp, 'jp')
-        if key:
-            jp_keys[key].append(jp)
-
-    def nearest(gl, candidates, within=np.inf):
+    def nearest(self, gl, candidates, within=np.inf):
         """The candidate (not paired yet) whose expected Global day is nearest the Global event's (within `within`
         days), and the runner-up's distance."""
-        free = [c for c in candidates if c['id'] not in paired_jp]
+        free = [c for c in candidates if c['id'] not in self.paired_jp]
         if not free:
             return None, np.inf
-        dist = sorted((abs(utc_day(gl['start']) - expected[c['id']]), i) for i, c in enumerate(free))
+        dist = sorted((abs(utc_day(gl['start']) - self.expected[c['id']]), i) for i, c in enumerate(free))
         best = free[dist[0][1]] if dist[0][0] <= within else None
         return best, (dist[1][0] if len(dist) > 1 else np.inf)
 
-    gl_sorted = sorted(gl_top, key=lambda e: e['start'])
+
+def day_pair(gl, jp):
+    """(JP day, Global day) the pair's dates compare: their starts, or both cups' round 1 (a GameTora cup starts
+    at round 1, the news' at the league selection)."""
+    r1 = lambda e: next((p['start'] for p in e.get('phases') or [] if p['key'] == 'round_1'), None)  # noqa: E731
+    if r1(gl) and r1(jp):
+        return jst_day(r1(jp)), utc_day(r1(gl))
+    return jst_day(jp['start']), utc_day(gl['start'])
+
+
+def by_post(s):
     # post: the same post; several JP events of one post → the one of the same kind (else the only one: several of
     # other kinds are a guess, left to the rules below)
-    for gl in gl_sorted:
-        found = list({jp['id']: jp for i in post_ids(gl) for jp in by_post.get(i, []) if jp['id'] not in paired_jp}.values())
+    for gl in s.gl_sorted:
+        found = list({jp['id']: jp for i in post_ids(gl) for jp in s.jp_posts.get(i, []) if jp['id'] not in s.paired_jp}.values())
         jp = next((j for j in found if j['kind'] == gl['kind']), found[0] if len(found) == 1 else None)
         if jp:
-            take(record(gl, jp, 'post'), gl, jp)
+            s.take(s.record(gl, jp, 'post'), gl, jp)
         elif found:
             print(f'warning: Global {gl["kind"]} {gl["id"]}: its post has JP events of other kinds only '
                   f'({", ".join(j["id"] for j in found)}), not paired by post')
+
+
+def own_post_parts(s):
     # a Global part with a post of its own (Global's 1109 Sparkly Magic Show, merged into its celebration's 1093-0): by
     # that post, never an anchor (a part's dates follow its celebration's)
-    by_id = {e['id']: e for e in gl_all}
-    own_post = [e for e in gl_all if e['parent'] and post_ids(e) - post_ids(by_id[e['parent']])]
+    by_id = {e['id']: e for e in s.gl_all}
+    own_post = [e for e in s.gl_all if e['parent'] and post_ids(e) - post_ids(by_id[e['parent']])]
     for gl in sorted(own_post, key=lambda e: e['start']):
-        found = [jp for i in post_ids(gl) - post_ids(by_id[gl['parent']]) for jp in by_post.get(i, [])
-                 if jp['id'] not in paired_jp]
+        found = [jp for i in post_ids(gl) - post_ids(by_id[gl['parent']]) for jp in s.jp_posts.get(i, [])
+                 if jp['id'] not in s.paired_jp]
         if found:
             jp = next((j for j in found if j['kind'] == gl['kind']), found[0])
-            take(record(gl, jp, 'post', anchor=False), gl, jp)
+            s.take(s.record(gl, jp, 'post', anchor=False), gl, jp)
+
+
+def by_card(s):
     # card: a support card both give, the nearest such JP event of the same kind (a celebration's gift of a story
     # event's card isn't that story event)
-    for gl in gl_sorted:
-        ids = gl['id'] not in paired_gl and cards_of(gl, gl_parts)
+    for gl in s.gl_sorted:
+        ids = gl['id'] not in s.paired_gl and cards_of(gl, s.gl_parts)
         if ids:
-            jp, _ = nearest(gl, [j for j in jp_top if j['kind'] == gl['kind'] and jp_cards[j['id']] & ids])
+            jp, _ = s.nearest(gl, [j for j in s.jp_top if j['kind'] == gl['kind'] and s.jp_cards[j['id']] & ids])
             if jp:
-                take(record(gl, jp, 'card'), gl, jp)
+                s.take(s.record(gl, jp, 'card'), gl, jp)
+
+
+def by_name(s):
     # name: the same event in either language, the nearest that fits, between the JP events of the Global ones of
     # its name paired before and after it (recurring campaigns drift: Star Pieces ran 20 days late on Global in 2026,
     # and the nearest one by date was a later campaign)
-    gl_keys = {gl['id']: name_key(gl, 'gl') for gl in gl_sorted}
-    for gl in gl_sorted:
-        key = gl['id'] not in paired_gl and gl_keys[gl['id']]
+    gl_keys = {gl['id']: name_key(gl, 'gl') for gl in s.gl_sorted}
+    for gl in s.gl_sorted:
+        key = gl['id'] not in s.paired_gl and gl_keys[gl['id']]
         if key:
-            known = sorted((p['gl_start'], p['jp_start']) for p in pairs + rejected if gl_keys.get(p['gl']) == key)
+            known = sorted((p['gl_start'], p['jp_start']) for p in s.pairs + s.rejected if gl_keys.get(p['gl']) == key)
             lo = max((j for g, j in known if g < gl['start']), default='')
             hi = min((j for g, j in known if g > gl['start']), default='~')
-            jp, _ = nearest(gl, [j for j in jp_keys.get(key, []) if lo < j['start'] < hi], TOL)
+            jp, _ = s.nearest(gl, [j for j in s.jp_keys.get(key, []) if lo < j['start'] < hi], TOL)
             if jp:
-                take(record(gl, jp, 'name'), gl, jp)
-    # order: unnamed kinds, the nearest of the kind that fits; an anchor only if no other one fits
-    for gl in gl_sorted:
-        if gl['id'] in paired_gl or gl['kind'] not in ('legend_race', 'transfer_requests'):
-            continue
-        jp, runner_up = nearest(gl, [j for j in jp_top if j['kind'] == gl['kind']], TOL)
-        if jp:
-            take(record(gl, jp, 'order', anchor=bool(runner_up > TOL)), gl, jp)
+                s.take(s.record(gl, jp, 'name'), gl, jp)
 
+
+def by_order(s):
+    # order: unnamed kinds, the nearest of the kind that fits; an anchor only if no other one fits
+    for gl in s.gl_sorted:
+        if gl['id'] in s.paired_gl or gl['kind'] not in ('legend_race', 'transfer_requests'):
+            continue
+        jp, runner_up = s.nearest(gl, [j for j in s.jp_top if j['kind'] == gl['kind']], TOL)
+        if jp:
+            s.take(s.record(gl, jp, 'order', anchor=bool(runner_up > TOL)), gl, jp)
+
+
+def crossed(p, q):
+    return (p['gl_start'] < q['gl_start'] and p['jp_start'] > q['jp_start']
+            or p['gl_start'] > q['gl_start'] and p['jp_start'] < q['jp_start'])
+
+
+def check_order(s):
     # JP's order within each kind: post and card pairs stand (Global does reorder events), the others must keep to
     # them and to each other
-    def crossed(p, q):
-        return (p['gl_start'] < q['gl_start'] and p['jp_start'] > q['jp_start']
-                or p['gl_start'] > q['gl_start'] and p['jp_start'] < q['jp_start'])
-
+    pairs = s.pairs
     for kind in {p['kind'] for p in pairs}:
         sure = [p for p in pairs if p['kind'] == kind and p['how'] in SURE]
         of_kind = [p for p in pairs if p['kind'] == kind and p['how'] not in SURE]
@@ -351,27 +383,40 @@ def pair_events(ref):
         for p in of_kind:
             if id(p) not in keep:
                 pairs.remove(p)
-                rejected.append({**p, 'why': f'out of JP order among {kind} pairs'})
+                s.rejected.append({**p, 'why': f'out of JP order among {kind} pairs'})
     for p in pairs:
         p.setdefault('anchor', True)
+
+
+def parts(s):
+    """The missing parts: JP's parts without a Global one."""
     # A paired celebration's parts, by the art Global reuses (else kind and offset): pairs, never anchors (a part's
     # dates follow its celebration), outside the order check; JP's parts without a Global one: `missing_parts`.
     missing = []
-    by_gl, by_jp = {e['id']: e for e in gl_all}, {e['id']: e for e in jp_all}
-    for top in [p for p in pairs + rejected if p['kind'] == 'celebration']:
+    by_gl, by_jp = {e['id']: e for e in s.gl_all}, {e['id']: e for e in s.jp_all}
+    for top in [p for p in s.pairs + s.rejected if p['kind'] == 'celebration']:
         gl, jp = by_gl.get(top['gl']), by_jp.get(top['jp'])
         if not gl or not jp or gl['kind'] != 'celebration':
             continue
-        found, left = pair_parts(gl, jp, gl_parts, jp_parts, paired_gl, paired_jp)
+        found, left = pair_parts(gl, jp, s.gl_parts, s.jp_parts, s.paired_gl, s.paired_jp)
         for g, j, how in found:
-            paired_gl.add(g['id'])
-            paired_jp.add(j['id'])
-            pairs.append(record(g, j, how, anchor=False))
+            s.paired_gl.add(g['id'])
+            s.paired_jp.add(j['id'])
+            s.pairs.append(s.record(g, j, how, anchor=False))
         missing += [{'gl_parent': gl['id'], 'jp_parent': jp['id'], 'jp': j['id']} for j in left]
-    pairs.sort(key=lambda p: p['gl_start'])
-    rejected.sort(key=lambda p: p['gl_start'])
-    check(pairs, gl_top)
-    return {'pairs': pairs, 'rejected': rejected, 'done_jp': paired_jp, 'missing_parts': missing}
+    return missing
+
+
+def pair_events(ref):
+    """ref: JP days (array) → expected Global days. Returns { pairs, rejected }."""
+    s = Pairing(ref, *load('gl'), *load('jp'))
+    for rule in (by_post, own_post_parts, by_card, by_name, by_order, check_order):
+        rule(s)
+    missing = parts(s)
+    s.pairs.sort(key=lambda p: p['gl_start'])
+    s.rejected.sort(key=lambda p: p['gl_start'])
+    check(s.pairs, s.gl_top)
+    return {'pairs': s.pairs, 'rejected': s.rejected, 'done_jp': s.paired_jp, 'missing_parts': missing}
 
 
 def check(pairs, gl_top):

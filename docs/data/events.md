@@ -97,7 +97,7 @@
   the same windows. Global's counts equal Luh's on every banner both give but 30073 (the post gives 6, Luh 5;
   `test/free-scouts.test.ts` lists the differences); JP's 30153 count (11) is the trainee banner's, Luh put it on the
   card banner.
-- **A model for what the rules doubt** (`scripts/lib/ai.ts`, `event-questions.ts`, `ai-events.ts`, `pnpm news:ai`): the
+- **A model for what the rules doubt** (`scripts/lib/ai.ts`, `event-questions.ts` + its `-en` / `-ja` / `-spec` files, `event-answers.ts`, `ai-events.ts`, `pnpm news:ai`): the
   rules stay the extractor; each event records its `doubts` ({ field: why }: an amount in a sentence they didn't read or
   given per day (`itemDoubt()`), copies given in several places or talked about but not read (`copiesDoubt()`), a
   sub-event name from a heading instead of a sentence, a name that's a kind's generic word or (English) starts
@@ -112,7 +112,7 @@
   System prompt: answer only from the text, never guess or assume a default; null is better than a wrong answer.
   Answers are stored in `data/news/gl/ai_answers.json` by event aiKey (id + a hash of its text and context, so an edited
   post is asked again) with per-field versions (`FIELD_VERSIONS`: bump one when its question changes, so only that
-  field is re-asked) and applied at build time by `applyAnswer()`, rules first: a doubted or empty field takes the
+  field is re-asked) and applied at build time by `applyAnswer()` (`event-answers.ts`), rules first: a doubted or empty field takes the
   answer, a value the rules are sure of is never touched. An answer is used only if it checks out: item and event
   names in the text (not a kind's generic name like "Legend Race"; "carat gifts" → Carats), amounts up to 10 million,
   copies of a card the rules found that the post gives (as a digit or word, in a line about the card or copies/times;

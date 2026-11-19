@@ -72,7 +72,7 @@
   SSR; the miss is a 2021 announcement naming none), Champions Meeting (36/36: round 1 = GameTora's start, same end)
   and Legend Race (48/48) matches; before mid-2022 the archive is thin (2021: 96 posts).
 - **The model on JP events** (`news:ai --server jp`): the questions are per language (`QUESTIONS` in
-  event-questions.ts: Japanese SYSTEM / FIELDS / made-up EXAMPLES; English's unchanged, so Global's stored answers
+  event-questions.ts, from event-questions-en.ts / event-questions-ja.ts: Japanese SYSTEM / FIELDS / made-up EXAMPLES; English's unchanged, so Global's stored answers
   still match). JP times are JST: the model gets the post date and answers dates in JST as the post writes them; the
   code converts them to UTC with the year nearest the post. Sub-event kinds also allow `special` (an event embedded in
   a celebration post). Answer names go through the JP lexicon (`itemName(raw, ja)`, `local`). Run locally with

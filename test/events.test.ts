@@ -4,7 +4,7 @@ import { eventBlocks } from '../scripts/lib/event-blocks.ts';
 import { cardIndex, cardsIn, itemsIn, missionsIn, titlesIn } from '../scripts/lib/event-rewards.ts';
 import { EVENT_KINDS, buildEvents, cmItems } from '../scripts/lib/events.ts';
 import { postEvents } from '../scripts/lib/event-fragments.ts';
-import { SUB_EVENT_KINDS } from '../scripts/lib/event-questions.ts';
+import { SUB_EVENT_KINDS } from '../scripts/lib/event-questions-spec.ts';
 import { en } from '../scripts/lib/news-lang/en.ts';
 import { postsFile } from '../scripts/lib/news-api.ts';
 import { categorize } from '../scripts/lib/post-categories.ts';
