@@ -2,7 +2,10 @@ import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { eventBlocks } from '../scripts/lib/event-blocks.ts';
 import { cardIndex, cardsIn, itemsIn, missionsIn, titlesIn } from '../scripts/lib/event-rewards.ts';
-import { EVENT_KINDS, buildEvents, cmItems, postEvents } from '../scripts/lib/events.ts';
+import { EVENT_KINDS, buildEvents, cmItems } from '../scripts/lib/events.ts';
+import { postEvents } from '../scripts/lib/event-fragments.ts';
+import { SUB_EVENT_KINDS } from '../scripts/lib/event-questions.ts';
+import { en } from '../scripts/lib/news-lang/en.ts';
 import { postsFile } from '../scripts/lib/news-api.ts';
 import { categorize } from '../scripts/lib/post-categories.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
@@ -215,9 +218,16 @@ const CELEBRATION = post(
   '2026-07-22 22:00:00'
 );
 
+describe('lexicon subKinds', () => {
+  // (And 'campaign', the kind of a sub-event nothing matches, is one too.) Not ja's: it names 'special'.
+  it("only names kinds a model may answer (en's)", () => {
+    expect(en.subKinds.filter(([kind]) => !SUB_EVENT_KINDS.includes(kind))).toEqual([]);
+  });
+});
+
 describe('postEvents', () => {
   it('keeps a one-event post whole, whatever art it shows', () => {
-    const events = postEvents(STORY, INDEX);
+    const events = postEvents(STORY, { index: INDEX });
     expect(events).toHaveLength(1);
     expect(events[0]).toMatchObject({
       id: '1077',
@@ -234,7 +244,7 @@ describe('postEvents', () => {
   });
 
   it('makes a sub-event of every celebration block with dates or gift contents of its own', () => {
-    const events = postEvents(CELEBRATION, INDEX);
+    const events = postEvents(CELEBRATION, { index: INDEX });
     expect(events.map((e) => [e.id, e.kind, e.name, e.parent, e.start, e.end])).toEqual([
       [
         '902',

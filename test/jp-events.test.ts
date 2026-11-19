@@ -1,6 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { CM_PHASES, EVENT_KINDS, buildEvents, eventsFile, postEvents } from '../scripts/lib/events.ts';
+import { CM_PHASES } from '../scripts/lib/event-dates.ts';
+import { EVENT_KINDS, buildEvents } from '../scripts/lib/events.ts';
+import { eventsFile } from '../scripts/lib/events-files.ts';
+import { postEvents } from '../scripts/lib/event-fragments.ts';
 import { cardIndex } from '../scripts/lib/event-rewards.ts';
 import { cmPhasesFrom, cutEvents, fillFromGametora, gametoraEvents } from '../scripts/lib/gametora-events.ts';
 import { postsFile } from '../scripts/lib/news-api.ts';
@@ -33,7 +36,7 @@ describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
   const posts = read<NewsPost[]>(file);
   const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
   const post = (id: number) => present(byId.get(String(id)), `post ${id}`);
-  const of = (id: number) => postEvents(post(id), index, ja);
+  const of = (id: number) => postEvents(post(id), { index, lang: ja });
   const one = (id: number) => {
     const events = of(id);
     expect(events).toHaveLength(1);

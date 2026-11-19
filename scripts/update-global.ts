@@ -24,7 +24,8 @@ import {
 } from './lib/global.ts';
 import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.ts';
 import { readJpBanners, regularBanners } from './lib/jp-banners.ts';
-import { buildEvents, readAnswers, readCmTable, readEvents, writeEvents } from './lib/events.ts';
+import { buildEvents } from './lib/events.ts';
+import { readAnswers, readCmTable, readEvents, writeEvents } from './lib/events-files.ts';
 import { readCategories, refreshCategories, unsureLines } from './lib/categories.ts';
 import { keepEventFills } from './lib/dates.ts';
 import { withFreePulls } from './lib/free-scouts.ts';

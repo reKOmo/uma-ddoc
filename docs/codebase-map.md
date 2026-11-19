@@ -41,9 +41,18 @@ scripts/
   lib/event-blocks.ts  pure: eventBlocks() (a post cut at its header art into blocks: intro + h2–h4 sections)
   lib/event-rewards.ts pure: cardsIn() (cards by lookup), itemsIn(), titlesIn(), missionsIn()
   lib/event-races.ts pure: blockRaces() (an event's races from its race conditions), raceConditions() (one line)
-  lib/events.ts      pure: postEvents() (a post → its events, with doubts), eventFragments(), buildEvents() (mission
-                     sets as bars, merged over posts, answers applied), cmPhases() (a cup's schedule), cmItems()
-                     (Champions Meeting range from the hand table), data/ readers/writers (events, answers)
+  lib/events.ts      pure: buildEvents() (fragments → answers applied → merged → output), cmItems() (Champions
+                     Meeting range from the hand table)
+  lib/event-fragments.ts  pure: postEvents() (a post → its events: singleEvent() or a celebration's), missionBars(),
+                     eventFragments()
+  lib/event-celebration.ts  pure: a celebration post cut into sub-events, by the classified units
+                     (groupsFromUnits()) or the rules (groupsFromRules(), splitOpening())
+  lib/event-doubts.ts  pure: the Fragment type, withDoubts(), rewards(), aiKey()
+  lib/event-dates.ts pure: a block's period (headingPeriod(), openingPeriod()), cmPhases() (a cup's schedule)
+  lib/event-names.ts pure: a sub-event's name and kind (subEventName(), subEventKind())
+  lib/event-merge.ts pure: posts about the same event merged (mergePosts(), joinUndated(), resolveParents(),
+                     spanParts())
+  lib/events-files.ts  data/ readers/writers (events, answers, Champions Meeting table)
   lib/free-scouts.ts pure: a free scout campaign's windows (scoutWindows(), counted()), its banners (bannerOf()),
                      each banner's free pulls (withFreePulls())
   lib/event-questions.ts  pure: what a model is asked about an event (askedFields(), question(): prompt + examples

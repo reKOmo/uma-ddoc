@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { readCategories } from '../scripts/lib/categories.ts';
-import { eventFragments } from '../scripts/lib/events.ts';
+import { eventFragments } from '../scripts/lib/event-fragments.ts';
 import { applyAnswer } from '../scripts/lib/event-questions.ts';
 import { type ScoutWindow, bannerOf, scoutWindows, windowScouts, withFreePulls } from '../scripts/lib/free-scouts.ts';
 import type { BannerFile } from '../shared/schemas/banner.ts';

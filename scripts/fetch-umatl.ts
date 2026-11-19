@@ -9,7 +9,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { BANNERS_FILE, readJson } from './lib/global.ts';
-import { readEvents } from './lib/events.ts';
+import { readEvents } from './lib/events-files.ts';
 import { readGametoraEvents } from './lib/gametora-events.ts';
 import { GAMETORA_TRAINEES_FILE, readJpBanners } from './lib/jp-banners.ts';
 import { GENERATED_DIR } from './lib/paths.ts';

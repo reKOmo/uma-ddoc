@@ -4,7 +4,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import type { GoldLabel, GoldUnit, NewsPost } from '../../shared/schemas/news.ts';
 import { eventBlocks } from './event-blocks.ts';
-import { postEvents } from './events.ts';
+import { postEvents } from './event-fragments.ts';
 import { lexicon } from './news-lang/index.ts';
 import type { Block } from './news-lang/index.ts';
 import { loadPosts } from './news-api.ts';
@@ -40,7 +40,7 @@ export function ruleLabel(post: NewsPost, server: Server = 'gl'): GoldLabel {
     post_updated: post.update_at,
   };
   if (c.category !== 'event') return label;
-  const fragments = new Map(postEvents(post, undefined, lang).map((f) => [f.id, f]));
+  const fragments = new Map(postEvents(post, { lang }).map((f) => [f.id, f]));
   const id = String(post.announce_id);
   const all = units(post, server);
   const intro = all.length - eventBlocks(post, lang).length;

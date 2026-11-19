@@ -1,4 +1,4 @@
-// Questions for a language model about the fields of an event the rules aren't sure of (its `doubts`, from events.ts),
+// Questions for a language model about the fields of an event the rules aren't sure of (its `doubts`, from event-doubts.ts),
 // or left empty, and how its answers fill them in. Pure: `pnpm news:ai` asks, buildEvents() applies the stored answers.
 //
 // Amounts are asked in parts (each time × how many times, or a total the text states): small models read numbers well
@@ -25,10 +25,10 @@ export type Field = 'items' | 'cards' | 'name' | 'kind' | 'dates' | 'scouts';
 // A model's answer (the fields it was asked), as stored in ai_answers.json.
 export type Answer = AiAnswer['answer'];
 
-// The event fragment events.ts passes in (a minimal local type of the fields read here): an event as read so far, plus
+// The event fragment event-fragments.ts makes (a minimal local type of the fields read here): an event as read so far, plus
 // its post's text, post time, the rules' doubts and the lines elsewhere in the post about its cards.
 export type AskedEvent = Pick<GameEvent, 'id' | 'name' | 'parent' | 'cards' | 'items'> & {
-  // (events.ts' Fragment: a kind and dates as read so far, not yet checked)
+  // (event-doubts.ts' Fragment: a kind and dates as read so far, not yet checked)
   kind: string;
   start: string | null;
   end: string | null;
@@ -78,7 +78,7 @@ const SYSTEM = [
   'Reply with one JSON object matching the schema, nothing else.',
 ].join(' ');
 
-// A celebration's sub-event kinds (events.ts reads them from the post; a model may correct one).
+// A celebration's sub-event kinds (event-names.ts reads them from the post; a model may correct one).
 export const SUB_EVENT_KINDS = ['login_bonus', 'missions', 'sale', 'shop', 'gift', 'campaign'];
 const KINDS = SUB_EVENT_KINDS;
 // Kinds whose posts never name the event (the kind says what it is).

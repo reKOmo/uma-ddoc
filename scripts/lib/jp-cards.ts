@@ -11,7 +11,7 @@ import type { GametoraCard } from '../../shared/schemas/gametora.ts';
 import type { NewsPost } from '../../shared/schemas/news.ts';
 import { bannerPost } from './banner-posts.ts';
 import { fromGametora } from './cards.ts';
-import { eventFragments } from './events.ts';
+import { eventFragments } from './event-fragments.ts';
 import type { JapaneseLexicon } from './news-lang/index.ts';
 import { ja } from './news-lang/ja.ts';
 import { norm, toLines } from './news-text.ts';

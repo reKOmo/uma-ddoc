@@ -25,7 +25,7 @@
   champions_meeting, legend_race, transfer_requests, uma_outing, special, celebration, and a celebration's sub-events
   campaign / gift / login_bonus / missions / shop / sale (campaign is also single bonus posts: Star Pieces, race
   tickets, free scouts). `name` null for Legend Races and Transfer Requests (the UI shows the kind).
-  From posts (`postEvents()`): event posts (`categorize()`; "ending soon" reminders skipped) are cut into blocks at their
+  From posts (`postEvents()`, `event-fragments.ts`; a celebration's sub-events: `event-celebration.ts`): event posts (`categorize()`; "ending soon" reminders skipped) are cut into blocks at their
   header art (`eventBlocks()`: `<figure><img …/header_<8 digits>_…>`; scout art isn't a boundary; the intro goes with
   the first block; h2–h4 are all headings). A one-event post stays one event whatever art it shows (story events and
   Champions Meetings use extra pictures). A celebration post is several: block 0 is the celebration (id = post id),
@@ -41,7 +41,7 @@
   1155's "the Unity Cup Halved TP Costs event has begun!"; not `lang.contentSentence`, "the special … home screen is
   available!"): these decide only the rules' unit labels, a feature of the unit classifier (rules 93.6 → 96.3% of
   Global's gold units, 2026-11-08), since every stored post is classified. A celebration without a
-  period of its own runs from its opening sentence's date to its last sub-event's end. Dates (`blockPeriod()`): the
+  period of its own runs from its opening sentence's date to its last sub-event's end. Dates (`headingPeriod()` / `openingPeriod()`, `event-dates.ts`): the
   block's period headings (main ones first: availability / event / sale / league selection; never reward collection, expiry,
   registration, matching, sneak peek, ranking, exchange), every short non-bullet line under them; "Gift Timing" lists
   run first → last moment; else an opening "As of / From … (UTC)" sentence. "has ended" posts give no dates. A
@@ -55,7 +55,7 @@
   Every date is `{ date, status }` ([pipeline](pipeline.md#dates)): `news` here, `gametora` for GameTora's.
   Mission sets get the reward names of their post's sentence about the missions ("rewards including carats, monies
   and Support Points"), never amounts (posts don't give per-set amounts).
-  Merging (`buildEvents()`): same kind + name and overlapping dates (a cup counts from its league selection, so a
+  Merging (`buildEvents()`, its passes in `event-merge.ts`): same kind + name and overlapping dates (a cup counts from its league selection, so a
   "coming soon" post dated there meets it; the frequent "Bonus Star Piece" posts stay apart, overlapping too unless
   they start together, `lang.ownPosts`: JP's ホープフルステークス 12/27–29 and 東京大賞典 12/28–30 are two, as do two celebration
   series' parts: New Beginnings' Star Pieces aren't Fall G1's; an event with a post of its own that a celebration's

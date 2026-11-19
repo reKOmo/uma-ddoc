@@ -1,7 +1,9 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { Server } from '../scripts/lib/news-text.ts';
 import { canClassify, heldOutCategories, readCategories } from '../scripts/lib/categories.ts';
-import { type Merge, buildEvents, readAnswers } from '../scripts/lib/events.ts';
+import type { Merge } from '../scripts/lib/event-merge.ts';
+import { buildEvents } from '../scripts/lib/events.ts';
+import { readAnswers } from '../scripts/lib/events-files.ts';
 import { readGold } from '../scripts/lib/gold.ts';
 import { loadPosts } from '../scripts/lib/news-api.ts';
 import { lexicon } from '../scripts/lib/news-lang/index.ts';
