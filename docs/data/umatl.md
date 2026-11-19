@@ -18,8 +18,9 @@ its own (a game patch), and **never with generative ML models**. So:
 - **AI agents (Claude Code) never see it either.** `pnpm fetch-umatl` prints counts, never names. An agent previewing the
   app runs `pnpm dev:ai` (`VITE_AI_PREVIEW=1`): `loadTranslations()` masks every fan translation as dots of its length
   (`masked()`), so layouts and marks can be checked and official names still read; `pnpm dev` shows the real text, for
-  people. Unit tests use made-up strings. Enforced in `.claude/settings.json`: `Read` of `generated/translations.json`
-  and `generated/raw/umatl_*` (and the built chunk) denied, `WebFetch` of raw.githubusercontent.com denied, and a
+  people. `pnpm preview:ai` (the e2e tests' server) masks the same way on a build in `dist-ai/`. Unit tests use made-up
+  strings. Enforced in `.claude/settings.json`: `Read` of `generated/translations.json` and `generated/raw/umatl_*`
+  (and the built chunks in `dist/` and `dist-ai/`) denied, `WebFetch` of raw.githubusercontent.com denied, and a
   `PreToolUse` hook (`.claude/hooks/guard-umatl.mjs`) refusing shell commands that name those files or UmaTL's repos'
   contents (so edit code that mentions the path with the Edit tool, not a shell script).
 

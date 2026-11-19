@@ -4,6 +4,7 @@
       "Read(./generated/translations.json)",
       "Read(./generated/raw/umatl_*)",
       "Read(./dist/**/translations*)",
+      "Read(./dist-ai/**/translations*)",
       "WebFetch(domain:raw.githubusercontent.com)"
     ]
   },

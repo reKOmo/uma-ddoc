@@ -30,7 +30,7 @@ pnpm build        # production build into dist/
 pnpm typecheck    # tsc over everything (CI)
 pnpm lint         # Biome check (CI); pnpm format applies fixes
 pnpm test         # Vitest unit suite (~15s)
-pnpm test:e2e     # Playwright (~45s)
+pnpm test:e2e     # Playwright (~30s)
 ```
 
 Every other command (data updates, news, predictions): [docs/commands.md](docs/commands.md).

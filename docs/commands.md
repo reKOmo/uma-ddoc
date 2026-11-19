@@ -5,12 +5,13 @@ The everyday ones are in the root CLAUDE.md; this is the full list.
 ```sh
 pnpm dev               # dev server (fetches card data on first run — see note below)
 pnpm build             # production build into dist/
+pnpm preview:ai        # build with fan translations masked into dist-ai/ and serve it (what pnpm test:e2e runs)
 pnpm lint              # Biome: formatting + lint check (CI runs this)
 pnpm format            # Biome: apply formatting and safe fixes
 pnpm test              # Vitest unit suite (~15s; fetches card data if missing, rebuilds it if stale)
 pnpm test:upstream     # compare our calculation with upstream's (~25s; needs the clone)
 pnpm typecheck         # tsc over everything (CI runs this)
-pnpm test:e2e          # the app in a browser (Playwright, e2e/; starts the dev server; ~45s; needs
+pnpm test:e2e          # the app in a browser (Playwright, e2e/; builds and serves it with `preview:ai`; ~30s; needs
                        # `pnpm exec playwright install chromium` once; E2E_PORT=… for parallel runs)
 pnpm test:visual       # screens compared pixel by pixel with baselines made on this machine (.visual-baseline/, not
                        # in git; `--update-snapshots` from a known-good commit; VISUAL_BASELINE=… to share them)

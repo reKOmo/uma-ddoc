@@ -5,7 +5,7 @@ pnpm test              # Vitest unit suite (~15s; fetches card data if missing, 
 pnpm test:code         # the suite without the data tests (CI's required check)
 pnpm test:data         # only the data tests (CI's `data` job, not required)
 pnpm test:upstream     # our calculation vs upstream's (~25s; needs `pnpm clone-upstream`)
-pnpm test:e2e          # the app in a browser (Playwright, e2e/; starts the dev server; ~45s; needs
+pnpm test:e2e          # the app in a browser (Playwright, e2e/; builds and serves it with `preview:ai`; ~30s; needs
                        # `pnpm exec playwright install chromium` once; E2E_PORT=… for parallel runs)
 pnpm test:visual       # 14 screens × light/dark × phone/desktop, pixel by pixel against baselines made on this
                        # machine (.visual-baseline/, not in git; `--update-snapshots` from a known-good commit;

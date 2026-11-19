@@ -74,7 +74,7 @@ jobs:
             data
             generated
       - name: End-to-end tests (the app in a browser)
-        run: pnpm exec playwright install --with-deps chromium && pnpm test:e2e
+        run: pnpm exec playwright install --with-deps --only-shell chromium && pnpm test:e2e
       - name: Build
         run: pnpm build
       - uses: actions/configure-pages@v6
