@@ -36,18 +36,5 @@
       "source": "November 2026 release schedule (official socials): 2nd Anniv. Celebration Part 1"
     }
   ],
-  "banners": [
-    {
-      "id": 30148,
-      "start": "2026-11-21T22:00:00.000Z",
-      "end": "2026-12-02T21:59:59.000Z",
-      "source": "November 2026 release schedule (official socials): New Trainee!"
-    },
-    {
-      "id": 30149,
-      "start": "2026-11-21T22:00:00.000Z",
-      "end": "2026-12-02T21:59:59.000Z",
-      "source": "November 2026 release schedule (official socials): New Trainee!"
-    }
-  ]
+  "banners": []
 }
