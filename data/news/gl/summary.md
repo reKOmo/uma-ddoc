@@ -1,21 +1,26 @@
-# Umamusume news — 2026-11-20 23:44 UTC
+# Umamusume news — 2026-11-21 23:44 UTC
 
-1 new, 1 edited.
+4 new, 0 edited.
 
 ## New
 
-- [New Spotlight Pretty Derby and Spotlight Support Card Scouts coming soon!](https://umamusume.com/news/1173/) — banner, announced
-
-## Edited
-
-- [List of Known Issues](https://umamusume.com/news/155/) — other / issue
+- [Issue with Career Events](https://umamusume.com/news/100122/) — other / issue
+- [Spotlight Pretty Derby and Spotlight Support Card Scouts out now!](https://umamusume.com/news/1174/) — banner, started
+- [The race event Champions Meeting: Aquarius Cup is here!](https://umamusume.com/news/1179/) — event / champions_meeting, started
+- [2nd Anniversary Celebration Part 1 now available!](https://umamusume.com/news/1182/) — event / celebration, started
 
 
 ## Global repository (data/)
 
-- Added trainee banner 30148: 2026-11-21 22:00 UTC → 2026-12-02 21:59 UTC — [Wicked Punk] Shinko Windy
-- Added support card banner 30149: 2026-11-21 22:00 UTC → 2026-12-02 21:59 UTC — [Little Cupcakes, Big Emotions] Nishino Flower, [Sentimental Flare ♪] Maruzensky
-- Banner 30148 is out of known_dates.json: the news has it (was confirmed by November 2026 release schedule (official socials): New Trainee!)
-- Banner 30149 is out of known_dates.json: the news has it (was confirmed by November 2026 release schedule (official socials): New Trainee!)
+- Added campaign event "Bonus Daily Race Entry Tickets" (2026-11-22)
+- Added campaign event "Half Off Legacy Borrows" (2026-11-22)
+- Added campaign event "2x Career Mode Rewards" (2026-11-21)
+- Added campaign event "Halved TP Costs" (2026-11-21)
+- Added shop event "2nd Anniversary Shop" (2026-11-21)
+- Added missions event "2nd Anniversary Celebration Missions Part 1" (2026-11-21)
+- Added campaign event "Daily Free Scout" (2026-11-21)
+- Added login_bonus event "2nd Anniversary Countdown Login Bonus" (2026-11-21)
+- Added celebration event "2nd Anniversary Celebration Part 1" (2026-11-21)
+- Updated champions_meeting event "Aquarius Cup" (2026-11-17) — titles: Aquarius Cup Platinum, Aquarius Cup Gold, Aquarius Cup Silver, Aquarius Cup Bronze
 - Edited since labelled: post 155 "List of Known Issues": label it again (pnpm gold:review)
 - Unsure: post 1168 "New title missions are here!" is event/missions by the rules, other/update by the model: label it (pnpm gold:review)
