@@ -8,6 +8,7 @@
 {"id": 3548, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": []},
 {"id": 3547, "category": "banner", "kind": null, "phase": "started", "name": null, "source": "model", "confidence": 0.996, "flag": null, "units": []},
 {"id": 3546, "category": "banner", "kind": null, "phase": "announced", "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
+{"id": 3545, "category": "event", "kind": "league_of_heroes", "phase": "started", "name": null, "source": "model", "confidence": 0.97, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 3544, "category": "event", "kind": "league_of_heroes", "phase": "league_selection", "name": null, "source": "model", "confidence": 0.97, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 3543, "category": "other", "kind": "update", "phase": null, "name": null, "source": "model", "confidence": 0.074, "flag": null, "units": []},
 {"id": 3542, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": []},
