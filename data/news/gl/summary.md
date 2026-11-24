@@ -1,18 +1,15 @@
-# Umamusume news — 2026-11-18 23:44 UTC
+# Umamusume news — 2026-11-23 23:44 UTC
 
-1 new, 0 edited.
+2 new, 0 edited.
 
 ## New
 
-- [G1 Celebration now available!](https://umamusume.com/news/1142/) — event / celebration, started
+- [The story event Sweet Memories Teatime has ended!](https://umamusume.com/news/1160/) — event / story, ended
+- [Bonus Star Piece rewards in Career!](https://umamusume.com/news/1143/) — event / campaign
 
 
 ## Global repository (data/)
 
-- Added gift event "G1 Race Giveaway" (2026-11-24)
-- Added missions event "February Stakes Missions" (2026-11-24)
-- Added campaign event "Bonus Star Piece rewards" (2026-11-23)
-- Added missions event "Kawasaki Kinen Missions" (2026-11-18)
-- Added missions event "Limited-time Missions" (2026-11-18)
-- Added celebration event "G1 Celebration" (2026-11-18)
+- Added campaign event "Bonus Star Piece rewards in Career" (2026-11-23)
+- Edited since labelled: post 155 "List of Known Issues": label it again (pnpm gold:review)
 - Unsure: post 1168 "New title missions are here!" is event/missions by the rules, other/update by the model: label it (pnpm gold:review)
