@@ -1,4 +1,4 @@
-// Usage: pnpm update-global
+// Usage: pnpm update-global [--summary]   (--summary: appends to data/news/gl/summary.md, for the news run)
 // Needs JP's banners (their items) and generated/cards.json (English names). Idempotent: the news-made entries are
 // rebuilt from every post each time, the seeded ones are left alone.
 
@@ -165,7 +165,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     const { changed, released, skipped, events, summary } = await updateGlobal();
     if (summary) {
       console.log(summary);
-      if (existsSync(SUMMARY_FILE)) appendFileSync(SUMMARY_FILE, `\n${summary}`);
+      if (process.argv.includes('--summary') && existsSync(SUMMARY_FILE)) appendFileSync(SUMMARY_FILE, `\n${summary}`);
       if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\n${summary}`);
     }
     console.log(
