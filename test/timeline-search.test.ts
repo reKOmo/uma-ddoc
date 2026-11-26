@@ -103,6 +103,8 @@ describe('the Timeline search', () => {
   it('matches text against any field, card titles included', () => {
     expect(keys([textTerm('card tick')])).toEqual(['event:m']);
     expect(keys([textTerm('a title')])).toEqual(['cards:1', 'event:m']);
+    // Accents don't matter, as on the Cards tab.
+    expect(keys([textTerm('Annïversäry')])).toContain('event:c');
   });
 
   it("keeps a part's parent, unfolded, and a match's parts", () => {

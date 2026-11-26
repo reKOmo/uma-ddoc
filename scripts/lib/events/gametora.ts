@@ -5,14 +5,16 @@
 //
 // A filled event has the news events' shape with `source: 'gametora'`, no news_url, art, items or titles. A Champions
 // Meeting starts at round 1: GameTora doesn't know the league selection, so its phases run from round 1 on (every cup
-// since 2022 has the same schedule). A news event announced without dates, of the same kind and name, up to
-// SAME_EVENT_DAYS before GameTora's, takes GameTora's dates and phases instead (keeping its id, link and source 'news').
+// since 2022 has the same schedule). A news event announced without dates, of the same kind and name, up to the JP
+// lexicon's sameEventDays before GameTora's (as when merging news events: cups are announced two months ahead), takes
+// GameTora's dates and phases instead (keeping its id, link and source 'news').
 
 import type { CardsFile } from '../../../shared/schemas/card.ts';
 import { dated } from '../../../shared/schemas/common.ts';
 import type { EventCard, EventKind, GameEvent, Phase } from '../../../shared/schemas/event.ts';
 import type { GametoraEventsFile } from '../../../shared/schemas/gametora.ts';
 import { DAY, HOUR, JST } from '../news/text.ts';
+import { jp } from '../news/lang/jp.ts';
 import { norm } from './rewards.ts';
 import { readJson } from '../json.ts';
 import { GENERATED_DIR } from '../paths.ts';
@@ -27,7 +29,6 @@ export const GAMETORA_EVENT_FILES = {
 const RACE_FIELDS = ['card_id', 'start', 'end'];
 export type GametoraRecord = Record<string, unknown>;
 
-const SAME_EVENT_DAYS = 45;
 // GameTora's events are only filled in before this (where the news archive is thin); later ones only date a news event.
 export const FILL_BEFORE = '2022-07-01T00:00:00.000Z';
 // A cup's schedule from round 1 (ms after its start; the last phase ends with the event).
@@ -178,7 +179,7 @@ export function fillFromGametora(
         !dated.has(e.id) &&
         norm(e.name ?? '') === norm(g.name ?? '') &&
         Date.parse(e.start.date) <= Date.parse(g.start.date) &&
-        Date.parse(g.start.date) - Date.parse(e.start.date) <= SAME_EVENT_DAYS * DAY
+        Date.parse(g.start.date) - Date.parse(e.start.date) <= jp.sameEventDays(g.kind) * DAY
     );
     if (announced) {
       const { start, end, phases, cards: given } = g;

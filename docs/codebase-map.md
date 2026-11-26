@@ -151,6 +151,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     translations.ts  optional loader for generated/translations.json; languageOf() / useLanguage() (the Names settings)
     pullGuide.ts     optional loader for generated/pull_guide.json (the card page's NextBanner tile + Banners), upcomingBanner(),
                      currentAdvice(), sheetLink()
+    search.ts        normalizeSearch(): text as the Cards tab and Timeline searches compare it (no case, accents, punctuation)
     umapyoi.ts       umapyoiUrl(news_url): umapyoi.net's copy of an official post (JP's in Japanese)
     statIcons.ts     STAT_ICONS: the game's stat type icons by stat key (src/icons/stats/<stat>.png, committed: 70×70,
                      from upstream's src/icons/utx_ico_obtain_00–05), bundled; the Cards tab's Stat picker shows them

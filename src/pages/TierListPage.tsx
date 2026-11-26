@@ -6,6 +6,7 @@ import type { Ranked, Stat } from '../../tierlist/index.ts';
 import { cards } from '../../tierlist/cards.ts';
 import type { Server } from '../../tierlist/cards.ts';
 import { getCurrentScenario, getServerConfig } from '../../tierlist/scenarios.ts';
+import { normalizeSearch } from '../lib/search.ts';
 import { TIER_NAMES, toTiers } from '../lib/tiers.ts';
 import { cardIcon } from '../lib/gametora.ts';
 import { DEFAULTS, SIZES, getFilters, isDefault, saveFilters, useFiltersStore } from '../state/tierListFilters.ts';
@@ -26,19 +27,9 @@ import styles from './TierListPage.module.css';
 const RARITIES: Rarity[] = ['SSR', 'SR', 'R'];
 const LIMIT_BREAKS = [0, 1, 2, 3, 4];
 
-// Lower case without accents or punctuation, so "tracen" finds "[Tracen Academy]".
-const normalize = (text: string): string =>
-  text
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .normalize('NFC') // puts Japanese voiced marks back on their kana
-    .toLowerCase()
-    .replace(/[^\p{L}\p{M}\p{N}]+/gu, ' ')
-    .trim();
-
 const searchText = (card: Ranked): string => {
   const { name, title } = cards[card.id];
-  return normalize([card.char_name, name.en, name.jp, title.en, title.jp].join(' '));
+  return normalizeSearch([card.char_name, name.en, name.jp, title.en, title.jp].join(' '));
 };
 
 export type TierListPageProps = {
@@ -82,7 +73,7 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
   );
   const [filterOpen, setFilterOpen] = useState(false);
   // Every word of the query must appear somewhere in the card's names.
-  const words = normalize(query).split(' ').filter(Boolean);
+  const words = normalizeSearch(query).split(' ').filter(Boolean);
   const matches = (card: Ranked): boolean => {
     if (words.length === 0) return true;
     const text = searchText(card);

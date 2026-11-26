@@ -71,6 +71,9 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   }
   writeGlobal(result);
   await buildCardFiles();
+  // Rebuilt from the card releases just written: a card whose English title the news gives first is matched in this
+  // run's events, not the next one's.
+  const builtCards = readJson<CardsFile>(CARDS_JSON);
 
   const announced = new Set([...result.global.characters, ...result.global.cards].map((b) => Number(b.id)));
   const unconfirmed = known.banners.filter((b) => announced.has(b.id));
@@ -96,7 +99,7 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   const events = keepEventFills(
     buildEvents(raw, {
       cmTable: readCmTable(),
-      cards: cardData,
+      cards: builtCards,
       answers: readAnswers(),
       categories,
       banners: result.global,

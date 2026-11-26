@@ -247,7 +247,8 @@ export type Lexicon = {
 };
 
 // The Japanese lexicon: the JP-only hooks cards/jp.ts reads are always there.
-export type JapaneseLexicon = Lexicon & Required<Pick<Lexicon, 'eventCard' | 'giftCard' | 'newCardGiven'>>;
+export type JapaneseLexicon = Lexicon &
+  Required<Pick<Lexicon, 'eventCard' | 'giftCard' | 'newCardGiven' | 'sameEventDays'>>;
 
 export const LEXICONS: { gl: Lexicon; jp: JapaneseLexicon } = { gl: en, jp };
 export const lexicon = (server: 'gl' | 'jp' = 'gl'): Lexicon => {

@@ -27,14 +27,14 @@ change in `scripts/` that writes `data/`, rerun the writer and confirm `git diff
 
 ## 1. Bugs found along the way (do first, they're not refactors)
 
-- [ ] **`update-global.ts` reads `cards.json` before rebuilding it** (`cardData` read ~line 58, `buildCardFiles()` ~73,
+- [x] **`update-global.ts` reads `cards.json` before rebuilding it** (`cardData` read ~line 58, `buildCardFiles()` ~73,
   `buildEvents` gets the stale copy ~99): a Global card whose English title first appears this run isn't matched in
-  events until the next run. Fix: read it after the rebuild. Check: `git diff data/` after `pnpm update-global`.
-- [ ] **GameTora fill ignores JP's event window:** `events/gametora.ts` (~182) uses a fixed `SAME_EVENT_DAYS = 45` to
+  events until the next run. Done: events get `builtCards`, read after `buildCardFiles()` (data/ unchanged today).
+- [x] **GameTora fill ignores JP's event window:** `events/gametora.ts` (~182) uses a fixed `SAME_EVENT_DAYS = 45` to
   match an undated news event; `jp.sameEventDays` (`lang/jp.ts` ~426) gives Champions Meetings / League of Heroes 75.
-  Fix: pass the lexicon's `sameEventDays` in, delete the constant. Check: `git diff data/jp_events.json`, jp tests.
-- [ ] **Search folds accents on the Cards tab only:** `TierListPage.tsx` `normalize` strips accents, `timeline/search.ts`
-  doesn't. Fix: one `normalizeSearch()` in `src/lib/search.ts` used by both (and see 3.5).
+  Done: `jp.sameEventDays(kind)` (now required on `JapaneseLexicon`); test in `jp-events.test.ts` (data/ unchanged).
+- [x] **Search folds accents on the Cards tab only:** `TierListPage.tsx` `normalize` strips accents, `timeline/search.ts`
+  doesn't. Done: `normalizeSearch()` in `src/lib/search.ts` used by both; test in `timeline-search.test.ts`.
 
 ## 2. Pills, badges and buttons (UI duplication)
 
@@ -83,7 +83,7 @@ change in `scripts/` that writes `data/`, rerun the writer and confirm `git diff
 - [ ] **Card page loaders cached:** `loadEntries` rebuilds and translates every entry per card page visit; `loadEvents`,
   `loadRealBanners` uncached (`withArt` 2–3× per file); `globalBannersPromise` a second hand-made cache
   (`timeline/data.ts`). Fix: memo per loader, `loadEntries` keyed by server + language.
-- [ ] **Search normalisation + cache** (with 1.3): one `normalizeSearch`; the tier list re-runs `toTiers` and normalises
+- [ ] **Search cache** (`normalizeSearch` done in 1.3): the tier list re-runs `toTiers` and normalises
   every card on every render (`TierListPage` ~39–42, 85–93): memo the tiers, cache each card's text. Maybe
   `match-sorter` (already a dependency) for the every-word match.
 - [ ] **`useUpcomingAdvice` ×3 per card page** (Summary, NextBanner, Banners): call it once in `CardPage`, pass it down.

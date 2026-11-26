@@ -440,6 +440,12 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
     // Idempotent: run over its own output, nothing more is added.
     expect(fillFromGametora(events, raw, cardsJp).events).toEqual(events);
   });
+
+  it('dates a cup announced up to two months ahead (the lexicon window, not 45 days)', () => {
+    // 2021-11-23: 60 days before GameTora's start of カプリコーン杯.
+    const early = news.map((e) => (e.id === '526' ? { ...e, start: at('2021-11-23T03:00:00.000Z') } : e));
+    expect(fillFromGametora(early, raw, cardsJp).dated.map((e) => e.id)).toEqual(['526']);
+  });
 });
 
 const stored = eventsFile('jp');
