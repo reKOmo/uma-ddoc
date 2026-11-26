@@ -1,10 +1,9 @@
-# Umamusume news (JP) — 2026-11-25 23:43 UTC
+# Umamusume news (JP) — 2026-11-26 23:43 UTC
 
-0 new, 2 edited.
+0 new, 1 edited.
 
 ## Edited
 
-- [育成シナリオ「駿大祭編」の特定条件下における演目稽古の不具合について](https://umamusume.jp/news/detail/?id=3571) — other / issue
 - [現在確認している不具合について](https://umamusume.jp/news/detail/?id=155) — other / issue
 
 
