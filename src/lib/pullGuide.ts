@@ -56,15 +56,6 @@ export function currentAdvice(
   return entry && releaseAhead(entry.release, today) ? entry : null;
 }
 
-// The card's latest advice in the guide (by banner id, roughly by date), or null when the guide doesn't
-// cover the card.
-export function latestAdvice(guide: PullGuide, cardId: number): Advice | NoBannerAdvice | null {
-  const onBanners = Object.values(guide.banners)
-    .map((cards) => cards[cardId])
-    .filter(Boolean);
-  return guide.noBanner[cardId] ?? onBanners.at(-1) ?? null;
-}
-
 // The pills an advice can have, then 'none' for advice without one (or no advice).
 export const VERDICTS = ['yes', 'free', 'dolphin', 'whale', 'no', 'none'] as const;
 export type Verdict = (typeof VERDICTS)[number];

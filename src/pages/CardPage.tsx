@@ -1,21 +1,25 @@
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { COMBINED } from '../../tierlist/index.ts';
 import { cards, loadCards } from '../../tierlist/cards.ts';
 import type { Server } from '../../tierlist/cards.ts';
-import { getServerConfig } from '../../tierlist/scenarios.ts';
+import { getCurrentScenario, getServerConfig } from '../../tierlist/scenarios.ts';
 import { STAT_OF_TYPE } from '../lib/tiers.ts';
 import { useAsync } from '../hooks/useAsync.ts';
 import { cardArt, cardPage } from '../lib/gametora.ts';
 import BackToTop from '../ui/BackToTop.tsx';
-import { serverName } from '../i18n/index.ts';
 import LinkButton from '../ui/LinkButton.tsx';
 import Pill from '../ui/Pill.tsx';
 import TypePill from '../ui/TypePill.tsx';
+import { Section } from '../ui/Section.tsx';
 import Status from '../ui/Status.tsx';
-import { formatDay } from './RankChart.tsx';
-import Origins, { OriginPill } from './card/Origins.tsx';
-import PullAdvice from './card/PullAdvice.tsx';
+import Banners from './card/Banners.tsx';
+import CardArt from './card/CardArt.tsx';
+import { OriginPill } from './card/Origins.tsx';
+import NextBanner from './card/NextBanner.tsx';
+import SummaryTiles from './card/Summary.tsx';
 import RankOverTime from './card/RankOverTime.tsx';
+import ScenarioFilter from './card/ScenarioFilter.tsx';
 import ScenarioTierTable from './card/ScenarioTierTable.tsx';
 import { useOrigins, usePredictions, useScenarioRankings } from './card/hooks.ts';
 import { nameOf, otherNames, titleOf } from './card/shared.ts';
@@ -23,6 +27,9 @@ import { useLanguage, useTranslations } from '../lib/translations.ts';
 import { FanTl } from '../ui/FanTl.tsx';
 import './card.css'; // the Rank over time picker's size (a global class of the Dropdown's)
 import styles from './CardPage.module.css';
+
+// The rarity as the game's badge, in its colours.
+const RARITY_CLASS: Record<'R' | 'SR' | 'SSR', string | undefined> = { R: styles.r, SR: styles.sr, SSR: styles.ssr };
 
 type CardPageProps = { cardId: number; server: Server; scenario: string };
 
@@ -40,9 +47,11 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
   const language = useLanguage(server);
   const tl = useTranslations();
   const stat = card && STAT_OF_TYPE[card.type];
-  const rankings = useScenarioRankings(server, stat, !!stat && released === true);
   const predictions = usePredictions(server);
   const predicted = predictions?.cards[cardId];
+  // A card not out yet but predicted is ranked among the cards to come, by its JP stats.
+  const upcoming = released === false && !!predicted;
+  const rankings = useScenarioRankings(server, stat, !!stat && (released === true || upcoming), upcoming);
 
   if (!card) {
     return (
@@ -74,78 +83,75 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
   return (
     <div className="page">
       <div className={styles.hero}>
-        <img className={styles.art} src={cardArt(cardId)} alt={name} />
+        <CardArt className={styles.art} src={cardArt(cardId)} alt={name} rarity={card.rarity} />
         <div className={styles.facts}>
-          <div className={styles.names}>
-            <h1>
-              <span>{name}</span>
-              {other.name && <small className={styles.other}>{other.name}</small>}
-            </h1>
-            {title && (
-              <p className={styles.title}>
-                <span>
-                  <FanTl fan={title.fan}>{title.text}</FanTl>
-                </span>
-                {other.title && (
-                  <small className={styles.other}>
-                    <FanTl fan={other.title.fan}>{other.title.text}</FanTl>
-                  </small>
-                )}
+          <div className={styles.identity}>
+            <div className={styles.names}>
+              <h1>
+                <span>{name}</span>
+                {other.name && <small className={styles.other}>{other.name}</small>}
+              </h1>
+              {title && (
+                <p className={styles.title}>
+                  <span>
+                    <FanTl fan={title.fan}>{title.text}</FanTl>
+                  </span>
+                  {other.title && (
+                    <small className={styles.other}>
+                      <FanTl fan={other.title.fan}>{other.title.text}</FanTl>
+                    </small>
+                  )}
+                </p>
+              )}
+            </div>
+            <p className={styles.tags}>
+              {origins && origins.length > 0 && <OriginPill origins={origins} />}
+              <Pill variant="tag" className={clsx(styles.rarity, RARITY_CLASS[card.rarity])}>
+                {t(`rarity.${card.rarity}`)}
+              </Pill>
+              {stat && <TypePill stat={stat} />}
+              {card.type === 'group' && <Pill variant="tag">{t('card.group')}</Pill>}
+            </p>
+            {gametora && (
+              <p className={styles.gametora}>
+                <LinkButton href={gametora} external>
+                  {t('card.viewOnGameTora')}
+                </LinkButton>
               </p>
             )}
           </div>
-          <p className={styles.tags}>
-            {origins && origins.length > 0 && <OriginPill origins={origins} />}
-            <Pill variant="tag">{t(`rarity.${card.rarity}`)}</Pill>
-            {stat && <TypePill stat={stat} />}
-            {card.type === 'group' && <Pill variant="tag">{t('card.group')}</Pill>}
-          </p>
-          {gametora && (
-            <LinkButton href={gametora} external>
-              {t('card.viewOnGameTora')}
-            </LinkButton>
-          )}
-        </div>
-      </div>
-
-      <PullAdvice cardId={cardId} />
-
-      <Origins card={card} server={server} origins={origins} />
-
-      <h2 className={styles.section}>{t('card.tierByScenario')}</h2>
-      {released === null ? (
-        <Status>{t('common.loading')}</Status>
-      ) : !released && predicted ? (
-        <>
-          <Status>
-            {t(
-              predicted.release_gl.status === 'confirmed' ? 'card.notReleasedConfirmed' : 'card.notReleasedPredicted',
-              {
-                server: serverName(server),
-                date: formatDay(predicted.release_gl.date),
-              }
-            )}
-          </Status>
-          {rankOverTime}
-        </>
-      ) : !released && card.release[server] ? (
-        <Status>{t('card.notRanked', { server: serverName(server) })}</Status>
-      ) : !released ? (
-        <Status>{t('card.notReleased', { server: serverName(server) })}</Status>
-      ) : (
-        <>
-          <ScenarioTierTable
+          <SummaryTiles
             cardId={cardId}
             server={server}
             stat={stat}
-            scenarios={scenarios}
-            combined={combined}
-            scenario={scenario}
             rankings={rankings}
+            predictions={predictions}
+            released={released ?? null}
+            pull={<NextBanner cardId={cardId} server={server} origins={origins} />}
           />
-          {rankOverTime}
-        </>
-      )}
+        </div>
+      </div>
+
+      <div className={styles.columns}>
+        {/* A card not out yet has no tiers; its release tile above says when it comes. */}
+        <Section title={t('card.tierByScenario')} action={<ScenarioFilter scenarios={scenarios} combined={combined} />}>
+          {released === null ? (
+            <Status>{t('common.loading')}</Status>
+          ) : (
+            <ScenarioTierTable
+              cardId={cardId}
+              scenarios={scenarios}
+              combined={combined}
+              scenario={getCurrentScenario(server)}
+              rankings={rankings}
+              noStats={!released && !upcoming}
+            />
+          )}
+        </Section>
+        <Banners card={card} server={server} origins={origins} />
+      </div>
+
+      {(released || upcoming) && rankOverTime}
       <BackToTop />
     </div>
   );

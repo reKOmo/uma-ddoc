@@ -1,21 +1,19 @@
 // Radix Select underneath: keyboard, type-ahead, ARIA, touch and the popup's portal come from it. Every dropdown
 // uses it (not a <select>: phones' native pickers ignore option styling).
-// Options: { value, label, content?, pill?, group?, note?, badge?, italic?, disabled? }. `content`: shown in place
-// of the label (the label still names it for the keyboard and screen readers). `pill` { color, ink: 'dark' |
-// 'light' } sets the label as a pill (the --ink-* token for its text); `disabled` options are greyed and skipped by the
-// keyboard. `roomy`: a bold label and a padded button, as Settings' other labels and option cards.
+// Options: { value, label, content?, group?, note?, badge?, italic?, disabled? }. `content`: shown in place of the
+// label (the label still names it for the keyboard and screen readers), e.g. a ScenarioPill; `disabled` options are
+// greyed and skipped by the keyboard. `roomy`: a bold label and a padded button, as Settings' other labels and option cards.
 
 import * as Select from '@radix-ui/react-select';
 import clsx from 'clsx';
 import { Check, ChevronDown } from 'lucide-react';
-import { type CSSProperties, type ReactNode, useId, useRef } from 'react';
+import { type ReactNode, useId, useRef } from 'react';
 import styles from './Dropdown.module.css';
 
 export type DropdownOption = {
   value: string;
   label: string;
   content?: ReactNode;
-  pill?: { color: string; ink?: 'dark' | 'light' };
   group?: string;
   note?: string;
   badge?: string;
@@ -125,16 +123,7 @@ function Option({ option }: { option: DropdownOption }) {
   );
 }
 
-// An option's label: its own content, plain, or a pill in its colour.
+// An option's label: its own content, else the plain label.
 function Label({ option }: { option?: DropdownOption }) {
-  if (option?.content) return <span className={styles.label}>{option.content}</span>;
-  if (!option?.pill) return <span className={styles.label}>{option?.label}</span>;
-  const ink = option.pill.ink === 'dark' ? styles.inkDark : option.pill.ink === 'light' ? styles.inkLight : undefined;
-  return (
-    <span className={styles.label}>
-      <span className={clsx(styles.pill, ink)} style={{ '--pill-color': option.pill.color } as CSSProperties}>
-        {option.label}
-      </span>
-    </span>
-  );
+  return <span className={styles.label}>{option?.content ?? option?.label}</span>;
 }

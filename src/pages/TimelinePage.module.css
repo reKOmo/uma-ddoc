@@ -55,6 +55,13 @@
   border-radius: 12px;
 }
 
+.goButton {
+  display: inline-flex;
+  gap: 6px;
+  width: auto;
+  padding: 0 12px;
+}
+
 .navButton:disabled {
   opacity: 0.4;
   cursor: default;

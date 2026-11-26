@@ -1,4 +1,5 @@
-// Usage: pnpm news:latest [--server jp]   (pnpm news:latest:jp). Needs posts.json: run `pnpm news:all` once first.
+// Usage: pnpm news:latest [--server jp] [--summary]   (pnpm news:latest:jp). Needs posts.json: run `pnpm news:all` once
+// first. --summary: also writes data/news/<server>/summary.md (the news run's commit message; local runs leave it).
 // In GitHub Actions also writes the job summary and $GITHUB_OUTPUT: `changed`, and `update` (a banner, event or
 // scenario post came in, so data/ needs rebuilding).
 
@@ -6,6 +7,7 @@ import { appendFileSync, existsSync, writeFileSync } from 'node:fs';
 import { newsDir } from './lib/paths.ts';
 import {
   fetchPost,
+  type IndexItem,
   indexPage,
   loadPosts,
   postsFile,
@@ -38,9 +40,9 @@ const posts = loadPosts(server);
 const newestIn = (start: number): number =>
   Math.max(...[...posts.keys()].map(Number).filter((id) => id > start && id < start + 100000));
 const newestBefore = SERIES.map(newestIn);
-// An index entry: the fields this script reads.
-type IndexItem = { announce_id: number; update_at: string | null };
 const fresh: IndexItem[] = [];
+// Stored posts whose detail had no banner and the index now gives one.
+const banners: string[] = [];
 let reachedKnown = false;
 // Progress as it goes: with a pause before each request a run takes a minute or more, and a CI log would otherwise stay empty.
 for (let page = 1; page <= MAX_PAGES && !reachedKnown; page++) {
@@ -50,6 +52,10 @@ for (let page = 1; page <= MAX_PAGES && !reachedKnown; page++) {
     const old = posts.get(String(item.announce_id));
     if (old) reachedKnown = true;
     if (!old || old.update_at !== item.update_at) fresh.push(item);
+    else if (!old.image_big && item.image) {
+      posts.set(String(item.announce_id), { ...old, image_big: item.image });
+      banners.push(String(item.announce_id));
+    }
   }
   if (!more) break;
 }
@@ -61,7 +67,8 @@ for (const item of fresh) {
   const id = String(item.announce_id);
   (posts.has(id) ? edited : added).push(id);
   console.log(`${server}: fetching ${id}`);
-  posts.set(id, await fetchPost(id, server));
+  const post = await fetchPost(id, server);
+  posts.set(id, { ...post, image_big: post.image_big || item.image || '' });
 }
 
 for (const [i, start] of SERIES.entries()) {
@@ -76,7 +83,7 @@ for (const [i, start] of SERIES.entries()) {
     posts.set(String(id), post);
   }
 }
-if (added.length || edited.length) savePosts(posts, server);
+if (added.length || edited.length || banners.length) savePosts(posts, server);
 
 const lang = lexicon(server);
 // Every id here was stored just above.
@@ -85,7 +92,9 @@ const stored = (id: string): NewsPost => {
   if (!post) throw new Error(`${id} is not stored`);
   return post;
 };
-const categories = new Map<string, Categorized>([...added, ...edited].map((id) => [id, categorize(stored(id), lang)]));
+const categories = new Map<string, Categorized>(
+  [...added, ...edited, ...banners].map((id) => [id, categorize(stored(id), lang)])
+);
 // "- [Title](url) — event / story, started"
 const describe = (id: string): string => {
   const post = stored(id);
@@ -101,14 +110,18 @@ const summary = [
   '',
   `${added.length} new, ${edited.length} edited.`,
   '',
+  ...(banners.length ? [`Banners from the index: ${banners.join(', ')}.`, ''] : []),
   ...(added.length ? ['## New', '', ...added.map(describe), ''] : []),
   ...(edited.length ? ['## Edited', '', ...edited.map(describe), ''] : []),
 ].join('\n');
-writeFileSync(`${newsDir(server)}summary.md`, `${summary}\n`);
+if (process.argv.includes('--summary')) writeFileSync(`${newsDir(server)}summary.md`, `${summary}\n`);
 console.log(summary);
 console.log(`${posts.size} stored (${requests} requests).`);
 
 const update = [...categories.values()].some((c) => c.category !== 'other' || c.kind === 'scenario');
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);
 if (process.env.GITHUB_OUTPUT)
-  appendFileSync(process.env.GITHUB_OUTPUT, `changed=${added.length + edited.length > 0}\nupdate=${update}\n`);
+  appendFileSync(
+    process.env.GITHUB_OUTPUT,
+    `changed=${added.length + edited.length + banners.length > 0}\nupdate=${update}\n`
+  );

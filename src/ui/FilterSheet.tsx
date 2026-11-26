@@ -1,9 +1,9 @@
-// <FilterButton count countTitle onClick disabled />, <FilterSheet open onClose title action>…</FilterSheet>
+// <FilterButton count countTitle onClick disabled small />, <FilterSheet open onClose title action>…</FilterSheet>
 // <FilterSection heading note off chips onToggle onAll />: `chips` [{ key, label, shown, tone }] (`tone`: a `data-tone`
-// of src/styles/global.css), `onToggle(key)`, `onAll(shown)` (true: All, false: None); `off` greys the section out.
+// of src/styles/global.css; or `color`, any CSS colour, e.g. a scenario's), `onToggle(key)`, `onAll(shown)` (true: All, false: None); `off` greys the section out.
 // With a `catchAll` chip (ticked while nothing else is), All ticks it, there's no None and no `onAll`.
 
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Check, SlidersHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
@@ -18,20 +18,22 @@ export type FilterButtonProps = {
   disabled?: boolean;
   /** Only the icon on phones (the label still names it, and shows on desktop). */
   phoneIconOnly?: boolean;
+  /** Compact, for a section heading rather than a toolbar. */
+  small?: boolean;
 };
 
-export function FilterButton({ count, countTitle, onClick, disabled, phoneIconOnly }: FilterButtonProps) {
+export function FilterButton({ count, countTitle, onClick, disabled, phoneIconOnly, small }: FilterButtonProps) {
   const { t } = useTranslation();
   return (
     <button
       type="button"
-      className={clsx(styles.filterButton, count > 0 && styles.active)}
+      className={clsx(styles.filterButton, small && styles.small, count > 0 && styles.active)}
       onClick={onClick}
       disabled={disabled}
       aria-haspopup="dialog"
       title={phoneIconOnly ? t('filter.button') : undefined}
     >
-      <SlidersHorizontal size={18} aria-hidden="true" />
+      <SlidersHorizontal size={small ? 15 : 18} aria-hidden="true" />
       <span className={phoneIconOnly ? styles.phoneHidden : undefined}>{t('filter.button')}</span>
       {count > 0 && (
         <span className={styles.filterCount} title={countTitle}>
@@ -68,6 +70,8 @@ export type FilterChip<K extends string | number = string> = {
   shown: boolean;
   /** A `data-tone` of src/styles/global.css. */
   tone?: string;
+  /** A colour of its own (the chip's --tone), where no `data-tone` has it: a scenario's. */
+  color?: string;
   catchAll?: boolean;
 };
 
@@ -118,6 +122,7 @@ export function FilterSection<K extends string | number>({
             key={chip.key}
             className={styles.filterChip}
             data-tone={chip.tone}
+            style={chip.color ? ({ '--tone': chip.color } as CSSProperties) : undefined}
             aria-pressed={chip.shown}
             disabled={off}
             onClick={() => onToggle(chip.key)}

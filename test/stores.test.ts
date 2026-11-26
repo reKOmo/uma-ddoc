@@ -257,3 +257,29 @@ describe('timeline order', () => {
     expect(getOrder()).toEqual(next);
   });
 });
+
+describe('hidden scenarios', () => {
+  const KEY = 'uma-ddoc.hiddenScenarios';
+  const load = () => import('../src/state/hiddenScenarios.ts');
+
+  it('loads the stored list', async () => {
+    data.set(KEY, JSON.stringify({ hidden: ['URA', 'Overall'] }));
+    expect((await load()).getHiddenScenarios()).toEqual(['URA', 'Overall']);
+  });
+
+  it.each(GARBAGE)('falls back to none hidden for %s', async (raw) => {
+    data.set(KEY, raw);
+    expect((await load()).getHiddenScenarios()).toEqual([]);
+  });
+
+  it('drops a malformed list (an unknown field is fine)', async () => {
+    data.set(KEY, JSON.stringify({ hidden: 'URA', extra: 1 }));
+    expect((await load()).getHiddenScenarios()).toEqual([]);
+  });
+
+  it('stores the list as { hidden }', async () => {
+    const { useHiddenScenarios } = await load();
+    useHiddenScenarios.getState().setHidden(['GM']);
+    expect(JSON.parse(writes.get(KEY) ?? 'null')).toEqual({ hidden: ['GM'] });
+  });
+});

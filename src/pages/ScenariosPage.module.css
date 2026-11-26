@@ -60,38 +60,6 @@
   overflow-wrap: anywhere;
 }
 
-.tag {
-  padding: 2px 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-}
-
-.scenarioKey {
-  color: var(--text);
-  background: var(--scenario-color, var(--panel));
-  border-color: var(--scenario-color, var(--border));
-}
-
-.inkDark {
-  color: var(--ink-dark);
-}
-
-.inkLight {
-  color: var(--ink-light);
-}
-
-.name .tag {
-  padding: 0 6px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  border-style: solid;
-  border-width: 1px;
-  border-radius: 999px;
-}
-
 .when {
   font-size: 0.85rem;
 }

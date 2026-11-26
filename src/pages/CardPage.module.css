@@ -6,15 +6,19 @@
 }
 
 .art {
-  display: block;
-  width: min(100%, 300px);
-  aspect-ratio: 3 / 4;
-  object-fit: contain;
-  border-radius: 18px;
-  background: var(--panel);
+  /* The art's old size plus the frame around it (7px each side; 10px from 768px). */
+  width: min(100%, 314px);
 }
 
 .facts {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+}
+
+.identity {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -22,7 +26,7 @@
   text-align: center;
 }
 
-.facts h1 {
+.identity h1 {
   margin: 0;
 }
 
@@ -67,22 +71,68 @@
   padding-block: 0;
 }
 
-.section {
-  margin: 24px 0 8px;
-  font-size: 1.05rem;
+/* The game's rarity badge, flat: its colour only, the text as the other tags' (doubled: over the tag's own fill). */
+.tags .rarity.rarity {
+  /* R as wide as SR (SSR is wider on its own). */
+  justify-content: center;
+  min-width: 40px;
+  color: var(--ink-dark);
+  /* From the outer edge, under the tag's transparent border too, or the gradient repeats into it. */
+  background: var(--badge) border-box;
+  border-color: transparent;
+}
+
+.ssr {
+  --badge: var(--badge-ssr);
+}
+
+.sr {
+  --badge: var(--badge-sr);
+}
+
+.r {
+  --badge: var(--badge-r);
+}
+
+/* Its own full-size button under the tags: where the card's full stats are. */
+.gametora {
+  margin: 12px 0 0;
+}
+
+.columns {
+  display: grid;
+  gap: 8px 40px;
+  margin: 24px 0 16px;
 }
 
 @media (min-width: 768px) {
   .hero {
-    flex-direction: row;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    align-items: stretch;
+    gap: 40px;
+  }
+
+  /* Never stretched: centred against the name, tags and tiles beside it, whichever of the two is taller. */
+  .art {
+    align-self: center;
+    width: 100%;
+  }
+
+  /* The tiles close under the GameTora button; the whole column centred against the art, as the art is against it. */
+  .facts {
+    justify-content: center;
     gap: 24px;
   }
 
-  .facts {
+  .identity {
     align-items: flex-start;
-    padding-top: 8px;
+    padding-top: 4px;
     text-align: left;
+  }
+
+  .tags {
+    justify-content: flex-start;
   }
 
   /* The other language's name and title in one column, starting at the same point. */
@@ -100,5 +150,38 @@
 
   .names .other {
     margin-left: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    grid-template-columns: 440px minmax(0, 1fr);
+  }
+
+  /* Under the tags, smaller than a full button: their text size, a little shorter. */
+  .gametora a {
+    gap: 4px;
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 0.9rem;
+  }
+
+  .columns {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    /* Both sections on shared rows (heading, box, note), so Banners' list ends level with the tier table's box. */
+    grid-template-rows: auto auto auto;
+    row-gap: 0;
+  }
+
+  .columns > section {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    align-content: start;
+  }
+
+  /* Banners alone (a card with no tier table yet) takes the whole row. */
+  .columns > :only-child {
+    grid-column: 1 / -1;
   }
 }

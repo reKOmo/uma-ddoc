@@ -1,8 +1,9 @@
 import { type CSSProperties, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, FoldVertical, Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, FoldVertical, Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
+import clsx from 'clsx';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { SCENARIOS } from '../lib/scenarioRelease.ts';
+import { SCENARIOS } from '../../shared/scenarioRelease.ts';
 import { useSettings } from '../state/settings.tsx';
 import { useLanguage } from '../lib/translations.ts';
 import { useDragScroll } from '../hooks/useDragScroll.ts';
@@ -243,7 +244,16 @@ export default function TimelinePage({
         </div>
         {filters.search && (
           <p className={styles.searchNote} role="status">
-            {filters.search.matched.length > 0 && (
+            {filters.search.matched.length === 1 && (
+              <span className={styles.matchNav}>
+                {t('timeline.search.count', { count: 1 })}
+                <button type="button" className={clsx(styles.navButton, styles.goButton)} onClick={() => goToMatch(0)}>
+                  {t('timeline.search.goTo')}
+                  <ArrowRight size={16} aria-hidden="true" />
+                </button>
+              </span>
+            )}
+            {filters.search.matched.length > 1 && (
               <span className={styles.matchNav}>
                 <button
                   type="button"

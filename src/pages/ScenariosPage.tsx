@@ -1,22 +1,17 @@
 import clsx from 'clsx';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { formatDate, scenarioName, serverName } from '../i18n/index.ts';
-import { DATE_FIELD, SCENARIOS, isCurrent, launchTag } from '../lib/scenarioRelease.ts';
+import { formatDate, serverName } from '../i18n/index.ts';
+import { DATE_FIELD, SCENARIOS, isCurrent, launchTag } from '../../shared/scenarioRelease.ts';
 import type { StartDate } from '../../shared/schemas/scenario.ts';
 import type { Server } from '../lib/servers.ts';
-import { ink } from '../timeline/scenarioStrip.ts';
+import ScenarioPill from '../ui/ScenarioPill.tsx';
 import { timeZoneOptions, useSettings } from '../state/settings.tsx';
 import { scenarioUrl } from '../routes.ts';
 import styles from './ScenariosPage.module.css';
 import { scenarioStyle } from '../lib/vividColor.ts';
 
 const SERVER_ORDER: Server[] = ['jp', 'gl'];
-
-function inkClass(color: string): string | undefined {
-  const tone = ink(color);
-  return tone === 'dark' ? styles.inkDark : tone === 'light' ? styles.inkLight : undefined;
-}
 
 export default function ScenariosPage({ server }: { server: Server }) {
   const { t } = useTranslation();
@@ -45,10 +40,7 @@ export default function ScenariosPage({ server }: { server: Server }) {
                 )}
                 <span className={styles.text}>
                   <span className={styles.name}>
-                    <span className={clsx(styles.tag, styles.scenarioKey, inkClass(s.color))}>
-                      {scenarioName(s.key)}
-                    </span>{' '}
-                    {s.full_en ?? s.full_jp}
+                    <ScenarioPill scenario={s.key} /> {s.full_en ?? s.full_jp}
                   </span>
                   {newestOn.map((on) => (
                     <span key={on} className={styles.newest}>

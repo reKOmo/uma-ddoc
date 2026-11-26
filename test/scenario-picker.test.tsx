@@ -8,7 +8,7 @@ import '../src/i18n/index.ts';
 import Dropdown from '../src/ui/Dropdown.tsx';
 import ScenarioPicker, { scenarioPickerOptions } from '../src/ui/ScenarioPicker.tsx';
 import i18n from '../src/i18n/index.ts';
-import { SCENARIOS, isCurrent, isReleased } from '../src/lib/scenarioRelease.ts';
+import { SCENARIOS, isCurrent, isReleased } from '../shared/scenarioRelease.ts';
 
 afterEach(cleanup);
 

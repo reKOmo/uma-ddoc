@@ -1,10 +1,20 @@
 .controls {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+/* The scenario picker's own label: its pill says which scenario, so it's left to screen readers. */
+.controls > :first-child > span:first-child {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .controls label {
@@ -16,7 +26,7 @@
 }
 
 .controls button {
-  min-width: 44px;
+  min-width: 40px;
   min-height: 36px;
   padding: 0 6px;
   font-size: 0.85rem;
@@ -24,185 +34,135 @@
   border: 1px solid var(--border);
 }
 
-.summary {
-  margin: 8px 0;
-  font-size: 0.9rem;
+.panel {
+  display: grid;
+  gap: 20px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 22px;
 }
 
-.note {
-  margin: 8px 0 0;
-  font-size: 0.75rem;
-  color: var(--muted);
+.chart,
+.passed {
+  min-width: 0;
+}
+
+/* On a phone the chart runs to the panel's edges: every pixel of width is more of the timeline shown. */
+@media (width < 1024px) {
+  .rankChart {
+    margin-inline: -16px;
+  }
 }
 
 .passedHeading {
-  margin: 20px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
   font-size: 0.95rem;
 }
 
-.list {
-  --rail: 15px;
-  --head: 22px;
-  --dot-y: calc(4px + var(--head) / 2);
-  --dot-gap: 10px;
-  margin: 0;
-  padding: 8px 10px 8px 0;
+/* Zoom out / in, at the end of the pickers before the (i): joined, and sized, like the LB selector beside it. */
+.zoom {
+  display: flex;
+  margin-left: auto;
+}
+
+.zoom button {
+  display: grid;
+  place-items: center;
+  color: var(--text);
+}
+
+.zoom button:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+.zoom button:last-child {
+  border-left: 0;
+  border-radius: 0 12px 12px 0;
+}
+
+.zoom button:disabled {
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+/* How it's ranked, behind an (i) at the end of the pickers: open, the note drops down over the chart. */
+
+.info summary {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
   list-style: none;
+  color: var(--muted);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.info summary::-webkit-details-marker {
+  display: none;
+}
+
+.info[open] summary {
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.info p {
+  position: absolute;
+  z-index: 3;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text);
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
 }
 
-.list > li {
-  position: relative;
+@media (min-width: 1024px) {
+  .panel {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  /* As tall as the chart beside it (contained: its own length doesn't make the row taller), every pass in a list that
+     scrolls, fading at an edge while there's more that way (.scroll-fade). */
+  .passed {
+    display: flex;
+    flex-direction: column;
+    contain: size;
+    min-height: 240px;
+  }
+
+  .passedList {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
 }
 
-.entry {
-  position: relative;
-  padding: 4px 0 4px calc(var(--rail) * 2);
-}
+/* On a phone the pickers take two rows: the (i) moves up beside the scenario picker, so the LB group and the zoom
+   buttons share the second row instead of leaving the (i) on a third. */
+@media (width < 640px) {
+  .controls > * {
+    order: 1;
+  }
 
-/* One line per row, between its dot and the next row's, so each stretch is one solid or dashed piece. */
-.list > li.hasNext::after {
-  position: absolute;
-  top: calc(var(--dot-y) + var(--dot-gap));
-  bottom: calc(var(--dot-gap) - var(--dot-y));
-  left: calc(var(--rail) - 1px);
-  width: 2px;
-  content: "";
-  background: var(--accent);
-}
+  .controls > :first-child,
+  .controls > .info {
+    order: 0;
+  }
 
-.list > li.nextPredicted::after {
-  background: repeating-linear-gradient(to bottom, var(--accent) 0 5px, transparent 5px 9px);
-}
-
-.dot {
-  position: absolute;
-  top: var(--dot-y);
-  left: calc(var(--rail) - 6px);
-  width: 12px;
-  height: 12px;
-  background: var(--accent);
-  border-radius: 50%;
-  transform: translateY(-50%);
-}
-
-.list > li:first-child .dot {
-  background: var(--panel);
-  border: 2px solid var(--accent);
-}
-
-.list > li.predicted .dot {
-  background: var(--panel);
-  border: 2px dashed var(--accent);
-}
-
-.gap {
-  display: flex;
-  align-items: center;
-  /* As tall as a card row (its icon), so the time between dates gets as much room as a card. */
-  min-height: 52px;
-  padding: 4px 0 4px calc(var(--rail) * 2);
-  font-size: 0.75rem;
-  font-style: italic;
-  color: var(--muted);
-}
-
-.list > li.fade {
-  max-height: 140px;
-  overflow: hidden;
-  mask-image: linear-gradient(to bottom, #000 10%, transparent);
-}
-
-.box {
-  position: relative;
-}
-
-/* These sit over the list, so they need a background. */
-button.more {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  z-index: 2;
-  cursor: pointer;
-  background: var(--panel);
-  transform: translateX(-50%);
-}
-
-button.less {
-  display: flex;
-  width: fit-content;
-  margin: 8px auto 0;
-  cursor: pointer;
-  background: var(--panel);
-}
-
-.head {
-  display: flex;
-  min-height: var(--head);
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  align-items: center;
-  font-size: 0.85rem;
-}
-
-.date {
-  color: var(--muted);
-}
-
-.body {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-top: 8px;
-}
-
-.rank {
-  display: inline-flex;
-  flex: 0 0 52px;
-  align-items: center;
-  gap: 2px;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.rank.up svg {
-  /* (light: a touch of --text, so the vivid green as small text reads 4.5:1; dark: the colour itself) */
-  color: color-mix(in srgb, var(--rank-up) 75%, light-dark(var(--text), var(--rank-up)));
-}
-
-.rank.down svg {
-  color: color-mix(in srgb, var(--rank-down) 75%, light-dark(var(--text), var(--rank-down)));
-}
-
-.cards {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  gap: 16px;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.cards li {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.list li.predicted .cardRow {
-  opacity: 0.7;
-}
-
-.badgePredicted {
-  padding: 1px 6px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--muted);
-  border: 1px dashed var(--muted);
-  border-radius: 999px;
+  .controls > .info {
+    margin-left: auto;
+  }
 }

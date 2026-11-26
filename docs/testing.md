@@ -49,7 +49,7 @@ card): check the rule against whatever the data holds.
   disabled options, choosing, icons / notes / badges).
 - `e2e/` (Playwright; `pnpm test:e2e`): links into the Timeline open their sheet on the right server (direct, "See
   banner", the other server's link, back from a card page), stored state survives reloads and older formats load, every
-  page renders and loads on both servers, the dropdown by click / keyboard / tap, the rank chart's tooltip. Selectors by
+  page renders and loads on both servers, the dropdown by click / keyboard / tap, the rank chart fitting a phone, its labels and zoom. Selectors by
   role and label, never class names; any uncaught page error fails a test. Run after UI or routing changes; deploys run it.
   `pnpm test:visual`: 14 screens × light/dark × phone/desktop pixel by pixel against this machine's baselines.
 - `pull-guide.test.ts`: the script's output and `generated/pull_guide.json` (when present) fit the pull guide's zod

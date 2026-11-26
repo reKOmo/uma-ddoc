@@ -12,6 +12,8 @@ Radix Select (dropdown), `vaul` (sheets), `@dnd-kit` (drag to reorder), `lucide-
   hold keys only. A new language is a new JSON file registered in `RESOURCES`.
 - Dates go through `formatDate()` / `formatDateTime()` (UI locale). Banner times follow the Settings timezone (UTC by
   default, or the viewer's: `timeZoneOptions()`, `buildTimeline(…, { utc })`). All stored times are UTC.
+- **A predicted date never looks like a confirmed one**: it is italic (in a translation, the date wrapped in
+  `<date>…</date>` rendered as `<em />` through `<Trans>`), greyed out, or beside the Predicted pill (`StatusBadge`).
 - New settings: `src/state/settingsStore.ts` (DEFAULTS + OPTIONS) + a row on the Settings page.
 
 ## Layout and styles
@@ -38,9 +40,9 @@ Radix Select (dropdown), `vaul` (sheets), `@dnd-kit` (drag to reorder), `lucide-
 
 ## Components
 
-- **Reuse before writing markup**: `src/ui/` (LinkButton, SeeMore, FoldToggle, Pill, TierChip, Status, Segmented, OptionCards,
+- **Reuse before writing markup**: `src/ui/` (LinkButton, SeeMore, FoldToggle, RailList, Pill, TierChip, Status, Segmented, OptionCards,
   TypePill, StatIcon,
-  Section, SearchInput, ToolbarButton, CardRow), `src/ui/FilterSheet.tsx`, `src/ui/Sheet.tsx`, `src/ui/Dropdown.tsx`. When two
+  Section, SearchInput, ToolbarButton, CardRow, ScenarioPill), `src/ui/FilterSheet.tsx`, `src/ui/Sheet.tsx`, `src/ui/Dropdown.tsx`. When two
   places need the same piece, make it a component. Never change how a page looks to make it fit a shared component:
   if one doesn't fit exactly, keep the page's markup.
 - Toggle groups: `ui/Segmented.tsx` (a `<fieldset>` of `aria-pressed` buttons); a setting's choices with a detail line:
@@ -58,8 +60,8 @@ Radix Select (dropdown), `vaul` (sheets), `@dnd-kit` (drag to reorder), `lucide-
   (`isReleased()`): italic + "Not released yet"; running now (`isCurrent()`): "Current" badge. Every scenario in
   `data/scenarios.json` is listed, newest first; those the tier list doesn't rank are disabled.
 - **Charts**: prefer a small, established chart library (the library rule); the existing `RankChart` is hand-written
-  SVG. Whatever draws them: colour tokens for marks and text, hairline gridlines, a hover/keyboard crosshair +
-  tooltip; long time axes scroll sideways (`useDragScroll`) instead of squeezing labels.
+  SVG. Whatever draws them: colour tokens for marks and text, hairline gridlines, few direct labels (kept clear of each
+  other), not one per point. The Timeline's long axis scrolls sideways (`useDragScroll`); `RankChart` fits the width until zoomed in, then scrolls the same way.
 
 ## Routing, data, state
 

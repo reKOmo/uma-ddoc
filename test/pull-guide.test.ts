@@ -12,14 +12,7 @@ import {
   parseTab,
   parseUpdated,
 } from '../scripts/lib/cards/pull-guide.ts';
-import {
-  bannerVerdicts,
-  currentAdvice,
-  latestAdvice,
-  sheetLink,
-  upcomingBanner,
-  verdictOf,
-} from '../src/lib/pullGuide.ts';
+import { bannerVerdicts, currentAdvice, sheetLink, upcomingBanner, verdictOf } from '../src/lib/pullGuide.ts';
 import type { Listed } from '../scripts/lib/cards/pull-guide.ts';
 import type { Banner } from '../shared/schemas/banner.ts';
 import type { Advice, PullGuide } from '../shared/schemas/pullGuide.ts';
@@ -229,11 +222,6 @@ describe('the advice shown', () => {
   it('is for a card on no banner while its release is ahead', () => {
     expect(present(currentAdvice(guide, 30087, null, '2026-11-30'), 'advice').shouldPull).toBe('free');
     expect(currentAdvice(guide, 30087, null, '2026-12-01')).toBeNull();
-  });
-
-  it("falls back to the card's latest advice for the link, none for cards the guide lacks", () => {
-    expect(latestAdvice(guide, 30078)).toEqual({ shouldPull: 'no' });
-    expect(latestAdvice(guide, 1)).toBeNull();
   });
 
   it("links to the entry's row in the sheet", () => {

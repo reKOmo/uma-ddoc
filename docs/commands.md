@@ -35,7 +35,7 @@ pnpm fetch-pull-guide  # pull advice + notes per card from Luh's Support Card En
 pnpm fetch-umatl       # UmaTL's fan translations + Global's names for JP names → generated/translations.json (after predict-gl;
                        # --build: from the tables already fetched)
 pnpm clone-upstream    # clone/update upstream main into upstream/ (for test:upstream)
-pnpm news:latest       # new + edited posts from umamusume.com/news → data/news/gl/posts.json (+ summary.md); periodic runs
+pnpm news:latest       # new + edited posts from umamusume.com/news → data/news/gl/posts.json (+ summary.md with --summary, as news:run passes)
 pnpm news:run          # the daily news run (scripts/news-run.sh, run by an automation): both servers' news:latest, the records, a commit
 pnpm news:all          # every post the site still serves (walks the archive post by post; resumable; once)
 pnpm news:umapyoi      # the posts the official site no longer serves, from umapyoi.net's mirror (resumable; once)

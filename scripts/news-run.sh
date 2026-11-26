@@ -16,9 +16,9 @@ gl_out=$(mktemp)
 jp_out=$(mktemp)
 trap 'rm -f "$gl_out" "$jp_out"' EXIT
 echo '== Global and JP news'
-GITHUB_OUTPUT=$gl_out node scripts/fetch-news-latest.ts &
+GITHUB_OUTPUT=$gl_out node scripts/fetch-news-latest.ts --summary &
 gl=$!
-GITHUB_OUTPUT=$jp_out node scripts/fetch-news-latest.ts --server jp &
+GITHUB_OUTPUT=$jp_out node scripts/fetch-news-latest.ts --server jp --summary &
 jp=$!
 # Wait for both before failing, so a failed one doesn't leave the other running.
 status=0
@@ -62,9 +62,9 @@ if [ "$gl_update" = true ] || [ "$jp_update" = true ] || [ "$pending" = true ] |
   # model's answers. Before Global's: Global's news pairs with JP's banners by id. Run on either server's news
   # (it's idempotent), so Global's always pairs with JP's latest banners.
   echo '== Records'
-  node scripts/update-jp.ts
+  node scripts/update-jp.ts --summary
   # Global's events (data/global_events.json) are rebuilt by the same script, with the model's answers.
-  node scripts/update-global.ts
+  node scripts/update-global.ts --summary
 fi
 
 # Each run rewrites both summaries (their time line); a server's is committed only with new or edited posts.

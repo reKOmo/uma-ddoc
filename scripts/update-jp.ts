@@ -1,5 +1,5 @@
-// Usage: pnpm update-jp
-// Idempotent: everything made from the news is rebuilt from all posts each time. Appends to data/news/jp/summary.md.
+// Usage: pnpm update-jp [--summary]   (--summary: appends to data/news/jp/summary.md, for the news run)
+// Idempotent: everything made from the news is rebuilt from all posts each time.
 
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -91,7 +91,7 @@ export async function updateJp(): Promise<JpUpdate> {
     ...unsureLines(categories, 'jp'),
   ];
   console.log(lines.join('\n'));
-  if (existsSync(SUMMARY_FILE))
+  if (process.argv.includes('--summary') && existsSync(SUMMARY_FILE))
     appendFileSync(SUMMARY_FILE, `\n## JP record\n\n${lines.map((l) => `- ${l}`).join('\n')}\n`);
   return { cards: jpCards, banners, events };
 }

@@ -190,7 +190,8 @@ function groupFragment(
     parent: sub ? id : null,
     start: unlessEnded(period)?.start ?? null,
     end: unlessEnded(period)?.end ?? null,
-    image: sub ? head.art : post.image_big || head.art || null,
+    // (A classified celebration's head can be the post's intro, which has no art: the post's first art is its.)
+    image: sub ? head.art : post.image_big || head.art || ctx.blocks.find((b) => b.art)?.art || null,
     ...fields,
   };
   // (JP: copies of a card given in several parts are often counted per part elsewhere in the post: "「…ログインボーナス」

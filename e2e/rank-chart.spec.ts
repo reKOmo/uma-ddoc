@@ -4,38 +4,26 @@ import { expect, open, test } from './fixtures.ts';
 const chart = (page: Page) => page.getByRole('img', { name: /Tier list position over time/ });
 const container = (page: Page): Locator => chart(page).locator('xpath=../..');
 
-const scrollLeft = (page: Page) => chart(page).evaluate((el) => (el.parentElement as HTMLElement).scrollLeft);
-
-test('the rank chart shows, scrolls sideways, and a hovered point shows its tooltip', async ({ page }) => {
-  // Global's history is short: at a desktop width the plot fits, so narrow the view until it scrolls.
+test('the rank chart fits a phone, labels its ranks, tiers and scenarios, and zooms into a sideways scroll', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await open(page, '#/card/30001');
   await page.getByRole('group', { name: 'Server' }).getByRole('button', { name: 'Global' }).click();
   await expect(page.getByRole('heading', { name: 'Rank over time' })).toBeVisible();
   await expect(chart(page)).toBeVisible();
 
-  // It scrolls sideways: it opens on today (the right end), and wheeling left moves the plot.
-  await expect
-    .poll(() =>
-      chart(page).evaluate((el) => {
-        const s = el.parentElement as HTMLElement;
-        return s.scrollWidth > s.clientWidth;
-      })
-    )
-    .toBe(true);
-  const before = await scrollLeft(page);
-  expect(before).toBeGreaterThan(0);
-  await container(page).scrollIntoViewIfNeeded();
-  const box = await container(page).boundingBox();
-  if (!box) throw new Error('the rank chart has no box');
-  await page.mouse.move(box.x + box.width / 2, box.y + 60);
-  await page.mouse.wheel(-3000, 0);
-  await expect.poll(() => scrollLeft(page)).toBeLessThan(before);
+  // The card's whole life fits the width: nothing to scroll sideways.
+  const fits = await container(page).evaluate((el) => {
+    const svg = el.querySelector('svg');
+    return !!svg && svg.getBoundingClientRect().width <= el.getBoundingClientRect().width + 1;
+  });
+  expect(fits).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
-  await page.mouse.move(box.x + box.width / 2, box.y + 60);
   await expect(
     container(page)
-      .getByText(/#\d+ of \d+/)
+      .getByText(/^#\d+$/)
       .first()
   ).toBeVisible();
   await expect(
@@ -43,7 +31,18 @@ test('the rank chart shows, scrolls sideways, and a hovered point shows its tool
       .getByText(/^[SABCDEFG]$/)
       .first()
   ).toBeVisible();
+  // The scenarios under the dates link to their pages.
+  await expect(container(page).locator('a[href*="scenario"]').first()).toBeAttached();
 
-  await page.mouse.move(0, 0);
-  await expect(container(page).getByText(/#\d+ of \d+/)).toHaveCount(0);
+  // Zoomed in, the plot outgrows the view and scrolls sideways; zoomed back out, it fits again.
+  const scrolls = () =>
+    chart(page).evaluate((el) => {
+      const s = el.parentElement as HTMLElement;
+      return s.scrollWidth > s.clientWidth;
+    });
+  await expect(page.getByRole('button', { name: 'Zoom out' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Zoom in' }).click();
+  await expect.poll(scrolls).toBe(true);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await expect.poll(scrolls).toBe(false);
 });

@@ -6,7 +6,8 @@
 // reaches the whole archive on JP, and on Global only past the index.
 // Times are UTC strings on Global and JST strings on JP (news/text.ts' apiDate() turns both into UTC).
 //
-// posts.json keeps each post's `detail` as sent, plus fetched_at and the ids the detail gave. One post per line,
+// posts.json keeps each post's `detail` as sent, plus fetched_at and the ids the detail gave; a detail without
+// image_big gets the index's banner (Global's 1182 has its banner only there, as a Thumbnail). One post per line,
 // newest first. Parsers read that file, so a parser change never needs a request.
 //
 // Keep it gentle: one request at a time with a random 1–2 s pause (the pace the archive walk, hundreds of requests,
@@ -23,8 +24,9 @@ export { SITE };
 export const postsFile = (server: Server = 'gl'): string => `${newsDir(server)}posts.json`;
 export const PAGE_SIZE = 10; // what the news pages themselves ask for
 
-// An index page's item: the fields the index gives (announce_id, update_at); the rest come from the post's detail.
-export type IndexItem = Pick<NewsPost, 'announce_id' | 'update_at'>;
+// An index page's item: the fields the index gives (announce_id, update_at, the banner); the rest come from the post's
+// detail.
+export type IndexItem = Pick<NewsPost, 'announce_id' | 'update_at'> & { image?: string };
 
 // What the APIs send, as far as this file reads it. Checked where it's read (response_code, information_list…).
 type ApiJson = {

@@ -1,0 +1,94 @@
+/* RailList's, its dots on the head line. */
+.list {
+  --head: 22px;
+  --dot-y: calc(4px + var(--head) / 2);
+  padding: 0 10px 0 0;
+}
+
+.entry {
+  position: relative;
+  border-radius: 12px;
+  padding: 4px 0 4px calc(var(--rail) * 2);
+}
+
+.gap {
+  display: flex;
+  align-items: center;
+  /* As tall as a card row (its icon), so the time between dates gets as much room as a card. */
+  min-height: 52px;
+  padding: 4px 0 4px calc(var(--rail) * 2);
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.head {
+  display: flex;
+  min-height: var(--head);
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.date {
+  color: var(--muted);
+}
+
+.body {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.rank {
+  display: inline-flex;
+  flex: 0 0 52px;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.rank.up svg {
+  /* (light: a touch of --text, so the vivid green as small text reads 4.5:1; dark: the colour itself) */
+  color: color-mix(in srgb, var(--rank-up) 75%, light-dark(var(--text), var(--rank-up)));
+}
+
+.rank.down svg {
+  color: color-mix(in srgb, var(--rank-down) 75%, light-dark(var(--text), var(--rank-down)));
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 16px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cards li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.entry.predicted .cardRow {
+  opacity: 0.7;
+}
+
+/* How far off a predicted pass is: predicted, so muted and italic like the other predicted dates. */
+.until {
+  margin-left: auto;
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* RailList's toggle sits over its fading row. */
+.box {
+  position: relative;
+}

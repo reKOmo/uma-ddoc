@@ -1,8 +1,7 @@
 // Launched: a known (not predicted) start date that has passed. Keys data/scenarios.json doesn't know count as launched.
 
-import scenarioData from '../../data/scenarios.json' with { type: 'json' };
-import type { Scenario, StartDate } from '../../shared/schemas/scenario.ts';
-import type { Server } from './servers.ts';
+import scenarioData from '../data/scenarios.json' with { type: 'json' };
+import type { Scenario, StartDate } from './schemas/scenario.ts';
 
 // In JP launch order.
 // TODO(ts): the JSON import types the tags and servers' fields wider than the schema; test/schemas.test.ts checks the
@@ -14,6 +13,7 @@ export type LaunchTag = 'out' | 'confirmed' | 'predicted';
 export const launchTag = (start: StartDate, now: number = Date.now()): LaunchTag =>
   start.status === 'predicted' ? 'predicted' : Date.parse(start.date) <= now ? 'out' : 'confirmed';
 export const DATE_FIELD = { gl: 'en_start_date', jp: 'jp_start_date' } as const;
+type Server = keyof typeof DATE_FIELD;
 const BY_KEY = new Map(SCENARIOS.map((s) => [s.key, s]));
 
 export const scenarioByKey = (key: string): Scenario | null => BY_KEY.get(key) ?? null;

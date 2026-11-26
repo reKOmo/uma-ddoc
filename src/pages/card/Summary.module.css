@@ -1,0 +1,100 @@
+.summary {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tiles {
+  display: flex;
+  gap: 12px;
+}
+
+/* The small tiles share a row on phones too: the rank tile as wide as its content, the other taking the rest (its
+   sentence wrapping). */
+.tiles > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.tiles > .rankTile {
+  flex: 0 0 auto;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Its label stays one line, so the tile's width is its content's. */
+.rankTile .label {
+  white-space: nowrap;
+}
+
+/* Small and dimmed: context for the value, not something to read first. */
+.scenario {
+  padding: 0 8px;
+  font-size: 0.72rem;
+  opacity: 0.7;
+  filter: saturate(0.6);
+}
+
+/* As tall as the big chip on every tile, so the values beside each other share one centre line. */
+.value {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  align-items: center;
+  min-height: 40px;
+}
+
+/* Two classes, to win over TierChip's own size. */
+.tile .bigChip {
+  min-width: 40px;
+  height: 40px;
+  font-size: 1.35rem;
+  line-height: 40px;
+  text-align: center;
+  border-radius: 10px;
+}
+
+.rank {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.sentence {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.inlineChip {
+  margin: 0 2px;
+  padding: 0 4px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+@media (min-width: 768px) {
+  .tiles {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  /* Wide enough to share the row by content. */
+  .tiles > *,
+  .tiles > .rankTile {
+    flex: 1 1 auto;
+  }
+}

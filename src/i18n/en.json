@@ -21,7 +21,9 @@
     "rank": "#{{position}}",
     "rankOf": "#{{position}} of {{total}}",
     "current": "Current",
-    "backToTop": "Back to top"
+    "backToTop": "Back to top",
+    "inDays_one": "in {{count}} day",
+    "inDays_other": "in {{count}} days"
   },
   "filter": {
     "button": "Options",
@@ -235,6 +237,9 @@
       "textOption": "Anything with “{{text}}”",
       "position_one": "{{position}} of {{count}} match",
       "position_other": "{{position}} of {{count}} matches",
+      "count_one": "{{count}} match",
+      "count_other": "{{count}} matches",
+      "goTo": "Show",
       "previous": "Previous match",
       "next": "Next match",
       "noMatches": "No matches",
@@ -359,27 +364,24 @@
   "card": {
     "notFound": "There's no support card with id {{id}}.",
     "group": "Group",
-    "viewOnGameTora": "View on GameTora",
+    "viewOnGameTora": "See full stats on GameTora",
     "tierByScenario": "Tier by scenario",
-    "notReleased": "Not released on {{server}} yet.",
-    "notRanked": "Out on {{server}}, but the tier list doesn't have its stats yet.",
-    "notReleasedPredicted": "Not released on {{server}} yet; predicted around {{date}}.",
-    "notReleasedConfirmed": "Not released on {{server}} yet; confirmed for {{date}}.",
+    "noStats": "Card stats unavailable to rank the card",
+    "scenarioFilter": {
+      "title": "Scenarios in the table",
+      "scenarios": "Scenarios",
+      "averaged": "Averaged",
+      "hiddenCount_one": "{{count}} scenario hidden",
+      "hiddenCount_other": "{{count}} scenarios hidden",
+      "allHidden": "Every scenario is hidden: show some in Options."
+    },
     "mlbRank": "MLB rank",
-    "rankSlash": "#{{position}} / {{total}}",
-    "tableNote": "Tiers and ranks are within the {{stat}} tier list of each scenario on {{server}}.",
-    "averages": "{{name}} averages {{scenarios, list}}.",
+    "rankSlash": "#{{position}}<0> / {{total}}</0>",
     "rankOverTime": "Rank over time",
     "limitBreak": "Limit break",
     "noReleaseDate": "No {{server}} release date for this card yet.",
-    "historySummary": "Released {{date}} at <strong>#{{start}}</strong> of {{startTotal}}; now <strong>#{{now}}</strong> of {{nowTotal}}.",
-    "historyNote": "Position among {{lb}} copies of the {{stat}} cards out on {{server}} at each date, in the {{scenario}} tier list. Cards without a release date are left out.",
-    "predictedNote": "Dashed: JP cards not on Global yet, at their predicted Global release dates and ranked with their JP stats. JP's newest cards aren't in the card data yet and are left out.",
-    "arrivalSummary": "Predicted to arrive {{date}} at <strong>#{{start}}</strong> of {{startTotal}}.",
-    "predictedSummary": "By {{date}}, predicted <strong>#{{end}}</strong> of {{endTotal}}.",
-    "tierDrop": "Expected to drop from {{from}} to {{to}} tier around {{date}}.",
-    "tierHolds": "Expected to stay {{tier}} tier through {{date}}.",
-    "predicted": "predicted",
+    "howRanked": "How this is ranked",
+    "historyNote": "Shows where the card ranks among cards of its type, for the selected scenario and limit break.",
     "passedBy": "Passed by",
     "noneAbove": "No newer card has ranked above it.",
     "rankUp": "Up to",
@@ -391,7 +393,17 @@
     "passedAfter": "{{duration}} after release",
     "passedLater": "{{duration}} later",
     "releasedOn": "Released {{date}}",
-    "arrivesOn": "Predicted to arrive {{date}}",
+    "arrivesOn": "Predicted to arrive <date>{{date}}</date>",
+    "summary": {
+      "rankLabel": "<scenario/> · MLB",
+      "arrivalLabel": "On arrival · <scenario/> · MLB",
+      "holdsLabel": "Tier outlook",
+      "holds": "Holds <from/> until <date>~{{date}}</date>, then <to/>",
+      "predictedLabel": "Predicted release",
+      "confirmedLabel": "Confirmed release",
+      "releasePredicted": "Expected on {{server}} <date>~{{date}}</date>",
+      "releaseConfirmed": "Coming to {{server}} on {{date}}"
+    },
     "origins": {
       "heading": "Available on",
       "kind": {
@@ -405,12 +417,12 @@
       "more_one": "See {{count}} more",
       "more_other": "See {{count}} more",
       "source": {
-        "gacha": "In the scout pool",
-        "story_event": "Story event",
-        "promo": "Promotion",
-        "limited_quest": "Limited quest",
-        "main_story": "Main story",
-        "shop": "Shop"
+        "gacha": "Available in the scout pool",
+        "story_event": "From a story event",
+        "promo": "From a promotion",
+        "limited_quest": "From a limited quest",
+        "main_story": "From the main story",
+        "shop": "From the shop"
       },
       "oldestFirst": "Oldest first",
       "newestFirst": "Newest first",
@@ -419,7 +431,12 @@
   },
   "pullGuide": {
     "upcomingBanner": "Upcoming banner",
+    "lastBanner": "Last banner",
+    "availableNow": "Currently available",
+    "noAdvice": "No advice available",
     "shouldPull": "Should pull?",
+    "shouldGet": "Should get?",
+    "shouldPullNext": "Should pull on the next banner?",
     "pullChip": "Pull? {{verdict}}",
     "verdict": {
       "yes": "Yes",
@@ -441,13 +458,14 @@
     "noUpcoming": "No upcoming banners :c",
     "rerun": "Rerun",
     "seeBanner": "See banner",
+    "seeEvent": "See event",
     "seeMore": "See more on Luh's encyclopedia"
   },
   "chart": {
     "label": "Tier list position over time: {{start}} at release, {{now}} now",
     "labelPredicted": "Predicted {{end}} by {{date}}",
-    "predictedDate": "{{date}} (predicted)",
-    "passedBy": "Passed by {{names, list}}"
+    "tierChange": "{{tier}} · {{rank}}",
+    "predicted": "Predicted →"
   },
   "settings": {
     "title": "Settings",

@@ -57,8 +57,22 @@ function useBackCloses(open: boolean, onClose: () => void) {
   }, [open]);
 }
 
+// The page under an open sheet is inert: the browser's find (Ctrl+F) then searches the sheet only, not the page first
+// (the sheet's portal comes after it). Radix already blocks the page's clicks and hides it from screen readers.
+function usePageInert(open: boolean) {
+  useEffect(() => {
+    const page = document.getElementById('root');
+    if (!open || !page) return;
+    page.inert = true;
+    return () => {
+      page.inert = false;
+    };
+  }, [open]);
+}
+
 export default function Sheet({ open, onClose, onClosed, className, children }: SheetProps) {
   useBackCloses(open, onClose);
+  usePageInert(open);
   const { t } = useTranslation();
   const desktop = useMediaQuery(DESKTOP);
   const Icon: LucideIcon = desktop ? X : ChevronDown;

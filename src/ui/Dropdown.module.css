@@ -78,28 +78,6 @@
   white-space: nowrap;
 }
 
-.pill {
-  display: inline-block;
-  max-width: 100%;
-  padding: 1px 10px;
-  overflow: hidden;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-  background: var(--pill-color, var(--panel));
-  border: 1px solid var(--pill-color, var(--border));
-  border-radius: 999px;
-}
-
-.inkDark {
-  color: var(--ink-dark);
-}
-
-.inkLight {
-  color: var(--ink-light);
-}
-
 .italic .label {
   font-style: italic;
 }

@@ -1,44 +1,63 @@
-import { type KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { type CSSProperties, type Ref, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
-import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatDate } from '../i18n/index.ts';
-import type { HistoryPoint } from '../lib/rankHistory.ts';
+import { formatDate, formatDateRange, formatDay, scenarioName } from '../i18n/index.ts';
 import { useDragScroll } from '../hooks/useDragScroll.ts';
+import type { HistoryPoint } from '../lib/rankHistory.ts';
+import { TIER_NAMES } from '../lib/tiers.ts';
 import TierChip from '../ui/TierChip.tsx';
+import { scenarioStyle } from '../lib/vividColor.ts';
+import { scenarioUrl } from '../routes.ts';
+import { DAY } from '../timeline/layout.ts';
+import type { ScenarioSegment } from '../timeline/scenarioStrip.ts';
 import styles from './RankChart.module.css';
 
-const HEIGHT = 240;
-// The rank axis sits in its own column outside the scroller, so it stays put.
-const AXIS_WIDTH = 40;
-const MARGIN = { top: 16, right: 28, bottom: 44 };
-const MONTH_WIDTH = 20; // pixels per month
-// Months are too narrow to label each one, so only quarters (Jan, Apr, Jul, Oct) are.
-const isQuarter = (time: number): boolean => new Date(time).getUTCMonth() % 3 === 0;
+// The rank axis and the tier chips sit in their own columns outside the scroller, so they stay put; in the scroller,
+// room above the plot for "Today", below for the dates and the scenario rule, and a little at each end for the dots.
+const AXIS_WIDTH = 36;
+const CHIPS_WIDTH = 32;
+const MARGIN = { top: 28, bottom: 50, side: 10 };
+// The tier chips beside the plot (TierChip, made smaller here: --chip-size in the CSS).
+const CHIP_SIZE = 20;
+// The time after the last step drawn, so its label and dot aren't on the edge; and the least span shown (a card out
+// this week would otherwise stretch a few days across the whole width).
+const TAIL = 30 * DAY;
+const MIN_SPAN = 120 * DAY;
+// Least room between two date labels; the step (1, 3, 6 or 12 months) is the smallest that leaves this much.
+const DATE_LABEL_GAP = 44;
+// A label's width estimate per character (11px bold), for keeping labels from overlapping.
+const CHAR_WIDTH = 6.6;
 
 const toTime = (date: string): number => Date.parse(`${date}T00:00:00Z`);
-export const formatDay = (
-  date: string,
-  opts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' }
-): string => formatDate(toTime(date), { ...opts, timeZone: 'UTC' });
 const formatMonth = (time: number): string => formatDate(time, { month: 'short', timeZone: 'UTC' });
 
-// Round ticks from 1 up to max, about `count` of them (1, 5, 10… or 1, 10, 20…).
-function rankTicks(max: number, count = 4): number[] {
-  const raw = max / count;
+// Round ticks from lo up to hi, about `count` of them (1, 5, 10… or 40, 50, 60…): lo itself only when it's #1.
+function rankTicks(lo: number, hi: number, count = 4): number[] {
+  const raw = (hi - lo) / count;
   const step = [1, 2, 5, 10, 20, 25, 50, 100].find((s) => s >= raw) ?? 100;
-  const ticks = [1];
-  for (let t = step; t <= max; t += step) if (t > 1) ticks.push(t);
+  const ticks = lo === 1 ? [1] : [];
+  for (let t = Math.ceil(lo / step) * step; t <= hi; t += step) if (t > 1 && t >= lo) ticks.push(t);
   return ticks;
+}
+
+// The ranks the axis spans: the card's own, with a little room above (from #1 when it's near the top), so a card that
+// has only ever ranked #40–60 doesn't leave the chart's top half empty.
+function rankRange(history: HistoryPoint[]): { lo: number; hi: number } {
+  const positions = history.map((p) => p.position);
+  const min = Math.min(...positions);
+  const hi = Math.max(...positions, min + 1);
+  const room = Math.max(1, Math.ceil((hi - min) * 0.1));
+  const lo = min - room <= 3 ? 1 : min - room;
+  return { lo, hi };
 }
 
 function monthStarts(from: number, to: number): number[] {
   const d = new Date(from);
   const months: number[] = [];
-  for (let m = d.getUTCMonth(); ; m++) {
+  for (let m = d.getUTCMonth() + 1; ; m++) {
     const t = Date.UTC(d.getUTCFullYear(), m, 1);
-    months.push(t);
     if (t > to) return months;
+    months.push(t);
   }
 }
 
@@ -54,98 +73,213 @@ function useWidth(ref: RefObject<HTMLDivElement | null>): number {
   return width;
 }
 
-type Point = HistoryPoint & { x: number; y: number };
-type Coords = { x: number; y: number };
-
 export type RankChartProps = {
   history: HistoryPoint[];
-  nameOf: (id: number) => string | undefined;
+  className?: string;
+  ref?: Ref<HTMLDivElement>;
+  /** The server's scenarios, as a coloured rule under the dates. */
+  scenarios?: ScenarioSegment[];
+  /** Called with a marker's date when it's clicked: the release, or a date other cards pass it. */
+  onSelect?: (date: string) => void;
+  /** The chart's height in pixels. */
+  height?: number;
+  /** How many times the panel's width the plot is (1: the whole life fits); past 1 it scrolls sideways. */
+  zoom?: number;
 };
 
-// Points marked `predicted` continue from the last real step as a dashed line.
-export default function RankChart({ history, nameOf }: RankChartProps) {
+// A band per tier the card is in over time, from the ranks it holds in each: the line between two tiers halfway between
+// the last rank of one and the first of the next.
+function tierBands(points: HistoryPoint[]): { tier: number; from: number; to: number }[] {
+  const spans = new Map<number, { min: number; max: number }>();
+  for (const p of points) {
+    const span = spans.get(p.tier);
+    spans.set(
+      p.tier,
+      span
+        ? { min: Math.min(span.min, p.position), max: Math.max(span.max, p.position) }
+        : { min: p.position, max: p.position }
+    );
+  }
+  const tiers = [...spans.keys()].sort((a, b) => a - b);
+  return tiers.map((tier, i) => {
+    const span = spans.get(tier) ?? { min: 1, max: 1 };
+    const before = i > 0 ? spans.get(tiers[i - 1]) : undefined;
+    const after = i < tiers.length - 1 ? spans.get(tiers[i + 1]) : undefined;
+    return {
+      tier,
+      from: before ? (before.max + span.min) / 2 : Number.NEGATIVE_INFINITY,
+      to: after ? (span.max + after.min) / 2 : Number.POSITIVE_INFINITY,
+    };
+  });
+}
+
+const tierStyle = (tier: number) => ({ '--band': `var(--tier-${tier})` }) as CSSProperties;
+
+type Label = { key: string; x: number; y: number; text: string; tier: number; predicted: boolean; end?: boolean };
+
+// The card's whole life, at the panel's width or `zoom` times it (then scrolling sideways): its rank as a step line in the colour of the tier it's in, dashed once
+// it's predicted. Labelled only at its release, today, the last prediction and each tier change.
+export default function RankChart({
+  history,
+  className,
+  ref,
+  onSelect,
+  scenarios = [],
+  height: HEIGHT = 300,
+  zoom = 1,
+}: RankChartProps) {
   const { t } = useTranslation();
-  const wrapper = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
-  const svg = useRef<SVGSVGElement>(null);
   const viewWidth = useWidth(scroller);
-  const [active, setActive] = useState<number | null>(null);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  useDragScroll(scroller);
+  const width = viewWidth * zoom;
+  useDragScroll(scroller, zoom > 1);
 
   const now = Date.now();
-  const months = monthStarts(toTime(history[0].date), Math.max(now, toTime(history[history.length - 1].date)));
-  const from = months[0];
-  const to = months[months.length - 1];
-  const maxRank = Math.max(...history.map((p) => p.position), 2);
+  const from = toTime(history[0].date);
+  const to = Math.max(from + MIN_SPAN, Math.max(now, toTime(history[history.length - 1].date)) + TAIL);
+  const { lo: minRank, hi: maxRank } = rankRange(history);
+  const plotL = MARGIN.side;
+  const plotR = width - MARGIN.side;
+  const plotT = MARGIN.top;
+  const plotB = HEIGHT - MARGIN.bottom;
+  const x = (time: number): number => plotL + ((time - from) / (to - from)) * (plotR - plotL);
+  const y = (rank: number): number => plotT + ((rank - minRank) / (maxRank - minRank || 1)) * (plotB - plotT);
 
-  const width = Math.max(viewWidth, (months.length - 1) * MONTH_WIDTH + MARGIN.right);
-  const plotW = width - MARGIN.right;
-  const plotH = HEIGHT - MARGIN.top - MARGIN.bottom;
-  const x = (time: number): number => ((time - from) / (to - from)) * plotW;
-  const y = (rank: number): number => MARGIN.top + ((rank - 1) / (maxRank - 1)) * plotH;
-
-  const points: Point[] = history.map((p) => ({ ...p, x: x(toTime(p.date)), y: y(p.position) }));
-  const actual = points.filter((p) => !p.predicted);
-  const future = points.filter((p) => p.predicted);
-  const current = actual.at(-1);
+  const points = history.map((p) => ({ ...p, x: x(toTime(p.date)), y: y(p.position) }));
+  const current = points.filter((p) => !p.predicted).at(-1);
   const last = points[points.length - 1];
   // Today, or the last real step if that's later (a release dated today in another time zone).
   const todayX = Math.max(x(now), current?.x ?? 0);
-  const steps = (start: Coords, rest: Coords[]): string =>
-    `M${start.x},${start.y}${rest.map((p) => `H${p.x}V${p.y}`).join('')}`;
-  const realPath = actual.length > 0 ? `${steps(actual[0], actual.slice(1))}H${todayX}` : null;
-  const futureStart: Coords | undefined = current ? { x: todayX, y: current.y } : future[0];
-  const futurePath = future.length > 0 && futureStart ? steps(futureStart, current ? future : future.slice(1)) : null;
-  const marked = points.filter(
-    (p, i) => i === 0 || p === current || i === points.length - 1 || p.position !== points[i - 1].position
-  );
-  const ticks = rankTicks(maxRank);
+  // Not for a card still to come: today is before its line starts.
+  const showToday = now >= from;
+  const hasFuture = last.predicted;
 
-  // Open on today (a third of the way in when predictions follow it, else at the right edge):
-  // on first layout and when the data changes.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: these deps are the triggers, not values the effect reads.
+  // Each step: the drop into it, then its flat part to the next, in its tier's colour; the step running through today
+  // turns dashed there.
+  const segments = points.flatMap((p, i) => {
+    const prev = points[i - 1];
+    const endX = points[i + 1]?.x ?? p.x;
+    const head = prev ? `M${p.x},${prev.y}V${p.y}` : `M${p.x},${p.y}`;
+    if (p.predicted) return [{ key: p.date, d: `${head}H${endX}`, tier: p.tier, predicted: true }];
+    if (p === current && hasFuture)
+      return [
+        { key: p.date, d: `${head}H${todayX}`, tier: p.tier, predicted: false },
+        { key: `${p.date}-next`, d: `M${todayX},${p.y}H${endX}`, tier: p.tier, predicted: true },
+      ];
+    return [{ key: p.date, d: `${head}H${p === current ? todayX : endX}`, tier: p.tier, predicted: false }];
+  });
+  const tierChanges = points.filter((p, i) => i > 0 && p.tier !== points[i - 1].tier);
+
+  // Labels by priority, each kept only where it doesn't overlap one already placed.
+  const candidates: Label[] = [
+    {
+      key: 'release',
+      x: points[0].x,
+      y: points[0].y,
+      text: t('common.rank', points[0]),
+      tier: points[0].tier,
+      predicted: points[0].predicted,
+    },
+    ...(current && showToday
+      ? [
+          {
+            key: 'now',
+            x: todayX,
+            y: current.y,
+            text: t('common.rank', current),
+            tier: current.tier,
+            predicted: false,
+            end: true,
+          },
+        ]
+      : []),
+    // (unless it's a tier change: that label says its rank too)
+    ...(hasFuture && last !== points[0] && !tierChanges.includes(last)
+      ? [
+          {
+            key: 'end',
+            x: last.x,
+            y: last.y,
+            text: t('common.rank', last),
+            tier: last.tier,
+            predicted: true,
+            end: true,
+          },
+        ]
+      : []),
+    ...tierChanges.map((p) => ({
+      key: `tier-${p.date}`,
+      x: p.x,
+      y: p.y,
+      text: t('chart.tierChange', { tier: TIER_NAMES[p.tier], rank: t('common.rank', p) }),
+      tier: p.tier,
+      predicted: p.predicted,
+    })),
+  ];
+  const placed: { label: Label; l: number; r: number }[] = [];
+  for (const label of candidates) {
+    const w = label.text.length * CHAR_WIDTH;
+    // Right of its point, unless that runs past the plot.
+    const end = label.end || label.x + 6 + w > width;
+    const l = end ? label.x - 6 - w : label.x + 6;
+    const r = l + w;
+    if (placed.some((p) => l < p.r + 4 && r > p.l - 4 && Math.abs(p.label.y - label.y) < 14)) continue;
+    placed.push({ label: { ...label, end }, l, r });
+  }
+  const dots = [points[0], ...tierChanges, ...(hasFuture ? [last] : [])];
+  // A smaller dot at every other step down, where other cards pass it (hollow when predicted).
+  const drops = points.filter((p, i) => i > 0 && p.position !== points[i - 1].position && !dots.includes(p));
+
+  const bands = tierBands(history).map((b) => ({
+    tier: b.tier,
+    top: b.from === Number.NEGATIVE_INFINITY ? plotT : Math.max(y(b.from), plotT),
+    bottom: b.to === Number.POSITIVE_INFINITY ? plotB : Math.min(y(b.to), plotB),
+    rule: b.to === Number.POSITIVE_INFINITY ? null : y(b.to),
+  }));
+  // A chip at the middle of each band, pushed down past the one above where bands are thinner than a chip.
+  const chips: { tier: number; top: number }[] = [];
+  for (const b of bands) {
+    const prev = chips.at(-1);
+    const top = Math.max((b.top + b.bottom) / 2 - CHIP_SIZE / 2, prev ? prev.top + CHIP_SIZE + 2 : 0);
+    chips.push({ tier: b.tier, top });
+  }
+  const rankTickValues = rankTicks(minRank, maxRank);
+
+  // Zooming keeps the view's middle where it was; the first zoom in from the whole life centres on today.
+  const center = useRef(0.5);
+  const prevZoom = useRef(zoom);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a zoom change is the trigger; the rest is read as it is then.
   useLayoutEffect(() => {
     const el = scroller.current;
-    if (!el) return;
-    el.scrollLeft = future.length > 0 ? todayX - el.clientWidth / 3 : el.scrollWidth;
-  }, [history, viewWidth > 0]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: runs when the picked point changes; `points` is rebuilt every render.
-  useEffect(() => {
+    if (!el || prevZoom.current === zoom) return;
+    if (prevZoom.current === 1 && showToday) center.current = todayX / width;
+    prevZoom.current = zoom;
+    el.scrollLeft = center.current * el.scrollWidth - el.clientWidth / 2;
+  }, [zoom]);
+  const onScroll = () => {
     const el = scroller.current;
-    if (active === null || !el || document.activeElement !== svg.current) return;
-    const px = points[active].x;
-    if (px < el.scrollLeft + 40 || px > el.scrollLeft + el.clientWidth - 40) {
-      el.scrollTo({ left: px - el.clientWidth / 2, behavior: 'smooth' });
-    }
-  }, [active]);
+    if (el) center.current = (el.scrollLeft + el.clientWidth / 2) / el.scrollWidth;
+  };
 
-  function pointAt(clientX: number): number {
-    const left = clientX - (svg.current?.getBoundingClientRect().left ?? 0);
-    let index = 0;
-    points.forEach((p, i) => {
-      if (p.x <= left) index = i;
-    });
-    return index;
-  }
-
-  function onKeyDown(e: KeyboardEvent<SVGSVGElement>) {
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    e.preventDefault();
-    const step = e.key === 'ArrowLeft' ? -1 : 1;
-    setActive((i) => Math.min(Math.max((i ?? points.length - 1) + step, 0), points.length - 1));
-  }
-
-  const hovered = active !== null ? points[active] : null;
-  // The tooltip lives outside the scroller (so it isn't clipped); place it in view coordinates.
-  const tooltipX = hovered ? AXIS_WIDTH + hovered.x - scrollLeft : null;
-  const wrapperWidth = AXIS_WIDTH + viewWidth;
+  // Dates: January as its year, other labelled months by name, every `step` months so the labels have room.
+  const monthWidth = ((plotR - plotL) * 30.44 * DAY) / (to - from);
+  const step = [1, 3, 6, 12].find((s) => s * monthWidth >= DATE_LABEL_GAP) ?? 24;
+  const months = monthStarts(from, to).filter((m) => {
+    const d = new Date(m);
+    return (d.getUTCFullYear() * 12 + d.getUTCMonth()) % step === 0 && x(m) < plotR - 12;
+  });
+  const shownScenarios = scenarios
+    .map((s) => ({
+      ...s,
+      left: Math.max(x(s.start), plotL),
+      right: s.end === null ? plotR : Math.min(x(s.end), plotR),
+    }))
+    .filter((s) => s.right > s.left);
 
   return (
-    <div className={styles.rankChart} ref={wrapper}>
+    <div className={clsx(styles.rankChart, className)} ref={ref}>
       <svg className={styles.rankAxis} width={AXIS_WIDTH} height={HEIGHT} aria-hidden="true">
-        {ticks.map((rank) => (
+        {rankTickValues.map((rank) => (
           <text
             key={rank}
             className={styles.axisLabel}
@@ -158,10 +292,9 @@ export default function RankChart({ history, nameOf }: RankChartProps) {
           </text>
         ))}
       </svg>
-      <div className={styles.rankScroller} ref={scroller} onScroll={(e) => setScrollLeft(e.currentTarget.scrollLeft)}>
+      <div className={clsx(styles.scroller, zoom > 1 && styles.zoomed)} ref={scroller} onScroll={onScroll}>
         {viewWidth > 0 && (
           <svg
-            ref={svg}
             width={width}
             height={HEIGHT}
             role="img"
@@ -171,110 +304,151 @@ export default function RankChart({ history, nameOf }: RankChartProps) {
             ]
               .filter((label): label is string => Boolean(label))
               .join('. ')}
-            // biome-ignore lint/a11y/noNoninteractiveTabindex: focusable so keyboard users can step through the points with the arrow keys.
-            tabIndex={0}
-            onPointerMove={(e) => setActive(pointAt(e.clientX))}
-            onPointerLeave={() => setActive(null)}
-            onBlur={() => setActive(null)}
-            onKeyDown={onKeyDown}
           >
-            {ticks.map((rank) => (
+            {rankTickValues.map((rank) => (
               <line key={rank} className={styles.grid} x1={0} x2={width} y1={y(rank)} y2={y(rank)} />
             ))}
-            {months.map((monthStart, i) => {
-              const date = new Date(monthStart);
-              const january = date.getUTCMonth() === 0;
-              const mx = x(monthStart);
-              // Label the first month's year too, unless the next January is too close for it to fit.
-              const nextJanuary = months.findIndex((m, j) => j > 0 && new Date(m).getUTCMonth() === 0);
-              const showYear =
-                i < months.length - 1 && (january || (i === 0 && (nextJanuary === -1 || nextJanuary >= 3)));
+            {bands.map((b) => (
+              <g key={b.tier} style={tierStyle(b.tier + (b.rule === null ? 0 : 1))}>
+                {b.rule !== null && b.rule > plotT && b.rule < plotB && (
+                  <line className={styles.tierRule} x1={0} x2={width} y1={b.rule} y2={b.rule} />
+                )}
+              </g>
+            ))}
+            <line className={styles.baseline} x1={0} x2={width} y1={plotB} y2={plotB} />
+            {months.map((m) => {
+              const january = new Date(m).getUTCMonth() === 0;
               return (
-                <g key={monthStart}>
-                  <line
-                    className={january ? clsx(styles.grid, styles.year) : styles.monthTick}
-                    x1={mx}
-                    x2={mx}
-                    y1={january ? MARGIN.top : MARGIN.top + plotH}
-                    y2={MARGIN.top + plotH + 6}
-                  />
-                  {isQuarter(monthStart) && i < months.length - 1 && (
-                    <text className={styles.axisLabel} x={mx + 4} y={HEIGHT - MARGIN.bottom + 18}>
-                      {formatMonth(monthStart)}
-                    </text>
-                  )}
-                  {showYear && (
-                    <text
-                      className={clsx(styles.axisLabel, styles.yearLabel)}
-                      x={mx + 4}
-                      y={HEIGHT - MARGIN.bottom + 34}
-                    >
-                      {date.getUTCFullYear()}
-                    </text>
-                  )}
+                <g key={m}>
+                  {january && <line className={styles.yearTick} x1={x(m)} x2={x(m)} y1={plotB} y2={plotB + 5} />}
+                  <text
+                    className={clsx(styles.axisLabel, january && styles.yearLabel)}
+                    x={x(m)}
+                    y={plotB + 16}
+                    textAnchor="middle"
+                  >
+                    {january ? new Date(m).getUTCFullYear() : formatMonth(m)}
+                  </text>
                 </g>
               );
             })}
-            <line className={styles.todayLine} x1={todayX} x2={todayX} y1={MARGIN.top} y2={MARGIN.top + plotH} />
-            {realPath && <path className={styles.rankLine} d={realPath} />}
-            {futurePath && <path className={clsx(styles.rankLine, styles.predicted)} d={futurePath} />}
-            {marked.map((p) => (
+            {shownScenarios.map((s) => {
+              const w = s.right - s.left;
+              const name = scenarioName(s.key);
+              return (
+                <a
+                  key={s.key}
+                  href={scenarioUrl(s.key)}
+                  className={clsx(styles.scenario, s.tag !== 'out' && styles.upcoming)}
+                  style={scenarioStyle(s.color)}
+                >
+                  <title>
+                    {t('timeline.scenarioTitle', {
+                      name: s.name,
+                      status: t(`timeline.scenarioTag.${s.tag}`),
+                      dates:
+                        s.end === null
+                          ? t('timeline.since', { date: formatDate(s.start, { dateStyle: 'medium', timeZone: 'UTC' }) })
+                          : formatDateRange(s.start, s.end, { dateStyle: 'medium', timeZone: 'UTC' }),
+                    })}
+                  </title>
+                  {/* A taller transparent target than the 4px rule. */}
+                  <rect className={styles.scenarioHit} x={s.left} y={plotB + 22} width={w} height={22} />
+                  <rect
+                    className={styles.scenarioRule}
+                    x={s.left + 1}
+                    y={plotB + 24}
+                    width={Math.max(w - 2, 1)}
+                    height={4}
+                    rx={2}
+                  />
+                  {name.length * 6 + 4 <= w && (
+                    <text className={styles.scenarioName} x={s.left + 2} y={plotB + 40}>
+                      {name}
+                    </text>
+                  )}
+                </a>
+              );
+            })}
+            {showToday && (
+              <g className={styles.today}>
+                <line x1={todayX} x2={todayX} y1={plotT - 12} y2={plotB} />
+                <text x={Math.min(Math.max(todayX, 20), width - 20)} y={plotT - 16} textAnchor="middle">
+                  {t('timeline.today')}
+                </text>
+                {hasFuture && todayX + 90 < plotR && (
+                  <text className={styles.future} x={todayX + 8} y={plotB - 8}>
+                    {t('chart.predicted')}
+                  </text>
+                )}
+              </g>
+            )}
+            {segments.map((s) => (
+              <path
+                key={s.key}
+                className={clsx(styles.segment, s.predicted && styles.predicted)}
+                style={tierStyle(s.tier)}
+                d={s.d}
+              />
+            ))}
+            {drops.map((p) => (
               <circle
                 key={p.date}
-                className={clsx(styles.rankDot, p.predicted && styles.predicted)}
+                className={clsx(styles.dot, p.predicted && styles.predicted)}
+                style={tierStyle(p.tier)}
+                cx={p.x}
+                cy={p.y}
+                r={2.5}
+              />
+            ))}
+            {dots.map((p) => (
+              <circle
+                key={p.date}
+                className={clsx(styles.dot, p.predicted && styles.predicted)}
+                style={tierStyle(p.tier)}
                 cx={p.x}
                 cy={p.y}
                 r={4}
               />
             ))}
-            {current && (
-              <text className={styles.endLabel} x={todayX + 4} y={current.y - 10} textAnchor="middle">
-                {t('common.rank', current)}
-              </text>
+            {current && showToday && (
+              <circle className={styles.dot} style={tierStyle(current.tier)} cx={todayX} cy={current.y} r={4} />
             )}
-            {last.predicted && (
+            {placed.map(({ label, l }) => (
               <text
-                className={clsx(styles.endLabel, styles.predicted)}
-                x={last.x + 4}
-                y={last.y - 10}
-                textAnchor="middle"
+                key={label.key}
+                className={clsx(styles.label, label.predicted && styles.predicted)}
+                x={l}
+                y={label.y - 8}
               >
-                {t('common.rank', last)}
+                {label.text}
               </text>
-            )}
-            {hovered && (
-              <g className={styles.crosshair}>
-                <line x1={hovered.x} x2={hovered.x} y1={MARGIN.top} y2={MARGIN.top + plotH} />
-                <circle
-                  className={clsx(styles.rankDot, hovered.predicted && styles.predicted)}
-                  cx={hovered.x}
-                  cy={hovered.y}
-                  r={5}
-                />
-              </g>
-            )}
+            ))}
+            {onSelect &&
+              points
+                .filter((p, i) => i === 0 || p.overtakenBy.length > 0)
+                .map((p) => (
+                  // A finger-sized target over the marker.
+                  // biome-ignore lint/a11y/noStaticElementInteractions: a pointer shortcut; the Passed by list is the keyboard route to the same rows.
+                  <circle
+                    key={p.date}
+                    className={styles.hit}
+                    cx={p.x}
+                    cy={p.y}
+                    r={12}
+                    onClick={() => onSelect(p.date)}
+                  />
+                ))}
           </svg>
         )}
       </div>
-      {hovered && tooltipX !== null && tooltipX >= AXIS_WIDTH && tooltipX <= wrapperWidth && (
-        <div
-          className={styles.tooltip}
-          style={{ left: Math.min(Math.max(tooltipX, 90), wrapperWidth - 90), top: Math.max(hovered.y - 12, 0) }}
-        >
-          <span className={styles.tooltipDate}>
-            {hovered.predicted ? t('chart.predictedDate', { date: formatDay(hovered.date) }) : formatDay(hovered.date)}
+      <div className={styles.chips} style={{ width: CHIPS_WIDTH, height: HEIGHT }} aria-hidden="true">
+        {chips.map((c) => (
+          <span key={c.tier} className={styles.chip} style={{ top: c.top }}>
+            <TierChip tier={c.tier} />
           </span>
-          <span className={styles.tooltipRank}>
-            <TierChip tier={hovered.tier} />
-            {t('common.rankOf', hovered)}
-          </span>
-          {hovered.overtakenBy.length > 0 && (
-            <span className={styles.tooltipNote}>
-              {t('chart.passedBy', { names: hovered.overtakenBy.map((c) => nameOf(c.id)) })}
-            </span>
-          )}
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

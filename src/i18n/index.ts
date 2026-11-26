@@ -7,7 +7,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import en from './en.json' with { type: 'json' };
 import { COMBINED } from '../../tierlist/index.ts';
-import { scenarioByKey } from '../lib/scenarioRelease.ts';
+import { scenarioByKey } from '../../shared/scenarioRelease.ts';
 import { getSetting } from '../state/settingsStore.ts';
 
 const RESOURCES = { en: { translation: en } };
@@ -57,6 +57,11 @@ function dateTimeFormat(options: Intl.DateTimeFormatOptions): Intl.DateTimeForma
 
 export const formatDate = (date: Date | string | number, options: Intl.DateTimeFormatOptions = {}): string =>
   dateTimeFormat(options).format(new Date(date));
+// A YYYY-MM-DD day, read in UTC so it's the same day everywhere.
+export const formatDay = (
+  date: string,
+  opts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' }
+): string => formatDate(`${date}T00:00:00Z`, { ...opts, timeZone: 'UTC' });
 export const formatDateTime = (date: Date | string | number, options: Intl.DateTimeFormatOptions): string =>
   dateTimeFormat(options).format(new Date(date));
 // A range with what its ends share written once: "Oct 7 – 16, 2026", "Oct 7, 10:00 PM – Oct 16, 9:59 PM UTC".

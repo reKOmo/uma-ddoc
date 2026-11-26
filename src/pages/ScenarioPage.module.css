@@ -60,20 +60,6 @@
   border-radius: 999px;
 }
 
-.scenarioKey {
-  color: var(--text);
-  background: var(--scenario-color, var(--panel));
-  border-color: var(--scenario-color, var(--border));
-}
-
-.inkDark {
-  color: var(--ink-dark);
-}
-
-.inkLight {
-  color: var(--ink-light);
-}
-
 .serverLabel {
   margin-right: 4px;
   font-weight: 400;

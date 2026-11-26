@@ -3,7 +3,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { cards, loadCards } from '../tierlist/cards.ts';
 import { COMBINED, STATS, presetDecks, rankByUsefulness, scenarioOptions, scenariosOf } from '../tierlist/index.ts';
 import { withoutEvents } from '../tierlist/join-cards.ts';
-import { getScenarios, getServerConfig } from '../tierlist/scenarios.ts';
+import { getCurrentScenario, getScenarios } from '../tierlist/scenarios.ts';
 import gl from '../generated/raw/upstream/gl.js';
 import jp from '../generated/raw/upstream/jp.js';
 import events from '../generated/raw/upstream/card-events.js';
@@ -68,7 +68,7 @@ for (const server of ['gl', 'jp'] as const) {
     }
 
     it('averaged rankings cover real scenarios, include the current one, and score 0-1000', async () => {
-      const current = getServerConfig(server).defaultScenario;
+      const current = getCurrentScenario(server);
       for (const key of Object.keys(COMBINED)) {
         const scenarios = scenariosOf(server, key);
         expect(scenarios, key).toContain(current);
@@ -88,7 +88,7 @@ describe('rankings with upcoming cards', () => {
   it("add JP's cards Global doesn't have, without changing any Global card's score", async () => {
     const own = await loadCards('gl');
     const ids = new Set(own.map((c) => c.id));
-    for (const scenario of [getServerConfig('gl').defaultScenario, 'overall']) {
+    for (const scenario of [getCurrentScenario('gl'), 'overall']) {
       const base = await rankByUsefulness('gl', scenario, 'speed');
       const ranking = await rankByUsefulness('gl', scenario, 'speed', { upcoming: true });
       const scores = new Map(ranking.map((r) => [`${r.id}/${r.lb}`, r.score]));
