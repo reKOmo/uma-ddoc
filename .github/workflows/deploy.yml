@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -49,7 +49,7 @@ jobs:
         run: pnpm update-jp
       - name: Apply the official news to Global's banners
         run: pnpm update-global
-      - uses: astral-sh/setup-uv@v10.3.3 # no floating v10 tag (setup-uv stopped publishing major tags after v7)
+      - uses: astral-sh/setup-uv@v10.4.0 # no floating v10 tag (setup-uv stopped publishing major tags after v7)
         with:
           enable-cache: true
           cache-dependency-glob: ml/requirements.txt
@@ -92,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -102,7 +102,7 @@ jobs:
         with:
           name: data
       # The news replay classifies posts with ml/ (skipped without it).
-      - uses: astral-sh/setup-uv@v10.3.3
+      - uses: astral-sh/setup-uv@v10.4.0
         with:
           enable-cache: true
           cache-dependency-glob: ml/requirements.txt
