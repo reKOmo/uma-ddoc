@@ -8,8 +8,8 @@ import { TIER_NAMES } from '../../lib/tiers.ts';
 import TierChip from '../../ui/TierChip.tsx';
 import { scenarioStyle } from '../../lib/vividColor.ts';
 import { scenarioUrl } from '../../routes.ts';
-import { DAY } from '../../timeline/layout.ts';
-import type { ScenarioSegment } from '../../timeline/scenarioStrip.ts';
+import { DAY, dayStart } from '../../lib/dates.ts';
+import type { ScenarioSegment } from '../../lib/scenarioStrip.ts';
 import styles from './RankChart.module.css';
 
 // The rank axis and the tier chips sit in their own columns outside the scroller, so they stay put; in the scroller,
@@ -28,7 +28,6 @@ const DATE_LABEL_GAP = 44;
 // A label's width estimate per character (11px bold), for keeping labels from overlapping.
 const CHAR_WIDTH = 6.6;
 
-const toTime = (date: string): number => Date.parse(`${date}T00:00:00Z`);
 const formatMonth = (time: number): string => formatDate(time, { month: 'short', timeZone: 'UTC' });
 
 // Round ticks from lo up to hi, about `count` of them (1, 5, 10… or 40, 50, 60…): lo itself only when it's #1.
@@ -73,7 +72,7 @@ function useWidth(ref: RefObject<HTMLDivElement | null>): number {
   return width;
 }
 
-export type RankChartProps = {
+type RankChartProps = {
   history: HistoryPoint[];
   className?: string;
   ref?: Ref<HTMLDivElement>;
@@ -135,8 +134,8 @@ export default function RankChart({
   useDragScroll(scroller, zoom > 1);
 
   const now = Date.now();
-  const from = toTime(history[0].date);
-  const to = Math.max(from + MIN_SPAN, Math.max(now, toTime(history[history.length - 1].date)) + TAIL);
+  const from = dayStart(history[0].date);
+  const to = Math.max(from + MIN_SPAN, Math.max(now, dayStart(history[history.length - 1].date)) + TAIL);
   const { lo: minRank, hi: maxRank } = rankRange(history);
   const plotL = MARGIN.side;
   const plotR = width - MARGIN.side;
@@ -145,7 +144,7 @@ export default function RankChart({
   const x = (time: number): number => plotL + ((time - from) / (to - from)) * (plotR - plotL);
   const y = (rank: number): number => plotT + ((rank - minRank) / (maxRank - minRank || 1)) * (plotB - plotT);
 
-  const points = history.map((p) => ({ ...p, x: x(toTime(p.date)), y: y(p.position) }));
+  const points = history.map((p) => ({ ...p, x: x(dayStart(p.date)), y: y(p.position) }));
   const current = points.filter((p) => !p.predicted).at(-1);
   const last = points[points.length - 1];
   // Today, or the last real step if that's later (a release dated today in another time zone).

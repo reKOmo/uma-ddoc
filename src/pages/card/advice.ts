@@ -4,6 +4,7 @@ import { currentAdvice, loadPullGuide, upcomingBanner } from '../../lib/pullGuid
 import type { Server } from '../../../tierlist/cards.ts';
 import { loadBanners } from '../../timeline/data.ts';
 import { useAsync } from '../../hooks/useAsync.ts';
+import { dayOf } from '../../lib/dates.ts';
 
 export type UpcomingAdvice = {
   guide: PullGuide | null;
@@ -27,6 +28,6 @@ export function useUpcomingAdvice(cardId: number, server: Server): UpcomingAdvic
   return {
     guide: data,
     banner,
-    entry: data && currentAdvice(data, cardId, upcoming, new Date(now).toISOString().slice(0, 10)),
+    entry: data && currentAdvice(data, cardId, upcoming, dayOf(now)),
   };
 }

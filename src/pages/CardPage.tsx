@@ -15,13 +15,14 @@ import { Section } from '../ui/Section.tsx';
 import Status from '../ui/Status.tsx';
 import Banners from './card/Banners.tsx';
 import CardArt from './card/CardArt.tsx';
-import { OriginPill } from './card/Origins.tsx';
+import { OriginPill } from './card/OriginPills.tsx';
 import NextBanner from './card/NextBanner.tsx';
 import SummaryTiles from './card/Summary.tsx';
 import RankOverTime from './card/RankOverTime.tsx';
 import ScenarioFilter from './card/ScenarioFilter.tsx';
 import ScenarioTierTable from './card/ScenarioTierTable.tsx';
 import { useOrigins, usePredictions, useScenarioRankings } from './card/hooks.ts';
+import { useUpcomingAdvice } from './card/advice.ts';
 import { nameOf, otherNames, titleOf } from './card/shared.ts';
 import { useLanguage, useTranslations } from '../lib/translations.ts';
 import { FanTl } from '../ui/FanTl.tsx';
@@ -44,6 +45,7 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
   const released = releasedLoad.pending ? null : releasedLoad.data;
 
   const origins = useOrigins(cardId, server);
+  const advice = useUpcomingAdvice(cardId, server);
   const language = useLanguage(server);
   const tl = useTranslations();
   const stat = card && STAT_OF_TYPE[card.type];
@@ -126,8 +128,9 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
             stat={stat}
             rankings={rankings}
             predictions={predictions}
+            advice={advice}
             released={released ?? null}
-            pull={<NextBanner cardId={cardId} server={server} origins={origins} />}
+            pull={<NextBanner cardId={cardId} origins={origins} advice={advice} />}
           />
         </div>
       </div>
@@ -148,7 +151,7 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
             />
           )}
         </Section>
-        <Banners card={card} server={server} origins={origins} />
+        <Banners card={card} server={server} origins={origins} advice={advice} />
       </div>
 
       {(released || upcoming) && rankOverTime}

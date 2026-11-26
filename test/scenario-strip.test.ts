@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { scenarioSegments } from '../src/timeline/scenarioStrip.ts';
+import { scenarioSegments } from '../src/lib/scenarioStrip.ts';
 import type { Scenario, StartDate } from '../shared/schemas/scenario.ts';
 import { fixture } from './helpers.ts';
 

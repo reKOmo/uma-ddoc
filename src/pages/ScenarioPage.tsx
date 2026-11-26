@@ -2,24 +2,23 @@ import clsx from 'clsx';
 import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getServerConfig } from '../../tierlist/scenarios.ts';
-import { formatDateRange, formatDateTime, formatDuration, scenarioName, serverName } from '../i18n/index.ts';
+import { formatDayRange, formatDuration, scenarioName, serverName } from '../i18n/index.ts';
 import { DATE_FIELD, SCENARIOS, isCurrent, launchTag, scenarioByKey } from '../../shared/scenarioRelease.ts';
 import type { Scenario, StartDate } from '../../shared/schemas/scenario.ts';
-import type { Server } from '../lib/servers.ts';
+import { SERVER_ORDER, type Server } from '../lib/servers.ts';
 import { Section } from '../ui/Section.tsx';
 import Status from '../ui/Status.tsx';
 import ScenarioPill from '../ui/ScenarioPill.tsx';
 import Pill from '../ui/Pill.tsx';
 import LinkButton from '../ui/LinkButton.tsx';
-import { clockOptions, timeZoneOptions, useSettings } from '../state/settings.tsx';
+import { useSettings } from '../state/settings.ts';
+import { dayOf, useDateFormats } from '../lib/dates.ts';
 import { umapyoiGl, umapyoiJp } from '../lib/umapyoi.ts';
 import { TAB_URLS, scenarioUrl } from '../routes.ts';
 import styles from './ScenarioPage.module.css';
 import { scenarioStyle } from '../lib/vividColor.ts';
 
 type Settings = ReturnType<typeof useSettings>['settings'];
-
-const day = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
 
 // scenario.links minus the image (cover): the pages to visit, in this order.
 // Labels: scenarioPage.link.<key>.
@@ -32,10 +31,7 @@ function linkList(scenario: Scenario, settings: Settings): [string, string][] {
   return out;
 }
 
-// Server-agnostic: both servers' launches side by side, "Newest on …" for each server it's the latest on.
-const SERVER_ORDER: Server[] = ['jp', 'gl'];
-
-export type ScenarioPageProps = {
+type ScenarioPageProps = {
   scenarioKey: string | undefined;
   onScenarioChange: (key: string) => void;
 };
@@ -43,7 +39,7 @@ export type ScenarioPageProps = {
 export default function ScenarioPage({ scenarioKey, onScenarioChange }: ScenarioPageProps) {
   const { t } = useTranslation();
   const { settings } = useSettings();
-  const { timeZone, clock } = settings;
+  const { time } = useDateFormats();
   const scenario = scenarioKey === undefined ? null : scenarioByKey(scenarioKey);
 
   if (!scenario) {
@@ -54,34 +50,13 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
     );
   }
 
-  const zone = timeZoneOptions(timeZone);
-  const longTime = (iso: string) =>
-    formatDateTime(iso, {
-      ...zone,
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      ...clockOptions(clock),
-      // Only UTC is named: local time is the viewer's own.
-      ...(timeZone === 'utc' && { timeZoneName: 'short' }),
-    });
-  const dayRange = (from: string, to: string) =>
-    formatDateRange(`${from}T00:00:00Z`, `${to}T00:00:00Z`, {
-      timeZone: 'UTC',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
   const now = Date.now();
   const relative = (iso: string) => {
     const at = Date.parse(iso);
-    if (day(at) === day(now)) return t('scenarioPage.today');
+    if (dayOf(at) === dayOf(now)) return t('scenarioPage.today');
     return at < now
-      ? t('scenarioPage.ago', { duration: formatDuration(day(at), day(now)) })
-      : t('scenarioPage.in', { duration: formatDuration(day(now), day(at)) });
+      ? t('scenarioPage.ago', { duration: formatDuration(dayOf(at), dayOf(now)) })
+      : t('scenarioPage.in', { duration: formatDuration(dayOf(now), dayOf(at)) });
   };
 
   const name = scenario.full_en ?? scenario.full_jp ?? scenario.key;
@@ -108,12 +83,12 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
       {start ? (
         <>
           <LaunchStatus start={start} />
-          <strong>{longTime(start.date)}</strong>
+          <strong>{time(start.date)}</strong>
           <span className={styles.relative}>{relative(start.date)}</span>
           {start.status === 'predicted' && start.lo && (
             <span className={styles.range}>
               {t('scenarioPage.range', {
-                dates: dayRange(start.lo, start.hi ?? start.lo),
+                dates: formatDayRange(start.lo, start.hi ?? start.lo),
               })}
             </span>
           )}
@@ -169,7 +144,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
                     {jp && en && (
                       <small>
                         {t(launchTag(en) === 'out' ? 'scenarioPage.lag' : 'scenarioPage.lagExpected', {
-                          duration: formatDuration(day(Date.parse(jp.date)), day(Date.parse(en.date))),
+                          duration: formatDuration(dayOf(Date.parse(jp.date)), dayOf(Date.parse(en.date))),
                         })}
                       </small>
                     )}

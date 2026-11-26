@@ -3,33 +3,33 @@
 // results (search.ts), matches the filter hides included unless the filter says otherwise.
 import { useCallback, useMemo } from 'react';
 import { cards } from '../../tierlist/cards.ts';
-import { type Verdict, VERDICTS, bannerVerdicts, loadPullGuide } from '../lib/pullGuide.ts';
+import { type Verdict, bannerVerdicts, loadPullGuide } from '../lib/pullGuide.ts';
 import { useAsync } from '../hooks/useAsync.ts';
 import type { Entry } from './entries.ts';
-import { getHidden, saveHidden, useHiddenStore } from './hidden.ts';
+import { getHidden, saveHidden, useHidden } from './hidden.ts';
 import { type LaneGroupRows, laneGroups } from './layout.ts';
-import { DEFAULT_ORDER, isDefaultOrder, orderedGroups, reorderGroups, saveOrder, useOrderStore } from './order.ts';
+import { DEFAULT_ORDER, isDefaultOrder, orderedGroups, reorderGroups, saveOrder, useOrder } from './order.ts';
+import { usePulls } from './pulls.ts';
 import { type Term, jumpTarget, searchIndex, searchResults } from './search.ts';
-import { useSearchOverrideStore } from './searchOverride.ts';
+import { useSearchOverride } from './searchOverride.ts';
 import type { Language } from '../lib/translations.ts';
-import { pullKey } from './TimelineFilter.tsx';
 
-const NONE = new Set<string>();
 const NO_GROUPS: LaneGroupRows<Entry>[] = [];
 
 export function useTimelineFilters(entries: Entry[] | null, chips: Term[], language: Language) {
-  const hidden = useHiddenStore((state) => state.hidden);
+  const hidden = useHidden();
+  const pulls = usePulls();
   const changeHidden = useCallback((update: (old: Set<string>) => Set<string>) => saveHidden(update(getHidden())), []);
-  const order = useOrderStore((state) => state.order);
+  const order = useOrder();
   const laneOrder = useMemo(() => orderedGroups(order), [order]);
-  const present = useMemo(() => new Set(entries?.map((e) => e.kind)), [entries]);
-  const kinds = useMemo(
-    () => laneOrder.flatMap((group) => group.kinds).filter((kind) => present.has(kind as Entry['kind'])),
+  const present = useMemo(() => new Set<string>(entries?.map((e) => e.kind)), [entries]);
+  const presentGroups = useMemo(
+    () => laneOrder.filter((group) => group.kinds.some((kind) => present.has(kind))),
     [laneOrder, present]
   );
-  const presentGroups = useMemo(
-    () => laneOrder.filter((group) => group.kinds.some((kind) => present.has(kind as Entry['kind']))),
-    [laneOrder, present]
+  const kinds = useMemo(
+    () => presentGroups.flatMap((group) => group.kinds).filter((kind) => present.has(kind)),
+    [presentGroups, present]
   );
   const guide = useAsync(loadPullGuide, []).data ?? null;
   const verdictsOf = useMemo(() => {
@@ -45,12 +45,11 @@ export function useTimelineFilters(entries: Entry[] | null, chips: Term[], langu
     () => entries && searchIndex(entries, cards, verdictsOf, language),
     [entries, verdictsOf, language]
   );
-  const override = useSearchOverrideStore((state) => state.override);
+  const override = useSearchOverride();
   const { groups, search } = useMemo(() => {
     if (!entries || !index) return { groups: NO_GROUPS, search: null };
-    const picked = !!verdictsOf && VERDICTS.some((v) => hidden.has(pullKey(v)));
     const pullShown = (entry: Entry) =>
-      entry.group !== 'cards' || !verdictsOf || !picked || [...verdictsOf(entry)].some((v) => hidden.has(pullKey(v)));
+      entry.group !== 'cards' || !verdictsOf || !pulls.size || [...verdictsOf(entry)].some((v) => pulls.has(v));
     const filtered = (e: Entry) => !hidden.has(e.kind) && pullShown(e);
     const results = chips.length ? searchResults(entries, chips, index) : null;
     const shown = (e: Entry) => (!results || results.shown.has(e.key)) && ((results && override) || filtered(e));
@@ -67,7 +66,7 @@ export function useTimelineFilters(entries: Entry[] | null, chips: Term[], langu
         target: jumpTarget(matched),
       },
     };
-  }, [entries, index, chips, override, hidden, verdictsOf, laneOrder]);
+  }, [entries, index, chips, override, hidden, pulls, verdictsOf, laneOrder]);
   const reorder = (from: number, to: number) =>
     saveOrder(
       reorderGroups(
@@ -77,14 +76,12 @@ export function useTimelineFilters(entries: Entry[] | null, chips: Term[], langu
         to
       )
     );
-  const resetOrder = () => saveOrder(DEFAULT_ORDER);
   const defaultOrder = isDefaultOrder(laneOrder.map((group) => group.key));
   return {
     hidden,
     changeHidden,
     kinds,
     presentGroups,
-    laneOrder,
     defaultOrder,
     verdictsOf,
     reorder,
@@ -92,6 +89,7 @@ export function useTimelineFilters(entries: Entry[] | null, chips: Term[], langu
     groups,
     terms: index?.terms ?? [],
     search,
-    unfold: search?.unfold ?? NONE,
   };
 }
+
+const resetOrder = () => saveOrder(DEFAULT_ORDER);

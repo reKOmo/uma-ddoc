@@ -1,21 +1,17 @@
-// Optional: the glob is empty until `pnpm fetch-pull-guide` has written the file; loadPullGuide() then gives null.
+// Optional: loadPullGuide() gives null until `pnpm fetch-pull-guide` has written the file.
 import type { Banner } from '../../shared/schemas/banner.ts';
 import type { SourcesFile } from '../../shared/schemas/sources.ts';
 import type { Advice, NoBannerAdvice, PullGuide, Release } from '../../shared/schemas/pullGuide.ts';
 import sourcesJson from '../../generated/sources.json' with { type: 'json' };
+import { DAY, dayOf, dayStart } from './dates.ts';
+import { optionalJson } from './optional.ts';
 
 const sources: SourcesFile = sourcesJson;
-const FILES = import.meta.glob('../../generated/pull_guide.json', { import: 'default' });
+const FILES = import.meta.glob<PullGuide>('../../generated/pull_guide.json', { import: 'default' });
 const source = sources['pull_guide.json'];
 const SHEET_URL = source && 'url' in source ? source.url : undefined;
 
-let loaded: Promise<PullGuide | null> | undefined;
-export function loadPullGuide(): Promise<PullGuide | null> {
-  const [load] = Object.values(FILES);
-  // TODO(ts): import.meta.glob's loader is typed unknown; test/schemas.test.ts checks the file against its schema.
-  loaded ??= load ? (load() as Promise<PullGuide>) : Promise.resolve(null);
-  return loaded;
-}
+export const loadPullGuide = optionalJson(FILES);
 
 // The card's next Global banner, real or predicted: the first featuring it that hasn't ended at `now`
 // (ms), or null.
@@ -36,8 +32,8 @@ const RUNNING_DAYS = 14;
 
 // Whether a card on no banner is still to come (or running) on `today` ("YYYY-MM-DD"), counting the
 // author's month estimates as ahead through their month.
-export function releaseAhead(release: Release, today: string): boolean {
-  const since = new Date(Date.parse(`${today}T00:00:00Z`) - RUNNING_DAYS * 86400000).toISOString().slice(0, 10);
+function releaseAhead(release: Release, today: string): boolean {
+  const since = dayOf(dayStart(today) - RUNNING_DAYS * DAY);
   const date = 'date' in release ? release.date : null;
   const month = 'month' in release ? release.month : null;
   return date ? date >= since : month ? month >= today.slice(0, 7) : false;

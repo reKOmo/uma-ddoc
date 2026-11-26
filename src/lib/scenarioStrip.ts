@@ -1,9 +1,8 @@
 // Each scenario runs from its launch to the next one's (end null for the newest); times in ms.
 import type { Scenario } from '../../shared/schemas/scenario.ts';
-import { type LaunchTag, launchTag } from '../../shared/scenarioRelease.ts';
-import { type Ink, ink } from '../lib/vividColor.ts';
-
-const DATE_FIELD = { gl: 'en_start_date', jp: 'jp_start_date' } as const;
+import { DATE_FIELD, type LaunchTag, launchTag } from '../../shared/scenarioRelease.ts';
+import type { Server } from './servers.ts';
+import { type Ink, ink } from './vividColor.ts';
 
 export type ScenarioSegment = {
   key: string;
@@ -16,11 +15,7 @@ export type ScenarioSegment = {
   ink: Ink | null;
 };
 
-export function scenarioSegments(
-  scenarios: Scenario[],
-  server: 'gl' | 'jp',
-  now: number = Date.now()
-): ScenarioSegment[] {
+export function scenarioSegments(scenarios: Scenario[], server: Server, now: number = Date.now()): ScenarioSegment[] {
   const field = DATE_FIELD[server];
   const dated = scenarios
     .flatMap((s) => {

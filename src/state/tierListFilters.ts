@@ -6,15 +6,13 @@
 //          leave it alone
 
 import * as z from 'zod/mini';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { STATS } from '../../tierlist/index.ts';
 import type { Stat } from '../../tierlist/index.ts';
-import { rawStorage } from './rawStorage.ts';
+import { persisted } from './rawStorage.ts';
 
 export type Rarity = 'SSR' | 'SR' | 'R';
 export type Shown = Record<Rarity, number[]>;
-export type Filters = { stat: Stat; shown: Shown; query: string; size: number };
+type Filters = { stat: Stat; shown: Shown; query: string; size: number };
 
 // MLB for all, plus LB0 and LB3 for SSR and SR.
 export const DEFAULTS: Filters = {
@@ -33,7 +31,7 @@ const validShown = (shown: unknown): shown is Shown =>
   });
 
 // Each field on its own: an invalid or missing one falls back to its default.
-const schema = z.looseObject({
+const schema = z.object({
   stat: z.catch(z.enum(STATS), DEFAULTS.stat),
   shown: z.catch(z.custom<Shown>(validShown), DEFAULTS.shown),
   query: z.catch(z.string(), DEFAULTS.query),
@@ -43,32 +41,20 @@ const schema = z.looseObject({
   ),
 });
 
-type State = { filters: Filters; setFilters: (filters: Filters) => void };
-
-export const useFiltersStore = create<State>()(
-  persist(
-    (set) => ({
-      filters: DEFAULTS,
-      setFilters: (filters) => set({ filters }),
-    }),
-    {
-      name: KEY,
-      storage: rawStorage<Pick<State, 'filters'>>(
-        (raw) => {
-          const parsed = schema.safeParse(JSON.parse(raw));
-          if (!parsed.success) return null;
-          const { stat, shown, query, size } = parsed.data;
-          return { filters: { stat, shown, query, size } };
-        },
-        ({ filters }) => JSON.stringify(filters)
-      ),
-      partialize: ({ filters }) => ({ filters }),
-    }
-  )
+export const useFiltersStore = persisted<{ filters: Filters }>(
+  KEY,
+  { filters: DEFAULTS },
+  (raw) => {
+    const filters = schema.safeParse(JSON.parse(raw)).data;
+    return filters ? { filters } : null;
+  },
+  ({ filters }) => JSON.stringify(filters)
 );
 
 export const getFilters = (): Filters => useFiltersStore.getState().filters;
-export const saveFilters = (filters: Filters) => useFiltersStore.getState().setFilters(filters);
+export const saveFilters = (filters: Filters) => useFiltersStore.setState({ filters });
+export const patchFilters = (changes: Partial<Filters>) =>
+  useFiltersStore.setState(({ filters }) => ({ filters: { ...filters, ...changes } }));
 
 // Whether the filters are the defaults (the page checks the scenario itself).
 export const isDefault = ({ stat, shown, query }: Pick<Filters, 'stat' | 'shown' | 'query'>) =>

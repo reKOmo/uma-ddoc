@@ -11,22 +11,22 @@ import type {
   Race,
 } from '../../shared/schemas/event.ts';
 import { type ArtBanner, type ArtBannerFile, type ArtItem, cardIcon } from '../lib/gametora.ts';
-import { DAY } from './layout.ts';
+import { DAY } from '../lib/dates.ts';
 
 export type { ArtBanner, ArtBannerFile, ArtItem };
 
 export type EntryGroup = 'characters' | 'cards' | 'event';
-export type EntryKind = 'characters' | 'cards' | EventKind;
+type EntryKind = 'characters' | 'cards' | EventKind;
 export type EntryStatus = 'confirmed' | 'predicted' | 'ended' | 'live';
-export type Tone = 'kind-characters' | `type-${string}` | `kind-${EventKind}`;
+type Tone = 'kind-characters' | `type-${string}` | `kind-${EventKind}`;
 export type Art = { src: string | undefined; official: boolean };
-export type Prediction = {
+type Prediction = {
   from: { start: string | undefined; end: string | null };
   margin: number | undefined;
   confirmed: boolean;
 };
-export type NewsLink = { url: string; site: string };
-export type Relation = {
+type NewsLink = { url: string; site: string };
+type Relation = {
   type: 'rerunOf' | 'reheld' | 'partOf';
   target: string | null;
   start: string;
@@ -34,7 +34,7 @@ export type Relation = {
 };
 // A free scout window: on a campaign, its banner's entry; on a banner, its campaign's (null: none on the calendar);
 // single or 10x, the free scouts in it.
-export type ScoutRow = Pick<FreeScout, 'scout' | 'start' | 'end' | 'size' | 'scouts'> & { target: string | null };
+type ScoutRow = Pick<FreeScout, 'scout' | 'start' | 'end' | 'size' | 'scouts'> & { target: string | null };
 export type Featured = {
   key: string | number;
   id: number | null;

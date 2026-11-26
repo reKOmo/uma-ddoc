@@ -14,7 +14,7 @@ import StatusBadge from '../../ui/StatusBadge.tsx';
 import RailList from '../../ui/RailList.tsx';
 import SeeMore from '../../ui/SeeMore.tsx';
 import Status from '../../ui/Status.tsx';
-import { daysUntil } from '../../timeline/format.ts';
+import { dayStart, daysUntil } from '../../lib/dates.ts';
 import { nameOf, titleOf } from './shared.ts';
 import { type Language, type TranslationsFile, useLanguage, useTranslations } from '../../lib/translations.ts';
 import { FanTl } from '../../ui/FanTl.tsx';
@@ -51,7 +51,7 @@ function RankChange({ point, history }: { point: HistoryPoint; history: HistoryP
   );
 }
 
-export type PassedByProps = {
+type PassedByProps = {
   cardId: number;
   server: Server;
   history: HistoryPoint[];
@@ -178,7 +178,7 @@ export default function PassedBy({
                   {point.predicted && <StatusBadge status="predicted" />}
                   {point.predicted && (
                     <span className={styles.until}>
-                      {t('common.inDays', { count: Math.max(1, daysUntil(`${point.date}T00:00:00Z`)) })}
+                      {t('common.inDays', { count: Math.max(1, daysUntil(dayStart(point.date))) })}
                     </span>
                   )}
                 </div>

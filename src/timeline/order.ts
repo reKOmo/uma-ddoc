@@ -1,7 +1,4 @@
-import * as z from 'zod/mini';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { rawStorage } from '../state/rawStorage.ts';
+import { persistedValue, stringArray } from '../state/rawStorage.ts';
 import { LANE_GROUPS } from './layout.ts';
 
 const KEY = 'uma-ddoc.timelineOrder';
@@ -20,31 +17,19 @@ function normalize(keys: string[]): string[] {
   return known;
 }
 
-type State = { order: string[]; setOrder: (order: string[]) => void };
-
-export const useOrderStore = create<State>()(
-  persist(
-    (set) => ({
-      order: DEFAULT_ORDER,
-      setOrder: (order) => set({ order }),
-    }),
-    {
-      name: KEY,
-      storage: rawStorage<Pick<State, 'order'>>(
-        (raw) => {
-          const parsed = z.array(z.unknown()).safeParse(JSON.parse(raw));
-          if (!parsed.success) return null;
-          return { order: normalize(parsed.data.filter((k): k is string => typeof k === 'string')) };
-        },
-        ({ order }) => JSON.stringify(order)
-      ),
-      partialize: ({ order }) => ({ order }),
-    }
-  )
+const order = persistedValue(
+  KEY,
+  DEFAULT_ORDER,
+  (raw) => {
+    const keys = stringArray(raw);
+    return keys && normalize(keys);
+  },
+  (keys) => JSON.stringify(keys)
 );
 
-export const getOrder = (): string[] => useOrderStore.getState().order;
-export const saveOrder = (keys: string[]) => useOrderStore.getState().setOrder(keys);
+export const useOrder = order.use;
+export const getOrder = order.get;
+export const saveOrder = order.save;
 
 export function orderedGroups(keys: string[]) {
   const byKey = new Map(LANE_GROUPS.map((group) => [group.key, group]));

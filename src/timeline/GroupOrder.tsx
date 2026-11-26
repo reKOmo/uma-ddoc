@@ -25,7 +25,7 @@ type Accessibility = NonNullable<ComponentProps<typeof DndContext>['accessibilit
 
 export type LaneGroup = { key: string; label: string; kinds: string[] };
 
-export type GroupOrderProps = {
+type GroupOrderProps = {
   groups: LaneGroup[];
   hidden: Set<string>;
   onReorder: (from: number, to: number) => void;

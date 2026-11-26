@@ -14,7 +14,7 @@ import styles from './TimelineSearch.module.css';
 const GROUPS: TermType[] = ['character', 'type', 'pull', 'kind', 'name', 'item', 'race', 'text'];
 const PER_GROUP = 8;
 
-export type TimelineSearchProps = {
+type TimelineSearchProps = {
   terms: Term[];
   chips: Term[];
   onChange: (chips: Term[]) => void;

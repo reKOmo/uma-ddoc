@@ -5,7 +5,7 @@ const PAGE_COLOR = { light: '#f6f2fa', dark: '#141218' } as const;
 
 // Settings' theme on <html>: data-theme light or dark (global.css's colour-scheme follows it), none for the device's
 // own. Each theme-color meta: the chosen theme's colour, or its own media's.
-export function applyTheme(): void {
+function applyTheme(): void {
   const theme = getSetting('theme');
   const root = document.documentElement;
   if (theme === 'system') delete root.dataset.theme;

@@ -126,6 +126,20 @@ describe('tier list filters', () => {
     });
   });
 
+  it('patches some fields, keeping the rest', async () => {
+    data.set(KEY, JSON.stringify(stored));
+    const { patchFilters, getFilters } = await load();
+    patchFilters({ query: 'x', size: 4 });
+    expect(getFilters()).toEqual({ ...stored, query: 'x', size: 4 });
+    expect(JSON.parse(writes.get(KEY) as string)).toEqual({ ...stored, query: 'x', size: 4 });
+  });
+
+  it('drops unknown stored fields', async () => {
+    data.set(KEY, JSON.stringify({ ...stored, extra: 1 }));
+    const { getFilters } = await load();
+    expect(getFilters()).toEqual(stored);
+  });
+
   it.each(GARBAGE)('gives the defaults for %s', async (raw) => {
     data.set(KEY, raw);
     const { getFilters, DEFAULTS } = await load();
@@ -175,6 +189,39 @@ describe.each([
     expect(get()).toEqual(new Set());
     expect(() => save(new Set(['a']))).not.toThrow();
     expect(get()).toEqual(new Set(['a']));
+  });
+});
+
+describe('timeline pull picks', () => {
+  const KEY = 'uma-ddoc.timelinePulls';
+  const HIDDEN = 'uma-ddoc.timelineHidden';
+  const load = () => import('../src/timeline/pulls.ts');
+
+  it('loads a JSON array of verdicts, dropping anything else', async () => {
+    data.set(KEY, JSON.stringify(['yes', 'bogus', 3, 'none']));
+    expect((await load()).getPulls()).toEqual(new Set(['yes', 'none']));
+  });
+
+  it('writes a JSON array', async () => {
+    const { savePulls } = await load();
+    savePulls(new Set(['free']));
+    expect(writes.get(KEY)).toBe('["free"]');
+  });
+
+  it("moves older versions' picks out of the hidden set", async () => {
+    data.set(HIDDEN, JSON.stringify(['story', 'pullOnly:yes', 'pullOnly:whale', 'pullOnly:bogus', 'pull:no']));
+    data.set(KEY, JSON.stringify(['free']));
+    const { getHidden } = await import('../src/timeline/hidden.ts');
+    expect(getHidden()).toEqual(new Set(['story', 'pull:no']));
+    expect((await load()).getPulls()).toEqual(new Set(['free', 'yes', 'whale']));
+    expect(JSON.parse(writes.get(HIDDEN) as string)).toEqual(['story', 'pull:no']);
+    expect(JSON.parse(writes.get(KEY) as string)).toEqual(['free', 'yes', 'whale']);
+  });
+
+  it('leaves a hidden set without picks alone', async () => {
+    data.set(HIDDEN, JSON.stringify(['story']));
+    await import('../src/timeline/hidden.ts');
+    expect(writes.size).toBe(0);
   });
 });
 
@@ -264,17 +311,17 @@ describe('hidden scenarios', () => {
 
   it('loads the stored list', async () => {
     data.set(KEY, JSON.stringify({ hidden: ['URA', 'Overall'] }));
-    expect((await load()).getHiddenScenarios()).toEqual(['URA', 'Overall']);
+    expect((await load()).useHiddenScenarios.getState().hidden).toEqual(['URA', 'Overall']);
   });
 
   it.each(GARBAGE)('falls back to none hidden for %s', async (raw) => {
     data.set(KEY, raw);
-    expect((await load()).getHiddenScenarios()).toEqual([]);
+    expect((await load()).useHiddenScenarios.getState().hidden).toEqual([]);
   });
 
   it('drops a malformed list (an unknown field is fine)', async () => {
     data.set(KEY, JSON.stringify({ hidden: 'URA', extra: 1 }));
-    expect((await load()).getHiddenScenarios()).toEqual([]);
+    expect((await load()).useHiddenScenarios.getState().hidden).toEqual([]);
   });
 
   it('stores the list as { hidden }', async () => {

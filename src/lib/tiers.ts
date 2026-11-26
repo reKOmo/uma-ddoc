@@ -2,6 +2,7 @@ import type { CardType, GametoraType } from '../../shared/schemas/common.ts';
 import type { Ranked, Stat } from '../../tierlist/index.ts';
 
 export const TIER_NAMES = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
+export const LIMIT_BREAKS = [0, 1, 2, 3, 4];
 
 // A support card's id (cards.json's keys are strings, a card's `id` a number).
 export type RankedCard = Pick<Ranked, 'id' | 'lb' | 'score'>;

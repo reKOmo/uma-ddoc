@@ -7,25 +7,22 @@ import { Segmented } from '../ui/Segmented.tsx';
 import GroupOrder, { type LaneGroup } from './GroupOrder.tsx';
 import styles from './TimelineFilter.module.css';
 import type { Verdict } from '../lib/pullGuide.ts';
-import { saveSearchOverride, useSearchOverrideStore } from './searchOverride.ts';
+import { getPulls, savePulls, usePulls } from './pulls.ts';
+import { saveSearchOverride, useSearchOverride } from './searchOverride.ts';
+import { toggled, withAll } from './sets.ts';
 
 type TabKey = 'show' | 'order';
 const TABS: Record<TabKey, LucideIcon> = { show: Eye, order: ListOrdered };
 
 const BANNERS = ['cards', 'characters'];
 const BANNER_LABELS: Record<string, string> = { characters: 'timeline.characters', cards: 'timeline.supportCards' };
-// Pull advice picks rather than hides: none picked shows every banner, else only those with a picked verdict. The picks
-// share the hidden set under their own prefix (`pull:` once meant hidden; those stale keys are ignored).
-export const pullKey = (verdict: string): string => `pullOnly:${verdict}`;
-export const isPullKey = (key: string): boolean => key.startsWith('pullOnly:');
-// The All chip of pull advice: ticked while nothing is picked, it unpicks everything.
+// The All chip of pull advice (pulls.ts: picks rather than hides): ticked while nothing is picked, it unpicks everything.
 const PULL_ALL = 'pullAll';
-const verdictOf = (key: string): string => key.slice(key.indexOf(':') + 1);
 
 type FilterKey = string;
 type HiddenUpdate = (old: Set<FilterKey>) => Set<FilterKey>;
 
-export type TimelineFilterProps = {
+type TimelineFilterProps = {
   kinds: string[];
   verdicts: readonly Verdict[];
   hidden: Set<FilterKey>;
@@ -51,41 +48,21 @@ export default function TimelineFilter({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<TabKey>('show');
-  const searchOverride = useSearchOverrideStore((state) => state.override);
+  const searchOverride = useSearchOverride();
+  const pulls = usePulls();
   const banners = kinds.filter((kind) => BANNERS.includes(kind));
   const events = kinds.filter((kind) => !BANNERS.includes(kind));
-  const pulls = verdicts.map(pullKey);
-  const picked = pulls.filter((key) => hidden.has(key));
-  const hiddenCount = kinds.filter((key) => hidden.has(key)).length + (picked.length && pulls.length - picked.length);
+  const picked = verdicts.filter((verdict) => pulls.has(verdict)).length;
+  const hiddenCount = kinds.filter((key) => hidden.has(key)).length + (picked && verdicts.length - picked);
 
-  const toggle = (key: FilterKey) =>
-    onChange((old) => {
-      const next = new Set(old);
-      if (!next.delete(key)) next.add(key);
-      return next;
-    });
-  const setAll = (keys: FilterKey[], shown: boolean) =>
-    onChange((old) => {
-      const next = new Set(old);
-      for (const key of keys) shown ? next.delete(key) : next.add(key);
-      return next;
-    });
-  const label = (key: FilterKey): string =>
-    BANNERS.includes(key)
-      ? t(BANNER_LABELS[key])
-      : isPullKey(key)
-        ? key === pullKey('none')
-          ? t('timeline.filter.noAdvice')
-          : t(`pullGuide.verdict.${verdictOf(key)}`)
-        : t(`events.kind.${key}`);
-  const tone = (key: FilterKey): string => (isPullKey(key) ? `filter-pull-${verdictOf(key)}` : `kind-${key}`);
+  const label = (key: FilterKey): string => (BANNERS.includes(key) ? t(BANNER_LABELS[key]) : t(`events.kind.${key}`));
 
   const section = (heading: string, keys: FilterKey[]) => (
     <FilterSection
       heading={heading}
-      chips={keys.map((key) => ({ key, label: label(key), shown: !hidden.has(key), tone: tone(key) }))}
-      onToggle={toggle}
-      onAll={(shown: boolean) => setAll(keys, shown)}
+      chips={keys.map((key) => ({ key, label: label(key), shown: !hidden.has(key), tone: `kind-${key}` }))}
+      onToggle={(key) => onChange((old) => toggled(old, key))}
+      onAll={(shown: boolean) => onChange((old) => withAll(old, keys, !shown))}
     />
   );
 
@@ -104,7 +81,13 @@ export default function TimelineFilter({
         title={t('timeline.filter.title')}
         action={
           tab === 'show' ? (
-            <ResetButton onClick={() => onChange(() => new Set())} disabled={!hiddenCount}>
+            <ResetButton
+              onClick={() => {
+                onChange(() => new Set());
+                savePulls(new Set());
+              }}
+              disabled={!hiddenCount}
+            >
               {t('timeline.filter.showAll')}
             </ResetButton>
           ) : (
@@ -134,10 +117,17 @@ export default function TimelineFilter({
             <FilterSection
               heading={t('timeline.filter.pullHeading')}
               chips={[
-                { key: PULL_ALL, label: t('filter.all'), shown: !picked.length, catchAll: true },
-                ...pulls.map((key) => ({ key, label: label(key), shown: hidden.has(key), tone: tone(key) })),
+                { key: PULL_ALL, label: t('filter.all'), shown: !picked, catchAll: true },
+                ...verdicts.map((verdict) => ({
+                  key: verdict,
+                  label: t(verdict === 'none' ? 'timeline.filter.noAdvice' : `pullGuide.verdict.${verdict}`),
+                  shown: pulls.has(verdict),
+                  tone: `filter-pull-${verdict}`,
+                })),
               ]}
-              onToggle={(key) => (key === PULL_ALL ? setAll(pulls, true) : toggle(key))}
+              onToggle={(key) =>
+                savePulls(key === PULL_ALL ? withAll(getPulls(), verdicts, false) : toggled(getPulls(), key))
+              }
               note={t(hidden.has('cards') ? 'timeline.filter.pullOff' : 'timeline.filter.pullNote')}
               off={hidden.has('cards')}
             />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronRight, ChevronUp, ChevronsUpDown } from 'lucide-react';
 import clsx from 'clsx';
 import { COMBINED, STATS, rankByUsefulness } from '../../tierlist/index.ts';
@@ -7,9 +7,9 @@ import { cards } from '../../tierlist/cards.ts';
 import type { Server } from '../../tierlist/cards.ts';
 import { getCurrentScenario, getServerConfig } from '../../tierlist/scenarios.ts';
 import { normalizeSearch } from '../lib/search.ts';
-import { TIER_NAMES, toTiers } from '../lib/tiers.ts';
+import { LIMIT_BREAKS, TIER_NAMES, toTiers } from '../lib/tiers.ts';
 import { cardIcon } from '../lib/gametora.ts';
-import { DEFAULTS, SIZES, getFilters, isDefault, saveFilters, useFiltersStore } from '../state/tierListFilters.ts';
+import { DEFAULTS, SIZES, getFilters, isDefault, patchFilters, useFiltersStore } from '../state/tierListFilters.ts';
 import type { Rarity, Shown } from '../state/tierListFilters.ts';
 import { useTranslation } from 'react-i18next';
 import { lbName, statName } from '../i18n/index.ts';
@@ -19,20 +19,28 @@ import BackToTop from '../ui/BackToTop.tsx';
 import { FilterButton, FilterGroup, FilterSection, FilterSheet, ResetButton } from '../ui/FilterSheet.tsx';
 import TypePill from '../ui/TypePill.tsx';
 import { cardUrl } from '../routes.ts';
+import { useRanking } from '../hooks/useRanking.ts';
 import { SearchInput } from '../ui/SearchInput.tsx';
 import { Segmented } from '../ui/Segmented.tsx';
 import Status from '../ui/Status.tsx';
 import styles from './TierListPage.module.css';
 
 const RARITIES: Rarity[] = ['SSR', 'SR', 'R'];
-const LIMIT_BREAKS = [0, 1, 2, 3, 4];
 
+// Kept across rankings and keystrokes (by id and the ranking's name, which comes from each server's stats).
+const searchTexts = new Map<string, string>();
 const searchText = (card: Ranked): string => {
-  const { name, title } = cards[card.id];
-  return normalizeSearch([card.char_name, name.en, name.jp, title.en, title.jp].join(' '));
+  const key = `${card.id}/${card.char_name}`;
+  let text = searchTexts.get(key);
+  if (text === undefined) {
+    const { name, title } = cards[card.id];
+    text = normalizeSearch([card.char_name, name.en, name.jp, title.en, title.jp].join(' '));
+    searchTexts.set(key, text);
+  }
+  return text;
 };
 
-export type TierListPageProps = {
+type TierListPageProps = {
   server: Server;
   scenario: string;
   onScenarioChange: (scenario: string) => void;
@@ -41,13 +49,12 @@ export type TierListPageProps = {
 export default function TierListPage({ server, scenario, onScenarioChange }: TierListPageProps) {
   const { t } = useTranslation();
   const { stat, shown, query, size } = useFiltersStore((state) => state.filters);
-  const [ranking, setRanking] = useState<Ranked[] | null>(null);
+  const ranking = useRanking(() => rankByUsefulness(server, scenario, stat), [server, scenario, stat]);
   // (The store remembers them across pages and reloads; the cards' size is a preference: "Reset filters" keeps it.)
-  const setStat = (stat: Stat) => saveFilters({ ...getFilters(), stat });
-  const setShown = (update: (shown: Shown) => Shown) =>
-    saveFilters({ ...getFilters(), shown: update(getFilters().shown) });
-  const setQuery = (query: string) => saveFilters({ ...getFilters(), query });
-  const setSize = (size: number) => saveFilters({ ...getFilters(), size });
+  const setStat = (stat: Stat) => patchFilters({ stat });
+  const setShown = (update: (shown: Shown) => Shown) => patchFilters({ shown: update(getFilters().shown) });
+  const setQuery = (query: string) => patchFilters({ query });
+  const setSize = (size: number) => patchFilters({ size });
   // Tiers folded away by their label, to compare the others (for this visit only).
   const [collapsed, setCollapsed] = useState<string[]>([]);
   const toggleTier = (name: string) =>
@@ -56,7 +63,7 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
   const defaultScenario = getCurrentScenario(server);
   const atDefaults = scenario === defaultScenario && isDefault({ stat, shown, query });
   const reset = () => {
-    saveFilters({ ...getFilters(), stat: DEFAULTS.stat, shown: DEFAULTS.shown, query: DEFAULTS.query });
+    patchFilters({ stat: DEFAULTS.stat, shown: DEFAULTS.shown, query: DEFAULTS.query });
     onScenarioChange(defaultScenario);
   };
 
@@ -73,32 +80,20 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
   );
   const [filterOpen, setFilterOpen] = useState(false);
   // Every word of the query must appear somewhere in the card's names.
-  const words = normalizeSearch(query).split(' ').filter(Boolean);
-  const matches = (card: Ranked): boolean => {
-    if (words.length === 0) return true;
-    const text = searchText(card);
-    return words.every((word) => text.includes(word));
-  };
-  const isShown = (card: Ranked): boolean => shown[cards[card.id].rarity]?.includes(card.lb) && matches(card);
+  const words = useMemo(() => normalizeSearch(query).split(' ').filter(Boolean), [query]);
   // Tiers come from the whole ranking, so a card's tier doesn't change with the filter.
-  const tiers = ranking && toTiers(ranking).map((tier) => tier.filter(isShown));
+  const allTiers = useMemo(() => ranking && toTiers(ranking), [ranking]);
+  const tiers = useMemo(() => {
+    const matches = (card: Ranked): boolean => {
+      if (words.length === 0) return true;
+      const text = searchText(card);
+      return words.every((word) => text.includes(word));
+    };
+    const isShown = (card: Ranked): boolean => shown[cards[card.id].rarity]?.includes(card.lb) && matches(card);
+    return allTiers ? allTiers.map((tier) => tier.filter(isShown)) : null;
+  }, [allTiers, shown, words]);
 
   const scenarios = getServerConfig(server).availableScenarios;
-
-  useEffect(() => {
-    let cancelled = false;
-    setRanking(null);
-    // Ranking blocks for ~100-300 ms; yield first so "Calculating…" paints.
-    setTimeout(() => {
-      if (cancelled) return;
-      rankByUsefulness(server, scenario, stat).then((r) => {
-        if (!cancelled) setRanking(r);
-      });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [server, scenario, stat]);
 
   return (
     <div className={styles.root}>

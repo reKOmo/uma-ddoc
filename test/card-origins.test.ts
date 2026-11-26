@@ -31,7 +31,7 @@ describe('cardOrigins', () => {
       entry('event:x', '2025-05-01', { kind: 'shop', cards: [[7]] }),
       entry('event:o', '2025-05-02', { kind: 'special', cards: [[8]] }),
     ];
-    const origins = cardOrigins(7, { gl: entries });
+    const origins = cardOrigins(7, entries, 'gl');
     expect(origins.map((o) => [o.entry.id, o.kind, o.rerun])).toEqual([
       ['1', 'banner', false],
       ['s', 'story', false],
@@ -50,17 +50,18 @@ describe('cardOrigins', () => {
       entry('event:c-1', '2025-01-02', { kind: 'gift', parent: 'event:c', cards: [[7]] }),
       entry('event:p', '2025-02-01', { kind: 'special', cards: [[7]] }),
     ];
-    expect(cardOrigins(7, { gl: entries }).map((o) => [o.entry.id, o.kind])).toEqual([
+    expect(cardOrigins(7, entries, 'gl').map((o) => [o.entry.id, o.kind])).toEqual([
       ['c-1', 'gift'],
       ['p', 'other'],
     ]);
   });
 
-  it('merges servers by date and skips undated entries', () => {
-    const origins = cardOrigins(7, {
-      gl: [entry('cards:9', '2026-12-01', { group: 'cards', cards: [[7]] }), entry('event:u', null, { cards: [[7]] })],
-      jp: [entry('cards:9', '2026-01-01', { group: 'cards', cards: [[7]] })],
-    });
-    expect(origins.map((o) => o.server)).toEqual(['jp', 'gl']);
+  it('skips undated entries', () => {
+    const origins = cardOrigins(
+      7,
+      [entry('cards:9', '2026-12-01', { group: 'cards', cards: [[7]] }), entry('event:u', null, { cards: [[7]] })],
+      'jp'
+    );
+    expect(origins.map((o) => [o.entry.id, o.server])).toEqual([['9', 'jp']]);
   });
 });

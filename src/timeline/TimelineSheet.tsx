@@ -15,11 +15,12 @@ import { DistanceBars, GroundDrops, SeasonIcon, TimeIcon, TurnArrow, WeatherIcon
 import TypePill from '../ui/TypePill.tsx';
 import { formatNumber, formatTimeLeft, scenarioName, serverName } from '../i18n/index.ts';
 import { umapyoiUrl } from '../lib/umapyoi.ts';
-import { useSettings } from '../state/settings.tsx';
+import { useSettings } from '../state/settings.ts';
 import { loadPullGuide } from '../lib/pullGuide.ts';
 import { useAsync } from '../hooks/useAsync.ts';
 import { itemList } from './events.ts';
-import { type DateFormats, barLabel, dateRange, daysOf, entryTitle, kindName, labelIsFan } from './format.ts';
+import { type DateFormats, dateRange } from '../lib/dates.ts';
+import { barLabel, daysOf, entryTitle, kindName, labelIsFan } from './format.ts';
 import { FanTl } from '../ui/FanTl.tsx';
 import { type CardRank as CardRankValue, type RankResult, cardStat, useRankings } from './useRankings.ts';
 import type { Entry, EntryGroup } from './entries.ts';
@@ -40,7 +41,7 @@ const FEATURED_HEADING: Record<EntryGroup, string> = {
   event: 'timeline.supportCards',
 };
 
-export type TimelineSheetProps = {
+type TimelineSheetProps = {
   entry: Entry;
   lookup: Lookup;
   server: ServerKey;

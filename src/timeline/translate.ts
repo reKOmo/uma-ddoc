@@ -2,6 +2,7 @@
 // UmaTL's fan translations where the language allows them. Only Japanese names are touched; what has no English
 // stays as it is.
 import type { CardsFile } from '../../shared/schemas/card.ts';
+import type { Server } from '../lib/servers.ts';
 import {
   type Language,
   type TlText,
@@ -50,7 +51,7 @@ export function japaneseEntries(entries: Entry[], jp: JapaneseNames): Entry[] {
   });
 }
 
-type Translate = { tl: TranslationsFile | null; language: Language; cards: CardsFile; server: 'gl' | 'jp' };
+type Translate = { tl: TranslationsFile | null; language: Language; cards: CardsFile; server: Server };
 
 // The JP event an entry shows: JP's own, or on Global a predicted one ('jp-<JP id>').
 const jpEventId = (entry: Entry, server: Translate['server']): string | null => {

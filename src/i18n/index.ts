@@ -62,8 +62,14 @@ export const formatDay = (
   date: string,
   opts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' }
 ): string => formatDate(`${date}T00:00:00Z`, { ...opts, timeZone: 'UTC' });
-export const formatDateTime = (date: Date | string | number, options: Intl.DateTimeFormatOptions): string =>
-  dateTimeFormat(options).format(new Date(date));
+// Two YYYY-MM-DD days as one range: "Oct 7 – 16, 2026".
+export const formatDayRange = (from: string, to: string): string =>
+  formatDateRange(`${from}T00:00:00Z`, `${to}T00:00:00Z`, {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 // A range with what its ends share written once: "Oct 7 – 16, 2026", "Oct 7, 10:00 PM – Oct 16, 9:59 PM UTC".
 export const formatDateRange = (
   start: Date | string | number,

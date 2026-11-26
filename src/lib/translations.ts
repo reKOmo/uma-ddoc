@@ -3,28 +3,29 @@
 import { useMemo } from 'react';
 import type { CardsFile } from '../../shared/schemas/card.ts';
 import { type TlText, type TranslationsFile, hasJapanese } from '../../shared/schemas/translations.ts';
-import { useSettings } from '../state/settings.tsx';
+import { useSettings } from '../state/settings.ts';
 import type { Settings } from '../state/settingsStore.ts';
 import { useAsync } from '../hooks/useAsync.ts';
 import type { Server } from './servers.ts';
+import { memoAsync } from './memo.ts';
+import { optionalJson } from './optional.ts';
 
 export { hasJapanese };
 export type { TlText, TranslationsFile };
 
 const FILES = import.meta.glob<TranslationsFile>('../../generated/translations.json', { import: 'default' });
-let loaded: Promise<TranslationsFile | null> | undefined;
-export function loadTranslations(): Promise<TranslationsFile | null> {
-  const [load] = Object.values(FILES);
-  loaded ??= load ? load().then((file) => (AI_PREVIEW ? masked(file) : file)) : Promise.resolve(null);
-  return loaded;
-}
+const loadFile = optionalJson(FILES);
+export const loadTranslations = memoAsync(async (): Promise<TranslationsFile | null> => {
+  const file = await loadFile();
+  return file && AI_PREVIEW ? masked(file) : file;
+});
 
 // `pnpm dev:ai`: the page an AI agent looks at (screenshots, the DOM) never shows UmaTL's text, whose terms forbid
 // its use with generative models (docs/data/umatl.md). Each fan translation becomes dots of its length, so layouts and
 // marks still show; official names stay.
 const AI_PREVIEW = import.meta.env.VITE_AI_PREVIEW === '1';
-export const mask = (text: string): string => text.replace(/[^\s[\]]/g, '•');
-export function masked(file: TranslationsFile): TranslationsFile {
+const mask = (text: string): string => text.replace(/[^\s[\]]/g, '•');
+function masked(file: TranslationsFile): TranslationsFile {
   const texts = (record: Record<string, TlText>) =>
     Object.fromEntries(Object.entries(record).map(([key, t]) => [key, t.fan ? { ...t, en: mask(t.en) } : t]));
   return {

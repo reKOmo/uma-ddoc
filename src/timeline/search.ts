@@ -16,7 +16,7 @@ export type TermType = (typeof TERM_TYPES)[number];
 // calendar's (a `data-tone` of global.css: a kind's, a card type's, a name its entry's).
 export type Term = { type: TermType; value: string; label: string; aliases: string[]; tone: string | null };
 type Indexed = { keys: Set<string>; text: string };
-export type SearchIndex = { terms: Term[]; entries: Map<string, Indexed> };
+type SearchIndex = { terms: Term[]; entries: Map<string, Indexed> };
 
 export const textTerm = (text: string): Term => ({ type: 'text', value: text, label: text, aliases: [], tone: null });
 export const termKey = (term: Pick<Term, 'type' | 'value'>): string => `${term.type}:${term.value}`;
@@ -94,7 +94,7 @@ export function searchIndex(
   return { terms: [...terms.values()], entries: indexed };
 }
 
-export function matches(indexed: Indexed | undefined, chips: Term[]): boolean {
+function matches(indexed: Indexed | undefined, chips: Term[]): boolean {
   if (!indexed) return false;
   return [...Map.groupBy(chips, (chip) => chip.type).values()].every((group) =>
     group.some((chip) =>

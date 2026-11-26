@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { rankByUsefulness, scenarioOptions } from '../../../tierlist/index.ts';
 import type { Ranked, Stat } from '../../../tierlist/index.ts';
 import { cards } from '../../../tierlist/cards.ts';
@@ -11,6 +11,7 @@ import { loadPredictions } from '../../lib/predictions.ts';
 import { rankHistory } from '../../lib/rankHistory.ts';
 import { loadEntries } from '../../timeline/data.ts';
 import { useAsync } from '../../hooks/useAsync.ts';
+import { useRanking } from '../../hooks/useRanking.ts';
 import { useLanguage } from '../../lib/translations.ts';
 
 // The server's predicted release dates (only Global has them): undefined while loading, null without any.
@@ -20,22 +21,11 @@ export function usePredictions(server: Server): PredictionsFile | null | undefin
 }
 
 // The ranking with the server's upcoming cards in it, computed after the page has painted.
-export function useUpcomingRanking(server: Server, scenario: string, stat: Stat | undefined, enabled: boolean) {
-  const [ranking, setRanking] = useState<Ranked[] | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    setRanking(null);
-    if (!enabled || !stat) return;
-    const timer = setTimeout(async () => {
-      const result = await rankByUsefulness(server, scenario, stat, { upcoming: true });
-      if (!cancelled) setRanking(result);
-    });
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [server, scenario, stat, enabled]);
-  return ranking;
+function useUpcomingRanking(server: Server, scenario: string, stat: Stat | undefined, enabled: boolean) {
+  return useRanking(
+    async () => (enabled && stat ? rankByUsefulness(server, scenario, stat, { upcoming: true }) : null),
+    [server, scenario, stat, enabled]
+  );
 }
 
 type RankHistoryOptions = {
@@ -69,40 +59,36 @@ export function useRankHistory({ cardId, server, scenario, lb, stat, rankings, p
   }, [ranking, cardId, lb, server, predictions]);
 }
 
+const NONE: Record<string, Ranked[]> = {};
+
 // Rankings for every scenario, then the averaged ones (cheap once the real ones
 // are cached), filled in one at a time so rows appear as they finish.
 // `upcoming`: with the server's cards still to come in them (for a card not out yet, ranked by its JP stats).
 export function useScenarioRankings(server: Server, stat: Stat | undefined, enabled: boolean, upcoming = false) {
-  const [rankings, setRankings] = useState<Record<string, Ranked[]>>({});
-  useEffect(() => {
-    let cancelled = false;
-    setRankings({});
-    if (!enabled || !stat) return;
-    (async () => {
-      for (const scenario of scenarioOptions(server)) {
-        // Each ranking blocks for ~40-150 ms; yield first so the page paints.
-        await new Promise((resolve) => setTimeout(resolve));
-        if (cancelled) return;
-        const ranking = await rankByUsefulness(server, scenario, stat, { upcoming });
-        if (cancelled) return;
-        setRankings((prev) => ({ ...prev, [scenario]: ranking }));
+  const rankings = useRanking<Record<string, Ranked[]>>(
+    async (next, show) => {
+      let done: Record<string, Ranked[]> = NONE;
+      if (!enabled || !stat) return done;
+      for (const [i, scenario] of scenarioOptions(server).entries()) {
+        if (i > 0) await next();
+        done = { ...done, [scenario]: await rankByUsefulness(server, scenario, stat, { upcoming }) };
+        show(done);
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [server, stat, enabled, upcoming]);
-  return rankings;
+      return done;
+    },
+    [server, stat, enabled, upcoming]
+  );
+  return rankings ?? NONE;
 }
 
-export type EntryOrigin = Origin<Entry, Server>;
+export type EntryOrigin = Origin<Entry>;
 export type Origins = EntryOrigin[];
 
 // Where the card comes from on the selected server (cardOrigins(), oldest first), null while loading.
 export function useOrigins(cardId: number, server: Server): Origins | null | undefined {
   const language = useLanguage(server);
   const { data, pending } = useAsync(
-    async () => cardOrigins<Entry, Server>(cardId, { [server]: await loadEntries(server, { language }) }),
+    async () => cardOrigins(cardId, await loadEntries(server, language), server),
     [cardId, server, language]
   );
   return pending ? null : data;

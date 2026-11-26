@@ -107,16 +107,19 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      changed only by `hashchange` (the Timeline's replaceState of the open sheet must not re-route)
   hooks/
     useAsync.ts      useAsync(load, deps) → { data, error, pending }: loads, ignoring a superseded run (pages' data)
+    useRanking.ts    useRanking(compute, deps, delay): a ranking computed after a yield, stopped when superseded
+                     (`show` publishes partial results): the Cards tab, the card page, the sheet's ranks
     useDragScroll.ts mouse drag-to-pan (marks the scroller data-dragging)
     useMediaQuery.ts DESKTOP: the desktop layout's breakpoint
     useRowsHeight.ts an unfolded list's height for its first six rows (Available on, Passed by on phones)
   state/             what the app remembers (zustand stores) and the settings
-    rawStorage.ts    the persisted stores' localStorage adapter: each store keeps its own stored format (never
-                     zustand's { state, version } wrapper), every access guarded (private windows)
+    rawStorage.ts    the persisted stores' factory: persisted() / persistedValue() / stringSetStore() / booleanStore()
+                     on a localStorage adapter; each store keeps its own stored format (never zustand's
+                     { state, version } wrapper), every access guarded (private windows)
     settingsStore.ts user settings (zustand + persist; getSetting / setSetting / subscribe for non-React readers):
                      timeZone 'utc' | 'local', scenarioNames 'global' | 'jp', jpNewsLanguage 'jp' | 'en',
                      fanTlGlobal / jpNames 'jp' | 'official' | 'all'
-    settings.tsx     useSettings() (the settings store's hook); App calls it so plain readers like scenarioName()
+    settings.ts      useSettings() (the settings store's hook); App calls it so plain readers like scenarioName()
                      refresh on change
     hiddenScenarios.ts  the scenarios hidden from the card page's "Tier by scenario" table (zustand store, `{ hidden }`)
     tierListFilters.ts  the Cards tab's stat / LB filter / search / card size (zustand store): getFilters(),
@@ -144,15 +147,22 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     ScenarioPill.tsx  a scenario's name as a pill in its cover's colour (the card page's tile + tier table)
     TabHighlight.tsx the open tab's pill, sliding from tab to tab
   lib/               the app's data: loaders and pure helpers
-    servers.ts       SERVERS: gl/jp ↔ banner file names
-    tiers.ts         toTiers(), cardRanks(), TIER_NAMES, STAT_OF_TYPE
+    servers.ts       SERVERS: gl/jp ↔ banner file names; SERVER_ORDER (JP first, the Scenarios pages)
+    tiers.ts         toTiers(), cardRanks(), TIER_NAMES, LIMIT_BREAKS, STAT_OF_TYPE
+    dates.ts         dateFormats(timeZone, clock) + useDateFormats() (Settings' timezone + clock, memoised),
+                     dateRange(), daysUntil(), DAY, dayStart(day) / dayOf(ms) (YYYY-MM-DD ↔ ms, UTC),
+                     localTimeZone()
+    scenarioStrip.ts pure: scenario segments (launch → next launch, cover colour + text ink) for the calendar's strip
+                     and RankChart's rule
     gametora.ts      GameTora's URLs built from ids (no data file stores them): cardPage(slug), cardArt(id),
                      cardIcon(id, cards) (upstream's icon from cards.json, else GameTora's), traineeIcon(charId, id),
                      bannerArt(id, 'global' | 'jp'), withArt(file, art, cards) (a banner file's art + item icons, filled
                      by timeline/data.ts when it loads one; `officialArt`: the news' art, over GameTora's; ArtBanner…)
     rankHistory.ts   pure: a card's position at each release date (marks predicted ones)
-    cardOrigins.ts   pure: cardOrigins() (a card's banners and events, as Timeline entries, oldest first; generic: the
-                     origins keep the entries given), originKinds()
+    cardOrigins.ts   pure: cardOrigins(cardId, entries, server) (a card's banners and events, as Timeline entries,
+                     oldest first), originKinds()
+    memo.ts          memoAsync(): one promise per key (the Timeline's file loaders)
+    optional.ts      optionalJson(glob): a memoised loader for a generated/ file that may be missing (null)
     predictions.ts   optional loader for generated/predicted_gl_releases.json
     translations.ts  optional loader for generated/translations.json; languageOf() / useLanguage() (the Names settings)
     pullGuide.ts     optional loader for generated/pull_guide.json (the card page's NextBanner tile + Banners), upcomingBanner(),
@@ -169,7 +179,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   pages/CardPage.tsx                   one card (the entry App imports): art, tags, GameTora link, its parts:
   pages/card/        CardArt (the art in its rarity's in-game frame colours), Summary (the tiles beside the art: rank,
                      tier outlook, release), NextBanner (the next
-                     banner on its art + the guide's pull advice), Banners (the card's banners/events), Origins (OriginPill, KindPill), ScenarioTierTable (heatmap),
+                     banner on its art + the guide's pull advice), Banners (the card's banners/events), OriginPills (OriginPill, KindPill), ScenarioTierTable (heatmap),
                      RankOverTime (RankHistorySection: RankChart + PassedBy), RankChart (SVG step chart of rank over
                      time: the card's whole life at the panel's width, zoom scrolls; the line in its tier's colour,
                      scenarios as a rule under the dates); hooks.ts (usePredictions, useOrigins,
@@ -180,17 +190,20 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   pages/ScenarioPage.tsx               one scenario
   timeline/          the Timeline, the same for both servers:
     data.ts          loadTimeline(server) → { entries, others() } (others: marks + counterparts, from the other
-                     server's files, loaded after the calendar is drawn), loadEntries(server) (entries alone: the card page)
-                     (MARKS: per-server overlays + toolbar buttons, JP's "Global now"); banner / event file loaders
-                     (real + optional predicted), shared with the card page
+                     server's files, loaded after the calendar is drawn), loadEntries(server, language) (entries alone:
+                     the card page; the last ones built, reused for a minute) (MARKS: per-server overlays + toolbar
+                     buttons, JP's "Global now"); banner / event file loaders (real + optional predicted, cached),
+                     shared with the card page
     entries.ts       pure: bannerEntries(), eventEntries() → entries (`Entry`: one shape, documented there),
                      bannerStatus()
     layout.ts        pure: buildTimeline(entries) (months, days, `at(ms)` → position), laneGroups() (LANE_GROUPS:
                      the one order of the Timeline and its filter: support cards, trainees, then EVENT_GROUPS; rows
                      packed, parts nested under their parent; generic: rows keep the entries given), partCount()
     events.ts        pure: EVENT_GROUPS, items with currencies first (itemList()), withPredicted()
-    format.ts        dateFormats(timeZone), dateRange(), kindName(), barLabel(), entryTitle()
+    format.ts        an entry's labels: kindName(), barLabel(), entryTitle(), labelIsFan(), courseName(), daysOf()
     useRankings.ts   MLB ranks of a sheet's cards (server's own tier list, else looking ahead)
+    useViewport.ts   the scroller's visible range: one scroll / resize listener, published once per frame (calls
+                     useCenterOn); the three hooks below take it, so they can't run before the centring
     useCenterOn.ts, useCompactRows.ts, useRenderWindow.ts, useStickyBars.ts, useTimelineFilters.ts  the Timeline page's
                      centring (linked entry / the end of today, zoom), compact mode's measuring, the time range whose bars and
                      day labels are drawn (0.75 screens each side; the rest of history isn't rendered), which bars' label /
@@ -206,16 +219,18 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     GroupOrder.tsx   the Order tab's draggable list (dnd-kit, by handles; rows `data-vaul-no-drag`: they don't drag
                      the sheet)
     hidden.ts        banner sections + event kinds the filter hides (zustand store): getHidden() / saveHidden()
+    pulls.ts         the pull-advice verdicts the filter picks (zustand store; none: every banner): getPulls() / savePulls()
+    sets.ts          toggled() / withAll(): a set with a key flipped / every key added or removed
     TimelineFilter.tsx  the toolbar's filter button + sheet (toggles per banner section / event kind / pull verdict)
     search.ts        pure: the search's suggestions (searchIndex), chip matching, its results (matches + parents + parts),
                      jumpTarget()
     TimelineSearch.tsx  the toolbar's search button + field (downshift combobox, chips, match-sorter suggestions)
     searchOverride.ts  whether a search shows matches the filter hides (zustand store, default on)
     compact.ts       compact mode on/off (default on; zustand store): getCompact() / saveCompact()
-    scenarioStrip.ts pure: scenario segments (launch → next launch, cover colour + text ink) for the calendar's strip
     globalProgress.ts pure: where Global is in JP's history (window between banners + linear estimate)
     translate.ts     pure: translateEntries() (Japanese names → English by the language; fan names, originals)
-  i18n/index.ts      i18next setup; statName/serverName/scenarioName/lbName, formatDate
+  i18n/index.ts      i18next setup; statName/serverName/scenarioName/lbName, formatDate, formatDay,
+                     formatDayRange, formatDateRange
   i18n/en.json       every UI string (English)
 shared/schemas/      zod schemas + their types for every data file (card, banner, event, scenario, pullGuide, news,
                      predictions, sources, gametora, common); files.ts: each data file's schema, the JSON Schemas

@@ -4,8 +4,9 @@ import { Trans, useTranslation } from 'react-i18next';
 import pkg from '../../package.json' with { type: 'json' };
 import Dropdown from '../ui/Dropdown.tsx';
 import { OptionCards } from '../ui/OptionCards.tsx';
-import { SETTING_OPTIONS, localTimeZone, useSettings } from '../state/settings.tsx';
-import type { Settings, SettingName } from '../state/settingsStore.ts';
+import { useSettings } from '../state/settings.ts';
+import { localTimeZone } from '../lib/dates.ts';
+import { OPTIONS, type Settings, type SettingName } from '../state/settingsStore.ts';
 import styles from './SettingsPage.module.css';
 
 const PULL_GUIDE_URL = 'https://docs.google.com/spreadsheets/d/1zZOBxjcgJEKna7ftYKq0AlZS25Q3hE_occ7kXB-Q6MQ';
@@ -56,7 +57,7 @@ function SubSetting<K extends SettingName>({ label, ...toggle }: ToggleProps<K> 
 function NamesDropdown({ name, label }: { name: 'fanTlGlobal' | 'jpNames'; label: string }) {
   const { t } = useTranslation();
   const { settings, setSetting } = useSettings();
-  const options = SETTING_OPTIONS[name];
+  const options = OPTIONS[name];
   const key = { jp: 'namesJp', official: 'namesOfficial', all: 'namesAll' } as const;
   return (
     <Dropdown
@@ -101,7 +102,7 @@ export default function SettingsPage() {
     <div className={clsx('page', styles.settingsPage)}>
       <Setting
         name="theme"
-        options={SETTING_OPTIONS.theme}
+        options={OPTIONS.theme}
         title={t('settings.theme')}
         hint={t('settings.themeHint')}
         labels={{ system: t('settings.themeSystem'), light: t('settings.themeLight'), dark: t('settings.themeDark') }}
@@ -112,14 +113,14 @@ export default function SettingsPage() {
         <p className={styles.hint}>{t('settings.timesHint')}</p>
         <SubSetting
           name="timeZone"
-          options={SETTING_OPTIONS.timeZone}
+          options={OPTIONS.timeZone}
           label={t('settings.timeZone')}
           labels={{ utc: t('settings.utc'), local: t('settings.local') }}
           details={{ utc: t('settings.utcDetail'), local: t('settings.localDetail', { zone: localTimeZone() }) }}
         />
         <SubSetting
           name="clock"
-          options={SETTING_OPTIONS.clock}
+          options={OPTIONS.clock}
           label={t('settings.clock')}
           labels={{ '12h': t('settings.clock12'), '24h': t('settings.clock24') }}
           details={{ '12h': '10:00 PM', '24h': '22:00' }}
@@ -127,7 +128,7 @@ export default function SettingsPage() {
       </section>
       <Setting
         name="scenarioNames"
-        options={SETTING_OPTIONS.scenarioNames}
+        options={OPTIONS.scenarioNames}
         title={t('settings.scenarioNames')}
         hint={t('settings.scenarioNamesHint')}
         labels={{ global: t('settings.scenarioNamesGlobal'), jp: t('settings.scenarioNamesJp') }}
@@ -143,7 +144,7 @@ export default function SettingsPage() {
       </section>
       <Setting
         name="jpNewsLanguage"
-        options={SETTING_OPTIONS.jpNewsLanguage}
+        options={OPTIONS.jpNewsLanguage}
         title={t('settings.jpNewsLanguage')}
         hint={t('settings.jpNewsLanguageHint')}
         labels={{ jp: t('settings.jpNewsLanguageJp'), en: t('settings.jpNewsLanguageEn') }}

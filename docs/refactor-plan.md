@@ -60,43 +60,48 @@ scenario page, dark card page changed; the rest pixel-identical).
 
 ## 3. Shared logic in `src/`
 
-- [ ] **One `useRanking`** for the 4 hand-written "yield, rank, ignore if superseded" effects (`TierListPage` ~97–110,
+Wave 1 done (the boxes ticked): pixel-identical against HEAD, Timeline scrolling / zoom / search jump / server
+switch compared with a HEAD build. Built entries are reused for a minute only (a status changes with the time).
+Wave 2 done too (dates, constants, exports, section 6's moves): pixel-identical against HEAD. `src/ui/ShouldPullLine.tsx`
+(imported nowhere) deleted; `*Props` types stay exported for ui/ components (reusable), not for page-only ones.
+
+- [x] **One `useRanking`** for the 4 hand-written "yield, rank, ignore if superseded" effects (`TierListPage` ~97–110,
   `useUpcomingRanking`, `useScenarioRankings`, `timeline/useRankings.ts`), on `useAsync`. `useRankings` also splits its
   `ids.join()` key back into numbers.
-- [ ] **Persisted store factory:** `persisted<T>()` + `stringSetStore()` / `booleanStore()` beside `rawStorage`;
+- [x] **Persisted store factory:** `persisted<T>()` + `stringSetStore()` / `booleanStore()` beside `rawStorage`;
   `collapsed.ts` = `hidden.ts`, `compact.ts` = `searchOverride.ts`, and `order`, `hiddenScenarios`, `tierListFilters`,
   `settingsStore` repeat the shape (~150 lines). Check: `e2e/storage.spec.ts` (old stored formats still load).
-- [ ] **Pull verdicts out of the hidden set:** `pullOnly:<verdict>` keys mean "picked", the reverse of the rest
+- [x] **Pull verdicts out of the hidden set:** `pullOnly:<verdict>` keys mean "picked", the reverse of the rest
   (`TimelineFilter.tsx`, `useTimelineFilters.ts`; the hook imports `pullKey` from the component). Fix: its own `pulls`
   store (from the factory). Needs a stored-format migration.
-- [ ] **Card page loaders cached:** `loadEntries` rebuilds and translates every entry per card page visit; `loadEvents`,
+- [x] **Card page loaders cached:** `loadEntries` rebuilds and translates every entry per card page visit; `loadEvents`,
   `loadRealBanners` uncached (`withArt` 2–3× per file); `globalBannersPromise` a second hand-made cache
   (`timeline/data.ts`). Fix: memo per loader, `loadEntries` keyed by server + language.
-- [ ] **Search cache** (`normalizeSearch` done in 1.3): the tier list re-runs `toTiers` and normalises
+- [x] **Search cache** (`normalizeSearch` done in 1.3): the tier list re-runs `toTiers` and normalises
   every card on every render (`TierListPage` ~39–42, 85–93): memo the tiers, cache each card's text. Maybe
   `match-sorter` (already a dependency) for the every-word match.
-- [ ] **`useUpcomingAdvice` ×3 per card page** (Summary, NextBanner, Banners): call it once in `CardPage`, pass it down.
-- [ ] **Dates:** `dateFormats`, `dateRange`, `daysUntil` (`timeline/format.ts`), `DAY` (`timeline/layout.ts`) and
+- [x] **`useUpcomingAdvice` ×3 per card page** (Summary, NextBanner, Banners): call it once in `CardPage`, pass it down.
+- [x] **Dates:** `dateFormats`, `dateRange`, `daysUntil` (`timeline/format.ts`), `DAY` (`timeline/layout.ts`) and
   `timeZoneOptions` / `clockOptions` / `localTimeZone` (`state/settings.tsx`) → `src/lib/dates.ts`, with a memoised
   `useDateFormats()` reading timeZone + clock (the card page drops the clock setting today). Also: `formatDate` =
   `formatDateTime` (`i18n/index.ts`); `ScenarioPage` `longTime` rebuilds `.time`; day ↔ ISO conversions ×6; a
   `86400000` literal in `lib/pullGuide.ts`.
-- [ ] **One viewport hook for the Timeline:** `useRenderWindow`, `useStickyBars`, `useCompactRows` each listen to the
+- [x] **One viewport hook for the Timeline:** `useRenderWindow`, `useStickyBars`, `useCompactRows` each listen to the
   scroller (order-dependent, only explained in comments). Fix: `useViewport(scroller)` publishing `{left, width}` per
   frame. Performance-sensitive: check scroll by hand.
-- [ ] **Optional `generated/` loader ×6** (`lib/predictions.ts`, `lib/pullGuide.ts`, `lib/translations.ts`,
+- [x] **Optional `generated/` loader ×6** (`lib/predictions.ts`, `lib/pullGuide.ts`, `lib/translations.ts`,
   `timeline/data.ts` ×3; two need a `TODO(ts)` cast) → `optionalJson<T>(glob)`.
-- [ ] **`NextBanner` (~91–119):** 9 chained flags + nested ternaries → pure `pickShown()` returning a discriminated
+- [x] **`NextBanner` (~91–119):** 9 chained flags + nested ternaries → pure `pickShown()` returning a discriminated
   union; unit test it.
-- [ ] **`useTimelineFilters`:** drop unread `unfold` / `NONE` / `laneOrder`; `kinds` from `presentGroups`.
-- [ ] **`cardOrigins` generic over servers, one caller with one server** → `cardOrigins(cardId, entries, server)`.
-- [ ] **Small:** `TimelinePage` resets the sheet on server change in an effect (key it by server); `toggled()` =
+- [x] **`useTimelineFilters`:** drop unread `unfold` / `NONE` / `laneOrder`; `kinds` from `presentGroups`.
+- [x] **`cardOrigins` generic over servers, one caller with one server** → `cardOrigins(cardId, entries, server)`.
+- [x] **Small:** `TimelinePage` resets the sheet on server change in an effect (key it by server); `toggled()` =
   `TimelineFilter`'s `toggle`; `scenarioSegments(SCENARIOS, server)` per render in `RankOverTime` (once per server);
   `looseObject` + hand destructuring in `settingsStore` / `tierListFilters` (`z.object` strips); four
   `saveFilters({...getFilters(), x})` setters → `patchFilters()`; duplicated comment in `useRankings.ts`.
-- [ ] **Constants:** `SERVER_ORDER` ×2 (ScenarioPage, ScenariosPage); `LIMIT_BREAKS` ×2 (TierListPage, card/shared) →
+- [x] **Constants:** `SERVER_ORDER` ×2 (ScenarioPage, ScenariosPage); `LIMIT_BREAKS` ×2 (TierListPage, card/shared) →
   `lib/tiers.ts`; inline `'gl' | 'jp'` left in `scenarioStrip.ts`, `translate.ts` (use `Server`).
-- [ ] **Unused exports:** `getHiddenScenarios` (nowhere); ~15 used only in their file (`getSettings`, `languageOf`,
+- [x] **Unused exports:** `getHiddenScenarios` (nowhere); ~15 used only in their file (`getSettings`, `languageOf`,
   `masked`, `releaseAhead`, `traineeIcon`, `useUpcomingRanking`, `loadEvents`, `TERM_TYPES`, `ORIGIN_KINDS`,
   `isPullKey`, `bannerStatus`, `packRows`, Summary's tiles; grep `test/` first); `SETTING_OPTIONS` alias.
 
@@ -168,16 +173,16 @@ scenario page, dark card page changed; the rest pixel-identical).
 
 ## 6. Directory organisation
 
-- [ ] **`timeline/scenarioStrip.ts` → `src/lib/`** (RankChart, RankOverTime, TimelineAxis, TimelinePage use it).
-- [ ] **Dates → `src/lib/dates.ts`** (= 3.7): the card page stops reaching into `timeline/` for formatting.
+- [x] **`timeline/scenarioStrip.ts` → `src/lib/`** (RankChart, RankOverTime, TimelineAxis, TimelinePage use it).
+- [x] **Dates → `src/lib/dates.ts`** (= 3.7): the card page stops reaching into `timeline/` for formatting.
 - [ ] **Commands never imported:** `news-features.ts`' `writeFeatures` → `lib/news/features.ts` (lib imports a command
   today); `build-cards.ts`' `buildCardFiles` / `INPUTS` / `OUTPUTS` / `GAMETORA_CARDS_FILE` and `update-cards.ts`'
   `ensureCards` → `lib/cards/`; `build-schemas.ts`' `jsonSchema` / `schemaText` → `lib/schemas.ts`; `gold-review.ts`'
   `PostView` → a lib module. Rule for `docs/conventions/code-style.md`: commands import libs, never other commands.
 - [ ] **Data-file paths live in domain modules** (`fetch-pull-guide`, `build-cards` import `banners/global.ts` for a
   path): with 4's `dataFile()`, or a `lib/files.ts`; `shared/schemas/files.ts` already names each file.
-- [ ] **`state/settings.tsx` → `.ts`** (no JSX; ~11 imports).
-- [ ] **`pages/card/Origins.tsx` → `OriginPills.tsx`** (holds `KindPill` / `OriginPill`).
+- [x] **`state/settings.tsx` → `.ts`** (no JSX; ~11 imports).
+- [x] **`pages/card/Origins.tsx` → `OriginPills.tsx`** (holds `KindPill` / `OriginPill`).
 - [ ] **Hooks naming (optional):** `pages/card/hooks.ts`, `advice.ts` vs the `useX.ts` files elsewhere;
   `lib/translations.ts` mixes a loader and hooks.
 - [ ] **`test/` mirrors the source tree** (works with the Vitest config): `global.test.ts` → banners/global,
@@ -186,6 +191,6 @@ scenario page, dark card page changed; the rest pixel-identical).
 - [ ] **Casing in `shared/`** (camelCase, while Node code is kebab-case: `pull-guide.ts` / `pullGuide.ts` /
   `schemas/pullGuide.ts`): pick a rule, write it in `code-style.md`.
 - [ ] **`tierlist/join-cards.ts` → `shared/`?** (scripts use it for codes and joining, not ranking; low payoff.)
-- [ ] **`docs/codebase-map.md`:** missing `ui/InfoTip`, `ShouldPullChip`, `ShouldPullLine`, `timeline/gridStep.ts`,
+- [ ] **`docs/codebase-map.md`:** missing `ui/InfoTip`, `ShouldPullChip`, `timeline/gridStep.ts`,
   `RaceIcons`, `RaceTrack`, `TimelineSkeleton`, `pages/card/PassedBy.tsx`, `ScenarioFilter`, `scripts/news-pending.ts`,
   `scripts/lib/json.ts`; update with every move above.

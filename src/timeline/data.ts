@@ -7,6 +7,8 @@ import { type Counterpart, type Entry, bannerEntries, eventEntries, linkFreeScou
 import { globalProgress } from './globalProgress.ts';
 import { type JapaneseNames, japaneseEntries, translateEntries } from './translate.ts';
 import { type Language, loadTranslations, toJapanese } from '../lib/translations.ts';
+import { memoAsync } from '../lib/memo.ts';
+import { optionalJson } from '../lib/optional.ts';
 import type { BannerFile } from '../../shared/schemas/banner.ts';
 import type {
   EventPairsFile,
@@ -25,26 +27,26 @@ const BANNERS = {
   global: () => import('../../data/global_banners.json'), // ours: seeded from GameTora, kept up from the news
   jp: () => import('../../data/jp_banners.json'), // ours: GameTora's history + the JP news (scripts/lib/banners/jp.ts)
 };
-// Optional: an empty glob when the file hasn't been generated.
-const PREDICTED: Partial<Record<BannerName, (() => Promise<BannerFile>)[]>> = {
-  global: Object.values(
+const PREDICTED: Partial<Record<BannerName, () => Promise<BannerFile | null>>> = {
+  global: optionalJson(
     import.meta.glob<BannerFile>('../../generated/predicted_global_banners.json', { import: 'default' })
   ),
 };
 
+// Every loader is cached (by its arguments): the card page and the Timeline ask for the same files from several places.
 // The files store no GameTora URLs: withArt() adds the art.
-export const loadRealBanners = (name: BannerName): Promise<ArtBannerFile> =>
-  // TODO(ts): a JSON import's type is wider than the schema (strings for enums); test/schemas.test.ts checks the file
-  BANNERS[name]().then((m) => withArt(m.default as BannerFile, name, cards));
+const loadRealBanners = memoAsync(
+  (name: BannerName): Promise<ArtBannerFile> =>
+    // TODO(ts): a JSON import's type is wider than the schema (strings for enums); test/schemas.test.ts checks the file
+    BANNERS[name]().then((m) => withArt(m.default as BannerFile, name, cards))
+);
 
-const loadPredictedBanners = (name: BannerName): Promise<ArtBannerFile> | null =>
-  PREDICTED[name]?.[0]?.().then((file) => withArt(file, 'jp', cards)) ?? null;
+const loadPredictedBanners = memoAsync(async (name: BannerName): Promise<ArtBannerFile | null> => {
+  const file = await PREDICTED[name]?.();
+  return file ? withArt(file, 'jp', cards) : null;
+});
 
-// Kept: the card page asks for Global's from several tiles.
-const bannersCache: Partial<Record<BannerName, Promise<Banners>>> = {};
-export const loadBanners = (name: BannerName): Promise<Banners> => (bannersCache[name] ??= mergeBanners(name));
-
-async function mergeBanners(name: BannerName): Promise<Banners> {
+export const loadBanners = memoAsync(async (name: BannerName): Promise<Banners> => {
   const [real, predicted] = await Promise.all([loadRealBanners(name), loadPredictedBanners(name)]);
   if (!predicted) return real;
   // A banner the news announced after the last predict-gl run is in both: the real one wins.
@@ -54,26 +56,25 @@ async function mergeBanners(name: BannerName): Promise<Banners> {
     characters: [...real.characters, ...unknown(predicted.characters)],
     cards: [...real.cards, ...unknown(predicted.cards)],
   };
-}
+});
 
 const EVENTS = {
   global: () => import('../../data/global_events.json'),
   jp: () => import('../../data/jp_events.json'),
 };
-// Optional like the predicted banners.
-const PREDICTED_EVENTS: Partial<Record<BannerName, (() => Promise<PredictedEventsFile>)[]>> = {
-  global: Object.values(
+const PREDICTED_EVENTS: Partial<Record<BannerName, () => Promise<PredictedEventsFile | null>>> = {
+  global: optionalJson(
     import.meta.glob<PredictedEventsFile>('../../generated/predicted_global_events.json', { import: 'default' })
   ),
 };
-export async function loadEvents(name: BannerName): Promise<EventsFile> {
+const loadEvents = memoAsync(async (name: BannerName): Promise<EventsFile> => {
   const [real, predicted] = await Promise.all([
     // TODO(ts): a JSON import's type is wider than the schema (strings for enums); test/schemas.test.ts checks the file
     EVENTS[name]().then((m) => m.default as EventsFile),
-    Promise.all((PREDICTED_EVENTS[name] ?? []).map((load) => load())),
+    PREDICTED_EVENTS[name]?.(),
   ]);
-  return predicted.reduce((all, more) => withPredicted(all, more.events), real);
-}
+  return predicted ? withPredicted(real, predicted.events) : real;
+});
 
 // `open`: the window's end is only predicted.
 // i18n: timeline.mark.<key>.button / .title / .line.
@@ -87,18 +88,17 @@ const MARKS: Partial<Record<Server, (jp: Banners) => Promise<Mark[]>>> = {
   },
 };
 
-// Global's banners, real and predicted (JP's marks and counterparts both read them; loaded once a page).
-let globalBannersPromise: Promise<[ArtBannerFile, ArtBannerFile | null]> | null = null;
+// Global's banners, real and predicted (JP's marks and counterparts both read them).
 const globalBanners = (): Promise<[ArtBannerFile, ArtBannerFile | null]> =>
-  (globalBannersPromise ??= Promise.all([loadRealBanners('global'), loadPredictedBanners('global')]));
+  Promise.all([loadRealBanners('global'), loadPredictedBanners('global')]);
 
-// Optional like the predictions: without it, real events have no counterpart.
-const PAIRS = Object.values(
+// Optional: without it, real events have no counterpart.
+const loadPairsFile = optionalJson(
   import.meta.glob<EventPairsFile>('../../generated/event_pairs.json', { import: 'default' })
 );
 // (a rejected pair still counts as one event for the predictions, which neither predict its JP side nor anchor on it)
 const loadPairs = async (): Promise<{ gl: string; jp: string }[]> => {
-  const file = PAIRS[0] ? await PAIRS[0]() : null;
+  const file = await loadPairsFile();
   return file ? [...file.pairs, ...file.rejected] : [];
 };
 const bannerIds = (...files: (Banners | null | undefined)[]): Set<string> =>
@@ -122,7 +122,7 @@ const COUNTERPARTS: Record<Server, Counterparts> = {
     const [[global, predicted], pairs, predictedEvents] = await Promise.all([
       globalBanners(),
       loadPairs(),
-      PREDICTED_EVENTS.global?.[0]?.() ?? null,
+      PREDICTED_EVENTS.global?.() ?? null,
     ]);
     const globalIds = bannerIds(global, predicted);
     const map = new Map<string, string>();
@@ -169,14 +169,22 @@ async function japaneseNames(): Promise<JapaneseNames> {
   };
 }
 
-export async function loadEntries(server: Server, options: Options = {}): Promise<Entry[]> {
-  const [banners, events] = await loadFiles(server);
-  return toEntries(server, banners, events, options);
+// The card page reads them on every visit: the last ones built are reused for a minute (an entry's status, live or
+// ended, is worked out when it's built, so they can't be kept for the whole session).
+let lastEntries: { key: string; entries: Promise<Entry[]> } | null = null;
+export function loadEntries(server: Server, language?: Language): Promise<Entry[]> {
+  const key = `${server}/${JSON.stringify(language ?? null)}/${Math.floor(Date.now() / 60_000)}`;
+  if (lastEntries?.key !== key)
+    lastEntries = {
+      key,
+      entries: loadFiles(server).then(([banners, events]) => toEntries(server, banners, events, { language })),
+    };
+  return lastEntries.entries;
 }
 
 // The calendar draws from `entries`; `others()` loads what needs the other server's files (large, and needed only
 // by the marks and the sheet's link to the other server), after it's drawn. `counterparts`: by entry id.
-export type Others = { marks: Mark[]; counterparts: Map<string, Counterpart> };
+type Others = { marks: Mark[]; counterparts: Map<string, Counterpart> };
 export async function loadTimeline(
   server: Server,
   options: Options = {}

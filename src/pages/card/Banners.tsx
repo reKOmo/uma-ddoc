@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next';
 import type { Card } from '../../../shared/schemas/card.ts';
 import type { Server } from '../../../tierlist/cards.ts';
 import { useRowsHeight } from '../../hooks/useRowsHeight.ts';
-import { useSettings } from '../../state/settings.tsx';
 import { timelineUrl } from '../../routes.ts';
-import { dateFormats, dateRange, entryTitle, labelIsFan } from '../../timeline/format.ts';
+import { dateRange, useDateFormats } from '../../lib/dates.ts';
+import { entryTitle, labelIsFan } from '../../timeline/format.ts';
 import type { EntryStatus } from '../../timeline/entries.ts';
 import StatusBadge from '../../ui/StatusBadge.tsx';
 import { FanTl } from '../../ui/FanTl.tsx';
@@ -16,28 +16,31 @@ import RailList, { type RailDot } from '../../ui/RailList.tsx';
 import { Section } from '../../ui/Section.tsx';
 import ShouldPullChip from '../../ui/ShouldPullChip.tsx';
 import Status from '../../ui/Status.tsx';
-import { useUpcomingAdvice } from './advice.ts';
+import type { UpcomingAdvice } from './advice.ts';
 import type { EntryOrigin, Origins } from './hooks.ts';
-import { KindPill } from './Origins.tsx';
+import { KindPill } from './OriginPills.tsx';
 import styles from './Banners.module.css';
 
 // Folded on a phone: this many rows (Passed by shows as many), the next fading out.
 const SHOWN = 3;
 const DOT: Record<EntryStatus, RailDot> = { ended: 'filled', live: 'filled', confirmed: 'ring', predicted: 'dashed' };
 
-type BannersProps = { card: Card; server: Server; origins: Origins | null | undefined };
+type BannersProps = {
+  card: Card;
+  server: Server;
+  origins: Origins | null | undefined;
+  advice: UpcomingAdvice | null | undefined;
+};
 
 // Every banner and event the card comes from (a card on none: cards.json's source); its next one is NextBanner's.
-export default function Banners({ card, server, origins }: BannersProps) {
+export default function Banners({ card, server, origins, advice }: BannersProps) {
   const { t } = useTranslation();
-  const { timeZone } = useSettings().settings;
-  const format = dateFormats(timeZone).long;
+  const format = useDateFormats().long;
   const [newestFirst, setNewestFirst] = useState(false);
   const [unfolded, setUnfolded] = useState(false);
   const listRef = useRef<HTMLOListElement>(null);
   // Unfolded on a phone: its first six rows.
   const rowsHeight = useRowsHeight(listRef, unfolded);
-  const advice = useUpcomingAdvice(card.id, server);
   const list = origins ? (newestFirst ? origins.toReversed() : origins) : undefined;
   // No advice off Global: the guide is for Global's banners (JP's share their ids, so it would match there too).
   const shouldPull = (origin: EntryOrigin) =>

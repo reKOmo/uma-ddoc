@@ -4,28 +4,30 @@ import clsx from 'clsx';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SCENARIOS } from '../../shared/scenarioRelease.ts';
-import { useSettings } from '../state/settings.tsx';
+import { useSettings } from '../state/settings.ts';
 import { useLanguage } from '../lib/translations.ts';
 import { useDragScroll } from '../hooks/useDragScroll.ts';
 import { type Mark, loadTimeline } from '../timeline/data.ts';
 import { useAsync } from '../hooks/useAsync.ts';
 import { ZOOMS, buildTimeline } from '../timeline/layout.ts';
-import { scenarioSegments } from '../timeline/scenarioStrip.ts';
-import { getCollapsed, saveCollapsed, useCollapsedStore } from '../timeline/collapsed.ts';
+import { scenarioSegments } from '../lib/scenarioStrip.ts';
+import { getCollapsed, saveCollapsed, useCollapsed } from '../timeline/collapsed.ts';
 import TimelineFilter from '../timeline/TimelineFilter.tsx';
 import TimelineSearch from '../timeline/TimelineSearch.tsx';
 import TimelineSkeleton from '../timeline/TimelineSkeleton.tsx';
 import type { Term } from '../timeline/search.ts';
 import { VERDICTS } from '../lib/pullGuide.ts';
-import { dateFormats } from '../timeline/format.ts';
+import { useDateFormats } from '../lib/dates.ts';
 import { CalendarLines, TimelineAxis } from '../timeline/TimelineAxis.tsx';
 import { LaneGroup } from '../timeline/Lanes.tsx';
 import TimelineSheet from '../timeline/TimelineSheet.tsx';
 import type { Entry } from '../timeline/entries.ts';
-import { endOfToday, middleOf, useCenterOn } from '../timeline/useCenterOn.ts';
+import { endOfToday, middleOf } from '../timeline/useCenterOn.ts';
 import { useCompactRows } from '../timeline/useCompactRows.ts';
 import { useRenderWindow } from '../timeline/useRenderWindow.ts';
 import { useStickyBars } from '../timeline/useStickyBars.ts';
+import { useViewport } from '../timeline/useViewport.ts';
+import { toggled } from '../timeline/sets.ts';
 import { useTimelineFilters } from '../timeline/useTimelineFilters.ts';
 import { ToolbarButton } from '../ui/ToolbarButton.tsx';
 import { timelineUrl } from '../routes.ts';
@@ -34,12 +36,6 @@ import styles from './TimelinePage.module.css';
 
 const MARK_ICONS: Record<string, LucideIcon> = { global: Globe };
 const NO_MARKS: Mark[] = [];
-
-function toggled<T>(set: Set<T>, key: T): Set<T> {
-  const next = new Set(set);
-  if (!next.delete(key)) next.add(key);
-  return next;
-}
 
 // The Timeline: a server's banners and events on one calendar, the same for every server (only the data differs).
 // Ids are unique per server, banners and events alike. The address follows the open sheet
@@ -55,16 +51,13 @@ export default function TimelinePage({
 }) {
   const { t } = useTranslation();
   const [zoom, setZoom] = useState(2);
-  // The sheet's entry (its key) and whether it's open: it stays after closing until it has slid away.
-  const [selected, setSelected] = useState<string | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  // (Stable, like every callback the calendar gets: it's memoised, see LaneGroup.)
-  const show = useCallback((entry: Entry) => {
-    setSelected(entry.key);
-    setSheetOpen(true);
-  }, []);
-  const { timeZone, clock } = useSettings().settings;
-  const format = useMemo(() => dateFormats(timeZone, clock), [timeZone, clock]);
+  // The sheet's entry (its key) and whether it's open: it stays after closing until it has slid away. Another server's
+  // calendar ignores it (it was the old one's).
+  const [selected, setSelected] = useState<{ server: Server; key: string; open: boolean } | null>(null);
+  // (Stable per server, like every callback the calendar gets: it's memoised, see LaneGroup.)
+  const show = useCallback((entry: Entry) => setSelected({ server, key: entry.key, open: true }), [server]);
+  const { timeZone } = useSettings().settings;
+  const format = useDateFormats();
   const scroller = useRef<HTMLDivElement>(null);
 
   const language = useLanguage(server);
@@ -110,26 +103,18 @@ export default function TimelinePage({
     [current, linkId]
   );
 
-  // Another server's calendar: the open sheet was the old one's.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: runs on a server change only.
-  useEffect(() => {
-    setSelected(null);
-    setSheetOpen(false);
-  }, [server]);
-
   // A link opens its entry once: the address isn't routed again when the sheet closes, so the link would otherwise
   // reopen it after a server switch and back.
   const openedLink = useRef<string | null>(null);
   useEffect(() => {
     if (!linked || openedLink.current === `${server}/${linkId}`) return;
     openedLink.current = `${server}/${linkId}`;
-    setSelected(linked.key);
-    setSheetOpen(true);
-  }, [linked, server, linkId]);
+    show(linked);
+  }, [linked, server, linkId, show]);
 
-  const { centerOn, centerOnMiddle, scrollToDay } = useCenterOn(scroller, timeline, px, linked);
-  const range = useRenderWindow(scroller, timeline, px);
-  useStickyBars(scroller, px, !!timeline);
+  const { viewport, centerOn, centerOnMiddle, scrollToDay } = useViewport(scroller, timeline, px, linked);
+  const range = useRenderWindow(viewport, timeline, px);
+  useStickyBars(viewport, px, !!timeline);
 
   function changeZoom(next: number) {
     centerOnMiddle();
@@ -142,12 +127,11 @@ export default function TimelinePage({
   }
 
   const [unfolded, setUnfolded] = useState<Set<string>>(() => new Set());
-  const collapsed = useCollapsedStore((state) => state.collapsed);
+  const collapsed = useCollapsed();
   const toggleGroup = useCallback((key: string) => saveCollapsed(toggled(getCollapsed(), key)), []);
   const toggleParts = useCallback((key: string) => setUnfolded((old) => toggled(old, key)), []);
 
-  // (After the calendar is centred, above: it reads the new scroll position.)
-  const { compact, toggleCompact, visible } = useCompactRows(scroller, timeline, groups, px);
+  const { compact, toggleCompact, visible } = useCompactRows(viewport, timeline, groups, px);
 
   // The search's current match (an index into its matches, in date order): the previous / next buttons step through
   // them, the page scrolling to each (its bar scrolls itself into view, ringed).
@@ -171,7 +155,8 @@ export default function TimelinePage({
     if (search.target) scrollToDay(timeline.at(middleOf(search.target)));
   }, [searched, timeline]);
 
-  const entry = selected ? byKey.get(selected) : undefined;
+  const entry = selected?.server === server ? byKey.get(selected.key) : undefined;
+  const sheetOpen = !!entry && !!selected?.open;
 
   useEffect(() => {
     const hash = sheetOpen && entry ? timelineUrl(server, entry.id) : timelineUrl();
@@ -327,7 +312,7 @@ export default function TimelinePage({
           format={format}
           onSelect={select}
           open={sheetOpen}
-          onClose={() => setSheetOpen(false)}
+          onClose={() => setSelected((old) => old && { ...old, open: false })}
           onClosed={() => setSelected(null)}
         />
       )}

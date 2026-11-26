@@ -10,8 +10,10 @@ Radix Select (dropdown), `vaul` (sheets), `@dnd-kit` (drag to reorder), `lucide-
   format: `{{var}}`, plurals `key_one`/`key_other` (pass `count`), `{{items, list}}`. Display names for code keys go
   through `src/i18n/index.ts` (`statName`, `serverName`, `scenarioName`, `lbName`); `tierlist/` and `src/lib/servers.ts`
   hold keys only. A new language is a new JSON file registered in `RESOURCES`.
-- Dates go through `formatDate()` / `formatDateTime()` (UI locale). Banner times follow the Settings timezone (UTC by
-  default, or the viewer's: `timeZoneOptions()`, `buildTimeline(…, { utc })`). All stored times are UTC.
+- Dates go through `src/lib/dates.ts` (`useDateFormats()` in a component: the Settings timezone and clock) and
+  `formatDate()` / `formatDay()` / `formatDayRange()` (UI locale). Banner times follow the Settings timezone (UTC by
+  default, or the viewer's; `buildTimeline(…, { utc })`). Days ↔ ms with `dayStart()` / `dayOf()`. All stored times
+  are UTC.
 - **A predicted date never looks like a confirmed one**: it is italic (in a translation, the date wrapped in
   `<date>…</date>` rendered as `<em />` through `<Trans>`), greyed out, or beside the Predicted pill (`StatusBadge`).
 - New settings: `src/state/settingsStore.ts` (DEFAULTS + OPTIONS) + a row on the Settings page.
