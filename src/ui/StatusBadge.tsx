@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import Pill, { type PillStatus } from './Pill.tsx';
+import Pill, { type PillSize, type PillStatus } from './Pill.tsx';
 
-export type StatusBadgeProps = { status: PillStatus };
+export type StatusBadgeProps = { status: PillStatus; size?: PillSize };
 
-export default function StatusBadge({ status }: StatusBadgeProps) {
+export default function StatusBadge({ status, size }: StatusBadgeProps) {
   const { t } = useTranslation();
   return (
-    <Pill variant="status" status={status}>
+    <Pill variant="status" status={status} size={size}>
       {t(`timeline.status.${status}`)}
     </Pill>
   );

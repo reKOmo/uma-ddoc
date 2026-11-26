@@ -72,12 +72,6 @@
 
 .newest {
   align-self: flex-start;
-  padding: 0 8px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--accent-text);
-  background: var(--accent);
-  border-radius: 999px;
 }
 
 .arrow {

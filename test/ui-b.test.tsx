@@ -181,6 +181,14 @@ describe('ToolbarButton', () => {
     fireEvent.click(button);
     expect(onClick).not.toHaveBeenCalled();
   });
+
+  it('counts by its label (none at 0), the count with its tooltip', () => {
+    const { rerender } = render(<ToolbarButton label="Options" onClick={() => {}} badge={0} />);
+    expect(screen.getByRole('button').textContent).toBe('Options');
+    rerender(<ToolbarButton label="Options" onClick={() => {}} badge={2} badgeTitle="2 hidden" />);
+    expect(screen.getByRole('button').textContent).toBe('Options2');
+    expect(screen.getByTitle('2 hidden').textContent).toBe('2');
+  });
 });
 
 describe('CardRow', () => {
@@ -210,5 +218,16 @@ describe('CardRow', () => {
     const { container } = render(<CardRow href="#/card/1" icon="i.png" name="Only" title={null} />);
     expect(container.querySelector('small')).toBeNull();
     expect(screen.getByText('Only').tagName).toBe('STRONG');
+  });
+
+  it('is no link without an href, with a badge on its icon and something at its end', () => {
+    render(
+      <CardRow icon="i.png" name="Trainee" badge={<span>New</span>}>
+        <span>end</span>
+      </CardRow>
+    );
+    expect(screen.queryByRole('link')).toBeNull();
+    expect(screen.getByText('New').closest('span:has(> img)')).toBeTruthy();
+    expect(screen.getByText('end')).toBeTruthy();
   });
 });

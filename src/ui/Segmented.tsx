@@ -18,6 +18,8 @@ export type SegmentedProps<V extends string | number> = SegmentedLabel & {
   value: V;
   onChange: (value: V) => void;
   disabled?: boolean;
+  /** `pill`: pill buttons in a pill, instead of joined boxes. */
+  variant?: 'joined' | 'pill';
   className?: string;
 };
 
@@ -28,10 +30,15 @@ export function Segmented<V extends string | number>({
   value,
   onChange,
   disabled,
+  variant = 'joined',
   className,
 }: SegmentedProps<V>) {
   return (
-    <fieldset className={clsx(styles.group, className)} aria-label={label} aria-labelledby={labelledBy}>
+    <fieldset
+      className={clsx(styles.group, styles[variant], className)}
+      aria-label={label}
+      aria-labelledby={labelledBy}
+    >
       {options.map((option) => {
         const Icon = option.icon;
         return (

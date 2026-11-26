@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { Eye, ListOrdered, RotateCcw } from 'lucide-react';
+import { Eye, ListOrdered } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import clsx from 'clsx';
-import { FilterButton, FilterSection, FilterSheet } from '../ui/FilterSheet.tsx';
+import { FilterButton, FilterGroup, FilterSection, FilterSheet, ResetButton } from '../ui/FilterSheet.tsx';
+import { Segmented } from '../ui/Segmented.tsx';
 import GroupOrder, { type LaneGroup } from './GroupOrder.tsx';
 import styles from './TimelineFilter.module.css';
 import type { Verdict } from '../lib/pullGuide.ts';
@@ -104,31 +104,27 @@ export default function TimelineFilter({
         title={t('timeline.filter.title')}
         action={
           tab === 'show' ? (
-            <button
-              type="button"
-              className="reset-filters"
-              onClick={() => onChange(() => new Set())}
-              disabled={!hiddenCount}
-            >
-              <RotateCcw size={14} aria-hidden="true" />
+            <ResetButton onClick={() => onChange(() => new Set())} disabled={!hiddenCount}>
               {t('timeline.filter.showAll')}
-            </button>
+            </ResetButton>
           ) : (
-            <button type="button" className="reset-filters" onClick={onResetOrder} disabled={defaultOrder}>
-              <RotateCcw size={14} aria-hidden="true" />
+            <ResetButton onClick={onResetOrder} disabled={defaultOrder}>
               {t('timeline.filter.defaultOrder')}
-            </button>
+            </ResetButton>
           )
         }
       >
-        <fieldset className={clsx('segmented', styles.tabs)} aria-label={t('timeline.filter.tabs')}>
-          {(Object.entries(TABS) as [TabKey, LucideIcon][]).map(([key, Icon]) => (
-            <button type="button" key={key} aria-pressed={tab === key} onClick={() => setTab(key)}>
-              <Icon size={16} aria-hidden="true" />
-              {t(`timeline.filter.tab.${key}`)}
-            </button>
-          ))}
-        </fieldset>
+        <Segmented
+          className={styles.tabs}
+          label={t('timeline.filter.tabs')}
+          options={(Object.entries(TABS) as [TabKey, LucideIcon][]).map(([key, icon]) => ({
+            value: key,
+            icon,
+            label: t(`timeline.filter.tab.${key}`),
+          }))}
+          value={tab}
+          onChange={setTab}
+        />
         {/* Both tabs share one grid cell, the other one invisible and inert: the sheet is as tall as the taller one
             whichever is shown, so switching doesn't resize it. */}
         <div className={styles.panels}>
@@ -145,10 +141,7 @@ export default function TimelineFilter({
               note={t(hidden.has('cards') ? 'timeline.filter.pullOff' : 'timeline.filter.pullNote')}
               off={hidden.has('cards')}
             />
-            <section className="filter-section">
-              <div className="filter-section-head">
-                <h3>{t('timeline.filter.searchHeading')}</h3>
-              </div>
+            <FilterGroup heading={t('timeline.filter.searchHeading')}>
               <label className={styles.toggle}>
                 <input
                   type="checkbox"
@@ -157,13 +150,12 @@ export default function TimelineFilter({
                 />
                 {t('timeline.filter.searchOverride')}
               </label>
-            </section>
+            </FilterGroup>
           </div>
           <div className={styles.panel} inert={tab !== 'order'}>
-            <section className="filter-section">
-              <p className="filter-note">{t('timeline.filter.orderNote')}</p>
+            <FilterGroup note={t('timeline.filter.orderNote')}>
               <GroupOrder groups={groups} hidden={hidden} onReorder={onReorder} />
-            </section>
+            </FilterGroup>
           </div>
         </div>
       </FilterSheet>

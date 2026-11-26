@@ -13,12 +13,10 @@
   height: 1.4em;
 }
 
-/* The type's colour as a tint, its text a darker (dark theme: lighter) shade of it. */
-.tinted {
+/* On Pill's tinted look (two classes: over its size): less room left of the icon. */
+.pill.tinted {
   padding: 4px 14px 4px 6px;
-  color: color-mix(in srgb, var(--tone) 45%, var(--text));
-  background: color-mix(in srgb, var(--tone) 18%, var(--panel));
-  border-radius: 999px;
+  font-size: 0.9rem;
 }
 
 .plain {

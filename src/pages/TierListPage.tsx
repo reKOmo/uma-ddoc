@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronRight, ChevronUp, ChevronsUpDown, RotateCcw } from 'lucide-react';
+import { ChevronRight, ChevronUp, ChevronsUpDown } from 'lucide-react';
 import clsx from 'clsx';
 import { COMBINED, STATS, rankByUsefulness } from '../../tierlist/index.ts';
 import type { Ranked, Stat } from '../../tierlist/index.ts';
@@ -16,7 +16,7 @@ import { lbName, statName } from '../i18n/index.ts';
 import Dropdown from '../ui/Dropdown.tsx';
 import ScenarioPicker from '../ui/ScenarioPicker.tsx';
 import BackToTop from '../ui/BackToTop.tsx';
-import { FilterButton, FilterSection, FilterSheet } from '../ui/FilterSheet.tsx';
+import { FilterButton, FilterGroup, FilterSection, FilterSheet, ResetButton } from '../ui/FilterSheet.tsx';
 import TypePill from '../ui/TypePill.tsx';
 import { cardUrl } from '../routes.ts';
 import { SearchInput } from '../ui/SearchInput.tsx';
@@ -142,18 +142,12 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
           onClose={() => setFilterOpen(false)}
           title={t('tierList.filterTitle')}
           action={
-            <button
-              type="button"
-              className={clsx('reset-filters', styles.resetFilters)}
-              onClick={reset}
-              disabled={atDefaults}
-            >
-              <RotateCcw size={14} aria-hidden="true" />
+            <ResetButton onClick={reset} disabled={atDefaults}>
               {t('tierList.reset')}
-            </button>
+            </ResetButton>
           }
+          note={t('tierList.filterNote')}
         >
-          <p className="filter-note">{t('tierList.filterNote')}</p>
           {RARITIES.map((rarity) => (
             <FilterSection
               key={rarity}
@@ -170,10 +164,7 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
               onAll={(all: boolean) => setRarity(rarity, all)}
             />
           ))}
-          <section className="filter-section">
-            <div className="filter-section-head">
-              <h3 id="card-size">{t('tierList.size.heading')}</h3>
-            </div>
+          <FilterGroup heading={t('tierList.size.heading')} headingId="card-size">
             <Segmented
               className={styles.sizePicker}
               labelledBy="card-size"
@@ -181,20 +172,15 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
               value={size}
               onChange={setSize}
             />
-          </section>
+          </FilterGroup>
         </FilterSheet>
       </aside>
 
       <div className={clsx(styles.tierList, styles[`size${size}`])}>
         {collapsed.length > 0 && (
-          <button
-            type="button"
-            className={clsx(styles.resetFilters, styles.showTiers)}
-            onClick={() => setCollapsed([])}
-          >
-            <ChevronsUpDown size={14} aria-hidden="true" />
+          <ResetButton icon={ChevronsUpDown} className={styles.showTiers} onClick={() => setCollapsed([])}>
             {t('tierList.showAllTiers', { count: collapsed.length })}
-          </button>
+          </ResetButton>
         )}
         {tiers === null ? (
           <Status>{t('common.calculating')}</Status>

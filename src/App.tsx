@@ -101,6 +101,7 @@ function Shell() {
           options={SERVER_KEYS.map((key) => ({ value: key, label: serverName(key) }))}
           value={server}
           onChange={changeServer}
+          variant="pill"
           className={styles.serverSwitch}
         />
       </header>

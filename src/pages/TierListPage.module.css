@@ -19,33 +19,6 @@
   color: var(--muted);
 }
 
-/* Keeps the global `reset-filters` class: FilterSheet.css styles the sheet's reset by name. */
-.resetFilters {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 0 10px;
-  font: inherit;
-  font-size: 0.85rem;
-  color: var(--muted);
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.resetFilters:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.resetFilters:not(:disabled):hover {
-  color: var(--text);
-  border-color: var(--muted);
-}
-
 .searchRow {
   display: flex;
   gap: 8px;

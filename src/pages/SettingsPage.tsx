@@ -161,7 +161,7 @@ export default function SettingsPage() {
             components={{ a: <a href={PULL_GUIDE_URL} target="_blank" rel="noreferrer" /> }}
           />
         </p>
-        <h3>{t('settings.credits')}</h3>
+        <h3 className="section-label">{t('settings.credits')}</h3>
         <ul className={styles.credits}>
           {CREDITS.map(([key, url]) => (
             <li key={key}>

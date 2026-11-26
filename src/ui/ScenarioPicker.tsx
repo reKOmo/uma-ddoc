@@ -41,10 +41,23 @@ export function scenarioPickerOptions({ scenarios, combined, server, t }: Picker
   ];
 }
 
-type ScenarioPickerProps = Omit<PickerArgs, 't'> & { label: string; value: string; onChange: (key: string) => void };
+type ScenarioPickerProps = Omit<PickerArgs, 't'> & {
+  label: string;
+  value: string;
+  onChange: (key: string) => void;
+  hideLabel?: boolean;
+};
 
-export default function ScenarioPicker({ label, value, scenarios, combined, server, onChange }: ScenarioPickerProps) {
+export default function ScenarioPicker({
+  label,
+  value,
+  scenarios,
+  combined,
+  server,
+  onChange,
+  hideLabel,
+}: ScenarioPickerProps) {
   const { t } = useTranslation();
   const options = scenarioPickerOptions({ scenarios, combined, server, t });
-  return <Dropdown label={label} value={value} options={options} onChange={onChange} />;
+  return <Dropdown label={label} value={value} options={options} onChange={onChange} hideLabel={hideLabel} />;
 }

@@ -95,10 +95,11 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
     answers.ts       pure: applyAnswer() (a model's answer checked, then applied rules first)
 src/                 (components' styles: `X.module.css` beside each, `camelCaseOnly` names; global ones below)
   main.tsx           mounts App (StrictMode); imports styles/global.css first, then App.css
-  styles/global.css  what is global on purpose: colour tokens (light, dark), resets, tier colours (.tier-0…7), and the
-                     tones: an element's colour (--tone) from its `data-tone` (a Timeline entry's `tone`, a chip's)
-  App.css            the few plain classes pages still share: .page (every page's box), .segmented (the Timeline
-                     filter's tabs), .reset-filters
+  styles/global.css  what is global on purpose: colour tokens (light, dark; --radius-control), resets, tier colours
+                     (.tier-0…7), the tones: an element's colour (--tone) from its `data-tone` (a Timeline entry's
+                     `tone`, a chip's), and three utility classes: .visually-hidden, .phone-visually-hidden,
+                     .section-label (the small uppercase muted heading)
+  App.css            .page (every page's box) and the desktop h1 size
   App.tsx            shell: wouter routes (src/routes.ts), top bar (title or back button + server switch), tab bar
                      (current tab aria-current="page"), shared server + scenario state; <main data-scroll-root>
   routes.ts          every address the app links to, built here (cardUrl, scenarioUrl, timelineUrl, TAB_URLS): no page
@@ -122,15 +123,20 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      saveFilters(), DEFAULTS, SIZES, isDefault()
     theme.ts         the theme on <html> (data-theme) and the browser bar's colour
   ui/                the shared components (each with its module): LinkButton, SeeMore, FoldToggle, RailList (a timeline list folding on phones: Available on, Passed by), FanTl (the "Translation from UmaTL" mark), Pill (tag / kind
-                     / status / verdict / label), StatusBadge (a status Pill with its label), TierChip, Status, Segmented, Section, SearchInput, ToolbarButton,
-                     CardRow; pages use them where they look identical, else keep their own markup
+                     / tinted / status / verdict / label / count; size sm | lg; a status with only a tone is a badge; pillClass(): its
+                     classes for an element that isn't a <span>, the Timeline search's chips),
+                     StatusBadge (a status Pill with its label), TierChip, Status, Segmented, Section, SearchInput, ToolbarButton,
+                     CardRow (icon + name + title; badge on the icon, meta under the title, `large`), LinkButton (a
+                     link, or a button with onClick; `filled`); pages use them where they look identical, else keep
+                     their own markup
     BackToTop.tsx    floating "back to top" button (the tier list, the card page), watches the [data-scroll-root]
                      scroll container
     Dropdown.tsx     the app's dropdown on Radix Select (every dropdown uses it; keeps a global `dropdown-button`
-                     class on its button for card.css)
-    FilterSheet.tsx  the app's filter (Cards tab, Timeline): FilterButton (count), FilterSheet (on Sheet.tsx: title +
-                     a reset), FilterSection (toggle chips coloured by data-tone, All / None); changes apply at once;
-                     FilterSheet.css: its section classes (filter-section, -head, filter-note), shared with the pages
+                     class on its button for card.css; `hideLabel`: the label for screen readers only)
+    FilterSheet.tsx  the app's filter (Cards tab, Timeline): FilterButton (a ToolbarButton with the count),
+                     FilterSheet (on Sheet.tsx: title, note + a reset), FilterGroup (a section: heading, action, note),
+                     FilterSection (a FilterGroup of toggle chips: ticked a tinted Pill in its data-tone, All / None), ResetButton;
+                     changes apply at once
     Sheet.tsx        the app's detail sheet on vaul's drawer: phones, a bottom sheet dragged down to close (down arrow);
                      desktop (hooks/useMediaQuery.ts' DESKTOP), a centred near-square dialog, fading, × button, no drag
                      (`handleOnly`); focus, Escape, click outside, scroll lock; its heading is a <SheetTitle>

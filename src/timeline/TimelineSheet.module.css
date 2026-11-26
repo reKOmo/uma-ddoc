@@ -21,50 +21,6 @@
   gap: 6px;
 }
 
-/* Over Pill's kind look (doubled: one more class): a tinted fill, no outline. */
-.kind.kind {
-  padding: 4px 12px;
-  font-size: 0.8rem;
-  /* (light: 45% of the tone, 4.5:1; dark: 55%, as it was: the mix target says which) */
-  color: color-mix(in srgb, var(--tone) 45%, light-dark(var(--text), color-mix(in srgb, var(--tone) 18%, var(--text))));
-  background: color-mix(in srgb, var(--tone) 18%, var(--panel));
-  border-color: transparent;
-}
-
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--muted);
-  background: var(--chip);
-  border-radius: 999px;
-}
-
-.status[data-status="live"] {
-  color: var(--accent-text);
-  background: var(--accent);
-}
-
-/* Not certain yet: an outline, dashed while it's only predicted. */
-.status[data-status="predicted"],
-.status[data-status="confirmed"] {
-  padding: 2.5px 10.5px;
-  color: var(--text);
-  background: none;
-  border: 1.5px dashed var(--muted);
-}
-
-.status[data-status="confirmed"] {
-  border: 1.5px solid var(--rank-up);
-}
-
-.statusName {
-  text-transform: capitalize;
-}
-
 .statusGroup {
   display: inline-flex;
   align-items: center;
@@ -122,15 +78,10 @@
   list-style: none;
 }
 
-/* A card or trainee on an inset tile; a card's whole tile is its link. */
+/* A card or trainee (CardRow) on an inset tile; a card's whole tile is its link. */
 .tile {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   height: 100%;
   padding: 12px;
-  color: var(--text);
-  text-decoration: none;
   background: var(--inset);
   border: 2px solid transparent;
   border-radius: 20px;
@@ -142,43 +93,6 @@
 
 .chevron {
   flex: none;
-  color: var(--muted);
-}
-
-/* Room under the icon for the NEW badge on its edge. */
-.itemIcon {
-  position: relative;
-  display: block;
-  flex-shrink: 0;
-  width: 72px;
-  height: 72px;
-  margin-bottom: 6px;
-}
-
-.itemIcon img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.itemInfo {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  gap: 2px;
-  min-width: 0;
-}
-
-.itemName {
-  font-size: 1rem;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-
-.itemTitle {
-  font-size: 0.75rem;
-  line-height: 1.3;
   color: var(--muted);
 }
 
@@ -204,33 +118,6 @@
   border: 0;
 }
 
-.badge {
-  padding: 2px 8px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  border-radius: 999px;
-  background: var(--border);
-}
-
-.new {
-  color: var(--accent-text);
-  background: var(--accent);
-}
-
-.paid {
-  color: #fff;
-  background: #c2410c;
-}
-
-.itemIcon .badge {
-  position: absolute;
-  bottom: -7px;
-  left: 50%;
-  transform: translateX(-50%);
-  box-shadow: 0 0 0 2px var(--inset);
-}
-
 .rank {
   display: inline-flex;
   align-items: center;
@@ -238,19 +125,6 @@
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
-}
-
-/* line-height = height, so the letter sits in the middle of the chip. */
-.rankTier {
-  display: inline-block;
-  min-width: 26px;
-  height: 26px;
-  padding: 0 7px;
-  line-height: 26px;
-  text-align: center;
-  font-weight: 800;
-  color: #1c1f24;
-  border-radius: 6px;
 }
 
 .rank.missing {
@@ -384,12 +258,9 @@
   white-space: nowrap;
 }
 
+/* (.section-label, smaller) */
 .raceFacts dt {
   font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
 }
 
 .raceFacts dd {
@@ -456,15 +327,6 @@
   border-radius: 50%;
 }
 
-.hasCards {
-  padding: 0 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-}
-
 .links {
   display: flex;
   flex-wrap: wrap;
@@ -472,36 +334,10 @@
   margin: 20px 0 0;
 }
 
-/* Its own copy of the link pill: the sheet's icons are 15 px. The other server's sheet is the filled one. */
-.link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 16px;
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--accent-text);
-  text-decoration: none;
-  background: var(--accent);
-  border: 2px solid transparent;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
 /* One line: on a narrow phone the site gives way (…), not the label. */
 .newsLink {
   max-width: 100%;
-  padding: 0 14px;
-  font-size: 0.85rem;
-  color: var(--text);
   white-space: nowrap;
-  background: var(--inset);
-}
-
-.newsLink:hover {
-  border-color: var(--accent);
 }
 
 .site {

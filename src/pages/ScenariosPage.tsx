@@ -5,6 +5,7 @@ import { formatDate, serverName } from '../i18n/index.ts';
 import { DATE_FIELD, SCENARIOS, isCurrent, launchTag } from '../../shared/scenarioRelease.ts';
 import type { StartDate } from '../../shared/schemas/scenario.ts';
 import type { Server } from '../lib/servers.ts';
+import Pill from '../ui/Pill.tsx';
 import ScenarioPill from '../ui/ScenarioPill.tsx';
 import { timeZoneOptions, useSettings } from '../state/settings.tsx';
 import { scenarioUrl } from '../routes.ts';
@@ -43,9 +44,9 @@ export default function ScenariosPage({ server }: { server: Server }) {
                     <ScenarioPill scenario={s.key} /> {s.full_en ?? s.full_jp}
                   </span>
                   {newestOn.map((on) => (
-                    <span key={on} className={styles.newest}>
+                    <Pill key={on} variant="label" size="sm" className={styles.newest}>
                       {t('scenarioPage.current', { server: serverName(on) })}
-                    </span>
+                    </Pill>
                   ))}
                   {SERVER_ORDER.map((on) => {
                     const start = s[DATE_FIELD[on]];

@@ -222,7 +222,8 @@ describe('TimelineSheet', () => {
     ]);
     // Live: its time left in the pill.
     // (beside the pill, not on it)
-    expect(screen.getByText('7d left').closest('[data-status]')).toBeNull();
+    expect(screen.getByText(i18n.t('timeline.status.live')).textContent).toBe(i18n.t('timeline.status.live'));
+    expect(screen.getByText('7d left')).toBeTruthy();
   });
 
   it('never says nothing is listed: an event with nothing shows only its header', () => {

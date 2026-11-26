@@ -1,14 +1,17 @@
-import { ArrowLeftRight, ChevronRight, ExternalLink } from 'lucide-react';
+import { ArrowLeftRight, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import Sheet, { SheetTitle } from '../ui/Sheet.tsx';
 import Pill from '../ui/Pill.tsx';
+import StatusBadge from '../ui/StatusBadge.tsx';
+import TierChip from '../ui/TierChip.tsx';
+import LinkButton from '../ui/LinkButton.tsx';
+import { CardRow } from '../ui/CardRow.tsx';
 import ShouldPullChip from '../ui/ShouldPullChip.tsx';
 import InfoTip from '../ui/InfoTip.tsx';
 import RaceTrack from './RaceTrack.tsx';
 import { DistanceBars, GroundDrops, SeasonIcon, TimeIcon, TurnArrow, WeatherIcon } from './RaceIcons.tsx';
-import { TIER_NAMES } from '../lib/tiers.ts';
 import TypePill from '../ui/TypePill.tsx';
 import { formatNumber, formatTimeLeft, scenarioName, serverName } from '../i18n/index.ts';
 import { umapyoiUrl } from '../lib/umapyoi.ts';
@@ -102,11 +105,16 @@ function Header({ entry, format }: { entry: Entry; format: DateFormats }) {
   return (
     <>
       <div className={styles.pills}>
-        <Pill variant="kind" tone={entry.tone} className={styles.kind}>
+        <Pill variant="tinted" tone={entry.tone}>
           {kindName(entry)}
         </Pill>
         <StatusPill entry={entry} />
-        {entry.paid && <span className={clsx(styles.badge, styles.paid)}>{t('timeline.paidBadge')}</span>}
+        {/* (the card page's paid banners' tone) */}
+        {entry.paid && (
+          <Pill variant="status" tone="kind-champions_meeting" size="lg">
+            {t('timeline.paidBadge')}
+          </Pill>
+        )}
       </div>
       <SheetTitle className={styles.title}>
         <FanTl fan={labelIsFan(entry, { title: true })}>{entryTitle(entry)}</FanTl>
@@ -139,9 +147,7 @@ function StatusPill({ entry }: { entry: Entry }) {
   // (the two kept together: they wrap as one)
   return (
     <span className={styles.statusGroup}>
-      <span className={styles.status} data-status={entry.status}>
-        <span className={styles.statusName}>{t(`timeline.status.${entry.status}`)}</span>
-      </span>
+      <StatusBadge status={entry.status} size="lg" />
       {left && <span className={styles.timeLeft}>{left}</span>}
     </span>
   );
@@ -238,41 +244,36 @@ function FeaturedItem({
 }) {
   const { t } = useTranslation();
   const shouldPull = item.id != null ? advice?.[item.id]?.shouldPull : undefined;
-  const content = (
-    <>
-      {/* NEW sits on the icon's bottom edge; the tile leaves room under it. */}
-      <span className={styles.itemIcon}>
-        {item.icon && <img src={item.icon} alt="" loading="lazy" />}
-        {item.isNew && <span className={clsx(styles.badge, styles.new)}>{t('timeline.new')}</span>}
-      </span>
-      <span className={styles.itemInfo}>
-        <strong className={styles.itemName}>
-          <FanTl fan={fan.has(item.name)}>{item.name}</FanTl>
-        </strong>
-        {item.title && (
-          <span className={styles.itemTitle}>
-            <FanTl fan={fan.has(item.title)}>{item.title}</FanTl>
-          </span>
-        )}
-        <span className={styles.itemMeta}>
-          {item.card ? <CardRank id={item.id} rankings={rankings} /> : item.stars != null && STARS[item.stars]}
-          {item.copies && <span>{t('timeline.copies', { count: item.copies })}</span>}
-        </span>
-        {shouldPull && <ShouldPullChip pill={shouldPull} asked className={styles.pull} />}
-      </span>
-    </>
-  );
   // A card's whole tile opens its page; a trainee has no page.
+  const href = item.card && item.id != null ? cardUrl(item.id) : undefined;
   return (
     <li>
-      {item.card && item.id != null ? (
-        <a className={clsx(styles.tile, styles.tileLink)} href={cardUrl(item.id)}>
-          {content}
-          <ChevronRight className={styles.chevron} size={20} aria-hidden="true" />
-        </a>
-      ) : (
-        <div className={styles.tile}>{content}</div>
-      )}
+      <CardRow
+        href={href}
+        icon={item.icon ?? undefined}
+        name={<FanTl fan={fan.has(item.name)}>{item.name}</FanTl>}
+        title={item.title && <FanTl fan={fan.has(item.title)}>{item.title}</FanTl>}
+        badge={
+          item.isNew && (
+            <Pill variant="status" status="live">
+              {t('timeline.new')}
+            </Pill>
+          )
+        }
+        meta={
+          <>
+            <span className={styles.itemMeta}>
+              {item.card ? <CardRank id={item.id} rankings={rankings} /> : item.stars != null && STARS[item.stars]}
+              {item.copies && <span>{t('timeline.copies', { count: item.copies })}</span>}
+            </span>
+            {shouldPull && <ShouldPullChip pill={shouldPull} asked className={styles.pull} />}
+          </>
+        }
+        large
+        className={clsx(styles.tile, href && styles.tileLink)}
+      >
+        {href && <ChevronRight className={styles.chevron} size={20} aria-hidden="true" />}
+      </CardRow>
     </li>
   );
 }
@@ -292,7 +293,7 @@ function CardRank({ id, rankings }: { id: number | null; rankings: RankResult | 
   if (!rank) return <span className={clsx(styles.rank, styles.missing)}>{t('timeline.notRanked')}</span>;
   return (
     <span className={styles.rank}>
-      <span className={clsx(styles.rankTier, `tier-${rank.tier}`)}>{TIER_NAMES[rank.tier]}</span>
+      <TierChip tier={rank.tier} />
       {t('common.rank', { position: rank.position })}
       <TypePill stat={rank.stat} plain />
     </span>
@@ -359,7 +360,7 @@ function Races({ races, predicted }: { races: Race[]; predicted: boolean }) {
                   ([key, value, icon]) =>
                     value && (
                       <div key={key} className={key === 'turns' ? styles.wide : undefined}>
-                        <dt>{t(`events.race.label.${key}`)}</dt>
+                        <dt className="section-label">{t(`events.race.label.${key}`)}</dt>
                         <dd>
                           {icon?.()}
                           {value}
@@ -557,7 +558,11 @@ function Parts({
             <button type="button" className={styles.part} onClick={() => onSelect(part)}>
               <span className={styles.dot} data-tone={part.tone} aria-hidden="true" />
               <FanTl fan={labelIsFan(part)}>{barLabel(part)}</FanTl>
-              {part.featured.length > 0 && <small className={styles.hasCards}>{t('timeline.supportCards')}</small>}
+              {part.featured.length > 0 && (
+                <Pill variant="tag" size="sm">
+                  {t('timeline.supportCards')}
+                </Pill>
+              )}
             </button>
             <small>{dateRange(part, format.short)}</small>
           </li>
@@ -571,21 +576,13 @@ function Parts({
 function NewsLink({ href, site }: { href: string; site: string }) {
   const { t } = useTranslation();
   return (
-    <a
-      className={clsx(styles.link, styles.newsLink)}
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      aria-label={t('timeline.newsOn', { site })}
-    >
+    <LinkButton className={styles.newsLink} href={href} external aria-label={t('timeline.newsOn', { site })}>
       {t('timeline.news')}
       <span className={styles.site}>{site}</span>
-      <ExternalLink size={15} aria-hidden="true" />
-    </a>
+    </LinkButton>
   );
 }
 
-// Not LinkButton: the sheet's icons are 15 px (LinkButton's are 16).
 function Links({ news, counterpart }: { news: Entry['news']; counterpart: Entry['counterpart'] }) {
   const { t } = useTranslation();
   const { jpNewsLanguage } = useSettings().settings;
@@ -594,10 +591,9 @@ function Links({ news, counterpart }: { news: Entry['news']; counterpart: Entry[
   return (
     <p className={styles.links}>
       {counterpart && (
-        <a className={styles.link} href={timelineUrl(counterpart.server, counterpart.id)}>
-          <ArrowLeftRight size={15} aria-hidden="true" />
+        <LinkButton href={timelineUrl(counterpart.server, counterpart.id)} icon={ArrowLeftRight} filled>
           {t('timeline.counterpart', { server: serverName(counterpart.server) })}
-        </a>
+        </LinkButton>
       )}
       {news && <NewsLink href={news.url} site={news.site} />}
       {umapyoi && <NewsLink href={umapyoi} site="umapyoi.net" />}

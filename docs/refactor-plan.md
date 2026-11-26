@@ -36,38 +36,27 @@ change in `scripts/` that writes `data/`, rerun the writer and confirm `git diff
 - [x] **Search folds accents on the Cards tab only:** `TierListPage.tsx` `normalize` strips accents, `timeline/search.ts`
   doesn't. Done: `normalizeSearch()` in `src/lib/search.ts` used by both; test in `timeline-search.test.ts`.
 
-## 2. Pills, badges and buttons (UI duplication)
+## 2. Pills, badges and buttons (UI duplication): done
 
-- [ ] **Status pills: 3 implementations (look).** `ui/Pill` status; `TimelineSheet.module.css` `.status[data-status]`
-  (~34–66, own markup ~142); `ScenarioPage.module.css` `.launchStatus` (~165–186). "Confirmed" is a green fill, a green
-  outline and an accent outline. Fix: Pill status only (+ `size="lg"`), the sheet and ScenarioPage render
-  `<StatusBadge>`; ScenarioPage's `out` → `live`.
-- [ ] **Small pills copied (look):** `ScenarioPage .tag` (= Pill `.tag`, `.current` the accent fill); the sheet's
-  `.badge` / `.new` / `.paid` (~207–224; `.paid` hard-codes `#c2410c`, against the colour-token rule);
-  `ScenariosPage .newest` = `Dropdown .badge` (byte-identical) ≈ Pill `.label` smaller; the sheet's `.hasCards`. Fix: Pill
-  variants with a size; `paid` as a tone.
-- [ ] **Count bubbles ×3:** `ToolbarButton .badge`, `FilterSheet .filterCount` (colours swapped), Pill `count`. One style.
-- [ ] **Tinted pill ×3:** `TypePill .tinted`, the sheet's `.kind.kind`, `TimelineSearch .chip`; the text-colour formula
-  differs. Fix: Pill `variant="tinted"`.
-- [ ] **Tier chip copied:** the sheet's `.rankTier` (+ markup ~295) is `TierChip` with padding; every TierChip user adds
-  `text-align: center` (`Summary.module.css`, `RankChart.module.css`). Fix: `<TierChip>`, centring inside it.
-- [ ] **`FilterButton` is a second `ToolbarButton`** (`ui/FilterSheet.tsx` ~25–44): same box, same `phoneIconOnly`, same
-  badge. Fix: wrap `ToolbarButton` (+ a `small` prop).
-- [ ] **Visually-hidden CSS ×4** (`FilterSheet`, `ToolbarButton`, `RankOverTime`, `TimelineSkeleton` modules) → one
-  global `.visually-hidden`.
-- [ ] **Global `.segmented` (`App.css` ~7–38) copies `ui/Segmented`;** only `TimelineFilter` uses it. Fix: `<Segmented>`
-  (+ icon size); `App.module.css` `serverSwitch` overrides Segmented by specificity hacks → `variant="pill"`.
-- [ ] **Reset button:** `.reset-filters` (`App.css`) = `.resetFilters` (`TierListPage.module.css`), markup ×3
-  (`TierListPage`, `TimelineFilter` ×2). Fix: `ResetButton` in `ui/FilterSheet.tsx`. Filter-section scaffolding
-  hand-written ×2 → a heading-only `FilterGroup` that `FilterSection` uses too. Dead selector:
-  `TimelinePage.module.css` `.toolbar :global(.filter-button)`.
-- [ ] **Link buttons (look):** the sheet's `.link` / `.newsLink` and `ScenarioPage .linkButton` copy `ui/LinkButton`.
-  Fix: LinkButton `iconSize`, `variant`, button form.
-- [ ] **Small uppercase muted headings ×4** (FilterSheet, TimelineSearch, TimelineSheet, SettingsPage; letter-spacing
-  drifted). One global class.
-- [ ] **Panel boxes:** ~20 rule blocks repeat panel + border + 12–18px radius; the 12px ones are buttons. A
-  `--radius-control` token.
-- [ ] **CardRow:** one user (`PassedBy`) while the sheet's item tile rebuilds the same row. Extend it or fold it back.
+Decided: `ui/Pill`'s status look everywhere; near-copies snap to the shared component's look; the paid badge takes
+the card page's paid tone (`kind-champions_meeting`). Visual diffs against HEAD checked (sheets, Timeline filter,
+scenario page, dark card page changed; the rest pixel-identical).
+
+- [x] Status pills → `StatusBadge` / Pill `status` (+ `size="lg"` in the sheet header; ScenarioPage's `out` drawn as live).
+- [x] Small pills → Pill (`label size="sm"`, `tag size="sm"`, a toned status badge for "paid"); `#c2410c` gone.
+- [x] Count badges: FilterButton wraps ToolbarButton, one `.badge`.
+- [x] Tinted pill → Pill `tinted` (TypePill, the sheet's kind pill).
+- [x] Tier chip → `TierChip` (centred inside it).
+- [x] `.visually-hidden` / `.phone-visually-hidden` global; Dropdown `hideLabel` (the card page's scenario picker).
+- [x] `<Segmented>` replaces the global `.segmented`; `variant="pill"` for the server switch.
+- [x] `ResetButton`, `FilterGroup`; `FilterSheet.css` deleted; dead `.filter-button` selector gone.
+- [x] Link buttons → `LinkButton` (button form, `filled`).
+- [x] `.section-label` global (FilterGroup, Settings, Timeline search groups, race facts).
+- [x] `--radius-control` token.
+- [x] CardRow used by the sheet's featured tiles (`large`, `badge`, `meta`).
+- [x] Timeline search chips and the filter's ticked chips are Pill `tinted` (through `pillClass()`); Pill `.confirmed` uses the `--confirmed` token
+  and `--ink-light`.
+- Left on purpose: the sheet's rewards chips (`--inset` tiles in a sheet, not Pill tags).
 
 ## 3. Shared logic in `src/`
 

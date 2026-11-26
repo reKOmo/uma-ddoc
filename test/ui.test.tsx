@@ -48,6 +48,19 @@ describe('LinkButton', () => {
     expect(icons).toHaveLength(1);
     expect(link.firstElementChild).toBe(icons[0]);
   });
+
+  it('is a button when it has a click handler', () => {
+    const onClick = vi.fn();
+    render(
+      <LinkButton onClick={onClick} filled aria-label="Open the tier list">
+        Tier list
+      </LinkButton>
+    );
+    const button = screen.getByRole('button', { name: 'Open the tier list' });
+    expect(button.getAttribute('type')).toBe('button');
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledOnce();
+  });
 });
 
 describe('SeeMore', () => {
@@ -127,6 +140,21 @@ describe('Pill', () => {
       </Pill>
     );
     expect(screen.getByText('Confirmed').tagName).toBe('SPAN');
+  });
+
+  it('renders a toned status badge with no status, and sizes', () => {
+    render(
+      <>
+        <Pill variant="status" tone="kind-champions_meeting">
+          Paid
+        </Pill>
+        <Pill variant="tinted" tone="type-speed" size="lg">
+          Speed
+        </Pill>
+      </>
+    );
+    expect(screen.getByText('Paid').getAttribute('data-tone')).toBe('kind-champions_meeting');
+    expect(screen.getByText('Speed').className).toMatch(/lg/);
   });
 });
 

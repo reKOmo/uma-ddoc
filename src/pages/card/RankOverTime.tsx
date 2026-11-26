@@ -102,6 +102,7 @@ export default function RankHistorySection({
               combined={combined}
               server={server}
               onChange={setScenario}
+              hideLabel
             />
             <Segmented
               label={t('card.limitBreak')}

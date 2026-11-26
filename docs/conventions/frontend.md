@@ -21,11 +21,11 @@ Radix Select (dropdown), `vaul` (sheets), `@dnd-kit` (drag to reorder), `lucide-
 - **Mobile first.** Base CSS targets phones; `@media (min-width: 768px)` adds desktop. Top bar always on top; tab bar
   at the bottom on phones, under the top bar on desktop. Pages don't render their own title. Check at 360–390px.
 - **CSS Modules**: `X.module.css` beside the component, `camelCaseOnly` (`.see-more` → `styles.seeMore`), combined
-  with `clsx`. Global only on purpose: `src/styles/global.css` (tokens, resets, tier colours, tones), `App.css`'s few
-  shared classes, and a class other code or CSS looks up by name (keep it a plain class beside the module one, and say
+  with `clsx`. Global only on purpose: `src/styles/global.css` (tokens, resets, tier colours, tones), `.visually-hidden` /
+  `.section-label` there, and a class other code or CSS looks up by name (keep it a plain class beside the module one, and say
   why).
 - Code never finds elements by class: `data-*` (`data-scroll-root`, `data-dragging`, `data-testid`) or roles.
-- **Look**: content in rounded panels (22px page sections, 18–20px tiles, 12px controls, 14px options), a 1px border on
+- **Look**: content in rounded panels (22px page sections, 18–20px tiles, 12px controls (`--radius-control`), 14px options), a 1px border on
   pages, none on tiles inside a sheet (`--inset` fill instead); no drop shadows. Headings sentence case and bold, no
   icons. Links are tinted chips (`LinkButton`, `SeeMore`: `--inset` fill, accent text). Choices are `--option-border`
   outlined, `--selected` filled with an accent border when picked; neutral chips are `--chip`.
@@ -45,7 +45,10 @@ Radix Select (dropdown), `vaul` (sheets), `@dnd-kit` (drag to reorder), `lucide-
   Section, SearchInput, ToolbarButton, CardRow, ScenarioPill), `src/ui/FilterSheet.tsx`, `src/ui/Sheet.tsx`, `src/ui/Dropdown.tsx`. When two
   places need the same piece, make it a component. Never change how a page looks to make it fit a shared component:
   if one doesn't fit exactly, keep the page's markup.
-- Toggle groups: `ui/Segmented.tsx` (a `<fieldset>` of `aria-pressed` buttons); a setting's choices with a detail line:
+- Status pills (live / confirmed / predicted / ended) are always `ui/StatusBadge` or Pill `status` (`size="lg"` in a
+  sheet header); a type's or kind's tinted chip is Pill `tinted` (the Timeline search's chips and the filter's
+  ticked chips too, through `pillClass()`; an unticked filter chip is the panel, muted, outlined).
+- Toggle groups: `ui/Segmented.tsx` (a `<fieldset>` of `aria-pressed` buttons; `variant="pill"` for the top bar's server switch); a setting's choices with a detail line:
   `ui/OptionCards.tsx` (the same semantics, as cards side by side).
 - **Detail sheets are `src/ui/Sheet.tsx`** (vaul's drawer: drag down to close on phones; a centred dialog on desktop),
   never a hand-made overlay; nothing may set the sheet's `transform`. Keep it rendered with `open` false while it

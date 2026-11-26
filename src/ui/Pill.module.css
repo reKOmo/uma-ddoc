@@ -18,6 +18,22 @@
   border-radius: 999px;
 }
 
+/* A tone as a tint, its text the tone mixed into --text (light: 45% of the tone, 4.5:1; dark: a little more of it,
+   the mix target says which). */
+.tinted {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  border-radius: 999px;
+}
+
+.tinted,
+.status[data-tone] {
+  color: color-mix(in srgb, var(--tone) 45%, light-dark(var(--text), color-mix(in srgb, var(--tone) 18%, var(--text))));
+  background: color-mix(in srgb, var(--tone) 18%, var(--panel));
+}
+
 .status {
   padding: 2px 8px;
   font-size: 0.7rem;
@@ -42,8 +58,8 @@
 }
 
 .confirmed {
-  color: #fff;
-  background: #2f9e6e;
+  color: var(--ink-light);
+  background: var(--confirmed);
 }
 
 /* Its colour, --verdict, by its tone (others mix it: the sheet's pull chip). */
@@ -98,4 +114,19 @@
   color: var(--accent-text);
   background: var(--accent);
   border-radius: 999px;
+}
+
+/* Sizes, after the variants so they win. */
+.sm {
+  padding: 0 8px;
+  font-size: 0.72rem;
+}
+
+.lg {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+}
+
+.lg.predicted {
+  padding: 3px 11px;
 }

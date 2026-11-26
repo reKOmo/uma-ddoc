@@ -9,6 +9,8 @@ import type { Server } from '../lib/servers.ts';
 import { Section } from '../ui/Section.tsx';
 import Status from '../ui/Status.tsx';
 import ScenarioPill from '../ui/ScenarioPill.tsx';
+import Pill from '../ui/Pill.tsx';
+import LinkButton from '../ui/LinkButton.tsx';
 import { clockOptions, timeZoneOptions, useSettings } from '../state/settings.tsx';
 import { umapyoiGl, umapyoiJp } from '../lib/umapyoi.ts';
 import { TAB_URLS, scenarioUrl } from '../routes.ts';
@@ -105,9 +107,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
       <span className={styles.serverName}>{serverName(server)}</span>
       {start ? (
         <>
-          <span className={clsx(styles.launchStatus, styles[launchTag(start)])}>
-            {t(`scenarioPage.status.${launchTag(start)}`)}
-          </span>
+          <LaunchStatus start={start} />
           <strong>{longTime(start.date)}</strong>
           <span className={styles.relative}>{relative(start.date)}</span>
           {start.status === 'predicted' && start.lo && (
@@ -144,17 +144,16 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
                 </ScenarioPill>
               ))}
               {SERVER_ORDER.filter((s) => isCurrent(scenario.key, s, now)).map((s) => (
-                <span key={s} className={clsx(styles.tag, styles.current)}>
+                <Pill key={s} variant="label">
                   {t('scenarioPage.current', { server: serverName(s) })}
-                </span>
+                </Pill>
               ))}
             </p>
             {rankable && (
               <div className={styles.actions}>
-                <button type="button" className={styles.linkButton} onClick={openTierList}>
-                  <Trophy size={16} aria-hidden="true" />
+                <LinkButton onClick={openTierList} icon={Trophy}>
                   {t('scenarioPage.openTierList')}
-                </button>
+                </LinkButton>
               </div>
             )}
           </div>
@@ -224,5 +223,16 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
         )}
       </nav>
     </div>
+  );
+}
+
+// Launched: the Timeline's live look.
+function LaunchStatus({ start }: { start: StartDate }) {
+  const { t } = useTranslation();
+  const tag = launchTag(start);
+  return (
+    <Pill variant="status" status={tag === 'out' ? 'live' : tag}>
+      {t(`scenarioPage.status.${tag}`)}
+    </Pill>
   );
 }

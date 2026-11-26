@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useCombobox, useMultipleSelection } from 'downshift';
 import { matchSorter } from 'match-sorter';
 import clsx from 'clsx';
+import { pillClass } from '../ui/Pill.tsx';
 import TypePill, { isStat } from '../ui/TypePill.tsx';
 import { stepRow } from './gridStep.ts';
 import { type Term, type TermType, termKey, textTerm } from './search.ts';
@@ -20,7 +21,7 @@ export type TimelineSearchProps = {
 };
 
 // Typing only suggests (the calendar changes when a chip is added): the calendar's terms in groups by type, and the
-// text itself last, to match any field. Chips, picked and suggested alike, look like the filter's ticked chips.
+// text itself last, to match any field. Chips, picked and suggested alike, are tinted pills in their entry's colour.
 export default function TimelineSearch({ terms, chips, onChange }: TimelineSearchProps) {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
@@ -100,7 +101,7 @@ export default function TimelineSearch({ terms, chips, onChange }: TimelineSearc
           <button
             type="button"
             key={termKey(chip)}
-            className={styles.chip}
+            className={clsx(pillClass({ variant: 'tinted' }), styles.chip)}
             data-tone={chip.tone ?? ''}
             title={`${typeName(chip)}: ${chip.label}`}
             aria-label={t('timeline.search.remove', { name: chip.label })}
@@ -152,12 +153,12 @@ export default function TimelineSearch({ terms, chips, onChange }: TimelineSearc
           items.map((item, index) => (
             <Fragment key={termKey(item)}>
               {item.type !== items[index - 1]?.type && (
-                <li className={styles.group} role="presentation">
+                <li className={clsx('section-label', styles.group)} role="presentation">
                   {t(`timeline.search.group.${item.type}`)}
                 </li>
               )}
               <li
-                className={clsx(styles.chip, styles.option)}
+                className={clsx(pillClass({ variant: 'tinted' }), styles.chip, styles.option)}
                 data-tone={item.tone ?? ''}
                 data-highlighted={highlightedIndex === index || undefined}
                 {...getItemProps({
