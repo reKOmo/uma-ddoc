@@ -26,7 +26,7 @@ const OPTIONS: DropdownOption[] = [
   { value: 'b', label: 'Beta', italic: true, note: 'Not released yet' },
   { value: 'c', label: 'Gamma', badge: 'Current' },
   { value: 'd', label: 'Delta', disabled: true, note: 'Not ranked' },
-  { value: 'e', label: 'Epsilon', pill: { color: '#ff0000', ink: 'light' } },
+  { value: 'e', label: 'Epsilon', content: <em>Epsilon</em> },
 ];
 
 // Opens the dropdown the way the keyboard does (jsdom has no PointerEvent for Radix's mouse path).
@@ -71,14 +71,13 @@ describe('Dropdown opened', () => {
     expect(screen.getByRole('listbox')).toBeTruthy();
   });
 
-  it('shows the note, badge, italic label, icon and pill', async () => {
+  it('shows the note, badge, italic label and content', async () => {
     open();
     const beta = await screen.findByRole('option', { name: /Beta/ });
     expect(within(beta).getByText('Not released yet')).toBeTruthy();
     expect(within(beta).getByText('Beta').closest('[role="option"]')?.className).toMatch(/italic/);
     expect(within(screen.getByRole('option', { name: /Gamma/ })).getByText('Current')).toBeTruthy();
-    const pill = within(screen.getByRole('option', { name: /Epsilon/ })).getByText('Epsilon');
-    expect(pill.style.getPropertyValue('--pill-color')).toBe('#ff0000');
+    expect(within(screen.getByRole('option', { name: /Epsilon/ })).getByText('Epsilon').tagName).toBe('EM');
   });
 
   it('shows the selected option (label, tooltip note) on the button', () => {

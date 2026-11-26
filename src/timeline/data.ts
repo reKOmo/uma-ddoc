@@ -40,7 +40,11 @@ export const loadRealBanners = (name: BannerName): Promise<ArtBannerFile> =>
 const loadPredictedBanners = (name: BannerName): Promise<ArtBannerFile> | null =>
   PREDICTED[name]?.[0]?.().then((file) => withArt(file, 'jp', cards)) ?? null;
 
-export async function loadBanners(name: BannerName): Promise<Banners> {
+// Kept: the card page asks for Global's from several tiles.
+const bannersCache: Partial<Record<BannerName, Promise<Banners>>> = {};
+export const loadBanners = (name: BannerName): Promise<Banners> => (bannersCache[name] ??= mergeBanners(name));
+
+async function mergeBanners(name: BannerName): Promise<Banners> {
   const [real, predicted] = await Promise.all([loadRealBanners(name), loadPredictedBanners(name)]);
   if (!predicted) return real;
   // A banner the news announced after the last predict-gl run is in both: the real one wins.

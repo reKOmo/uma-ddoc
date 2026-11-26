@@ -1,0 +1,85 @@
+/* Its defaults at no specificity, so the caller's class (--dot-y, padding) wins whichever CSS loads first. */
+:where(.list) {
+  --rail: 18px;
+  --dot-y: 27px;
+  --dot-gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list > li {
+  position: relative;
+}
+
+/* One line per row, between its dot and the next row's, so each stretch is one solid or dashed piece. */
+.list > li.hasNext::after {
+  position: absolute;
+  top: calc(var(--dot-y) + var(--dot-gap));
+  bottom: calc(var(--dot-gap) - var(--dot-y));
+  left: calc(var(--rail) - 1px);
+  z-index: 1;
+  width: 2px;
+  content: "";
+  pointer-events: none;
+  background: var(--accent);
+}
+
+.list > li.nextDashed::after {
+  background: repeating-linear-gradient(to bottom, var(--accent) 0 5px, transparent 5px 9px);
+}
+
+.dot {
+  position: absolute;
+  z-index: 1;
+  top: var(--dot-y);
+  left: calc(var(--rail) - 6px);
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  background: var(--accent);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.ring .dot {
+  background: var(--panel);
+  border: 2px solid var(--accent);
+}
+
+.dashed .dot {
+  background: var(--panel);
+  border: 2px dashed var(--accent);
+}
+
+/* Folded: the row after the shown ones fades out, the rail running into it. */
+.list > li.fading {
+  max-height: 96px;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 10%, transparent);
+}
+
+/* Unfolded: six rows (measured: --rows-height), the rest scrolling under the scroll fade. */
+.list.expanded {
+  max-height: var(--rows-height, 480px);
+  overflow-y: auto;
+}
+
+/* Unfolded: under the list. */
+button.fold {
+  display: flex;
+  width: fit-content;
+  margin: 8px auto 10px;
+  cursor: pointer;
+  background: var(--panel);
+}
+
+/* Folded: over the row fading out (so it needs a background). */
+button.fold.over {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  z-index: 2;
+  margin: 0;
+  transform: translateX(-50%);
+}

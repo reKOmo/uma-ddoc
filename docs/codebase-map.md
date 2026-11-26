@@ -107,6 +107,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     useAsync.ts      useAsync(load, deps) → { data, error, pending }: loads, ignoring a superseded run (pages' data)
     useDragScroll.ts mouse drag-to-pan (marks the scroller data-dragging)
     useMediaQuery.ts DESKTOP: the desktop layout's breakpoint
+    useRowsHeight.ts an unfolded list's height for its first six rows (Available on, Passed by on phones)
   state/             what the app remembers (zustand stores) and the settings
     rawStorage.ts    the persisted stores' localStorage adapter: each store keeps its own stored format (never
                      zustand's { state, version } wrapper), every access guarded (private windows)
@@ -115,10 +116,11 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      fanTlGlobal / jpNames 'jp' | 'official' | 'all'
     settings.tsx     useSettings() (the settings store's hook); App calls it so plain readers like scenarioName()
                      refresh on change
+    hiddenScenarios.ts  the scenarios hidden from the card page's "Tier by scenario" table (zustand store, `{ hidden }`)
     tierListFilters.ts  the Cards tab's stat / LB filter / search / card size (zustand store): getFilters(),
                      saveFilters(), DEFAULTS, SIZES, isDefault()
     theme.ts         the theme on <html> (data-theme) and the browser bar's colour
-  ui/                the shared components (each with its module): LinkButton, SeeMore, FoldToggle, FanTl (the "Translation from UmaTL" mark), Pill (tag / kind
+  ui/                the shared components (each with its module): LinkButton, SeeMore, FoldToggle, RailList (a timeline list folding on phones: Available on, Passed by), FanTl (the "Translation from UmaTL" mark), Pill (tag / kind
                      / status / verdict / label), TierChip, Status, Segmented, Section, SearchInput, ToolbarButton,
                      CardRow; pages use them where they look identical, else keep their own markup
     BackToTop.tsx    floating "back to top" button (the tier list, the card page), watches the [data-scroll-root]
@@ -132,6 +134,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      desktop (hooks/useMediaQuery.ts' DESKTOP), a centred near-square dialog, fading, × button, no drag
                      (`handleOnly`); focus, Escape, click outside, scroll lock; its heading is a <SheetTitle>
     ScenarioPicker.tsx  scenario dropdown on top of it (italic + note when unreleased)
+    ScenarioPill.tsx  a scenario's name as a pill in its cover's colour (the card page's tile + tier table)
     TabHighlight.tsx the open tab's pill, sliding from tab to tab
   lib/               the app's data: loaders and pure helpers
     servers.ts       SERVERS: gl/jp ↔ banner file names
@@ -145,7 +148,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      origins keep the entries given), originKinds()
     predictions.ts   optional loader for generated/predicted_gl_releases.json
     translations.ts  optional loader for generated/translations.json; languageOf() / useLanguage() (the Names settings)
-    pullGuide.ts     optional loader for generated/pull_guide.json (card page's "Pull advice"), upcomingBanner(),
+    pullGuide.ts     optional loader for generated/pull_guide.json (the card page's NextBanner tile + Banners), upcomingBanner(),
                      currentAdvice(), latestAdvice(), sheetLink()
     umapyoi.ts       umapyoiUrl(news_url): umapyoi.net's copy of an official post (JP's in Japanese)
     statIcons.ts     STAT_ICONS: the game's stat type icons by stat key (src/icons/stats/<stat>.png, committed: 70×70,
@@ -157,13 +160,17 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   pages/TimelinePage.tsx               the Timeline tab: loads a server's timeline, draws its groups and marks, opens
                                        the sheet; no server-specific code (src/timeline/)
   pages/CardPage.tsx                   one card (the entry App imports): art, tags, GameTora link, its parts:
-  pages/card/        PullAdvice, Origins (+ OriginPill), RankOverTime, ScenarioTierTable; hooks.ts (usePredictions,
-                     useOrigins, useScenarioRankings, useUpcomingRanking), shared.ts
+  pages/card/        CardArt (the art in its rarity's in-game frame colours), Summary (the tiles beside the art: rank,
+                     tier outlook, release), NextBanner (the next
+                     banner on its art + the guide's pull advice), Banners (the card's banners/events), Origins (OriginPill, KindPill), ScenarioTierTable (heatmap),
+                     RankOverTime (RankHistorySection: chart + PassedBy); hooks.ts (usePredictions, useOrigins,
+                     useScenarioRankings, useUpcomingRanking, useRankHistory), advice.ts (useUpcomingAdvice: the
+                     guide + next banner, for NextBanner and Banners' pull pills), shared.ts (currentScenario(server)…)
   pages/card.css     global on purpose: the Rank over time picker's size (`.history-controls .dropdown-button`)
   pages/ScenariosPage.tsx              the Scenarios tab (list)
   pages/ScenarioPage.tsx               one scenario
-  pages/RankChart.tsx                  SVG step chart of rank over time: fixed rank axis, sideways-scrolling
-                                       plot (20px/month, quarters + years labelled), crosshair tooltip
+  pages/RankChart.tsx                  SVG step chart of rank over time: the card's whole life at the panel's width (zoom: scrolls),
+                                       the line in its tier's colour, scenarios as a rule under the dates
   timeline/          the Timeline, the same for both servers:
     data.ts          loadTimeline(server) → { entries, others() } (others: marks + counterparts, from the other
                      server's files, loaded after the calendar is drawn), loadEntries(server) (entries alone: the card page)

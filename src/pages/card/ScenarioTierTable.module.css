@@ -1,55 +1,157 @@
+.panel {
+  --pad-x: 8px;
+  --pad-y: 6px;
+  position: relative;
+  /* (clips the averaged rows' grey, carried into the padding, to the rounded corners) */
+  overflow: hidden;
+  padding: var(--pad-y) var(--pad-x);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+/* Over the empty table, for a card with no stats to rank it: its outline under the message. */
+.noStats {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 16px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text);
+  background: color-mix(in srgb, var(--panel) 55%, transparent);
+  border-radius: inherit;
+}
+
+/* On its own small panel, so nothing of the table runs through the text. */
+.noStats span {
+  padding: 8px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  overflow: hidden;
   font-size: 0.85rem;
 }
 
 .table th,
 .table td {
-  padding: 6px 4px;
+  height: 34px;
+  padding: 0 3px;
   text-align: center;
-  border-top: 1px solid var(--border);
 }
 
 .table thead th {
+  height: auto;
+  padding-bottom: 4px;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--muted);
-  border-top: 0;
 }
 
-.table tbody th {
-  padding-left: 10px;
+.table .name {
+  padding-left: 6px;
   text-align: left;
+  font-weight: 600;
 }
 
-.table tbody.averaged tr:first-child > * {
-  border-top: 2px solid var(--border);
+.table .tier {
+  width: 13%;
+  font-weight: 800;
+  color: var(--ink-dark);
+  /* A hairline between cells, so neighbours of the same tier don't merge into one block. */
+  box-shadow: inset -1px -1px 0 color-mix(in srgb, var(--ink-dark) 14%, transparent);
 }
 
-.table tr.current th[scope="row"] {
-  color: var(--accent-ink);
+.table .empty {
+  font-weight: 400;
+  color: var(--muted);
+  background: var(--inset);
 }
 
 .table .position {
-  padding-right: 10px;
+  padding-right: 6px;
   text-align: right;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
 
-.note {
-  margin: 8px 0 0;
-  font-size: 0.75rem;
-  color: var(--muted);
+.table thead .position {
+  white-space: normal;
+}
+
+.table tr.highlighted .name,
+.table tr.highlighted .position {
+  background: var(--selected);
+  color: var(--accent-ink);
+}
+
+/* The averaged rows set apart by a light grey under their name and rank, not a rule; carried out into the panel's
+   padding beside them and below the last one (shadows, which take no room). */
+.table tbody.averaged .name,
+.table tbody.averaged .position {
+  background: var(--inset);
+}
+
+.table tbody.averaged .name {
+  font-style: italic;
+  box-shadow: calc(-1 * var(--pad-x)) 0 0 var(--inset);
+}
+
+.table tbody.averaged .position {
+  box-shadow: var(--pad-x) 0 0 var(--inset);
+}
+
+.table tbody.averaged tr:last-child .name {
+  box-shadow:
+    calc(-1 * var(--pad-x)) 0 0 var(--inset),
+    0 var(--pad-y) 0 var(--inset),
+    calc(-1 * var(--pad-x)) var(--pad-y) 0 var(--inset);
+}
+
+.table tbody.averaged tr:last-child .position {
+  box-shadow:
+    var(--pad-x) 0 0 var(--inset),
+    0 var(--pad-y) 0 var(--inset),
+    var(--pad-x) var(--pad-y) 0 var(--inset);
+}
+
+.table tbody.averaged tr:last-child .tier {
+  box-shadow:
+    inset -1px -1px 0 color-mix(in srgb, var(--ink-dark) 14%, transparent),
+    0 var(--pad-y) 0 var(--inset);
+}
+
+.total {
+  display: none;
 }
 
 @media (min-width: 768px) {
   .table {
     font-size: 0.95rem;
+  }
+
+  .table th,
+  .table td {
+    height: 38px;
+    padding: 0 6px;
+  }
+
+  .table .name,
+  .table .position {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .total {
+    display: inline;
   }
 }

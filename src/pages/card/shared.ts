@@ -1,7 +1,30 @@
 import { cards } from '../../../tierlist/cards.ts';
+import type { Server } from '../../../tierlist/cards.ts';
+import { getServerConfig } from '../../../tierlist/scenarios.ts';
+import { DATE_FIELD, isCurrent, isReleased, scenarioByKey } from '../../lib/scenarioRelease.ts';
 import { cardEnglish, hasJapanese, type Language, type TranslationsFile } from '../../lib/translations.ts';
 
 export const LIMIT_BREAKS = [0, 1, 2, 3, 4];
+
+// The scenario running on the server now (availableScenarios is newest first).
+export function currentScenario(server: Server): string {
+  const scenarios = getServerConfig(server).availableScenarios;
+  return (
+    scenarios.find((k) => isCurrent(k, server)) ?? scenarios.find((k) => isReleased(k, server)) ?? scenarios[0] ?? ''
+  );
+}
+
+// The scenario that will be running on the server at `at` (a card's release still to come): the ranked one launching
+// last by then, predicted launches counted too (the card's date is a prediction as well); else the current one.
+export function scenarioAt(server: Server, at: number): string {
+  let best: { key: string; start: number } | null = null;
+  for (const key of getServerConfig(server).availableScenarios) {
+    const launch = scenarioByKey(key)?.[DATE_FIELD[server]];
+    const start = launch ? Date.parse(launch.date) : Number.NaN;
+    if (start <= at && (!best || start > best.start)) best = { key, start };
+  }
+  return best?.key ?? currentScenario(server);
+}
 
 // A card's name and title in the server's language (src/lib/translations.ts): the English it shows (Global's, GameTora's),
 // else the title UmaTL's where the language allows fan translations, else as JP writes them.

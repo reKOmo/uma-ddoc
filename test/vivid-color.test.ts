@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ink } from '../src/timeline/scenarioStrip.ts';
+import { ink } from '../src/lib/vividColor.ts';
 import { vividColor } from '../src/lib/vividColor.ts';
 
 const saturation = (hex: string) => {

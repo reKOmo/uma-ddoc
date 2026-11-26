@@ -1,0 +1,137 @@
+.panel {
+  position: relative;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+}
+
+.rest {
+  margin: 0;
+  padding: 12px 14px;
+}
+
+/* The card's source, centred in the panel on its own small box (as the tier table's no-stats note). */
+.source {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  height: 100%;
+  padding: 16px;
+}
+
+.source p {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 8px 16px;
+  font-weight: 600;
+  text-align: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 10px;
+  align-items: center;
+  padding: 14px 14px 14px calc(var(--rail) * 2);
+  color: inherit;
+  text-decoration: none;
+}
+
+.row:hover {
+  background: var(--inset);
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  grid-column: 1;
+  min-width: 0;
+}
+
+.line:first-child {
+  flex-wrap: nowrap;
+}
+
+.line:first-child > :not(.name) {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* A row's verdict: one more item of its line, the short "Pull? No". */
+.rowVerdict {
+  padding: 0 8px;
+  font-size: 0.8rem;
+}
+
+.open {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: var(--muted);
+}
+
+.order {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+  white-space: nowrap;
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.order:active {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+/* Pill's count, after the heading text. */
+.count {
+  margin-left: 8px;
+}
+
+/* Desktop, beside the tier table: as tall as its box (the shared row, CardPage's), at least two rows, the whole list
+   scrolling inside; contained, so its own height doesn't make the row taller. */
+@media (min-width: 1024px) {
+  .panel {
+    display: flex;
+    flex-direction: column;
+    contain: size;
+    min-height: 172px;
+  }
+
+  /* The list (RailList's) scrolls inside the panel, so the panel's border stays put. */
+  .list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}

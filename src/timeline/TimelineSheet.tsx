@@ -212,9 +212,7 @@ function Featured({ entry, rankings, advice }: { entry: Entry; rankings: RankRes
       {/* The count beside the heading, not in it: the list says how many to a screen reader. */}
       <div className={styles.headingRow}>
         <h3 className={styles.heading}>{t(FEATURED_HEADING[entry.group])}</h3>
-        <span className={styles.count} aria-hidden="true">
-          {entry.featured.length}
-        </span>
+        <Pill variant="count">{entry.featured.length}</Pill>
       </div>
       <ul className={styles.featured}>
         {entry.featured.map((item) => (

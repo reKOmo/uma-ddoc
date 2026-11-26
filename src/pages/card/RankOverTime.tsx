@@ -1,61 +1,29 @@
-import { useState } from 'react';
-import { ArrowDown, ArrowUp } from 'lucide-react';
+import { type Ref, useRef, useState } from 'react';
 import clsx from 'clsx';
-import { Trans, useTranslation } from 'react-i18next';
+import { Info, ZoomIn, ZoomOut } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { PredictionsFile } from '../../../shared/schemas/predictions.ts';
-import { cards } from '../../../tierlist/cards.ts';
 import type { Server } from '../../../tierlist/cards.ts';
 import type { Ranked, Stat } from '../../../tierlist/index.ts';
-import { formatDuration, lbName, scenarioName, serverName, statName } from '../../i18n/index.ts';
-import { cardIcon } from '../../lib/gametora.ts';
-import { rankHistory } from '../../lib/rankHistory.ts';
-import type { HistoryPoint } from '../../lib/rankHistory.ts';
-import { cardUrl } from '../../routes.ts';
+import { lbName, serverName } from '../../i18n/index.ts';
 import ScenarioPicker from '../../ui/ScenarioPicker.tsx';
-import { TIER_NAMES } from '../../lib/tiers.ts';
-import { CardRow } from '../../ui/CardRow.tsx';
-import FoldToggle from '../../ui/FoldToggle.tsx';
 import { Section } from '../../ui/Section.tsx';
 import { Segmented } from '../../ui/Segmented.tsx';
-import SeeMore from '../../ui/SeeMore.tsx';
 import Status from '../../ui/Status.tsx';
-import RankChart, { formatDay } from '../RankChart.tsx';
-import { useUpcomingRanking } from './hooks.ts';
-import { LIMIT_BREAKS, nameOf, titleOf } from './shared.ts';
-import { type Language, type TranslationsFile, useLanguage, useTranslations } from '../../lib/translations.ts';
-import { FanTl } from '../../ui/FanTl.tsx';
+import { WIDE, useMediaQuery } from '../../hooks/useMediaQuery.ts';
+import RankChart from '../RankChart.tsx';
+import { SCENARIOS } from '../../lib/scenarioRelease.ts';
+import { scenarioSegments } from '../../timeline/scenarioStrip.ts';
+
+// The chart's zoom steps: 1 fits the card's whole life, past it the chart scrolls sideways.
+const ZOOMS = [1, 2, 4, 8];
+import { useRankHistory } from './hooks.ts';
+import PassedBy from './PassedBy.tsx';
+import { LIMIT_BREAKS } from './shared.ts';
+import Pill from '../../ui/Pill.tsx';
 import styles from './RankOverTime.module.css';
 
-const UPCOMING_SHOWN = 2;
-
-function cardTitle(id: number, language: Language, tl: TranslationsFile | null) {
-  const title = titleOf(id, language, tl);
-  return title && <FanTl fan={title.fan}>{title.text}</FanTl>;
-}
-
-function timelineClass(predicted: boolean, next: HistoryPoint | undefined, fade = false): string {
-  return clsx(
-    predicted && styles.predicted,
-    next && styles.hasNext,
-    next?.predicted && styles.nextPredicted,
-    fade && styles.fade
-  );
-}
-
-function RankChange({ point, history }: { point: HistoryPoint; history: HistoryPoint[] }) {
-  const { t } = useTranslation();
-  const before = history[history.indexOf(point) - 1];
-  const change = before ? Math.sign(before.position - point.position) : 0;
-  const Arrow = change > 0 ? ArrowUp : change < 0 ? ArrowDown : null;
-  return (
-    <span className={clsx(styles.rank, change > 0 && styles.up, change < 0 && styles.down)}>
-      {Arrow && <Arrow size={15} aria-label={t(change > 0 ? 'card.rankUp' : 'card.rankDown')} />}
-      {t('common.rank', point)}
-    </span>
-  );
-}
-
-type RankOverTimeProps = {
+type RankHistorySectionProps = {
   cardId: number;
   server: Server;
   scenarios: string[];
@@ -67,7 +35,38 @@ type RankOverTimeProps = {
   stat: Stat | undefined;
 };
 
-export default function RankOverTime({
+type RankHistory = ReturnType<typeof useRankHistory>;
+
+type RankOverTimeProps = {
+  server: Server;
+  rankHistory: RankHistory;
+  height: number;
+  zoom?: number;
+  onSelect?: (date: string) => void;
+  chartRef?: Ref<HTMLDivElement>;
+};
+
+// The chart; how it's ranked is behind an (i) by the pickers (RankHistorySection).
+export function RankOverTime({ server, rankHistory, height, zoom, onSelect, chartRef }: RankOverTimeProps) {
+  const { t } = useTranslation();
+  const { ranking, history, first, end } = rankHistory;
+  if (!ranking) return <Status>{t('common.ranking')}</Status>;
+  if (!history || !first || !end) return <Status>{t('card.noReleaseDate', { server: serverName(server) })}</Status>;
+  return (
+    <RankChart
+      className={styles.rankChart}
+      ref={chartRef}
+      history={history}
+      height={height}
+      zoom={zoom}
+      onSelect={onSelect}
+      scenarios={scenarioSegments(SCENARIOS, server)}
+    />
+  );
+}
+
+// "Rank over time": one panel, the chart beside (or above) the cards that passed it.
+export default function RankHistorySection({
   cardId,
   server,
   scenarios,
@@ -76,195 +75,98 @@ export default function RankOverTime({
   rankings,
   predictions,
   stat,
-}: RankOverTimeProps) {
+}: RankHistorySectionProps) {
   const { t } = useTranslation();
-  const language = useLanguage(server);
-  const tl = useTranslations();
   const [scenario, setScenario] = useState(defaultScenario);
   const [lb, setLb] = useState(4);
-  // Which card's passes are unfolded, so following a "See card" link folds them again.
-  const [unfolded, setUnfolded] = useState<number | null>(null);
-  const allPasses = unfolded === cardId;
+  const [zoom, setZoom] = useState(0); // an index into ZOOMS
   // The server's scenario list can change under us; fall back to the page's.
   const shown = scenarios.includes(scenario) || combined.includes(scenario) ? scenario : defaultScenario;
-  const upcoming = useUpcomingRanking(server, shown, stat, !!predictions);
-  const ranking = predictions === undefined ? null : predictions ? upcoming : (rankings[shown] ?? null);
-
-  const released = (id: number) => cards[id]?.release[server]?.date ?? null;
-  const releaseOf = (id: number) => released(id) ?? predictions?.cards[id]?.release_gl.date ?? null;
-  const isPredicted = (id: number) => !released(id) && !!predictions?.cards[id];
-  const history = ranking && rankHistory(ranking, cardId, lb, releaseOf, isPredicted);
-  const passes = history ? history.filter((p) => p.overtakenBy.length > 0) : [];
-  // Past passes, then the next UPCOMING_SHOWN predicted ones; one more is drawn fading out.
-  const firstUpcoming = passes.findIndex((p) => p.predicted);
-  const foldedCount = firstUpcoming < 0 ? passes.length : firstUpcoming + UPCOMING_SHOWN;
-  const foldable = passes.length > foldedCount;
-  const shownCount = allPasses ? passes.length : foldedCount;
-  const hiddenCount = Math.max(0, passes.length - shownCount);
-  const actual = history?.filter((p) => !p.predicted) ?? [];
-  const now = actual.at(-1);
-  const end = history?.at(-1);
-  const first = history?.[0];
-  // The first predicted date it sits in a lower tier than it does today.
-  const drop = now && history?.find((p) => p.predicted && p.tier > now.tier);
-  const foldButton = hiddenCount > 0 || (allPasses && foldable);
+  const rankHistory = useRankHistory({ cardId, server, scenario: shown, lb, stat, rankings, predictions });
+  const { history, passes, now, first } = rankHistory;
+  // Desktop: a taller chart, Passed by beside it as tall, scrolling (CSS); phones fold it under the chart.
+  const wide = useMediaQuery(WIDE);
+  // The marker last clicked on the chart (n tells a second click on the same one apart), for Passed by to scroll to.
+  const [picked, setPicked] = useState<{ date: string; n: number } | null>(null);
+  const chart = useRef<HTMLDivElement>(null);
 
   return (
     <Section title={t('card.rankOverTime')}>
-      <div className={clsx('history-controls', styles.controls)}>
-        <ScenarioPicker
-          label={t('common.scenario')}
-          value={shown}
-          scenarios={scenarios}
-          combined={combined}
-          server={server}
-          onChange={setScenario}
-        />
-        <Segmented
-          label={t('card.limitBreak')}
-          options={LIMIT_BREAKS.map((n) => ({ value: n, label: lbName(n) }))}
-          value={lb}
-          onChange={setLb}
-        />
-      </div>
-
-      {!ranking ? (
-        <Status>{t('common.ranking')}</Status>
-      ) : !history || !first || !end ? (
-        <Status>{t('card.noReleaseDate', { server: serverName(server) })}</Status>
-      ) : (
-        <>
-          <p className={styles.summary}>
-            {now ? (
-              <Trans
-                i18nKey="card.historySummary"
-                values={{
-                  date: formatDay(first.date),
-                  start: first.position,
-                  startTotal: first.total,
-                  now: now.position,
-                  nowTotal: now.total,
-                }}
-                components={{ strong: <strong /> }}
-              />
-            ) : (
-              <Trans
-                i18nKey="card.arrivalSummary"
-                values={{ date: formatDay(first.date), start: first.position, startTotal: first.total }}
-                components={{ strong: <strong /> }}
-              />
-            )}
-            {end.predicted && (
-              <>
-                {' '}
-                <Trans
-                  i18nKey="card.predictedSummary"
-                  values={{ date: formatDay(end.date), end: end.position, endTotal: end.total }}
-                  components={{ strong: <strong /> }}
-                />
-              </>
-            )}
-            {now && end.predicted && (
-              <>
-                {' '}
-                {drop
-                  ? t('card.tierDrop', {
-                      from: TIER_NAMES[now.tier],
-                      to: TIER_NAMES[drop.tier],
-                      date: formatDay(drop.date),
-                    })
-                  : t('card.tierHolds', { tier: TIER_NAMES[now.tier], date: formatDay(end.date) })}
-              </>
-            )}
-          </p>
-          <RankChart history={history} nameOf={(id: number) => nameOf(id, language)} />
-          <p className={styles.note}>
-            {t('card.historyNote', {
-              lb: lbName(lb),
-              stat: stat && statName(stat),
-              server: serverName(server),
-              scenario: scenarioName(shown),
-            })}
-            {predictions && ` ${t('card.predictedNote')}`}
-          </p>
-
-          <h3 className={styles.passedHeading}>{t('card.passedBy')}</h3>
-          {passes.length === 0 ? (
-            <Status>{t('card.noneAbove')}</Status>
-          ) : (
-            <div className={styles.box}>
-              <ol className={styles.list}>
-                <li className={timelineClass(!now, passes[0])}>
-                  <div className={styles.entry}>
-                    <span className={styles.dot} />
-                    <div className={styles.head}>
-                      <span className={styles.date}>
-                        {t(now ? 'card.releasedOn' : 'card.arrivesOn', { date: formatDay(first.date) })}
-                      </span>
-                      <strong>{t('common.rankOf', first)}</strong>
-                    </div>
-                  </div>
-                  {passes[0] && (
-                    <span className={styles.gap}>
-                      {t('card.passedAfter', { duration: formatDuration(first.date, passes[0].date) })}
-                    </span>
-                  )}
-                </li>
-                {passes.slice(0, shownCount + 1).map((point, i) => {
-                  const next = passes[i + 1];
-                  const fading = i === shownCount;
-                  return (
-                    <li
-                      key={point.date}
-                      className={timelineClass(point.predicted, next, fading)}
-                      inert={fading || undefined}
-                    >
-                      <div className={styles.entry}>
-                        <span className={styles.dot} />
-                        <div className={styles.head}>
-                          <span className={styles.date}>{formatDay(point.date)}</span>
-                          {point.predicted && <span className={styles.badgePredicted}>{t('card.predicted')}</span>}
-                        </div>
-                        <div className={styles.body}>
-                          <RankChange point={point} history={history} />
-                          <ul className={styles.cards}>
-                            {point.overtakenBy.map((c) => (
-                              <li key={c.id}>
-                                <CardRow
-                                  href={cardUrl(c.id)}
-                                  icon={cardIcon(c.id, cards)}
-                                  name={nameOf(c.id, language) ?? ''}
-                                  title={cardTitle(c.id, language, tl)}
-                                  className={styles.cardRow}
-                                />
-                                <SeeMore href={cardUrl(c.id)}>{t('card.seeCard')}</SeeMore>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                      {next && (
-                        <span className={styles.gap}>
-                          {t('card.passedLater', { duration: formatDuration(point.date, next.date) })}
-                        </span>
-                      )}
-                    </li>
-                  );
-                })}
-              </ol>
-              {foldButton && (
-                <FoldToggle
-                  className={allPasses ? styles.less : styles.more}
-                  expanded={allPasses}
-                  onToggle={() => setUnfolded(allPasses ? null : cardId)}
-                  moreLabel={t('card.morePasses', { count: hiddenCount })}
-                  lessLabel={t('card.showLess')}
-                />
-              )}
+      <div className={styles.panel}>
+        <div className={styles.chart}>
+          <div className={clsx('history-controls', styles.controls)}>
+            <ScenarioPicker
+              label={t('common.scenario')}
+              value={shown}
+              scenarios={scenarios}
+              combined={combined}
+              server={server}
+              onChange={setScenario}
+            />
+            <Segmented
+              label={t('card.limitBreak')}
+              options={LIMIT_BREAKS.map((n) => ({ value: n, label: lbName(n) }))}
+              value={lb}
+              onChange={setLb}
+            />
+            <div className={styles.zoom}>
+              <button
+                type="button"
+                aria-label={t('timeline.zoomOut')}
+                title={t('timeline.zoomOut')}
+                disabled={zoom === 0}
+                onClick={() => setZoom((z) => z - 1)}
+              >
+                <ZoomOut size={16} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                aria-label={t('timeline.zoomIn')}
+                title={t('timeline.zoomIn')}
+                disabled={zoom === ZOOMS.length - 1}
+                onClick={() => setZoom((z) => z + 1)}
+              >
+                <ZoomIn size={16} aria-hidden="true" />
+              </button>
             </div>
-          )}
-        </>
-      )}
+            <details className={styles.info}>
+              <summary aria-label={t('card.howRanked')} title={t('card.howRanked')}>
+                <Info size={16} aria-hidden="true" />
+              </summary>
+              <p>{t('card.historyNote')}</p>
+            </details>
+          </div>
+          <RankOverTime
+            server={server}
+            rankHistory={rankHistory}
+            height={wide ? 340 : 280}
+            zoom={ZOOMS[zoom]}
+            chartRef={chart}
+            onSelect={(date) => setPicked((p) => ({ date, n: (p?.n ?? 0) + 1 }))}
+          />
+        </div>
+        {history && first && (
+          <div className={styles.passed}>
+            <h3 className={styles.passedHeading}>
+              {t('card.passedBy')}
+              {passes.length > 0 && <Pill variant="count">{passes.length}</Pill>}
+            </h3>
+            <div className={clsx('scroll-fade', styles.passedList)}>
+              <PassedBy
+                cardId={cardId}
+                server={server}
+                history={history}
+                passes={passes}
+                first={first}
+                now={now}
+                showAll={wide}
+                picked={picked}
+                keepInView={chart}
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </Section>
   );
 }

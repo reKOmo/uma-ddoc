@@ -38,7 +38,7 @@ for (const name of ['Global', 'Japan']) {
     await page.getByRole('group', { name: 'Server' }).getByRole('button', { name }).click();
     await expect(server(page)).toHaveText(name);
     await expect(page.getByRole('heading', { name: 'Tier by scenario' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Available on' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Available on', exact: true })).toBeVisible();
     // the tier table fills in (a tier chip per LB once ranked) and origins load (a Timeline link)
     await expect(page.getByRole('table').getByRole('row').nth(1)).not.toContainText('…');
     await expect(page.getByRole('link', { name: /banner|gift|story/i }).first()).toBeVisible();

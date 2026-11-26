@@ -73,6 +73,9 @@ export function dateRange({ start, end, openEnded = !end }: DateSpan, format: Da
 export const daysOf = (entry: Pick<Entry, 'start' | 'end'>): number | null =>
   entry.end ? Math.round((Date.parse(entry.end) - Date.parse(entry.start)) / DAY) : null;
 
+// Whole days from now until an ISO date-time (negative once past).
+export const daysUntil = (iso: string): number => Math.ceil((Date.parse(iso) - Date.now()) / DAY);
+
 export const kindName = (entry: Pick<Entry, 'group' | 'kind'>): string =>
   i18n.t(entry.group === 'event' ? `events.kind.${entry.kind}` : `timeline.kind.${entry.kind}`);
 

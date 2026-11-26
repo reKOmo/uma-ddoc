@@ -95,7 +95,7 @@ describe('catalogs', () => {
 
 describe('i18next', () => {
   it('fills placeholders', () => {
-    expect(t('card.notReleased', { server: 'Global' })).toBe('Not released on Global yet.');
+    expect(t('card.noReleaseDate', { server: 'Global' })).toBe('No Global release date for this card yet.');
   });
 
   it('picks plural forms by count', () => {
@@ -104,20 +104,14 @@ describe('i18next', () => {
   });
 
   it('formats lists', () => {
-    expect(t('card.averages', { name: 'Overall', scenarios: ['GL', 'GM', 'URA'] })).toBe(
-      'Overall averages GL, GM, and URA.'
-    );
+    expect(t('timeline.titles', { titles: ['GL', 'GM', 'URA'] })).toBe('Titles: GL, GM, and URA');
   });
 
   it('renders <Trans> tags as elements', () => {
     const html = renderToStaticMarkup(
-      <Trans
-        i18nKey="card.historySummary"
-        values={{ date: 'Jun 26, 2025', start: 3, startTotal: 18, now: 13, nowTotal: 48 }}
-        components={{ strong: <strong /> }}
-      />
+      <Trans i18nKey="pullGuide.freePullsNews" count={50} components={{ strong: <strong /> }} />
     );
-    expect(html).toBe('Released Jun 26, 2025 at <strong>#3</strong> of 18; now <strong>#13</strong> of 48.');
+    expect(html).toBe('<strong>50</strong> free pulls on this banner');
   });
 
   it('labels LB4 as MLB', () => {

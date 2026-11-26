@@ -1,0 +1,40 @@
+.frame {
+  --frame-width: 7px;
+  position: relative;
+  box-sizing: border-box;
+  margin: 0;
+  padding: var(--frame-width);
+  background: var(--frame);
+  border-radius: 20px;
+  /* Shaded like the game's: full colour by the art, darkening over the outer part of the band to about two-thirds at
+     its edge. */
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.15),
+    inset 0 0 calc(var(--frame-width) * 0.7) calc(var(--frame-width) * 0.05) rgba(0, 0, 0, 0.4);
+}
+
+.ssr {
+  --frame: var(--frame-ssr);
+}
+
+.sr {
+  --frame: var(--frame-sr);
+}
+
+.r {
+  --frame: var(--frame-r);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+@media (min-width: 768px) {
+  .frame {
+    --frame-width: 10px;
+  }
+}

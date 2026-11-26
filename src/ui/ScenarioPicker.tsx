@@ -4,14 +4,10 @@ import Dropdown, { type DropdownOption } from './Dropdown.tsx';
 import { scenarioName } from '../i18n/index.ts';
 import { SCENARIOS, isCurrent, isReleased, scenarioByKey } from '../lib/scenarioRelease.ts';
 import type { Server } from '../lib/servers.ts';
-import { ink } from '../timeline/scenarioStrip.ts';
-import { scenarioCssColor } from '../lib/vividColor.ts';
+import ScenarioPill from './ScenarioPill.tsx';
 
-// A scenario's pill colour (none for a key data/scenarios.json lacks).
-const pillOf = (key: string): DropdownOption['pill'] => {
-  const color = scenarioByKey(key)?.color;
-  return color ? { color: scenarioCssColor(color), ink: ink(color) ?? undefined } : undefined;
-};
+// A scenario as its pill (plain for a key data/scenarios.json lacks).
+const pillOf = (key: string) => (scenarioByKey(key)?.color ? <ScenarioPill scenario={key} /> : undefined);
 
 type PickerArgs = { scenarios: string[]; combined: string[]; server: Server; t: TFunction };
 
@@ -23,13 +19,19 @@ export function scenarioPickerOptions({ scenarios, combined, server, t }: Picker
   return [
     ...keys.map((key) => {
       if (!scenarios.includes(key)) {
-        return { value: key, label: scenarioName(key), pill: pillOf(key), disabled: true, note: t('common.notRanked') };
+        return {
+          value: key,
+          label: scenarioName(key),
+          content: pillOf(key),
+          disabled: true,
+          note: t('common.notRanked'),
+        };
       }
       const released = isReleased(key, server);
       return {
         value: key,
         label: scenarioName(key),
-        pill: pillOf(key),
+        content: pillOf(key),
         italic: !released,
         badge: isCurrent(key, server) ? t('common.current') : undefined,
         note: released ? undefined : t('common.notReleased'),

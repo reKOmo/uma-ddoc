@@ -1,0 +1,201 @@
+/* Grows into the height the art leaves beside it (desktop), the art strip with it. */
+.tile {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+/* GameTora's banner PNGs have a transparent margin, so the art is sized to its strip alone;
+   the news' official art has none and just covers. */
+.banner {
+  --banner-height: 150px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: var(--banner-height);
+  padding: 16px 18px;
+}
+
+.banner:not(.hasArt) {
+  min-height: 0;
+}
+
+.banner.hasArt {
+  isolation: isolate;
+  color: var(--ink-light);
+  background-color: var(--ink-dark);
+  background-position: center;
+  background-size: max(110.4%, calc(var(--banner-height) * 512 / 122)) auto;
+  background-repeat: no-repeat;
+}
+
+.banner.hasArt.officialArt {
+  background-size: cover;
+}
+
+.banner.hasArt::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  /* The Timeline's bar shade (Lanes.module.css), so the banner looks the same here: light on the light theme, the art
+     showing through (darkest behind the text, its shadow doing the rest); dark on the dark. */
+  background: linear-gradient(
+    90deg,
+    light-dark(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.82)) 0%,
+    light-dark(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.64)) 45%,
+    light-dark(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.45))
+  );
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.none {
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.eventName {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.when,
+.pulls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.soon {
+  font-weight: 700;
+  color: var(--accent-ink);
+}
+
+/* The dashed Predicted (or grey Ended) badge on the art: light, on frosted grey glass, to read on any art. Live keeps
+   its pink pill, as on the Timeline. */
+.hasArt:not([data-status="live"]) .when > :first-child {
+  color: var(--ink-light);
+  background: rgba(128, 128, 128, 0.3);
+  backdrop-filter: blur(6px);
+}
+
+/* On the dark art the ink would be too dim. */
+.hasArt .soon {
+  color: var(--ink-light);
+}
+
+.hasArt .heading,
+.hasArt .shadow,
+.hasArt .soon {
+  text-shadow:
+    0 1px 2px light-dark(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.8)),
+    0 0 6px light-dark(rgba(0, 0, 0, 0.6), transparent);
+}
+
+.pulls {
+  font-weight: 600;
+}
+
+/* The count stands out: what a player gets for free. */
+.pulls strong {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+a.bannerLink {
+  min-height: 40px;
+  margin-left: auto;
+  color: var(--accent-text);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+a.bannerLink:active {
+  filter: brightness(0.9);
+}
+
+.status {
+  margin: 0;
+}
+
+.advice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.question {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.comment {
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.noAdvice {
+  margin: 0;
+  color: var(--muted);
+}
+
+.note {
+  margin: 0;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+/* A small link chip (SeeMore's size) at the end of the advice. */
+a.sheet {
+  align-self: flex-start;
+  margin-top: 4px;
+  min-height: 32px;
+  gap: 4px;
+  padding: 0 10px;
+  font-size: 0.8rem;
+}
+
+@media (min-width: 768px) {
+  .banner {
+    --banner-height: 132px;
+  }
+
+  .banner.hasArt:not(.officialArt) {
+    background-size: auto calc(100% * 188 / 122);
+  }
+}

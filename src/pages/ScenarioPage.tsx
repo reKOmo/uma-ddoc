@@ -8,7 +8,7 @@ import type { Scenario, StartDate } from '../../shared/schemas/scenario.ts';
 import type { Server } from '../lib/servers.ts';
 import { Section } from '../ui/Section.tsx';
 import Status from '../ui/Status.tsx';
-import { ink } from '../timeline/scenarioStrip.ts';
+import ScenarioPill from '../ui/ScenarioPill.tsx';
 import { clockOptions, timeZoneOptions, useSettings } from '../state/settings.tsx';
 import { umapyoiGl, umapyoiJp } from '../lib/umapyoi.ts';
 import { TAB_URLS, scenarioUrl } from '../routes.ts';
@@ -28,11 +28,6 @@ function linkList(scenario: Scenario, settings: Settings): [string, string][] {
   if (links.umapyoi_jp) out.push(['umapyoi_jp', umapyoiJp(links.umapyoi_jp, settings.jpNewsLanguage)]);
   if (links.umapyoi_gl) out.push(['umapyoi_gl', umapyoiGl(links.umapyoi_gl)]);
   return out;
-}
-
-function inkClass(color: string): string | undefined {
-  const tone = ink(color);
-  return tone === 'dark' ? styles.inkDark : tone === 'light' ? styles.inkLight : undefined;
 }
 
 // Server-agnostic: both servers' launches side by side, "Newest on …" for each server it's the latest on.
@@ -143,10 +138,10 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
             )}
             <p className={styles.tags}>
               {shortNames.map(({ server: on, name: short }) => (
-                <span key={on} className={clsx(styles.tag, styles.scenarioKey, inkClass(scenario.color))}>
+                <ScenarioPill key={on} scenario={scenario.key}>
                   {shortNames.length > 1 && <span className={styles.serverLabel}>{serverName(on)}</span>}
                   {short}
-                </span>
+                </ScenarioPill>
               ))}
               {SERVER_ORDER.filter((s) => isCurrent(scenario.key, s, now)).map((s) => (
                 <span key={s} className={clsx(styles.tag, styles.current)}>

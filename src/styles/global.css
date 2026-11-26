@@ -37,6 +37,24 @@
   /* Text on data-driven colours (scenario covers): pick by the colour's luminance, not the theme. */
   --ink-dark: #1c1f24;
   --ink-light: #ffffff;
+  /* The tier colours (S → G), the same in both themes: the .tier-N fills below, and the rank chart's bands. */
+  --tier-0: #ff7f7f;
+  --tier-1: #ffbf7f;
+  --tier-2: #ffdf7f;
+  --tier-3: #ffff7f;
+  --tier-4: #bfff7f;
+  --tier-5: #7fff7f;
+  --tier-6: #7fffff;
+  --tier-7: #7fbfff;
+  /* The game's support card frames by rarity (its own colours, the same in both themes): SSR's a rainbow corner to corner,
+     SR's gold and R's silver-blue from a near-white top. */
+  --frame-ssr: linear-gradient(135deg, #ff9aea 0%, #d85cfa 25%, #7cabff 50%, #6efdcd 75%, #d2ff6d 100%);
+  --frame-sr: linear-gradient(180deg, #fffbe0 0%, #fff3bc 14%, #fcec99 30%, #ffe26a 50%, #f9d144 70%, #e8b62a 100%);
+  --frame-r: linear-gradient(180deg, #fbfcff 0%, #eef2f9 14%, #dbe3f0 30%, #c3cfe3 50%, #a9b8d2 70%, #8b9dbd 100%);
+  /* The game's rarity badges' colours, corner to corner: SSR pink to blue, SR and R from white. */
+  --badge-r: linear-gradient(135deg, #fbfcff, #8ebdfd 65%);
+  --badge-sr: linear-gradient(135deg, #fffbe0, #f0c33a 65%);
+  --badge-ssr: linear-gradient(135deg, #f775cf, #7dc2ff);
   --tabbar-height: 56px;
   font-family: system-ui, sans-serif;
   color: var(--text);
@@ -76,32 +94,71 @@ h1 {
 }
 
 .tier-0 {
-  background: #ff7f7f;
+  background: var(--tier-0);
 }
 .tier-1 {
-  background: #ffbf7f;
+  background: var(--tier-1);
 }
 .tier-2 {
-  background: #ffdf7f;
+  background: var(--tier-2);
 }
 .tier-3 {
-  background: #ffff7f;
+  background: var(--tier-3);
 }
 .tier-4 {
-  background: #bfff7f;
+  background: var(--tier-4);
 }
 .tier-5 {
-  background: #7fff7f;
+  background: var(--tier-5);
 }
 .tier-6 {
-  background: #7fffff;
+  background: var(--tier-6);
 }
 .tier-7 {
-  background: #7fbfff;
+  background: var(--tier-7);
 }
 
 /* An entry's colour (--tone). Kinds sharing a colour are one family: free things (gifts, login bonuses), boosts
    (campaigns, missions); shops, sales, Transfer Requests and Uma Outings stay neutral. */
+/* A scroll area's rows fade out at an edge while there's more that way (a scroll-driven mask: inactive, so no fade,
+   while nothing scrolls; without one, as in Firefox, just a thin scrollbar). 56px: useRowsHeight's FADE. */
+.scroll-fade {
+  scrollbar-width: thin;
+  scrollbar-color: var(--option-border) transparent;
+  mask-image: linear-gradient(transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent);
+  animation: scroll-fade linear both;
+  animation-timeline: scroll(self);
+}
+
+@property --fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes scroll-fade {
+  from {
+    --fade-top: 0px;
+    --fade-bottom: 56px;
+  }
+  8% {
+    --fade-top: 56px;
+  }
+  92% {
+    --fade-bottom: 56px;
+  }
+  to {
+    --fade-top: 56px;
+    --fade-bottom: 0px;
+  }
+}
+
 [data-tone] {
   --tone: var(--event-other);
 }
