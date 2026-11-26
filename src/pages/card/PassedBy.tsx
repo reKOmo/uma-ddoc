@@ -10,7 +10,7 @@ import { cardIcon } from '../../lib/gametora.ts';
 import type { HistoryPoint } from '../../lib/rankHistory.ts';
 import { cardUrl } from '../../routes.ts';
 import { CardRow } from '../../ui/CardRow.tsx';
-import StatusBadge from '../../timeline/StatusBadge.tsx';
+import StatusBadge from '../../ui/StatusBadge.tsx';
 import RailList from '../../ui/RailList.tsx';
 import SeeMore from '../../ui/SeeMore.tsx';
 import Status from '../../ui/Status.tsx';

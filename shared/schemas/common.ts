@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+// The two game servers: Global (gl) and Japan (jp).
+export const SERVERS = ['gl', 'jp'] as const;
+export type Server = (typeof SERVERS)[number];
+
 // A day, "2026-10-13".
 export const Day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 // A moment, ISO 8601 in UTC: "2026-10-13T22:00:00.000Z" (also without milliseconds, or with an offset as Python writes

@@ -5,7 +5,7 @@
 // A scout post names banners by gacha id, which Global shares with JP: a news banner is JP's banner with that id
 // (featured ids, rates) under Global's dates and art, with the English names and titles the post lists.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import type { Banner, BannerFile, BannerId, BannerItem } from '../../../shared/schemas/banner.ts';
 import type { CardsFile, GlobalCardsFile } from '../../../shared/schemas/card.ts';
 import { dated } from '../../../shared/schemas/common.ts';
@@ -222,9 +222,6 @@ export function englishNames(global: BannerFile, cards: CardsFile): NameMap {
     for (const item of b.featured) if (item.char_id && item.name) names.set(item.char_id, item.name);
   return names;
 }
-
-// TODO(ts): JSON.parse gives any; the caller names the file's type (its schema in shared/schemas/).
-export const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8')) as T;
 
 // One banner per line, so commits diff per entry (the files are excluded from Biome).
 export const bannerList = (items: Banner[]): string =>

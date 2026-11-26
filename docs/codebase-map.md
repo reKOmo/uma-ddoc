@@ -32,7 +32,8 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
   categorize-news.ts `pnpm news:categories`
   gold-review.ts     `pnpm gold:review`: a local Vite page (gold-review/) to label every Global post by hand → gold.json
   news-features.ts   `pnpm news:features`: each Global post's features for ml/categorize.py → generated/news_features.json
-  lib/paths.ts       ROOT, GENERATED_DIR, DATA_DIR, newsDir(server) (every script's paths)
+  lib/paths.ts       ROOT, GENERATED_DIR, DATA_DIR, CARDS_JSON, newsDir(server) (every script's paths)
+  lib/json.ts        readJson(path, fallback?) (every script's JSON reads; a fallback for a file not there yet)
   lib/http.ts        sleep(), paced(): one request at a time with a pause between (every fetching script's pacing)
   lib/sources.ts     generated/sources.json (file → where its data came from): readSources(), writeSources()
   lib/upstream.ts    everything that knows about the upstream repo (REPO, DATA_FILES,
@@ -121,7 +122,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      saveFilters(), DEFAULTS, SIZES, isDefault()
     theme.ts         the theme on <html> (data-theme) and the browser bar's colour
   ui/                the shared components (each with its module): LinkButton, SeeMore, FoldToggle, RailList (a timeline list folding on phones: Available on, Passed by), FanTl (the "Translation from UmaTL" mark), Pill (tag / kind
-                     / status / verdict / label), TierChip, Status, Segmented, Section, SearchInput, ToolbarButton,
+                     / status / verdict / label), StatusBadge (a status Pill with its label), TierChip, Status, Segmented, Section, SearchInput, ToolbarButton,
                      CardRow; pages use them where they look identical, else keep their own markup
     BackToTop.tsx    floating "back to top" button (the tier list, the card page), watches the [data-scroll-root]
                      scroll container
@@ -162,14 +163,14 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   pages/card/        CardArt (the art in its rarity's in-game frame colours), Summary (the tiles beside the art: rank,
                      tier outlook, release), NextBanner (the next
                      banner on its art + the guide's pull advice), Banners (the card's banners/events), Origins (OriginPill, KindPill), ScenarioTierTable (heatmap),
-                     RankOverTime (RankHistorySection: chart + PassedBy); hooks.ts (usePredictions, useOrigins,
+                     RankOverTime (RankHistorySection: RankChart + PassedBy), RankChart (SVG step chart of rank over
+                     time: the card's whole life at the panel's width, zoom scrolls; the line in its tier's colour,
+                     scenarios as a rule under the dates); hooks.ts (usePredictions, useOrigins,
                      useScenarioRankings, useUpcomingRanking, useRankHistory), advice.ts (useUpcomingAdvice: the
                      guide + next banner, for NextBanner and Banners' pull pills), shared.ts (nameOf, titleOf…)
   pages/card.css     global on purpose: the Rank over time picker's size (`.history-controls .dropdown-button`)
   pages/ScenariosPage.tsx              the Scenarios tab (list)
   pages/ScenarioPage.tsx               one scenario
-  pages/RankChart.tsx                  SVG step chart of rank over time: the card's whole life at the panel's width (zoom: scrolls),
-                                       the line in its tier's colour, scenarios as a rule under the dates
   timeline/          the Timeline, the same for both servers:
     data.ts          loadTimeline(server) → { entries, others() } (others: marks + counterparts, from the other
                      server's files, loaded after the calendar is drawn), loadEntries(server) (entries alone: the card page)
@@ -192,7 +193,6 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     TimelineAxis.tsx scenario strip + months + days; CalendarLines (scenario starts, today, marks)
     Lanes.tsx        LaneGroup (foldable label + rows), one Bar for banners and events (chip when short, +N parts;
                      its button data-testid="bar"); an entry's colour: data-tone
-    StatusBadge.tsx  a status pill (Live, Upcoming, Predicted…): ui/Pill's status variant
     collapsed.ts     which Timeline groups are folded (zustand store): getCollapsed() / saveCollapsed()
     order.ts         the lane groups' order (the filter's Order tab; zustand store): getOrder() / saveOrder(),
                      orderedGroups(), reorderGroups()

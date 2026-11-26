@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import Pill, { type PillStatus } from '../ui/Pill.tsx';
+import Pill, { type PillStatus } from './Pill.tsx';
 
 export type StatusBadgeProps = { status: PillStatus };
 

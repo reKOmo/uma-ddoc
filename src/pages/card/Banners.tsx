@@ -9,7 +9,7 @@ import { useSettings } from '../../state/settings.tsx';
 import { timelineUrl } from '../../routes.ts';
 import { dateFormats, dateRange, entryTitle, labelIsFan } from '../../timeline/format.ts';
 import type { EntryStatus } from '../../timeline/entries.ts';
-import StatusBadge from '../../timeline/StatusBadge.tsx';
+import StatusBadge from '../../ui/StatusBadge.tsx';
 import { FanTl } from '../../ui/FanTl.tsx';
 import Pill from '../../ui/Pill.tsx';
 import RailList, { type RailDot } from '../../ui/RailList.tsx';

@@ -1,7 +1,7 @@
 // The gold sets (data/news/<server>/gold.json): every post labelled by hand, starting from what today's rules make of
 // it. What the classifiers are trained and checked on (docs/data/classifier.md).
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import type { GoldLabel, GoldUnit, NewsPost } from '../../../shared/schemas/news.ts';
 import { eventBlocks } from '../events/blocks.ts';
 import { postEvents } from '../events/fragments.ts';
@@ -9,6 +9,7 @@ import { lexicon } from './lang/index.ts';
 import type { Block } from './lang/index.ts';
 import { loadPosts } from './api.ts';
 import type { Server } from './text.ts';
+import { readJson } from '../json.ts';
 import { newsDir } from '../paths.ts';
 import { categorize, plain } from './categorize.ts';
 
@@ -83,8 +84,8 @@ export function twins(server: Server): Map<number, Twin> {
 }
 
 export const readGold = (server: Server = 'gl'): GoldLabel[] =>
-  // TODO(ts): JSON.parse's any: gold.json is written by writeGold() (its schema: GoldFileSchema, test/schemas.test.ts)
-  existsSync(goldFile(server)) ? (JSON.parse(readFileSync(goldFile(server), 'utf8')) as GoldLabel[]) : [];
+  // Written by writeGold() (its schema: GoldFileSchema, test/schemas.test.ts).
+  readJson<GoldLabel[]>(goldFile(server), []);
 
 // One post per line, newest (highest id) first, so commits diff per post.
 export function writeGold(labels: GoldLabel[], server: Server = 'gl'): void {

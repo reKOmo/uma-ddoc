@@ -1,15 +1,15 @@
 import { type CSSProperties, type Ref, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
-import { formatDate, formatDateRange, formatDay, scenarioName } from '../i18n/index.ts';
-import { useDragScroll } from '../hooks/useDragScroll.ts';
-import type { HistoryPoint } from '../lib/rankHistory.ts';
-import { TIER_NAMES } from '../lib/tiers.ts';
-import TierChip from '../ui/TierChip.tsx';
-import { scenarioStyle } from '../lib/vividColor.ts';
-import { scenarioUrl } from '../routes.ts';
-import { DAY } from '../timeline/layout.ts';
-import type { ScenarioSegment } from '../timeline/scenarioStrip.ts';
+import { formatDate, formatDateRange, formatDay, scenarioName } from '../../i18n/index.ts';
+import { useDragScroll } from '../../hooks/useDragScroll.ts';
+import type { HistoryPoint } from '../../lib/rankHistory.ts';
+import { TIER_NAMES } from '../../lib/tiers.ts';
+import TierChip from '../../ui/TierChip.tsx';
+import { scenarioStyle } from '../../lib/vividColor.ts';
+import { scenarioUrl } from '../../routes.ts';
+import { DAY } from '../../timeline/layout.ts';
+import type { ScenarioSegment } from '../../timeline/scenarioStrip.ts';
 import styles from './RankChart.module.css';
 
 // The rank axis and the tier chips sit in their own columns outside the scroller, so they stay put; in the scroller,

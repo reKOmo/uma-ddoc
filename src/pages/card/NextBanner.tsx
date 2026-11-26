@@ -11,7 +11,7 @@ import { timelineUrl } from '../../routes.ts';
 import type { Art, EntryStatus } from '../../timeline/entries.ts';
 import { type DateFormat, dateFormats, dateRange, daysUntil, entryTitle, labelIsFan } from '../../timeline/format.ts';
 import { FanTl } from '../../ui/FanTl.tsx';
-import StatusBadge from '../../timeline/StatusBadge.tsx';
+import StatusBadge from '../../ui/StatusBadge.tsx';
 import LinkButton from '../../ui/LinkButton.tsx';
 import Pill from '../../ui/Pill.tsx';
 import ShouldPullChip from '../../ui/ShouldPullChip.tsx';

@@ -5,14 +5,15 @@
 // projects whose scope differs, and never with generative models (see scripts/lib/umatl.ts).
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import { BANNERS_FILE, readJson } from './lib/banners/global.ts';
+import { BANNERS_FILE } from './lib/banners/global.ts';
+import { readJson } from './lib/json.ts';
 import { readEvents } from './lib/events/files.ts';
 import { readGametoraEvents } from './lib/events/gametora.ts';
 import { GAMETORA_TRAINEES_FILE, readJpBanners } from './lib/banners/jp.ts';
-import { GENERATED_DIR } from './lib/paths.ts';
+import { CARDS_JSON, GENERATED_DIR } from './lib/paths.ts';
 import { writeSources } from './lib/sources.ts';
 import {
   TRANSLATIONS_FILE,
@@ -69,19 +70,17 @@ async function fetchUmatl(): Promise<UmatlRaw> {
   return { text_data, mdb };
 }
 
-const optional = <T>(file: string, fallback: T): T => (existsSync(file) ? readJson<T>(file) : fallback);
-
 export function writeTranslations(umatl: UmatlRaw): void {
   const { file, report } = buildTranslations({
     umatl,
-    cards: readJson<CardsFile>(`${GENERATED_DIR}cards.json`),
+    cards: readJson<CardsFile>(CARDS_JSON),
     jpBanners: readJpBanners(),
     globalBanners: readJson<BannerFile>(BANNERS_FILE),
     jpEvents: readEvents('jp'),
     globalEvents: readEvents('gl'),
-    pairs: optional<EventPairsFile | null>(`${GENERATED_DIR}event_pairs.json`, null)?.pairs ?? [],
+    pairs: readJson<EventPairsFile | null>(`${GENERATED_DIR}event_pairs.json`, null)?.pairs ?? [],
     gametoraEvents: readGametoraEvents(),
-    gametoraTrainees: optional<GametoraTrainee[]>(GAMETORA_TRAINEES_FILE, []),
+    gametoraTrainees: readJson<GametoraTrainee[]>(GAMETORA_TRAINEES_FILE, []),
   });
   if (!existsSync(`${GENERATED_DIR}event_pairs.json`))
     console.warn('translations: no event pairs (pnpm predict-gl), so no official names for JP events');
@@ -95,9 +94,10 @@ export function writeTranslations(umatl: UmatlRaw): void {
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const { build } = parseArgs({ options: { build: { type: 'boolean' } } }).values;
-    // TODO(ts): our own raw files (written above, checked by test/schemas.test.ts).
-    const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
-    const raw: UmatlRaw = build ? { text_data: read(UMATL_TEXT_FILE), mdb: read(UMATL_MDB_FILE) } : await fetchUmatl();
+    // Our own raw files (written above, checked by test/schemas.test.ts).
+    const raw: UmatlRaw = build
+      ? { text_data: readJson(UMATL_TEXT_FILE), mdb: readJson(UMATL_MDB_FILE) }
+      : await fetchUmatl();
     writeTranslations(raw);
   } catch (err) {
     console.error(`UmaTL translations failed: ${err instanceof Error ? err.message : String(err)}`);

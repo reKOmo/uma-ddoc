@@ -1,6 +1,6 @@
 import type { Banner, BannerId } from '../../shared/schemas/banner.ts';
 import type { CardsFile } from '../../shared/schemas/card.ts';
-import { type DatedMoment, dated } from '../../shared/schemas/common.ts';
+import { type DatedMoment, type Server, dated } from '../../shared/schemas/common.ts';
 import type {
   EventItem,
   EventKind,
@@ -46,7 +46,7 @@ export type Featured = {
   stars: number | null;
   copies: number | null;
 };
-export type Counterpart = { server: 'gl' | 'jp'; id: number | string };
+export type Counterpart = { server: Server; id: number | string };
 
 export type Entry = {
   key: string;

@@ -9,7 +9,7 @@ import FoldToggle from '../src/ui/FoldToggle.tsx';
 import Pill from '../src/ui/Pill.tsx';
 import TierChip from '../src/ui/TierChip.tsx';
 import Status from '../src/ui/Status.tsx';
-import StatusBadge from '../src/timeline/StatusBadge.tsx';
+import StatusBadge from '../src/ui/StatusBadge.tsx';
 import { OptionCards } from '../src/ui/OptionCards.tsx';
 
 afterEach(cleanup);

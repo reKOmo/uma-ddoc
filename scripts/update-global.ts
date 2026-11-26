@@ -9,7 +9,8 @@ import type { CardsFile, GlobalCard } from '../shared/schemas/card.ts';
 import { type DatedMoment, dated } from '../shared/schemas/common.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
 import type { KnownDatesFile } from '../shared/schemas/predictions.ts';
-import { DATA_DIR, GENERATED_DIR, newsDir } from './lib/paths.ts';
+import { readJson } from './lib/json.ts';
+import { CARDS_JSON, DATA_DIR, newsDir } from './lib/paths.ts';
 import { bannerPost } from './lib/banners/posts.ts';
 import { loadPosts } from './lib/news/api.ts';
 import { scenarioPost } from './lib/news/scenario-posts.ts';
@@ -19,7 +20,6 @@ import {
   type CardRecords,
   applyNews,
   englishNames,
-  readJson,
   writeGlobal,
 } from './lib/banners/global.ts';
 import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.ts';
@@ -55,7 +55,7 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   const global = readJson<BannerFile>(BANNERS_FILE);
   const cards = readJson<CardRecords>(CARDS_FILE);
   const jp = regularBanners(readJpBanners());
-  const cardData = readJson<CardsFile>(`${GENERATED_DIR}cards.json`);
+  const cardData = readJson<CardsFile>(CARDS_JSON);
   const raw = [...loadPosts().values()];
   const posts = raw.map(scenarioPost);
 

@@ -10,7 +10,6 @@ import { type UpstreamCard, statsOf } from './build.ts';
 import type { Server } from '../news/text.ts';
 import { DATA_DIR } from '../paths.ts';
 
-export const SERVERS: Server[] = ['gl', 'jp'];
 export const cardStatsFile = (server: Server): string => `${DATA_DIR}${server}_card_stats.json`;
 
 // Null for a server we don't convert ourselves (yet): it uses upstream's list.

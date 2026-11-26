@@ -2,8 +2,9 @@
 //   or:  pnpm news:ai --compare [--sample N | --ids 994-1,902-12] [--model M]   (saves nothing)
 
 import { parseArgs } from 'node:util';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { GENERATED_DIR } from './lib/paths.ts';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { readJson } from './lib/json.ts';
+import { CARDS_JSON, GENERATED_DIR } from './lib/paths.ts';
 import { loadPosts, serverArg } from './lib/news/api.ts';
 import { Unavailable, aiConfig, ask } from './lib/ai/client.ts';
 import { applyAnswer } from './lib/ai/answers.ts';
@@ -43,8 +44,7 @@ const config = aiConfig(process.env, {
   provider: arg(flags.provider),
   ...(flags.think && { think: true }),
 });
-const cardsFile = `${GENERATED_DIR}cards.json`;
-const cards: CardsFile = existsSync(cardsFile) ? JSON.parse(readFileSync(cardsFile, 'utf8')) : {};
+const cards = readJson<CardsFile>(CARDS_JSON, {});
 const server = serverArg();
 const lang = lexicon(server);
 const posts = [...loadPosts(server).values()];

@@ -11,7 +11,7 @@ import { Section } from '../../ui/Section.tsx';
 import { Segmented } from '../../ui/Segmented.tsx';
 import Status from '../../ui/Status.tsx';
 import { WIDE, useMediaQuery } from '../../hooks/useMediaQuery.ts';
-import RankChart from '../RankChart.tsx';
+import RankChart from './RankChart.tsx';
 import { SCENARIOS } from '../../../shared/scenarioRelease.ts';
 import { scenarioSegments } from '../../timeline/scenarioStrip.ts';
 

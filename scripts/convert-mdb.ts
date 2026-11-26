@@ -4,7 +4,7 @@
 // it reads upstream's current list. Prints `new=`, `skipped=` and `mismatch=` against it (card ids, comma separated;
 // also into $GITHUB_OUTPUT); --message writes a commit message saying the same.
 
-import { appendFileSync, createReadStream, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, createReadStream, existsSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { pathToFileURL } from 'node:url';
@@ -13,7 +13,8 @@ import type { CardsFile } from '../shared/schemas/card.ts';
 import type { UpstreamCard } from './lib/cards/build.ts';
 import { convertMdb, toStored, withUpstreamForSkipped, writeCardStats } from './lib/cards/mdb.ts';
 import type { Server } from './lib/news/text.ts';
-import { GENERATED_DIR } from './lib/paths.ts';
+import { readJson } from './lib/json.ts';
+import { CARDS_JSON } from './lib/paths.ts';
 import { UPSTREAM_RAW } from './lib/upstream.ts';
 
 async function sha256(path: string): Promise<string> {
@@ -54,8 +55,7 @@ export async function convert(server: Server, mdbPath: string, messagePath?: str
   );
 
   if (messagePath) {
-    const cardsPath = `${GENERATED_DIR}cards.json`;
-    const cards: CardsFile = existsSync(cardsPath) ? JSON.parse(readFileSync(cardsPath, 'utf8')) : {};
+    const cards = readJson<CardsFile>(CARDS_JSON, {});
     const label = (id: number): string => {
       const card = cards[id];
       const name = card?.name.en ?? ours.get(id)?.[0].char_name ?? '';

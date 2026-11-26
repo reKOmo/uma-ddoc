@@ -1,7 +1,7 @@
 // Usage: pnpm update-jp [--summary]   (--summary: appends to data/news/jp/summary.md, for the news run)
 // Idempotent: everything made from the news is rebuilt from all posts each time.
 
-import { appendFileSync, existsSync, readFileSync } from 'node:fs';
+import { appendFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
@@ -14,8 +14,8 @@ import { readJpBanners, updateJpBanners, writeJpBanners } from './lib/banners/jp
 import { withFreePulls } from './lib/events/free-scouts.ts';
 import { loadPosts } from './lib/news/api.ts';
 import { jp as jpLexicon } from './lib/news/lang/jp.ts';
-import { GENERATED_DIR, newsDir } from './lib/paths.ts';
-import { readJson } from './lib/banners/global.ts';
+import { CARDS_JSON, newsDir } from './lib/paths.ts';
+import { readJson } from './lib/json.ts';
 import { ensureCards } from './update-cards.ts';
 import { GAMETORA_CARDS_FILE, buildCardFiles } from './build-cards.ts';
 import { updateJpCards } from './lib/cards/jp.ts';
@@ -34,14 +34,11 @@ export async function updateJp(): Promise<JpUpdate> {
   const posts = [...loadPosts('jp').values()];
 
   // Rebuilt before the banners and events, so they find the new cards in the same run.
-  // TODO(ts): JSON.parse's any: raw/gametora_cards.json is written by scrape-gametora in GametoraCard's shape
-  // (test/schemas.test.ts checks it).
-  const gametoraCards = existsSync(GAMETORA_CARDS_FILE)
-    ? (JSON.parse(readFileSync(GAMETORA_CARDS_FILE, 'utf8')) as GametoraCard[])
-    : null;
+  // raw/gametora_cards.json is written by scrape-gametora in GametoraCard's shape (test/schemas.test.ts checks it).
+  const gametoraCards = readJson<GametoraCard[] | null>(GAMETORA_CARDS_FILE, null);
   const jpCards = updateJpCards({ posts, gametora: gametoraCards });
   await buildCardFiles();
-  const cards = readJson<CardsFile>(`${GENERATED_DIR}cards.json`);
+  const cards = readJson<CardsFile>(CARDS_JSON);
 
   const banners = await updateJpBanners({ posts, cards });
 

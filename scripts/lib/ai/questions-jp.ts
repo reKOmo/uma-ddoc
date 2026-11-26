@@ -1,7 +1,7 @@
 // JP's (Japanese) questions, as ai/questions-en.ts: Japanese prompts and examples, and JST dates converted to UTC.
 
 import { itemName } from '../events/rewards.ts';
-import { DAY } from '../news/text.ts';
+import { DAY, JST } from '../news/text.ts';
 import type { EventCard } from '../../../shared/schemas/event.ts';
 import { FIELDS } from './questions-en.ts';
 import {
@@ -175,7 +175,6 @@ const EXAMPLES_JP: Examples = {
 // JP posts are Japanese, with times in JST and years mostly left out: the model answers dates as the post writes them
 // and the code converts them to UTC with the year nearest the post (as parsePeriodJp() does).
 // JP: a JST time, in the year nearest the post (an end before the start: the next year), as ISO UTC.
-const JST = 9 * 3600 * 1000;
 const jst = (iso: string) => new Date(Date.parse(iso) + JST).toISOString().slice(0, 16).replace('T', ' ');
 function isoOfJst(s: unknown, event: AskedEvent, after?: string | null): string | null {
   if (!valid(s)) return null;

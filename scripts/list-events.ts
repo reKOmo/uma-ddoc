@@ -1,17 +1,14 @@
 // Usage: pnpm news:events   (prints the events the stored news makes, writes nothing)
 
-import { existsSync, readFileSync } from 'node:fs';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { EventItem } from '../shared/schemas/event.ts';
-import { GENERATED_DIR } from './lib/paths.ts';
+import { readJson } from './lib/json.ts';
+import { CARDS_JSON } from './lib/paths.ts';
 import { loadPosts } from './lib/news/api.ts';
 import { buildEvents } from './lib/events/build.ts';
 import { readAnswers, readCmTable } from './lib/events/files.ts';
 
-const cardsFile = `${GENERATED_DIR}cards.json`;
-// TODO(ts): JSON.parse's any: cards.json is written by build-cards in CardsFile's shape
-// (test/schemas.test.ts checks it).
-const cards = existsSync(cardsFile) ? (JSON.parse(readFileSync(cardsFile, 'utf8')) as CardsFile) : {};
+const cards = readJson<CardsFile>(CARDS_JSON, {});
 const events = buildEvents([...loadPosts().values()], {
   cmTable: readCmTable(),
   cards,

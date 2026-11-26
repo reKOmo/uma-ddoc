@@ -20,10 +20,10 @@ import {
   bannerList,
   endOfMinute,
   pickMain,
-  readJson,
 } from './global.ts';
 import { jp as jpLexicon } from '../news/lang/jp.ts';
 import { norm } from '../news/text.ts';
+import { readJson } from '../json.ts';
 import { DATA_DIR, GENERATED_DIR } from '../paths.ts';
 
 export const JP_BANNERS_FILE = `${DATA_DIR}jp_banners.json`;
@@ -389,7 +389,7 @@ export async function updateJpBanners({
   if (!existsSync(JP_BANNERS_FILE)) return { lines: ['JP banners: no data/jp_banners.json.'] };
   const jp = readJpBanners();
   const global = existsSync(GLOBAL_BANNERS_FILE) ? readJpBanners(GLOBAL_BANNERS_FILE) : null;
-  const trainees = existsSync(GAMETORA_TRAINEES_FILE) ? readJson<GametoraTrainee[]>(GAMETORA_TRAINEES_FILE) : null;
+  const trainees = readJson<GametoraTrainee[] | null>(GAMETORA_TRAINEES_FILE, null);
   const scouts = posts.map((post) => bannerPost(post, jpLexicon)).filter((scout) => scout !== null);
   const before = JSON.stringify(jp);
   const result = applyJpNews({ posts: scouts, jp, cards, global, trainees });

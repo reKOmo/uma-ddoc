@@ -3,7 +3,7 @@
 // GameTora once its list has them (`pnpm update-jp`). Cards GameTora doesn't list yet go to jp_cards_pending.json.
 // Upstream's jp.js isn't used for ids: it adds a card only once its stats are known, after GameTora lists it.
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { rarityOf } from '../../../tierlist/join-cards.ts';
 import { type CardSource, type Rarity, dated } from '../../../shared/schemas/common.ts';
 import type { JpCard, JpCardsFile, JpPendingCard } from '../../../shared/schemas/card.ts';
@@ -14,14 +14,14 @@ import { fromGametora } from './build.ts';
 import { eventFragments } from '../events/fragments.ts';
 import type { JapaneseLexicon } from '../news/lang/index.ts';
 import { jp as jpLexicon } from '../news/lang/jp.ts';
-import { norm, toLines } from '../news/text.ts';
+import { JST, norm, toLines } from '../news/text.ts';
+import { readJson } from '../json.ts';
 import { DATA_DIR } from '../paths.ts';
 
 export const JP_CARDS_FILE = `${DATA_DIR}jp_cards.json`;
 export const JP_PENDING_FILE = `${DATA_DIR}jp_cards_pending.json`;
 
-const HOUR = 3600 * 1000;
-const jstDate = (iso: string): string => new Date(Date.parse(iso) + 9 * HOUR).toISOString().slice(0, 10);
+const jstDate = (iso: string): string => new Date(Date.parse(iso) + JST).toISOString().slice(0, 10);
 const bare = (title: string | null | undefined): string => (title ?? '').replace(/^\[|\]$/g, '');
 const keyOf = (title: string | null | undefined, name: string | null | undefined): string =>
   `${norm(bare(title))}|${norm(name)}`;
@@ -241,10 +241,8 @@ function entry(
   } as JpCard;
 }
 
-const readJson = <T>(file: string, fallback: T): T =>
-  existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : fallback;
-export const readJpCards = (file = JP_CARDS_FILE): JpCardsFile => readJson(file, {});
-export const readPending = (file = JP_PENDING_FILE): JpPendingCard[] => readJson(file, []);
+export const readJpCards = (file = JP_CARDS_FILE): JpCardsFile => readJson<JpCardsFile>(file, {});
+export const readPending = (file = JP_PENDING_FILE): JpPendingCard[] => readJson<JpPendingCard[]>(file, []);
 
 // One card per line (excluded from Biome), as the history has always been written.
 export function writeJpCards(cards: JpCardsFile, file = JP_CARDS_FILE): void {

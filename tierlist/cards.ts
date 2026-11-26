@@ -1,12 +1,13 @@
 import cardsJson from '../generated/cards.json' with { type: 'json' };
 import type { CardsFile, CardStats, CardStatsFile } from '../shared/schemas/card.ts';
+import type { Server } from '../shared/schemas/common.ts';
 import { type JoinedCard, joinCards } from './join-cards.ts';
 
 // test/schemas.test.ts parses generated/cards.json against CardsFileSchema.
 const cards = cardsJson as CardsFile;
 export { cards };
 
-export type Server = 'gl' | 'jp';
+export type { Server };
 
 const STATS: Record<Server, () => Promise<{ default: CardStatsFile }>> = {
   gl: () => import('../generated/card_stats/gl_card_stats.json', { with: { type: 'json' } }),

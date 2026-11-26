@@ -1,7 +1,7 @@
 // Pure. No image URLs but upstream's icons: the app builds GameTora's from the id and the slug.
 
 import { isDeepStrictEqual } from 'node:util';
-import { type CardType, type Rarity, dated } from '../../../shared/schemas/common.ts';
+import { type CardType, type Rarity, type Server, dated } from '../../../shared/schemas/common.ts';
 import type {
   CardsFile,
   CardStatsFile,
@@ -64,7 +64,7 @@ export function buildCards({ upstream, history = {}, gametora = [], globalCards 
   for (const c of gametora) if (c.url_name) slugs.set(c.support_id, c.url_name);
   const own: Record<
     number,
-    { type: CardType | undefined; rarity: Rarity | undefined; name: Partial<Record<'gl' | 'jp', string>> }
+    { type: CardType | undefined; rarity: Rarity | undefined; name: Partial<Record<Server, string>> }
   > = {};
   for (const server of ['gl', 'jp'] as const) {
     for (const card of upstream[server]) {

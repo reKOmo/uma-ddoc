@@ -1,4 +1,6 @@
-export type Server = 'gl' | 'jp';
+import type { Server } from '../../../shared/schemas/common.ts';
+
+export type { Server };
 
 export const NEWS_SITES: Record<Server, { site: string; post: (id: number | string) => string }> = {
   gl: { site: 'https://umamusume.com', post: (id) => `https://umamusume.com/news/${id}/` },
@@ -7,7 +9,11 @@ export const NEWS_SITES: Record<Server, { site: string; post: (id: number | stri
 export const SITE: string = NEWS_SITES.gl.site;
 export const newsUrl = (id: number | string, server: Server = 'gl'): string => NEWS_SITES[server].post(id);
 
-export const DAY: number = 24 * 3600 * 1000;
+export const MINUTE: number = 60_000;
+export const HOUR: number = 60 * MINUTE;
+export const DAY: number = 24 * HOUR;
+// Japan's offset from UTC: JP's posts and GameTora's JP dates are in JST.
+export const JST: number = 9 * HOUR;
 
 // Lower-case letters and digits only (of any script: kana and kanji too), accents dropped, full-width folded: names
 // compared however they're written.
@@ -108,7 +114,6 @@ export function parsePeriod(text: string, fallbackYear: number): { start: string
 // without a time is the start of that day, an end without one its last minute; end null when open-ended.
 const JP_DATE =
   /(?:(\d{4})\s*[/年]\s*)?(\d{1,2})\s*[/月]\s*(\d{1,2})日?(?:\s*[（(][^）)]{1,4}[）)])?(?:\s*(\d{1,2}):(\d{2}))?/g;
-const JST = 9 * 3600 * 1000;
 type JpDate = { year: number | null; month: number; day: number; time: [number, number] | null };
 type ResolvedJpDate = Omit<JpDate, 'year'> & { year: number };
 

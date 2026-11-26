@@ -1,9 +1,10 @@
 // Usage: pnpm fetch-pull-guide   (run after `pnpm predict-gl`, so predicted banners get their cards too)
 // Writes generated/pull_guide.json (its shape: schemas/pull_guide.schema.json) and the sheet's date in sources.json.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { paced } from './lib/http.ts';
+import { readJson } from './lib/json.ts';
 import { BANNERS_FILE } from './lib/banners/global.ts';
 import { GENERATED_DIR } from './lib/paths.ts';
 import { writeSources } from './lib/sources.ts';
@@ -19,8 +20,7 @@ const SCHEMA = '../schemas/pull_guide.schema.json';
 const PREDICTED_BANNERS_FILE = `${GENERATED_DIR}predicted_global_banners.json`;
 
 function readBanners(): BannerFile['cards'] {
-  // TODO(ts): the banner files are ours, but JSON.parse gives unknown-shaped data: they're read as BannerFile.
-  const read = (file: string): BannerFile['cards'] => (JSON.parse(readFileSync(file, 'utf8')) as BannerFile).cards;
+  const read = (file: string): BannerFile['cards'] => readJson<BannerFile>(file).cards;
   if (!existsSync(PREDICTED_BANNERS_FILE)) console.warn('pull guide: no predicted banners, run pnpm predict-gl first');
   return [...read(BANNERS_FILE), ...(existsSync(PREDICTED_BANNERS_FILE) ? read(PREDICTED_BANNERS_FILE) : [])];
 }

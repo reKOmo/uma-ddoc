@@ -7,7 +7,7 @@
 // what the post states ("up to a maximum of 10 times", "(9 days total)"): a mismatch is a doubt for the model, whose
 // windows are counted the same way (counted()).
 
-import { norm } from '../news/text.ts';
+import { DAY, HOUR, MINUTE, norm } from '../news/text.ts';
 import type { BannerType, DateRef, Lexicon, ScoutLexicon } from '../news/lang/index.ts';
 import type { Banner, BannerFile, BannerId } from '../../../shared/schemas/banner.ts';
 import type { GameEvent } from '../../../shared/schemas/event.ts';
@@ -23,10 +23,6 @@ export type ScoutWindow = {
 };
 // A window as read, before it's counted (days: what the post states for it, if anything).
 export type FoundWindow = Pick<ScoutWindow, 'scout' | 'type' | 'start' | 'end'> & { days: number | null };
-
-const MINUTE = 60_000;
-const HOUR = 60 * MINUTE;
-const DAY = 24 * HOUR;
 
 // Free scouts a window gives (resetHour: the daily reset, in UTC hours).
 export function windowScouts(start: string, end: string, resetHour: number, opens: boolean): number {

@@ -8,13 +8,13 @@
 // since 2022 has the same schedule). A news event announced without dates, of the same kind and name, up to
 // SAME_EVENT_DAYS before GameTora's, takes GameTora's dates and phases instead (keeping its id, link and source 'news').
 
-import { existsSync, readFileSync } from 'node:fs';
 import type { CardsFile } from '../../../shared/schemas/card.ts';
 import { dated } from '../../../shared/schemas/common.ts';
 import type { EventCard, EventKind, GameEvent, Phase } from '../../../shared/schemas/event.ts';
 import type { GametoraEventsFile } from '../../../shared/schemas/gametora.ts';
-import { DAY } from '../news/text.ts';
+import { DAY, HOUR, JST } from '../news/text.ts';
 import { norm } from './rewards.ts';
+import { readJson } from '../json.ts';
 import { GENERATED_DIR } from '../paths.ts';
 
 export const GAMETORA_EVENTS_FILE = `${GENERATED_DIR}raw/gametora_events.json`;
@@ -30,7 +30,6 @@ export type GametoraRecord = Record<string, unknown>;
 const SAME_EVENT_DAYS = 45;
 // GameTora's events are only filled in before this (where the news archive is thin); later ones only date a news event.
 export const FILL_BEFORE = '2022-07-01T00:00:00.000Z';
-const HOUR = DAY / 24;
 // A cup's schedule from round 1 (ms after its start; the last phase ends with the event).
 const CM_SCHEDULE: [key: string, from: number, to: number | null][] = [
   ['round_1', 0, 2 * DAY],
@@ -141,7 +140,7 @@ export function gametoraEvents(raw: GametoraEventsFile, cards: CardsFile = {}): 
   const races = (raw.legend_race ?? []).map((e) =>
     event({
       // Newer ones have no id on GameTora yet: their JST start day stands in.
-      id: `gt-lr-${e.id ?? new Date(time(e.start) + 9 * HOUR).toISOString().slice(0, 10).replaceAll('-', '')}`,
+      id: `gt-lr-${e.id ?? new Date(time(e.start) + JST).toISOString().slice(0, 10).replaceAll('-', '')}`,
       kind: 'legend_race',
       name: null,
       start: iso(time(e.start)),
@@ -194,8 +193,6 @@ export function fillFromGametora(
   return { events: all, filled, dated: [...dated.values()] };
 }
 
-// TODO(ts): JSON.parse gives any; the file is what GametoraEventsFile describes (cutEvents() writes it).
+// The file is what GametoraEventsFile describes (cutEvents() writes it).
 export const readGametoraEvents = (): GametoraEventsFile | null =>
-  existsSync(GAMETORA_EVENTS_FILE)
-    ? (JSON.parse(readFileSync(GAMETORA_EVENTS_FILE, 'utf8')) as GametoraEventsFile)
-    : null;
+  readJson<GametoraEventsFile | null>(GAMETORA_EVENTS_FILE, null);

@@ -1,10 +1,12 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { type UpstreamCard, buildCards } from './lib/cards/build.ts';
 import { CARDS_FILE as GLOBAL_CARDS_FILE } from './lib/banners/global.ts';
 import { JP_CARDS_FILE, readJpCards } from './lib/cards/jp.ts';
-import { SERVERS, cardRows, cardStatsFile } from './lib/cards/mdb.ts';
-import { GENERATED_DIR } from './lib/paths.ts';
+import { cardRows, cardStatsFile } from './lib/cards/mdb.ts';
+import { SERVERS } from '../shared/schemas/common.ts';
+import { readJson } from './lib/json.ts';
+import { CARDS_JSON, GENERATED_DIR } from './lib/paths.ts';
 import { readSources } from './lib/sources.ts';
 import { UPSTREAM_RAW } from './lib/upstream.ts';
 import type { GlobalCardsFile } from '../shared/schemas/card.ts';
@@ -25,9 +27,6 @@ const perLine = (object: Record<string, unknown>): string =>
 // TODO(ts): upstream's modules (generated/raw/upstream/, as downloaded): the caller names what each exports.
 const importFresh = async <T>(path: string): Promise<T> =>
   (await import(`${pathToFileURL(path)}?t=${Date.now()}`)).default;
-// TODO(ts): JSON.parse's any: the caller names the shape the script wrote the file in
-// (test/schemas.test.ts checks those).
-const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8'));
 
 export async function buildCardFiles(): Promise<void> {
   const glSource = readSources()['raw/upstream/gl.js'];
@@ -42,12 +41,12 @@ export async function buildCardFiles(): Promise<void> {
       events: await importFresh<Record<string, number[]>>(`${UPSTREAM_RAW}card-events.js`),
     },
     history: readJpCards(),
-    gametora: existsSync(GAMETORA_CARDS_FILE) ? readJson<GametoraCard[]>(GAMETORA_CARDS_FILE) : [],
-    globalCards: existsSync(GLOBAL_CARDS_FILE) ? readJson<GlobalCardsFile>(GLOBAL_CARDS_FILE) : {},
+    gametora: readJson<GametoraCard[]>(GAMETORA_CARDS_FILE, []),
+    globalCards: readJson<GlobalCardsFile>(GLOBAL_CARDS_FILE, {}),
     iconBase: `https://raw.githubusercontent.com/${repo}/${ref}/public/cardImages/`,
   });
   mkdirSync(`${GENERATED_DIR}card_stats`, { recursive: true });
-  writeFileSync(`${GENERATED_DIR}cards.json`, perLine(cards));
+  writeFileSync(CARDS_JSON, perLine(cards));
   for (const server of ['gl', 'jp'] as const) {
     writeFileSync(`${GENERATED_DIR}card_stats/${server}_card_stats.json`, perLine(stats[server]));
   }

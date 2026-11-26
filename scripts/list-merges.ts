@@ -4,7 +4,6 @@
 // "coming soon" post its dated one…). Grouped so the unusual ones stand out: a standalone post joining a celebration's
 // part, parts of two celebration posts, posts whose own dates are far from the event's, and posts that were dropped.
 
-import { existsSync, readFileSync } from 'node:fs';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import { readCategories } from './lib/news/categories.ts';
 import { buildEvents } from './lib/events/build.ts';
@@ -13,13 +12,12 @@ import { eventFragments } from './lib/events/fragments.ts';
 import { readAnswers, readCmTable } from './lib/events/files.ts';
 import { loadPosts, serverArg } from './lib/news/api.ts';
 import { lexicon } from './lib/news/lang/index.ts';
-import { GENERATED_DIR } from './lib/paths.ts';
+import { readJson } from './lib/json.ts';
+import { CARDS_JSON } from './lib/paths.ts';
 
 const FAR_DAYS = 7;
 
-const cardsFile = `${GENERATED_DIR}cards.json`;
-// TODO(ts): JSON.parse's any: cards.json is written by build-cards in CardsFile's shape (test/schemas.test.ts)
-const cards = existsSync(cardsFile) ? (JSON.parse(readFileSync(cardsFile, 'utf8')) as CardsFile) : {};
+const cards = readJson<CardsFile>(CARDS_JSON, {});
 const server = serverArg();
 const lang = lexicon(server);
 const posts = [...loadPosts(server).values()];
