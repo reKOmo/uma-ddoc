@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readJson } from '../scripts/lib/json.ts';
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { postsFile } from '../scripts/lib/news/api.ts';
 import { jp } from '../scripts/lib/news/lang/jp.ts';
@@ -138,7 +139,7 @@ describe('norm', () => {
 
 const file = postsFile('jp');
 describe.skipIf(!existsSync(file))('the stored JP news', { tags: ['data'] }, () => {
-  const posts: NewsPost[] = JSON.parse(readFileSync(file, 'utf8'));
+  const posts: NewsPost[] = readJson(file);
   const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
   const categories = new Map(posts.map((p) => [String(p.announce_id), categorize(p, jp)]));
   const category = (id: string) => present(categories.get(id), `post ${id}`);

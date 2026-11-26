@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readJson } from '../scripts/lib/json.ts';
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CM_PHASES } from '../scripts/lib/events/dates.ts';
 import { EVENT_KINDS, buildEvents } from '../scripts/lib/events/build.ts';
@@ -18,7 +19,6 @@ import type { EventCard, GameEvent } from '../shared/schemas/event.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import { at, fixture, present } from './helpers.ts';
 
-const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8'));
 const plainDates = (e: GameEvent) => ({
   ...e,
   start: e.start.date,
@@ -26,14 +26,14 @@ const plainDates = (e: GameEvent) => ({
   ...(e.phases && { phases: e.phases.map((p) => ({ ...p, start: p.start.date, end: p.end?.date ?? null })) }),
 });
 const cardsFile = `${GENERATED_DIR}cards.json`;
-const cards: CardsFile = existsSync(cardsFile) ? read<CardsFile>(cardsFile) : {};
+const cards: CardsFile = existsSync(cardsFile) ? readJson<CardsFile>(cardsFile) : {};
 // Card lookups need GameTora's Japanese titles (pnpm scrape-gametora).
 const withJp = cards['30113']?.title?.jp != null;
 const index = cardIndex(cards, jpLexicon);
 
 const file = postsFile('jp');
 describe.skipIf(!existsSync(file))('JP events from the sampled posts', () => {
-  const posts = read<NewsPost[]>(file);
+  const posts = readJson<NewsPost[]>(file);
   const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
   const post = (id: number) => present(byId.get(String(id)), `post ${id}`);
   const of = (id: number) => postEvents(post(id), { index, lang: jpLexicon });
@@ -408,7 +408,7 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
   });
 
   it('has the same schedule as the news gives cups since mid-2022', () => {
-    const e = read<GameEvent[]>(eventsFile('jp')).find((x) => x.id === '1065');
+    const e = readJson<GameEvent[]>(eventsFile('jp')).find((x) => x.id === '1065');
     if (!e) return;
     const phases = present(e.phases, 'phases');
     const round1 = present(
@@ -450,7 +450,7 @@ describe("GameTora's story events, Champions Meetings and Legend Races", () => {
 
 const stored = eventsFile('jp');
 describe.skipIf(!existsSync(stored))('the stored JP events', { tags: ['data'] }, () => {
-  const events = read<GameEvent[]>(stored);
+  const events = readJson<GameEvent[]>(stored);
   const since = (kind: string, date: string) => events.filter((e) => e.kind === kind && e.start.date >= date);
 
   it('only uses kinds the app styles and labels, with dates in order', () => {

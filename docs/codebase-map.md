@@ -11,10 +11,11 @@ tierlist/          ranking code (runs in Node and the browser)
   join-cards.ts      joinCards() (+ `events` per card), withoutEvents(), TYPE_CODES / RARITY_CODES (cards.json's
                      strings ↔ upstream's codes)
   cli.ts             `pnpm rank`
-scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
+scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/ (a command imports libs, never another
+                     command; each runs its main behind isMain(import.meta.url))
   clone-upstream.ts  shallow clone (or fetch + reset) of upstream main into upstream/
-  update-cards.ts    download upstream's card data into generated/raw/upstream/; exports ensureCards()
-  build-cards.ts     raw inputs → generated/cards.json + card_stats/<gl|jp>_card_stats.json (buildCardFiles())
+  update-cards.ts    download upstream's card data into generated/raw/upstream/ (lib/cards/files.ts)
+  build-cards.ts     raw inputs → generated/cards.json + card_stats/<gl|jp>_card_stats.json (lib/cards/files.ts)
   build-schemas.ts   schemas/*.json from shared/schemas/ (z.toJSONSchema)
   convert-mdb.ts     a server's master.mdb → data/<gl|jp>_card_stats.json (its card list, instead of upstream's)
   scrape-gametora.ts  GameTora: support card list + JP event history (generated/raw/), JP scenarios (data/)
@@ -32,9 +33,16 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
   categorize-news.ts `pnpm news:categories`
   gold-review.ts     `pnpm gold:review`: a local Vite page (gold-review/) to label every Global post by hand → gold.json
   news-features.ts   `pnpm news:features`: each Global post's features for ml/categorize.py → generated/news_features.json
-  lib/paths.ts       ROOT, GENERATED_DIR, DATA_DIR, CARDS_JSON, newsDir(server) (every script's paths)
-  lib/json.ts        readJson(path, fallback?) (every script's JSON reads; a fallback for a file not there yet)
-  lib/http.ts        sleep(), paced(): one request at a time with a pause between (every fetching script's pacing)
+                     (lib/news/features.ts)
+  lib/paths.ts       ROOT, GENERATED_DIR, DATA_DIR, CARDS_JSON, newsDir(server), dataFile(server, kind),
+                     serverSuffix(), summaryFile() / appendSummary(), isMain() (every script's paths)
+  lib/json.ts        readJson(path, fallback?) (every script's JSON reads; a fallback for a file not there yet);
+                     jsonLines() / jsonEntries() / jsonEnvelope(): the data files' one-record-per-line writers;
+                     sameJson(), changedSince()
+  lib/order.ts       newestEventsFirst / newestBannersFirst: the data files' order
+  lib/schemas.ts     jsonSchema(), schemaText() (build-schemas, test/schemas.test.ts)
+  lib/http.ts        sleep(), paced(): one request at a time with a pause between (every fetching script's pacing);
+                     getOk() / getJson() / getText(), SCRAPER_HEADERS
   lib/sources.ts     generated/sources.json (file → where its data came from): readSources(), writeSources()
   lib/upstream.ts    everything that knows about the upstream repo (REPO, DATA_FILES,
                      UPSTREAM_DIR, UPSTREAM_RAW, download)
@@ -45,7 +53,9 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
   lib/umatl.ts       pure: buildTranslations() (UmaTL + Global's names joined with our JP data), cleanText(), textKey()
   lib/news/          the official news
     api.ts           the news API client per server (gl / jp; gentle pacing), posts.json reader/writer, --server
-    text.ts          pure: HTML → lines/sections, period dates (parsePeriod, parsePeriodJp), shared by the news parsers
+    text.ts          pure: HTML → lines/sections, period dates (parsePeriod, parsePeriodJp, nearestYear), MINUTE / HOUR /
+                     DAY / JST, minuteText(), jstDay(), isoOfUnix(), norm(), bareTitle(), cardKey(); shared by the news parsers
+    features.ts      writeFeatures(): each post's features for ml/categorize.py (news:features, refreshCategories())
     lang/            the news' wording per language, read by every parser (`lang`, English by default):
                      en.ts (Global), jp.ts + jp-banners.ts + jp-races.ts (JP), index.ts (lexicon(server))
     categorize.ts    pure: categorize(post) → banner / event (+ kind) / other, phase, name
@@ -56,11 +66,13 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
     scenario-posts.ts  pure: scenarioPost() (a post's scenario mentions, for scenarios.ts)
   lib/banners/       scout banners from the news
     posts.ts         pure: bannerPost(post) → a scout post's banners (gacha id, type, period, art, featured list)
-    global.ts        pure: applyNews() (news posts + JP banners → Global banners/releases), data/ reader/writer,
-                     shared helpers (readJson(), bannerList(), endOfMinute(), pickMain())
+    common.ts        what both servers' banners share: BANNER_KINDS, ScoutPost types, pickMain(), endOfMinute(),
+                     withoutNews(), newestPerBanner(), writeBannerFile()
+    global.ts        pure: applyNews() (news posts + JP banners → Global banners/releases), data/ reader/writer
     jp.ts            pure: applyJpNews() (JP news → data/jp_banners.json), regularBanners() (what Global and ml/ read),
                      reader / writer
   lib/cards/         support cards
+    files.ts         ensureCards() / updateCards() (upstream's data), buildCardFiles() (→ cards.json + card_stats)
     build.ts         pure: buildCards() (the merge, + the round-trip check against upstream's lists)
     mdb.ts           convertMdb() (upstream's db-convert.py ported), cardRows() (ours, else upstream's), the file's read/write
     jp.ts            pure: newsCards() (every support card the JP news shows, at its first appearance),
@@ -86,6 +98,8 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
                      spanParts())
     gametora.ts      GameTora's JP story events / Champions Meetings / Legend Races → fills in jp_events.json
     files.ts         data/ readers/writers (events, answers, Champions Meeting table)
+    context.ts       newsContext(server): a server's lexicon, posts and events as the news tools see them
+                     (news:events, news:merges, news:ai)
   lib/ai/            a model for the event fields the rules doubt
     client.ts        the model client: Ollama (native /api/chat) or OpenRouter (OpenAI-style), aiConfig(), ask()
     questions.ts     pure: what a model is asked about an event (askedFields(), question(): prompt + examples

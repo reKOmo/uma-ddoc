@@ -1,50 +1,9 @@
 // Usage: pnpm update-cards
 
-import { existsSync, mkdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
-import { DATA_FILES, REPO, UPSTREAM_RAW, download, latestRef } from './lib/upstream.ts';
-import { GENERATED_DIR } from './lib/paths.ts';
-import { readSources, writeSources } from './lib/sources.ts';
-import { INPUTS, OUTPUTS, buildCardFiles } from './build-cards.ts';
+import { updateCards } from './lib/cards/files.ts';
+import { isMain } from './lib/paths.ts';
 
-const sourceKey = (file: { local: string }): string => `raw/upstream/${file.local}`;
-
-export async function updateCards(): Promise<void> {
-  const ref = latestRef();
-  console.log(`Fetching card data from ${REPO} @ ${ref.slice(0, 10)}…`);
-  const texts = await download(ref, DATA_FILES);
-
-  // Written next to the old files and swapped in, so a failure never leaves them half-written.
-  const tmp = `${UPSTREAM_RAW.slice(0, -1)}.tmp/`;
-  rmSync(tmp, { recursive: true, force: true });
-  mkdirSync(tmp, { recursive: true });
-  for (const file of DATA_FILES) {
-    const header = `// Downloaded from https://github.com/${REPO}/blob/${ref}/${file.upstream}\n// by scripts/update-cards.js — do not edit.\n\n`;
-    writeFileSync(tmp + file.local, header + texts[file.upstream]);
-  }
-  rmSync(UPSTREAM_RAW, { recursive: true, force: true });
-  renameSync(tmp, UPSTREAM_RAW);
-  const source = { repo: REPO, ref, fetched_at: new Date().toISOString() };
-  writeSources(Object.fromEntries(DATA_FILES.map((file) => [sourceKey(file), source])));
-  await buildCardFiles();
-}
-
-const mtime = (path: string): number => (existsSync(path) ? statSync(path).mtimeMs : 0);
-
-// Fetches upstream's card data if this checkout is missing it, and builds the card data if that's missing or older
-// than what it's built from (e.g. a pulled news commit added cards to data/jp_cards.json).
-export async function ensureCards(): Promise<void> {
-  const sources = readSources();
-  if (DATA_FILES.some((file) => !existsSync(UPSTREAM_RAW + file.local) || !sources[sourceKey(file)])) {
-    await updateCards();
-    return;
-  }
-  const built = Math.min(...OUTPUTS.map((name) => mtime(GENERATED_DIR + name)));
-  const inputs = [...INPUTS, ...DATA_FILES.map((file) => UPSTREAM_RAW + file.local)];
-  if (inputs.some((path) => mtime(path) > built)) await buildCardFiles();
-}
-
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isMain(import.meta.url)) {
   try {
     await updateCards();
   } catch (err) {

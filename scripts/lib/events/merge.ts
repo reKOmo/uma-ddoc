@@ -6,8 +6,7 @@ import type { Lexicon } from '../news/lang/index.ts';
 import type { EventItem, Race } from '../../../shared/schemas/event.ts';
 import type { Fragment } from './fragments.ts';
 import { type Dates, span } from './dates.ts';
-import { norm } from './rewards.ts';
-import { DAY } from '../news/text.ts';
+import { DAY, norm } from '../news/text.ts';
 
 export type Merge = { from: string; into: string; how: 'overlap' | 'same dates' | 'undated' | 'ended' | 'dropped' };
 
@@ -20,8 +19,9 @@ const STAGE: Record<string, number> = { announced: 1, league_selection: 2, start
 
 // (An event without a start, an "ended" post's, never matches: NaN.)
 const ms = (date: string | null): number => Date.parse(date ?? '');
-const endOf = (e: Dates): number => ms(e.end ?? e.start) || ms(e.start) + DAY;
-const overlap = (a: Dates, b: Dates): boolean => ms(a.start) <= endOf(b) && ms(b.start) <= endOf(a);
+// (An event without an end, or one that doesn't parse, lasts a day.)
+export const endOf = (e: Dates): number => ms(e.end ?? e.start) || ms(e.start) + DAY;
+export const overlap = (a: Dates, b: Dates): boolean => ms(a.start) <= endOf(b) && ms(b.start) <= endOf(a);
 // One race weekend's post inside a G1 celebration's part for all of them (JP's weekly 「育成報酬」ピース追加キャンペーン
 // under the part listing every race's window): less than half its length, within it.
 const windowOf = (part: Dates, post: Dates): boolean =>

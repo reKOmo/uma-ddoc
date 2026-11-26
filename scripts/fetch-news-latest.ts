@@ -4,7 +4,8 @@
 // scenario post came in, so data/ needs rebuilding).
 
 import { appendFileSync, existsSync, writeFileSync } from 'node:fs';
-import { newsDir } from './lib/paths.ts';
+import { parseArgs } from 'node:util';
+import { appendSummary, summaryFile } from './lib/paths.ts';
 import {
   fetchPost,
   type IndexItem,
@@ -18,18 +19,21 @@ import {
 } from './lib/news/api.ts';
 import { categorize, plain } from './lib/news/categorize.ts';
 import { lexicon } from './lib/news/lang/index.ts';
-import { newsUrl } from './lib/news/text.ts';
+import { minuteText, newsUrl } from './lib/news/text.ts';
+import { COMMUNITY_IDS, NOTICE_IDS } from './lib/news/lang/en.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import type { Categorized } from './lib/news/categorize.ts';
 
 const server = serverArg();
+// strict: false: --server is serverArg()'s.
+const flags = parseArgs({ options: { summary: { type: 'boolean' } }, strict: false }).values;
 const MAX_PAGES = 5; // more than that and something's off
 // Global serves some posts before its index lists them (1094, a 1,500-carat gift, sat 3 below the newest in-game
 // post), so each id series is probed from a little below its newest id before this run to a little above its newest
 // now. JP too, in case it does the same.
 const PROBE_BELOW = 8;
 const PROBE_ABOVE = 4;
-const SERIES = { gl: [0, 100000, 200000], jp: [0] }[server];
+const SERIES = { gl: [0, NOTICE_IDS, COMMUNITY_IDS], jp: [0] }[server];
 
 if (!existsSync(postsFile(server))) {
   console.error(`No ${postsFile(server)} yet: run \`pnpm news:all --server ${server}\` first.`);
@@ -38,7 +42,7 @@ if (!existsSync(postsFile(server))) {
 
 const posts = loadPosts(server);
 const newestIn = (start: number): number =>
-  Math.max(...[...posts.keys()].map(Number).filter((id) => id > start && id < start + 100000));
+  Math.max(...[...posts.keys()].map(Number).filter((id) => id > start && id < start + NOTICE_IDS));
 const newestBefore = SERIES.map(newestIn);
 const fresh: IndexItem[] = [];
 // Stored posts whose detail had no banner and the index now gives one.
@@ -104,7 +108,7 @@ const describe = (id: string): string => {
   const what = [c.category, c.kind].filter(Boolean).join(' / ');
   return `- ${link} — ${what}${c.phase ? `, ${c.phase}` : ''}`;
 };
-const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+const now = minuteText(new Date().toISOString());
 const summary = [
   `# Umamusume news${server === 'gl' ? '' : ` (${server.toUpperCase()})`} — ${now} UTC`,
   '',
@@ -114,12 +118,12 @@ const summary = [
   ...(added.length ? ['## New', '', ...added.map(describe), ''] : []),
   ...(edited.length ? ['## Edited', '', ...edited.map(describe), ''] : []),
 ].join('\n');
-if (process.argv.includes('--summary')) writeFileSync(`${newsDir(server)}summary.md`, `${summary}\n`);
+if (flags.summary) writeFileSync(summaryFile(server), `${summary}\n`);
 console.log(summary);
 console.log(`${posts.size} stored (${requests} requests).`);
 
 const update = [...categories.values()].some((c) => c.category !== 'other' || c.kind === 'scenario');
-if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);
+appendSummary(server, `${summary}\n`, { toJob: true });
 if (process.env.GITHUB_OUTPUT)
   appendFileSync(
     process.env.GITHUB_OUTPUT,

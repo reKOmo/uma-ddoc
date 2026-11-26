@@ -14,7 +14,8 @@ import type { UpstreamCard } from './lib/cards/build.ts';
 import { convertMdb, toStored, withUpstreamForSkipped, writeCardStats } from './lib/cards/mdb.ts';
 import type { Server } from './lib/news/text.ts';
 import { readJson } from './lib/json.ts';
-import { CARDS_JSON } from './lib/paths.ts';
+import { CARDS_JSON, isMain } from './lib/paths.ts';
+import { serverArg } from './lib/news/api.ts';
 import { UPSTREAM_RAW } from './lib/upstream.ts';
 
 async function sha256(path: string): Promise<string> {
@@ -29,7 +30,7 @@ const byId = (rows: UpstreamCard[]): Map<number, UpstreamCard[]> => {
   return map;
 };
 
-export async function convert(server: Server, mdbPath: string, messagePath?: string): Promise<void> {
+async function convert(server: Server, mdbPath: string, messagePath?: string): Promise<void> {
   const listPath = `${UPSTREAM_RAW}${server}.js`;
   if (!existsSync(listPath)) throw new Error(`${listPath} is missing (pnpm update-cards)`);
   // TODO(ts): upstream's module exports its card list.
@@ -81,19 +82,18 @@ export async function convert(server: Server, mdbPath: string, messagePath?: str
   }
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isMain(import.meta.url)) {
   const { values, positionals } = parseArgs({
     args: process.argv.slice(2),
-    options: { server: { type: 'string', default: 'gl' }, message: { type: 'string' } },
+    options: { server: { type: 'string' }, message: { type: 'string' } },
     allowPositionals: true,
   });
-  const { server } = values;
-  if (positionals.length !== 1 || (server !== 'gl' && server !== 'jp')) {
+  if (positionals.length !== 1) {
     console.error('Usage: pnpm convert-mdb <master.mdb> [--server gl|jp] [--message <file>]');
     process.exit(1);
   }
   try {
-    await convert(server, positionals[0], values.message);
+    await convert(serverArg(), positionals[0], values.message);
   } catch (err) {
     console.error(`master.mdb conversion failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);

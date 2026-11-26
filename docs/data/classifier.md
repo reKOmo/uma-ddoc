@@ -53,7 +53,7 @@ JP community posts where Global reused the id, JP 813 a three-part celebration G
 
 ## The classifiers
 
-`pnpm news:features` (`scripts/news-features.ts` → `generated/news_features.json`: what the TS parsers see in each
+`pnpm news:features` (`scripts/lib/news/features.ts` → `generated/news_features.json`: what the TS parsers see in each
 post and unit, so Python needs no parser) and `pnpm news:categorize` (`ml/categorize.py`, scikit-learn logistic
 regressions → `data/news/gl/categories.json`, `CategoriesFileSchema`). Features: title, opening sentence and text
 words, Global's template phrases (`en.ts` `signals`), art series (`banner_<3 digits>`: 301 story, 302 Legend Race,

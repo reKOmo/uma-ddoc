@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readJson } from '../scripts/lib/json.ts';
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { blockRaces, raceConditions } from '../scripts/lib/events/races.ts';
 import { eventBlocks, joinBlocks } from '../scripts/lib/events/blocks.ts';
@@ -141,9 +142,8 @@ describe('race conditions', () => {
   });
 });
 
-const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8'));
 const cardsFile = `${GENERATED_DIR}cards.json`;
-const cards: CardsFile = existsSync(cardsFile) ? read<CardsFile>(cardsFile) : {};
+const cards: CardsFile = existsSync(cardsFile) ? readJson<CardsFile>(cardsFile) : {};
 
 describe.each([
   ['gl', en],
@@ -152,7 +152,7 @@ describe.each([
   const file = postsFile(server as 'gl' | 'jp');
   it.skipIf(!existsSync(file))('knows every word of every race line, and every race name', () => {
     const unknown = new Set<string>();
-    for (const post of read<NewsPost[]>(file)) {
+    for (const post of readJson<NewsPost[]>(file)) {
       const whole = joinBlocks(eventBlocks(post, lang));
       for (const section of whole.sections.filter((s) => lang.race.heading.test(s.heading)))
         for (const line of section.lines.filter((l) => /\dm/.test(l))) {
@@ -165,7 +165,7 @@ describe.each([
   });
 
   it.skipIf(!existsSync(file))('gives every news Champions Meeting, Legend Race and League of Heroes its races', () => {
-    const events = buildEvents(read<NewsPost[]>(file), { cards, lang });
+    const events = buildEvents(readJson<NewsPost[]>(file), { cards, lang });
     const missing = events.filter(
       (e) => ['champions_meeting', 'legend_race', 'league_of_heroes'].includes(e.kind) && !e.races?.length
     );

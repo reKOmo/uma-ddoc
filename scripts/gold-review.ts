@@ -8,30 +8,16 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import react from '@vitejs/plugin-react';
 import { createServer, type Plugin } from 'vite';
-import { GoldLabelSchema, type NewsPost } from '../shared/schemas/news.ts';
-import { readGold, ruleLabel, twins, units, withRuleLabels, writeGold } from './lib/news/gold.ts';
+import { GoldLabelSchema } from '../shared/schemas/news.ts';
+import { postView, readGold, twins, withRuleLabels, writeGold } from './lib/news/gold.ts';
 import { loadPosts, serverArg } from './lib/news/api.ts';
-import { newsUrl } from './lib/news/text.ts';
 import { ROOT } from './lib/paths.ts';
-import { plain } from './lib/news/categorize.ts';
 
 const site = serverArg();
 const posts = [...loadPosts(site).values()];
 const byId = new Map(posts.map((p) => [p.announce_id, p]));
 const others = twins(site);
 writeGold(withRuleLabels(posts, readGold(site), site), site);
-
-const view = (post: NewsPost) => ({
-  id: post.announce_id,
-  title: plain(post.title),
-  posted: post.post_at,
-  url: newsUrl(post.announce_id, site),
-  image: post.image_big || null,
-  units: units(post, site),
-  rules: ruleLabel(post, site),
-  twin: others.get(post.announce_id) ?? null,
-});
-export type PostView = ReturnType<typeof view>;
 
 const send = (res: ServerResponse, status: number, body: unknown) => {
   res.writeHead(status, { 'content-type': 'application/json' });
@@ -49,7 +35,7 @@ const api: Plugin = {
     server.middlewares.use('/api/posts', (_req, res) =>
       send(res, 200, {
         server: site,
-        posts: posts.map(view),
+        posts: posts.map((post) => postView(post, site, others)),
         gold: Object.fromEntries(readGold(site).map((l) => [l.id, l])),
       })
     );

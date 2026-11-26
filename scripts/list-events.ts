@@ -1,21 +1,13 @@
-// Usage: pnpm news:events   (prints the events the stored news makes, writes nothing)
+// Usage: pnpm news:events [--server jp]   (prints the events the stored news makes, writes nothing)
 
-import type { CardsFile } from '../shared/schemas/card.ts';
 import type { EventItem } from '../shared/schemas/event.ts';
-import { readJson } from './lib/json.ts';
-import { CARDS_JSON } from './lib/paths.ts';
-import { loadPosts } from './lib/news/api.ts';
-import { buildEvents } from './lib/events/build.ts';
-import { readAnswers, readCmTable } from './lib/events/files.ts';
+import { serverArg } from './lib/news/api.ts';
+import { minuteText } from './lib/news/text.ts';
+import { newsContext } from './lib/events/context.ts';
 
-const cards = readJson<CardsFile>(CARDS_JSON, {});
-const events = buildEvents([...loadPosts().values()], {
-  cmTable: readCmTable(),
-  cards,
-  answers: readAnswers(),
-});
+const events = newsContext(serverArg()).events();
 
-const day = (iso: string | null): string => (iso ? iso.slice(0, 16).replace('T', ' ') : '…');
+const day = (iso: string | null): string => (iso ? minuteText(iso) : '…');
 const count = (c: EventItem['count']): string =>
   c == null ? '?' : typeof c === 'number' ? c.toLocaleString('en') : `${c.min}–${c.max}`;
 for (const e of events) {

@@ -4,6 +4,7 @@
 // ("…/supports/30087-mejiro-bright"; GameTora's ids are ours). Cell comments are in neither view, so they're left out.
 
 import Fuse from 'fuse.js';
+import { DAY } from '../news/text.ts';
 import type { Banner } from '../../../shared/schemas/banner.ts';
 import type { Advice, PullGuide, Release } from '../../../shared/schemas/pullGuide.ts';
 
@@ -232,16 +233,19 @@ export function parseTab(html: string, names: string[] = []): { entries: PullEnt
 // Where in its month an estimate ("early Jun") points, as a day.
 const PART_DAY: Record<Part, number> = { early: 5, mid: 15, late: 25 };
 
+// The banners featuring a card, oldest first.
+export const featuring = (banners: Banner[], cardId: number): Banner[] =>
+  banners
+    .filter((banner) => banner.featured.some((item) => item.id === cardId))
+    .sort((a, b) => Date.parse(a.start.date) - Date.parse(b.start.date));
+
 // The Global card banner (real or predicted) one of a card's entries (`entries`: all of them, in sheet
-// order) is about. Its first release is the earliest banner featuring the card (the guide's estimates
+// order) is about, among those featuring it (featuring()). Its first release is the earliest (the guide's estimates
 // and our predictions can be months apart that far ahead); a rerun, the one starting closest to the
 // guide's date — within 3 weeks of an exact date, 6 weeks of an estimate. Null if none (event, story
 // and shop cards aren't on gacha banners).
-export function findBanner(banners: Banner[], cardId: number, entries: Listed[], entry: Listed): Banner | null {
-  const featuring = banners
-    .filter((banner) => banner.featured.some((item) => item.id === cardId))
-    .sort((a, b) => Date.parse(a.start.date) - Date.parse(b.start.date));
-  if (entry === entries[0]) return featuring[0] ?? null;
+export function findBanner(featured: Banner[], entries: Listed[], entry: Listed): Banner | null {
+  if (entry === entries[0]) return featured[0] ?? null;
   const { date, month, part }: { date?: string; month?: string; part?: Part | null; dateText?: string | null } =
     entry.banner;
   const target = date
@@ -250,9 +254,9 @@ export function findBanner(banners: Banner[], cardId: number, entries: Listed[],
       ? Date.parse(`${month}-${String((part && PART_DAY[part]) ?? 15).padStart(2, '0')}T00:00:00Z`)
       : null;
   if (target === null) return null;
-  const within = (date ? 21 : 42) * 86400000;
+  const within = (date ? 21 : 42) * DAY;
   let best: { banner: Banner; distance: number } | null = null;
-  for (const banner of featuring) {
+  for (const banner of featured) {
     const distance = Math.abs(Date.parse(banner.start.date) - target);
     if (distance <= within && (!best || distance < best.distance)) best = { banner, distance };
   }
@@ -275,9 +279,10 @@ export function byBanner(tabs: Tab[], banners: Banner[]): Pick<PullGuide, 'banne
   }
   const result: Pick<PullGuide, 'banners' | 'noBanner'> = { banners: {}, noBanner: {} };
   for (const [id, entries] of Object.entries(cards)) {
+    const featured = featuring(banners, Number(id));
     for (const entry of entries) {
       const { banner: release, ...advice } = entry;
-      const banner = findBanner(banners, Number(id), entries, entry);
+      const banner = findBanner(featured, entries, entry);
       if (banner) {
         result.banners[banner.id] ??= {};
         result.banners[banner.id][id] = advice;

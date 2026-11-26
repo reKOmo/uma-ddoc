@@ -1,7 +1,7 @@
 // JP's (Japanese) questions, as ai/questions-en.ts: Japanese prompts and examples, and JST dates converted to UTC.
 
 import { itemName } from '../events/rewards.ts';
-import { DAY, JST } from '../news/text.ts';
+import { DAY, JST, minuteText, nearestYear } from '../news/text.ts';
 import type { EventCard } from '../../../shared/schemas/event.ts';
 import { FIELDS } from './questions-en.ts';
 import {
@@ -175,7 +175,7 @@ const EXAMPLES_JP: Examples = {
 // JP posts are Japanese, with times in JST and years mostly left out: the model answers dates as the post writes them
 // and the code converts them to UTC with the year nearest the post (as parsePeriodJp() does).
 // JP: a JST time, in the year nearest the post (an end before the start: the next year), as ISO UTC.
-const jst = (iso: string) => new Date(Date.parse(iso) + JST).toISOString().slice(0, 16).replace('T', ' ');
+const jst = (iso: string) => minuteText(new Date(Date.parse(iso) + JST).toISOString());
 function isoOfJst(s: unknown, event: AskedEvent, after?: string | null): string | null {
   if (!valid(s)) return null;
   const [mo, d, h, mi] = s.slice(5).split(/[- :]/).map(Number);
@@ -183,11 +183,7 @@ function isoOfJst(s: unknown, event: AskedEvent, after?: string | null): string 
   const at = (y: number) => Date.UTC(y, mo - 1, d, h, mi) - JST;
   const day = new Date(at(2000) + JST); // (2000: a leap year)
   if (h > 23 || mi > 59 || day.getUTCMonth() !== mo - 1 || day.getUTCDate() !== d) return null;
-  const ref = new Date(posted + JST).getUTCFullYear();
-  let year = [ref - 1, ref + 1].reduce(
-    (best: number, y: number) => (Math.abs(at(y) - posted) < Math.abs(at(best) - posted) ? y : best),
-    ref
-  );
+  let year = nearestYear(at, posted);
   if (after && at(year) <= Date.parse(after)) year++;
   return Math.abs(at(year) - posted) < 200 * DAY ? new Date(at(year)).toISOString() : null;
 }

@@ -13,9 +13,11 @@ import type { CardsFile } from '../../../shared/schemas/card.ts';
 import { dated } from '../../../shared/schemas/common.ts';
 import type { EventCard, EventKind, GameEvent, Phase } from '../../../shared/schemas/event.ts';
 import type { GametoraEventsFile } from '../../../shared/schemas/gametora.ts';
-import { DAY, HOUR, JST } from '../news/text.ts';
+import { DAY, HOUR, bareTitle, isoOfUnix, jstDay, norm } from '../news/text.ts';
+import { newestEventsFirst } from '../order.ts';
+import type { Dates } from './dates.ts';
+import { overlap } from './merge.ts';
 import { jp } from '../news/lang/jp.ts';
-import { norm } from './rewards.ts';
 import { readJson } from '../json.ts';
 import { GENERATED_DIR } from '../paths.ts';
 
@@ -40,9 +42,11 @@ const CM_SCHEDULE: [key: string, from: number, to: number | null][] = [
   ['final_race', 5 * DAY, null],
 ];
 
+// A raw GameTora record cut to `fields` (null where it has none), as the stored files keep them.
+export const pick = (obj: GametoraRecord, fields: readonly string[]): GametoraRecord =>
+  Object.fromEntries(fields.map((f): [string, unknown] => [f, obj[f] ?? null]));
+
 export function cutEvents(files: Record<string, GametoraRecord[]>): GametoraEventsFile {
-  const pick = (obj: GametoraRecord, fields: string[]): GametoraRecord =>
-    Object.fromEntries(fields.map((f): [string, unknown] => [f, obj[f] ?? null]));
   // TODO(ts): GameTora's JSON is unchecked here: the fields picked are the raw file's (GametoraEventsFile).
   return Object.fromEntries(
     Object.entries(GAMETORA_EVENT_FILES).map(([kind, { file, fields }]): [string, GametoraRecord[]] => [
@@ -59,16 +63,16 @@ export function cutEvents(files: Record<string, GametoraRecord[]>): GametoraEven
 
 const iso = (ms: number) => new Date(ms).toISOString();
 // GameTora ends events on the last second of a minute, the news on the minute itself.
-const time = (unix: number) => unix * 1000;
 const minute = (unix: number) => Math.floor(unix / 60) * 60_000;
 
 function cardOf(cards: CardsFile, id: string): EventCard {
   const card = cards[id];
+  const title = card?.title?.jp;
   // TODO(ts): a card cards.json lacks (or without a Japanese title or name) gives null here, which EventCard doesn't allow.
   return {
     id: Number(id),
     rarity: card?.rarity ?? null,
-    title: card?.title?.jp?.replace(/^\[|\]$/g, '') ?? null,
+    title: title == null ? null : bareTitle(title),
     name: card?.name?.jp ?? null,
     copies: null,
   } as EventCard;
@@ -122,13 +126,13 @@ export function gametoraEvents(raw: GametoraEventsFile, cards: CardsFile = {}): 
       id: `gt-story-${e.id}`,
       kind: 'story',
       name: e.name_ja,
-      start: iso(time(e.start_ja)),
+      start: isoOfUnix(e.start_ja),
       end: iso(minute(e.end_ja)),
       cards: (e.event_support_ids ?? []).map((id) => cardOf(cards, String(id))),
     })
   );
   const cups = (raw.champions_meeting ?? []).map((e) => {
-    const [start, end] = [time(e.start), minute(e.end)];
+    const [start, end] = [e.start * 1000, minute(e.end)];
     return event({
       id: `gt-cm-${e.id}`,
       kind: 'champions_meeting',
@@ -141,22 +145,17 @@ export function gametoraEvents(raw: GametoraEventsFile, cards: CardsFile = {}): 
   const races = (raw.legend_race ?? []).map((e) =>
     event({
       // Newer ones have no id on GameTora yet: their JST start day stands in.
-      id: `gt-lr-${e.id ?? new Date(time(e.start) + JST).toISOString().slice(0, 10).replaceAll('-', '')}`,
+      id: `gt-lr-${e.id ?? jstDay(isoOfUnix(e.start)).replaceAll('-', '')}`,
       kind: 'legend_race',
       name: null,
-      start: iso(time(e.start)),
+      start: isoOfUnix(e.start),
       end: iso(minute(e.end)),
     })
   );
-  return [...story, ...cups, ...races].sort(
-    (a, b) => b.start.date.localeCompare(a.start.date) || b.id.localeCompare(a.id)
-  );
+  return [...story, ...cups, ...races].sort(newestEventsFirst);
 }
 
-const endOf = (e: Pick<GameEvent, 'start' | 'end'>) =>
-  Date.parse((e.end ?? e.start).date) || Date.parse(e.start.date) + DAY;
-const overlap = (a: Pick<GameEvent, 'start' | 'end'>, b: Pick<GameEvent, 'start' | 'end'>) =>
-  Date.parse(a.start.date) <= endOf(b) && Date.parse(b.start.date) <= endOf(a);
+const datesOf = (e: GameEvent): Dates => ({ start: e.start.date, end: e.end?.date ?? null });
 
 // events (data/jp_events.json's, from the news) + GameTora's → events with GameTora's filled in where the news has
 // no event of the kind at the time; returns { events, filled, dated } (dated: undated news events given GameTora's
@@ -171,7 +170,7 @@ export function fillFromGametora(
   const dated = new Map<string, GameEvent>(); // news event id → its dated copy
   const filled: GameEvent[] = [];
   for (const g of gametoraEvents(raw, cards)) {
-    if (top.some((e) => e.kind === g.kind && e.end && overlap(e, g))) continue;
+    if (top.some((e) => e.kind === g.kind && e.end && overlap(datesOf(e), datesOf(g)))) continue;
     const announced = top.find(
       (e) =>
         e.kind === g.kind &&
@@ -188,9 +187,7 @@ export function fillFromGametora(
       dated.set(announced.id, out);
     } else if (g.start.date < FILL_BEFORE) filled.push(g);
   }
-  const all = [...news.map((e) => dated.get(e.id) ?? e), ...filled].sort(
-    (a, b) => b.start.date.localeCompare(a.start.date) || b.id.localeCompare(a.id)
-  );
+  const all = [...news.map((e) => dated.get(e.id) ?? e), ...filled].sort(newestEventsFirst);
   return { events: all, filled, dated: [...dated.values()] };
 }
 

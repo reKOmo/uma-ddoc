@@ -1,7 +1,9 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readJson } from '../scripts/lib/json.ts';
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { GAMETORA_CARDS_FILE } from '../scripts/build-cards.ts';
-import { JP_CARDS_FILE, applyNewsCards, newsCards } from '../scripts/lib/cards/jp.ts';
+import { GAMETORA_CARDS_FILE } from '../scripts/lib/cards/files.ts';
+import { applyNewsCards, newsCards } from '../scripts/lib/cards/jp.ts';
+import { dataFile } from '../scripts/lib/paths.ts';
 import { postsFile } from '../scripts/lib/news/api.ts';
 import type { NewsCard } from '../scripts/lib/cards/jp.ts';
 import type { JpCard, JpCardsFile } from '../shared/schemas/card.ts';
@@ -9,7 +11,6 @@ import type { GametoraCard } from '../shared/schemas/gametora.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import { at, present } from './helpers.ts';
 
-const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8'));
 const posts = existsSync(postsFile('jp')) ? readJson<NewsPost[]>(postsFile('jp')) : [];
 const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
 const some = (...ids: number[]) => ids.map((id) => present(byId.get(String(id)), `post ${id}`));
@@ -210,10 +211,10 @@ describe('applyNewsCards', () => {
   });
 });
 
-const stored = posts.length && existsSync(GAMETORA_CARDS_FILE) && existsSync(JP_CARDS_FILE);
+const stored = posts.length && existsSync(GAMETORA_CARDS_FILE) && existsSync(dataFile('jp', 'cards'));
 describe.skipIf(!stored)('the stored news, history and GameTora list', { tags: ['data'] }, () => {
   const all = stored ? newsCards(posts) : [];
-  const jpCards = stored ? readJson<JpCardsFile>(JP_CARDS_FILE) : {};
+  const jpCards = stored ? readJson<JpCardsFile>(dataFile('jp', 'cards')) : {};
   const gtCards = stored ? readJson<GametoraCard[]>(GAMETORA_CARDS_FILE) : [];
 
   it('rebuild the newest cards from the news + GameTora exactly as the frozen history has them', () => {

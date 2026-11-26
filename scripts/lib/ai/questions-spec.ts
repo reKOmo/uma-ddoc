@@ -1,7 +1,7 @@
 // What the English and Japanese question sets share: the field types, the schemas, and the checks on names and times.
 
 import type { JsonSchema } from './client.ts';
-import { norm } from '../events/rewards.ts';
+import { norm } from '../news/text.ts';
 import type { ScoutWindow } from '../events/free-scouts.ts';
 import type { GameEvent } from '../../../shared/schemas/event.ts';
 import type { Lexicon } from '../news/lang/index.ts';

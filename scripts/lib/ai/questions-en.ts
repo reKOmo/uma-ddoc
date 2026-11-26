@@ -1,7 +1,7 @@
 // Global's (English) questions: what's asked about each field, the schemas, the examples and the English entry of QUESTIONS.
 
 import { itemName, numberWord } from '../events/rewards.ts';
-import { DAY } from '../news/text.ts';
+import { DAY, minuteText } from '../news/text.ts';
 import type { EventCard } from '../../../shared/schemas/event.ts';
 import {
   type AskedEvent,
@@ -208,7 +208,7 @@ export const questionsEn: Questions = {
   kindTaken: (event) => event.kind !== 'celebration',
   header: (event) => {
     const when = event.start
-      ? `${event.start.slice(0, 16).replace('T', ' ')} to ${event.end?.slice(0, 16).replace('T', ' ') ?? '?'} UTC`
+      ? `${minuteText(event.start)} to ${event.end != null ? minuteText(event.end) : '?'} UTC`
       : 'unknown dates';
     return [`Event: ${event.kind.replace('_', ' ')} "${shownName(event)}" (${when}, as read so far).`];
   },

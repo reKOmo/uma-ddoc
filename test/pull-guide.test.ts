@@ -1,8 +1,10 @@
+import { readJson } from '../scripts/lib/json.ts';
 import { describe, it, expect } from 'vitest';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { PullGuideSchema } from '../shared/schemas/pullGuide.ts';
 import {
   byBanner,
+  featuring,
   findBanner,
   notesParagraph,
   parseDate,
@@ -272,19 +274,19 @@ describe('the banner an entry is about', () => {
   ]);
 
   it('is the earliest banner featuring the card for its first release', () => {
-    expect(present(findBanner(banners, 30078, entries, entries[0]), 'banner').id).toBe(1);
+    expect(present(findBanner(featuring(banners, 30078), entries, entries[0]), 'banner').id).toBe(1);
     const event = fixture<Listed[]>([{ banner: { month: '2027-06', part: 'early', label: 'Event' } }]);
-    expect(findBanner(banners, 30111, event, event[0])).toBeNull();
+    expect(findBanner(featuring(banners, 30111), event, event[0])).toBeNull();
   });
 
   it('is the closest one for a rerun, estimates included', () => {
-    expect(present(findBanner(banners, 30078, entries, entries[1]), 'banner').id).toBe(2);
-    expect(present(findBanner(banners, 30078, entries, entries[2]), 'banner').id).toBe(3);
+    expect(present(findBanner(featuring(banners, 30078), entries, entries[1]), 'banner').id).toBe(2);
+    expect(present(findBanner(featuring(banners, 30078), entries, entries[2]), 'banner').id).toBe(3);
   });
 
   it('is none for a rerun far from any banner', () => {
     const late = fixture<Listed>({ banner: { date: '2027-06-01', label: 'Rerun' } });
-    expect(findBanner(banners, 30078, [...entries, late], late)).toBeNull();
+    expect(findBanner(featuring(banners, 30078), [...entries, late], late)).toBeNull();
   });
 });
 
@@ -365,6 +367,6 @@ describe('the schema', () => {
   });
 
   it.skipIf(!existsSync('generated/pull_guide.json'))('fits generated/pull_guide.json', { tags: ['data'] }, () => {
-    check(JSON.parse(readFileSync('generated/pull_guide.json', 'utf8')));
+    check(readJson('generated/pull_guide.json'));
   });
 });

@@ -107,48 +107,56 @@ Wave 2 done too (dates, constants, exports, section 6's moves): pixel-identical 
 
 ## 4. Shared logic in `scripts/`, `tierlist/`, `shared/`
 
-- [ ] **JSON writers:** ~15 hand-written "one record per line" serialisers (`bannerList` / `writeGlobal`,
+Done (with section 6's script moves and the optional items): data/ byte-identical after update-jp + update-global, every
+writer round-tripped against the committed files, the parsers' output dumped before/after for both servers (identical;
+`news:events` now honours categories like the other tools). Not done: `ai/client.ts`' pacing (a minimum interval since
+the last request, not paced()'s random pause: a different rule). update-jp parses banner posts once now (~10% faster);
+eventFragments still runs twice (newsCards' run has no cards or categories, so sharing it could change jp_cards.json).
+Test helpers: one `readJson` (scripts/lib/json.ts) and `h2` (test/helpers.ts); the three post builders differ (art
+URLs, signatures), so they stay.
+
+- [x] **JSON writers:** ~15 hand-written "one record per line" serialisers (`bannerList` / `writeGlobal`,
   `writeJpBanners` = writeGlobal's banner half, `writeJpCards`, `writePending`, `perLine`, `savePosts`,
   `events/files.ts`, `gold.ts`, `scrape-gametora.ts` ×3, `scenarios.ts`, `mdb.ts`). Fix: `jsonLines()` /
   `jsonEntries(record, indent?)` / `jsonEnvelope()` in `lib/json.ts`. Edge cases: `[]` vs `[\n\n]`, 2/4-space indents.
   Check: every writer rerun, `git diff data/` empty.
-- [ ] **Global / JP banners share a module:** `lib/banners/common.ts` with `writeBannerFile`, `newestPerBanner`
+- [x] **Global / JP banners share a module:** `lib/banners/common.ts` with `writeBannerFile`, `newestPerBanner`
   (`newestAnnounced` / `newestPosts`), `newestFirst`, and what jp.ts imports from global.ts today (`bannerList`,
   `endOfMinute`, `pickMain`, `BANNER_KINDS`). `jp.ts` ~48–62 derives `ScoutPost` etc. from `BannerPost` like global.ts;
   `addReruns` uses `newsFields()`; `withoutNews` / `seedDraft` one helper.
-- [ ] **Newest-first comparator ×6** (`events/build.ts`, `gametora.ts` ×2, `update-jp.ts`, `banners/global.ts`,
+- [x] **Newest-first comparator ×6** (`events/build.ts`, `gametora.ts` ×2, `update-jp.ts`, `banners/global.ts`,
   `banners/jp.ts`) → one export.
-- [ ] **`update-jp.ts` re-reads:** `readEvents('jp')` ×2, `readJpBanners()` ×3 because `updateJpBanners` returns the
+- [x] **`update-jp.ts` re-reads:** `readEvents('jp')` ×2, `readJpBanners()` ×3 because `updateJpBanners` returns the
   result or `{lines}`; the no-GameTora path calls `fillFromGametora` with empty lists to sort. `update-global.ts`:
   `known.banners.find` in a loop (Map), `writeGlobal` twice. Event-diff `JSON.stringify` compare ×4 → `changedSince()`;
   summary.md appending ×3 → `writeSummary()`.
-- [ ] **More time helpers:** ISO → `YYYY-MM-DD HH:MM` slice ×7 → `minuteText()`; `jstDay()`; nearest-year JST
+- [x] **More time helpers:** ISO → `YYYY-MM-DD HH:MM` slice ×7 → `minuteText()`; `jstDay()`; nearest-year JST
   resolution ×2 (`parsePeriodJp`, `isoOfJst`) → `nearestYear()` (JP gold + replay tests must stay green);
   `fetch-news-umapyoi.ts`' own offset; `86400000` in `list-merges.ts`, `pull-guide.ts`.
-- [ ] **Server helpers:** `isServer` / `serverArg` from `SERVERS`; `convert-mdb.ts` validates `--server` by hand,
+- [x] **Server helpers:** `isServer` / `serverArg` from `SERVERS`; `convert-mdb.ts` validates `--server` by hand,
   `ai-events.ts` declares the flag twice; the "gl has no suffix" file rule ×4 → `serverSuffix()`; gl → "global" file
   prefix in 3 places → `dataFile(server, kind)`. Inline `'gl' | 'jp'` left in `lang/index.ts`, `gold-review/main.tsx`.
-- [ ] **`norm`:** drop the re-export in `events/rewards.ts` (~8 importers → `news/text.ts`); `lib/scenarios.ts`' own
+- [x] **`norm`:** drop the re-export in `events/rewards.ts` (~8 importers → `news/text.ts`); `lib/scenarios.ts`' own
   ASCII `norm` → `asciiKey` (it forces `normAny`); bracket stripping ×3 → `bareTitle()`; `title|name` key ×2 →
   `cardKey()`.
-- [ ] **GameTora maps:** `GAMETORA_TYPES` (`cards/build.ts`) and `GAMETORA_TYPE` (`banners/jp.ts`, with a cast) are
+- [x] **GameTora maps:** `GAMETORA_TYPES` (`cards/build.ts`) and `GAMETORA_TYPE` (`banners/jp.ts`, with a cast) are
   inverses, `src/lib/tiers.ts` a third → `toGametoraType` / `fromGametoraType` in `shared/schemas/common.ts`; `RARITY`
   (`banners/jp.ts`) = `RARITY_CODES`.
-- [ ] **HTTP:** `fetch` + `!res.ok` throw ×6, User-Agent `HEADERS` ×3, `ai/client.ts`' own pacing → `getOk` / `getJson`
+- [x] **HTTP:** `fetch` + `!res.ok` throw ×6, User-Agent `HEADERS` ×3, `ai/client.ts`' own pacing → `getOk` / `getJson`
   / `getText` / `SCRAPER_HEADERS` in `lib/http.ts`.
-- [ ] **Events:** `endOf` / `overlap` / `SAME_EVENT_DAYS` in both `merge.ts` and `gametora.ts` (with 1.2); GameTora
+- [x] **Events:** `endOf` / `overlap` / `SAME_EVENT_DAYS` in both `merge.ts` and `gametora.ts` (with 1.2); GameTora
   seconds → ISO ×2.
-- [ ] **News tool setup ×3** (`list-events`, `list-merges`, `ai-events`): `newsContext(server)`; `list-events` ignores
+- [x] **News tool setup ×3** (`list-events`, `list-merges`, `ai-events`): `newsContext(server)`; `list-events` ignores
   `--server` and categories today.
-- [ ] **`ai/answers.ts`:** hand-written `Loose*` types + 4 casts → a permissive zod schema; keep the semantic checks.
-- [ ] **`lang/jp.ts`:** two bracket-depth scanners (`jpName`, `subName`) → `topQuotes()`.
-- [ ] **Small:** `pickMain`'s redundant `?? null`; unreachable throws in `lexicon()` / `questionsOf()` (type the maps);
+- [x] **`ai/answers.ts`:** hand-written `Loose*` types + 4 casts → a permissive zod schema; keep the semantic checks.
+- [x] **`lang/jp.ts`:** two bracket-depth scanners (`jpName`, `subName`) → `topQuotes()`.
+- [x] **Small:** `pickMain`'s redundant `?? null`; unreachable throws in `lexicon()` / `questionsOf()` (type the maps);
   `parsePeriodJp` sets `end.time` twice; `cmPhases` parses the line twice; `find()` in loops (`keepPhases`,
   `findBanner`); `scrapeEvents` duplicates `loadData` / `pick()`; `longerTitle`'s six lambdas; `structuredClone` for
   `JSON.parse(JSON.stringify())` (`tierlist/scenarios.ts`); `Map.groupBy` in `list-merges.ts`; flags read 3 ways
   (`parseArgs` everywhere); Global id-series thresholds ×3 → named in `lang/en.ts`; `isMain(import.meta.url)` ×10
   (optional).
-- [ ] **Repeated parsing in `update-jp`** (~1 s per run, measured): compute fragments once. Only if the pipeline gets slow.
+- [x] **Repeated parsing in `update-jp`** (banner posts once; fragments still twice, see above) (~1 s per run, measured): compute fragments once. Only if the pipeline gets slow.
 
 ## 5. Big files to split (plan)
 
@@ -175,11 +183,11 @@ Wave 2 done too (dates, constants, exports, section 6's moves): pixel-identical 
 
 - [x] **`timeline/scenarioStrip.ts` → `src/lib/`** (RankChart, RankOverTime, TimelineAxis, TimelinePage use it).
 - [x] **Dates → `src/lib/dates.ts`** (= 3.7): the card page stops reaching into `timeline/` for formatting.
-- [ ] **Commands never imported:** `news-features.ts`' `writeFeatures` → `lib/news/features.ts` (lib imports a command
+- [x] **Commands never imported:** `news-features.ts`' `writeFeatures` → `lib/news/features.ts` (lib imports a command
   today); `build-cards.ts`' `buildCardFiles` / `INPUTS` / `OUTPUTS` / `GAMETORA_CARDS_FILE` and `update-cards.ts`'
   `ensureCards` → `lib/cards/`; `build-schemas.ts`' `jsonSchema` / `schemaText` → `lib/schemas.ts`; `gold-review.ts`'
   `PostView` → a lib module. Rule for `docs/conventions/code-style.md`: commands import libs, never other commands.
-- [ ] **Data-file paths live in domain modules** (`fetch-pull-guide`, `build-cards` import `banners/global.ts` for a
+- [x] **Data-file paths live in domain modules** (`fetch-pull-guide`, `build-cards` import `banners/global.ts` for a
   path): with 4's `dataFile()`, or a `lib/files.ts`; `shared/schemas/files.ts` already names each file.
 - [x] **`state/settings.tsx` → `.ts`** (no JSX; ~11 imports).
 - [x] **`pages/card/Origins.tsx` → `OriginPills.tsx`** (holds `KindPill` / `OriginPill`).

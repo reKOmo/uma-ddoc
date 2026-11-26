@@ -7,6 +7,7 @@ import type { AiAnswer } from '../../../shared/schemas/news.ts';
 import type { Question } from './client.ts';
 import { en } from '../news/lang/en.ts';
 import type { Lexicon } from '../news/lang/index.ts';
+import type { Server } from '../news/text.ts';
 import { EXAMPLES, FIELDS, questionsEn } from './questions-en.ts';
 import { questionsJp } from './questions-jp.ts';
 import { DATE, type AskedEvent, type Examples, type Field, type Questions } from './questions-spec.ts';
@@ -45,7 +46,7 @@ export function mergeAnswer(
 // Kinds whose posts never name the event (the kind says what it is).
 export const UNNAMED_KINDS = ['legend_race', 'transfer_requests', 'league_of_heroes'];
 
-const QUESTIONS: Record<string, Questions> = { gl: questionsEn, jp: questionsJp };
+const QUESTIONS: Record<Server, Questions> = { gl: questionsEn, jp: questionsJp };
 
 // (An example with a post date, [text, answer, posted]: JP's, whose dates leave the year out.)
 const examplesFor = (fields: Field[], examples: Examples = EXAMPLES) =>
@@ -65,11 +66,7 @@ export function nameDoubt(name: string | null, lang: Lexicon = en): string | nul
   return null;
 }
 
-export const questionsOf = (lang: Lexicon = en): Questions => {
-  const q = QUESTIONS[lang.server];
-  if (!q) throw new Error(`no questions for ${lang.server}`);
-  return q;
-};
+export const questionsOf = (lang: Lexicon = en): Questions => QUESTIONS[lang.server];
 
 // Asked only where the post may hold an answer the rules couldn't read: an item named without an amount ("rewards
 // like carats") or a Legend Race / Transfer Request without a name has none, so they aren't asked.

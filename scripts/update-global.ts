@@ -2,25 +2,25 @@
 // Needs JP's banners (their items) and generated/cards.json (English names). Idempotent: the news-made entries are
 // rebuilt from every post each time, the seeded ones are left alone.
 
-import { appendFileSync, existsSync, writeFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
+import { existsSync, writeFileSync } from 'node:fs';
+import { parseArgs } from 'node:util';
 import type { BannerFile, BannerItem } from '../shared/schemas/banner.ts';
 import type { CardsFile, GlobalCard } from '../shared/schemas/card.ts';
 import { type DatedMoment, dated } from '../shared/schemas/common.ts';
 import type { GameEvent } from '../shared/schemas/event.ts';
 import type { KnownDatesFile } from '../shared/schemas/predictions.ts';
-import { readJson } from './lib/json.ts';
-import { CARDS_JSON, DATA_DIR, newsDir } from './lib/paths.ts';
+import { changedSince, readJson } from './lib/json.ts';
+import { CARDS_JSON, DATA_DIR, appendSummary, dataFile, isMain } from './lib/paths.ts';
 import { bannerPost } from './lib/banners/posts.ts';
 import { loadPosts } from './lib/news/api.ts';
 import { scenarioPost } from './lib/news/scenario-posts.ts';
+import { minuteText } from './lib/news/text.ts';
 import {
-  BANNERS_FILE,
-  CARDS_FILE,
   type CardRecords,
   applyNews,
   englishNames,
-  writeGlobal,
+  writeGlobalBanners,
+  writeGlobalCards,
 } from './lib/banners/global.ts';
 import { applyScenarioNews, fillColors, readScenarios, writeScenarios } from './lib/scenarios.ts';
 import { readJpBanners, regularBanners } from './lib/banners/jp.ts';
@@ -29,18 +29,16 @@ import { readAnswers, readCmTable, readEvents, writeEvents } from './lib/events/
 import { readCategories, refreshCategories, unsureLines } from './lib/news/categories.ts';
 import { keepEventFills } from './lib/fills.ts';
 import { withFreePulls } from './lib/events/free-scouts.ts';
-import { ensureCards } from './update-cards.ts';
-import { buildCardFiles } from './build-cards.ts';
+import { buildCardFiles, ensureCards } from './lib/cards/files.ts';
 
-const SUMMARY_FILE = `${newsDir('gl')}summary.md`;
 const KNOWN_DATES_FILE = `${DATA_DIR}known_dates.json`;
 
 const day = (iso: string): string => iso.slice(0, 10);
-const when = (iso: string): string => `${iso.slice(0, 16).replace('T', ' ')} UTC`;
+const when = (iso: string): string => `${minuteText(iso)} UTC`;
 
 type Released = GlobalCard & { news_url?: string };
 
-export type GlobalUpdate = ReturnType<typeof applyNews> & {
+type GlobalUpdate = ReturnType<typeof applyNews> & {
   changed: ReturnType<typeof applyNews>['banners'];
   released: [string, Released][];
   scenarios: ReturnType<typeof applyScenarioNews>;
@@ -49,11 +47,12 @@ export type GlobalUpdate = ReturnType<typeof applyNews> & {
   summary: string;
 };
 
-export async function updateGlobal(): Promise<GlobalUpdate> {
-  if (!existsSync(BANNERS_FILE)) throw new Error('data/ has no Global banners (data/global_banners.json is committed)');
+async function updateGlobal(): Promise<GlobalUpdate> {
+  if (!existsSync(dataFile('gl', 'banners')))
+    throw new Error('data/ has no Global banners (data/global_banners.json is committed)');
   await ensureCards();
-  const global = readJson<BannerFile>(BANNERS_FILE);
-  const cards = readJson<CardRecords>(CARDS_FILE);
+  const global = readJson<BannerFile>(dataFile('gl', 'banners'));
+  const cards = readJson<CardRecords>(dataFile('gl', 'cards'));
   const jp = regularBanners(readJpBanners());
   const cardData = readJson<CardsFile>(CARDS_JSON);
   const raw = [...loadPosts().values()];
@@ -64,12 +63,14 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   // A confirmed banner the news has announced is Global's own now: its known_dates.json entry has done its job, but
   // for an end the post doesn't give (kept as a confirmed date from then on).
   const known = readJson<KnownDatesFile>(KNOWN_DATES_FILE);
+  const knownById = new Map<number | string, KnownDatesFile['banners'][number]>(known.banners.map((k) => [k.id, k]));
   for (const b of [...result.global.characters, ...result.global.cards]) {
-    const k = known.banners.find((x) => x.id === b.id);
+    const k = knownById.get(b.id);
     if (k && b.end?.status !== 'news')
       b.end = { ...dated(new Date(k.end).toISOString(), 'confirmed'), source: k.source };
   }
-  writeGlobal(result);
+  // The card releases first: the card data is built from them (the banners are written once their free pulls are in).
+  writeGlobalCards(result.cards);
   await buildCardFiles();
   // Rebuilt from the card releases just written: a card whose English title the news gives first is matched in this
   // run's events, not the next one's.
@@ -95,7 +96,7 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   refreshCategories();
   const categories = readCategories();
   const storedEvents: GameEvent[] = readEvents();
-  const oldEvents = new Map(storedEvents.map((e) => [e.id, JSON.stringify(e)]));
+  const storedIds = new Set(storedEvents.map((e) => e.id));
   const events = keepEventFills(
     buildEvents(raw, {
       cmTable: readCmTable(),
@@ -108,8 +109,8 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   );
   writeEvents(events);
   // Each banner's free pulls, from the events' free scout windows.
-  writeGlobal({ ...result, global: withFreePulls(result.global, events) });
-  const changedEvents = events.filter((e) => oldEvents.get(e.id) !== JSON.stringify(e));
+  writeGlobalBanners(withFreePulls(result.global, events));
+  const changedEvents = changedSince(storedEvents, events);
 
   const before = new Map(
     [...global.characters, ...global.cards]
@@ -152,7 +153,7 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
       .filter(Boolean)
       .join('; ');
     lines.push(
-      `- ${oldEvents.has(e.id) ? 'Updated' : 'Added'} ${e.kind} event "${e.name ?? e.kind}" (${day(e.start.date)})${extra ? ` — ${extra}` : ''}`
+      `- ${storedIds.has(e.id) ? 'Updated' : 'Added'} ${e.kind} event "${e.name ?? e.kind}" (${day(e.start.date)})${extra ? ` — ${extra}` : ''}`
     );
   }
   for (const name of scenarios.unmatched) lines.push(`- Scenario "${name}" doesn't match any JP scenario`);
@@ -163,13 +164,14 @@ export async function updateGlobal(): Promise<GlobalUpdate> {
   return { ...result, changed, released, scenarios, events: changedEvents, unconfirmed, summary };
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isMain(import.meta.url)) {
   try {
+    // strict: false: the news run's flags pass through pnpm.
+    const { values } = parseArgs({ options: { summary: { type: 'boolean' } }, strict: false });
     const { changed, released, skipped, events, summary } = await updateGlobal();
     if (summary) {
       console.log(summary);
-      if (process.argv.includes('--summary') && existsSync(SUMMARY_FILE)) appendFileSync(SUMMARY_FILE, `\n${summary}`);
-      if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\n${summary}`);
+      appendSummary('gl', `\n${summary}`, { toFile: values.summary === true, toJob: true });
     }
     console.log(
       `Global: ${changed.length} banners added or moved, ${released.length} card releases, ${events.length} events added or changed, ${skipped.length} skipped (${day(new Date().toISOString())}).`

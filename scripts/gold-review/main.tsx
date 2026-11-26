@@ -5,7 +5,7 @@ import { StrictMode, useCallback, useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { EVENT_KINDS } from '../../shared/schemas/event.ts';
 import { type GoldLabel, type GoldUnit, OTHER_KINDS, POST_PHASES, UNIT_ROLES } from '../../shared/schemas/news.ts';
-import type { PostView } from '../gold-review.ts';
+import type { PostView } from '../lib/news/gold.ts';
 import './style.css';
 
 type Data = { server: 'gl' | 'jp'; posts: PostView[]; gold: Record<number, GoldLabel> };

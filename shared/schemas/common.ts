@@ -39,6 +39,8 @@ export type CardType = z.infer<typeof CardType>;
 export const GAMETORA_TYPES = ['speed', 'stamina', 'power', 'guts', 'intelligence', 'friend', 'group'] as const;
 export const GametoraType = z.enum(GAMETORA_TYPES);
 export type GametoraType = z.infer<typeof GametoraType>;
+export const toGametoraType = (type: CardType): GametoraType => (type === 'wisdom' ? 'intelligence' : type);
+export const fromGametoraType = (type: GametoraType): CardType => (type === 'intelligence' ? 'wisdom' : type);
 
 // How a card is obtained (GameTora's `obtained`).
 export const CARD_SOURCES = ['gacha', 'story_event', 'promo', 'limited_quest', 'main_story', 'shop'] as const;

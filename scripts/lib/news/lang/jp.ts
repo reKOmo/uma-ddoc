@@ -11,22 +11,30 @@ const unmarked = (title: string) => title.replace(/^(?:【[^】]*】\s*)+|\s*【
 const PHASE_END =
   /\s*(?:の?(?:特別)?開催(?:決定|予告|予定|中)?|参加リーグ選択開始|チーム編成期間開始|終了(?:予告|迫る)?|追加|公開|実施中|配信中|登場)?\s*[！!]?$/;
 
+const OPEN: Record<string, string> = { '「': '」', '『': '』' };
+// Where each outermost 「…」 / 『…』 opens and closes ([open, close] indices; quotes nested in it are its own).
+function topQuotes(s: string): [number, number][] {
+  const quotes: [number, number][] = [];
+  const stack: string[] = [];
+  let from = 0;
+  for (let i = 0; i < s.length; i++) {
+    if (OPEN[s[i]]) {
+      if (!stack.length) from = i;
+      stack.push(OPEN[s[i]]);
+    } else if (stack.length && s[i] === stack.at(-1)) {
+      stack.pop();
+      if (!stack.length) quotes.push([from, i]);
+    }
+  }
+  return quotes;
+}
+
 // The outermost 「…」 or 『…』 when the title is just that and its phase ("「「ウマ娘」×「Number」コラボキャンペーン」開催！"),
 // else the title without its phase ("『うまゆる ふるげ～と！』配信記念キャンペーン開催中！"): a campaign's or event's name.
 function jpName(title: string) {
   const t = unmarked(title);
-  const open = t[0];
-  const close = ({ '「': '」', '『': '』' } as Record<string, string>)[open];
-  if (close) {
-    let depth = 0;
-    for (let i = 0; i < t.length; i++) {
-      if (t[i] === open) depth++;
-      else if (t[i] === close && --depth === 0) {
-        if (!t.slice(i + 1).replace(PHASE_END, '')) return t.slice(1, i).trim();
-        break;
-      }
-    }
-  }
+  const [first] = topQuotes(t);
+  if (first?.[0] === 0 && !t.slice(first[1] + 1).replace(PHASE_END, '')) return t.slice(1, first[1]).trim();
   return t.replace(PHASE_END, '').trim() || t;
 }
 const named = (m: { input: string }) => jpName(m.input);
@@ -75,28 +83,14 @@ function blockRole(block: Block) {
 // A sub-event's name in its opening sentence: of the names it quotes (「…」 / 『…』, nested ones kept), with what follows
 // them up to a particle ("「育成報酬」ピース追加キャンペーン"), the first one the sentence says is on, given or added ("「X」を
 // 開催中です", "[ミッション]に「X」が登場", "「X」をトレーナーの皆さまにお贈りいたします"), else the first; null without any.
-const OPEN: Record<string, string> = { '「': '」', '『': '』' };
 const NAME_VERB = /^(?:を|が)[^「」『』。]{0,25}?(?:開催|お贈り|お送り|プレゼント|販売|公開|実施|登場|開始)/;
 function subName(sentence: string) {
-  const names = [];
-  let depth = 0;
-  let from = 0;
-  const stack = [];
-  for (let i = 0; i < sentence.length; i++) {
-    const ch = sentence[i];
-    if (OPEN[ch]) {
-      if (!depth) from = i;
-      stack.push(OPEN[ch]);
-      depth++;
-    } else if (depth && ch === stack.at(-1)) {
-      stack.pop();
-      if (--depth) continue;
-      const inner = sentence.slice(from + 1, i).trim();
-      const suffix = sentence.slice(i + 1).match(/^[^\s、。！？!?「」『』をがにはでとのやもへ]*/)?.[0] ?? '';
-      const after = sentence.slice(i + 1 + suffix.length);
-      names.push({ name: suffix ? sentence.slice(from, i + 1) + suffix : inner, on: NAME_VERB.test(after) });
-    }
-  }
+  const names = topQuotes(sentence).map(([from, i]) => {
+    const inner = sentence.slice(from + 1, i).trim();
+    const suffix = sentence.slice(i + 1).match(/^[^\s、。！？!?「」『』をがにはでとのやもへ]*/)?.[0] ?? '';
+    const after = sentence.slice(i + 1 + suffix.length);
+    return { name: suffix ? sentence.slice(from, i + 1) + suffix : inner, on: NAME_VERB.test(after) };
+  });
   // (Not a sentence naming rewards: "…クリアすることで「ジュエル」や「マニー」などの報酬を獲得できます！")
   return (names.find((n) => n.on) ?? (/報酬|など/.test(sentence) ? null : names[0]))?.name ?? null;
 }

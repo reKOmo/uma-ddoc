@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readJson } from '../scripts/lib/json.ts';
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { eventBlocks } from '../scripts/lib/events/blocks.ts';
 import { cardIndex, cardsIn, itemsIn, missionsIn, titlesIn } from '../scripts/lib/events/rewards.ts';
@@ -11,9 +12,8 @@ import { categorize } from '../scripts/lib/news/categorize.ts';
 import type { CardsFile } from '../shared/schemas/card.ts';
 import type { CmRewardsFile } from '../shared/schemas/event.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
-import { fixture } from './helpers.ts';
+import { fixture, h2 } from './helpers.ts';
 
-const h2 = (text: string) => `<h2 class="heading"> ${text}</h2>\n`;
 const art = (id: number | string) =>
   `<figure><img src="https://example.com/uploads/Header/header_${id}_L1791410400.png?c=1"></figure>\n`;
 const lines = (...list: string[]) => list.map((l) => ` ${l}<br>\n`).join('');
@@ -422,7 +422,7 @@ describe('mission sets', () => {
 });
 
 describe.skipIf(!existsSync(postsFile('gl')))('the stored news', { tags: ['data'] }, () => {
-  const posts = JSON.parse(readFileSync(postsFile('gl'), 'utf8'));
+  const posts = readJson<NewsPost[]>(postsFile('gl'));
   const events = buildEvents(posts);
 
   it("gives an event a celebration's first block opens a part of its own, which its own post then joins", () => {
@@ -466,7 +466,7 @@ describe.skipIf(!existsSync(postsFile('gl')))('the stored news', { tags: ['data'
   it('gives every story event its card', () => {
     const cardsFile = new URL('../generated/cards.json', import.meta.url);
     if (!existsSync(cardsFile)) return;
-    const withCards = buildEvents(posts, { cards: JSON.parse(readFileSync(cardsFile, 'utf8')) });
+    const withCards = buildEvents(posts, { cards: readJson(cardsFile) });
     // A story's "coming soon" post doesn't name its card; the one when it begins does.
     const newest = posts
       .map((p: { post_at: string }) => p.post_at.replace(' ', 'T'))

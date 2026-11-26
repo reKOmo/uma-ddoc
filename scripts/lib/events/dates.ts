@@ -61,17 +61,20 @@ export function cmPhases(
     .flatMap((s) => s.lines)
     .map((l) => l.match(/^(.+?)[:：]\s*(.+)$/))
     .filter((m): m is RegExpMatchArray => !!m);
+  // The first of these lines that gives a start, parsed.
+  const firstPeriod = (lines: (string | false)[]): Omit<PostPhase, 'key'> | undefined => {
+    for (const line of lines) {
+      if (!line) continue;
+      const { start, end } = lang.parsePeriod(line, year);
+      if (start) return { start, end };
+    }
+  };
   return schedule.flatMap(([key, re]) => {
     const section = block.sections.find((s) => re.test(s.heading));
-    const line =
-      section?.lines.find((l) => lang.periodLine(l) && lang.parsePeriod(l, year).start) ??
-      labelled.find(
-        ([, label, rest]) => (re.test(label) || re.test(`${label} period`)) && lang.parsePeriod(rest, year).start
-      )?.[2];
-    if (!line) return [];
-    const { start, end } = lang.parsePeriod(line, year);
-    // TODO(ts): the line was picked for having a start, which the compiler can't follow
-    return [{ key, start: start as string, end }];
+    const period =
+      (section && firstPeriod(section.lines.map((l) => lang.periodLine(l) && l))) ??
+      firstPeriod(labelled.map(([, label, rest]) => (re.test(label) || re.test(`${label} period`)) && rest));
+    return period ? [{ key, ...period }] : [];
   });
 }
 

@@ -1,5 +1,6 @@
+import { readJson } from '../scripts/lib/json.ts';
 import { describe, it, expect } from 'vitest';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { CardsFileSchema } from '../shared/schemas/card.ts';
 import { buildCards, fromGametora } from '../scripts/lib/cards/build.ts';
 import { joinCards, withoutEvents } from '../tierlist/join-cards.ts';
@@ -141,6 +142,6 @@ describe('the schema', { tags: ['data'] }, () => {
   });
 
   it.skipIf(!existsSync('generated/cards.json'))('fits generated/cards.json', () => {
-    check(JSON.parse(readFileSync('generated/cards.json', 'utf8')));
+    check(readJson('generated/cards.json'));
   });
 });

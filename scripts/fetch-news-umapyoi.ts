@@ -4,7 +4,7 @@
 // alone (older runs stored the header art instead of the banner).
 
 import { parseArgs } from 'node:util';
-import { paced } from './lib/http.ts';
+import { SCRAPER_HEADERS, getJson, paced } from './lib/http.ts';
 import { loadPosts, savePosts, serverArg } from './lib/news/api.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 
@@ -23,14 +23,9 @@ type UmapyoiPost = {
 const server = serverArg();
 const API = server === 'jp' ? 'https://umapyoi.net/api/v1/news' : 'https://umapyoi.net/api/v1/en/news';
 const OFFSET = server === 'jp' ? 9 * 3600 : 0; // the official API's times: UTC on Global, JST on JP
-const HEADERS = { 'User-Agent': 'uma-ddoc scraper (Umaddoc, static tier list site)' };
 
 const pace = paced({ pause: [100, 100], first: true });
-async function get(url: string): Promise<unknown> {
-  const res = await fetch(url, { headers: HEADERS });
-  if (!res.ok) throw new Error(`${url}: ${res.status} ${res.statusText}`);
-  return res.json();
-}
+const get = (url: string): Promise<unknown> => getJson(url, { headers: SCRAPER_HEADERS });
 
 // TODO(ts): umapyoi.net's post, unchecked: fromUmapyoi() and image() read its fields as the mirror sends them.
 const getPost = async (id: number | string): Promise<UmapyoiPost> => (await get(`${API}/${id}`)) as UmapyoiPost;
@@ -45,7 +40,7 @@ const set = (url: string | null | undefined): string => (url && url !== 'None' ?
 // On JP, older posts have no banner `image`: then their article_image (the header over the first section).
 const image = (p: UmapyoiPost): string => set(p.image) || (server === 'jp' ? set(p.article_image) : '');
 
-export const fromUmapyoi = (p: UmapyoiPost): NewsPost => {
+const fromUmapyoi = (p: UmapyoiPost): NewsPost => {
   const post = {
     announce_id: Number(p.announce_id),
     title: p.title,

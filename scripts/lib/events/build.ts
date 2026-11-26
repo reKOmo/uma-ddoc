@@ -26,6 +26,7 @@ import { type Merge, joinUndated, mergeItems, mergePosts, resolveParents, spanPa
 import type { cardIndex } from './rewards.ts';
 import { applyAnswer } from '../ai/answers.ts';
 import { bannerOf } from './free-scouts.ts';
+import { newestEventsFirst } from '../order.ts';
 
 export type BuildOptions = {
   cmTable?: CmRewardsFile;
@@ -113,5 +114,5 @@ export function buildEvents(
     .map((e) => (!e.image && e.parent ? { ...e, image: byId.get(e.parent)?.image ?? null } : e))
     .map((e) => (e.name && lang.displayName ? { ...e, name: lang.displayName(e.name) } : e))
     .map((e) => output(e, banners))
-    .sort((a, b) => b.start.date.localeCompare(a.start.date) || b.id.localeCompare(a.id));
+    .sort(newestEventsFirst);
 }

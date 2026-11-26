@@ -3,19 +3,16 @@
 
 import { parseArgs } from 'node:util';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { readJson } from './lib/json.ts';
-import { CARDS_JSON, GENERATED_DIR } from './lib/paths.ts';
-import { loadPosts, serverArg } from './lib/news/api.ts';
+import { GENERATED_DIR, serverSuffix } from './lib/paths.ts';
+import { serverArg } from './lib/news/api.ts';
 import { Unavailable, aiConfig, ask } from './lib/ai/client.ts';
 import { applyAnswer } from './lib/ai/answers.ts';
 import type { Field } from './lib/ai/questions-spec.ts';
 import { mergeAnswer, question, staleFields } from './lib/ai/questions.ts';
-import { readCategories } from './lib/news/categories.ts';
-import { type Fragment, eventFragments } from './lib/events/fragments.ts';
+import type { Fragment } from './lib/events/fragments.ts';
+import { newsContext } from './lib/events/context.ts';
 import { readAnswers, writeAnswers } from './lib/events/files.ts';
-import { norm } from './lib/events/rewards.ts';
-import { lexicon } from './lib/news/lang/index.ts';
-import type { CardsFile } from '../shared/schemas/card.ts';
+import { minuteText, norm } from './lib/news/text.ts';
 import type { AiAnswer } from '../shared/schemas/news.ts';
 
 type QuestionOptions = { all?: boolean; fields?: Field[] };
@@ -25,7 +22,6 @@ type ModelAnswer = AiAnswer['answer'];
 const { values: flags } = parseArgs({
   args: process.argv.slice(2),
   options: {
-    server: { type: 'string', default: 'gl' },
     model: { type: 'string' },
     provider: { type: 'string' },
     limit: { type: 'string' },
@@ -44,12 +40,9 @@ const config = aiConfig(process.env, {
   provider: arg(flags.provider),
   ...(flags.think && { think: true }),
 });
-const cards = readJson<CardsFile>(CARDS_JSON, {});
-const server = serverArg();
-const lang = lexicon(server);
-const posts = [...loadPosts(server).values()];
+const { server, lang, fragments: cut } = newsContext(serverArg());
 // (Cut as update-global cuts them, so the answers' keys match.)
-const fragments = eventFragments(posts, cards, lang, readCategories(server));
+const fragments = cut();
 console.log(
   `${server}: ${config.provider} ${[config.model, ...config.fallbacks].join(' → ')}${config.think ? ' (thinking)' : ''}: ${fragments.length} events`
 );
@@ -137,7 +130,7 @@ if (!flags.compare) {
         verdict: verdict(r[k], m[k]),
       }));
       for (const i of items) mark('items', i.verdict);
-      const minute = (iso: string | null | undefined) => iso?.slice(0, 16).replace('T', ' ') ?? null;
+      const minute = (iso: string | null | undefined) => (iso != null ? minuteText(iso) : null);
       const fields = {
         name: [f.name, used.name],
         ...('kind' in answer && { kind: [f.kind, used.kind] }),
@@ -177,7 +170,7 @@ if (!flags.compare) {
   );
   for (const [field, t] of Object.entries(tally)) console.log(`  ${field.padEnd(7)} ${JSON.stringify(t)}`);
   mkdirSync(GENERATED_DIR, { recursive: true });
-  const file = `${GENERATED_DIR}ai-compare-${config.model.replace(/[^\w.-]+/g, '_')}${config.think ? '-think' : ''}${server === 'gl' ? '' : `-${server}`}.json`;
+  const file = `${GENERATED_DIR}ai-compare-${config.model.replace(/[^\w.-]+/g, '_')}${config.think ? '-think' : ''}${serverSuffix(server, '-')}.json`;
   writeFileSync(
     file,
     `${JSON.stringify({ model: config.model, at: new Date().toISOString(), tally, rows }, null, 1)}\n`

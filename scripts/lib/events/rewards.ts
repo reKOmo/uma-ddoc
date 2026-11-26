@@ -7,13 +7,11 @@ import type { EventCard, EventItem } from '../../../shared/schemas/event.ts';
 import type { Rarity } from '../../../shared/schemas/common.ts';
 import { en } from '../news/lang/en.ts';
 import type { DateRef, Lexicon } from '../news/lang/index.ts';
-import { norm } from '../news/text.ts';
+import { bareTitle, norm } from '../news/text.ts';
 
 export type IndexedCard = { id: number; rarity: Rarity; title: string; name: string };
 export type CardIndex = Map<string, IndexedCard[]>;
 export type MissionSet = { name: string; start: string; end: string | null };
-
-export { norm };
 
 export const NUMBERS = en.numbers;
 const number = (s: string, lang: Lexicon = en): number => lang.numbers[s.toLowerCase()] ?? Number(s.replace(/,/g, ''));
@@ -31,7 +29,8 @@ export function itemName(raw: string, lang: Lexicon = en): string | null {
 export function cardIndex(cards: CardsFile, lang: Lexicon = en): CardIndex {
   const index: CardIndex = new Map();
   for (const [id, card] of Object.entries(cards)) {
-    const title = card.title?.[lang.cardLang]?.replace(/^\[|\]$/g, '');
+    const written = card.title?.[lang.cardLang];
+    const title = written && bareTitle(written);
     const name = card.name?.[lang.cardLang];
     if (!title || !name) continue;
     const key = norm(title);

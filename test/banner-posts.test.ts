@@ -1,13 +1,13 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readJson } from '../scripts/lib/json.ts';
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { bannerPost } from '../scripts/lib/banners/posts.ts';
 import { postsFile } from '../scripts/lib/news/api.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
-import { fixture, present } from './helpers.ts';
+import { fixture, h2, present } from './helpers.ts';
 
 const art = (id: number) =>
   `<figure><img src="https://example.com/uploads/Header/gacha_banner_${id}_L1791410400.png?c=1&amp;x=2"></figure>`;
-const h2 = (text: string) => `<h2 class="heading"> ${text}</h2>\n`;
 
 // Post 1089, trimmed.
 const SPOTLIGHT = [
@@ -93,7 +93,7 @@ describe('bannerPost', () => {
 });
 
 describe.skipIf(!existsSync(postsFile('gl')))('the stored news', { tags: ['data'] }, () => {
-  const posts: NewsPost[] = JSON.parse(readFileSync(postsFile('gl'), 'utf8'));
+  const posts: NewsPost[] = readJson<NewsPost[]>(postsFile('gl'));
   const banners = posts.map((post) => bannerPost(post)).filter((scout) => scout !== null);
 
   it('types and dates every banner', () => {

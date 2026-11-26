@@ -7,13 +7,12 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { pathToFileURL } from 'node:url';
-import { BANNERS_FILE } from './lib/banners/global.ts';
 import { readJson } from './lib/json.ts';
 import { readEvents } from './lib/events/files.ts';
 import { readGametoraEvents } from './lib/events/gametora.ts';
 import { GAMETORA_TRAINEES_FILE, readJpBanners } from './lib/banners/jp.ts';
-import { CARDS_JSON, GENERATED_DIR } from './lib/paths.ts';
+import { getJson } from './lib/http.ts';
+import { CARDS_JSON, GENERATED_DIR, dataFile, isMain } from './lib/paths.ts';
 import { writeSources } from './lib/sources.ts';
 import {
   TRANSLATIONS_FILE,
@@ -39,22 +38,19 @@ const latestRef = (repo: string, branch: string): string =>
     .toString()
     .split('\t')[0];
 
-async function getJson(repo: string, ref: string, path: string): Promise<unknown> {
-  const res = await fetch(`https://raw.githubusercontent.com/${repo}/${ref}/${path}`);
-  if (!res.ok) throw new Error(`${repo} ${path}: ${res.status} ${res.statusText}`);
-  return res.json();
-}
+const getFile = (repo: string, ref: string, path: string): Promise<unknown> =>
+  getJson(`https://raw.githubusercontent.com/${repo}/${ref}/${path}`, { what: `${repo} ${path}` });
 
 async function fetchUmatl(): Promise<UmatlRaw> {
   const hachimiRef = latestRef(HACHIMI, 'main');
   const originalRef = latestRef(ORIGINAL, 'master');
   // TODO(ts): UmaTL's files (their own formats); the categories and tables read here are cut, then checked by
   // test/schemas.test.ts as raw/umatl.json.
-  const all = (await getJson(HACHIMI, hachimiRef, 'localized_data/text_data_dict.json')) as UmatlRaw['text_data'];
+  const all = (await getFile(HACHIMI, hachimiRef, 'localized_data/text_data_dict.json')) as UmatlRaw['text_data'];
   const text_data = Object.fromEntries(Object.values(UMATL_CATEGORIES).map((c) => [c, all[c] ?? {}]));
   const mdb: UmatlRaw['mdb'] = {};
   for (const table of UMATL_TABLES) {
-    const file = (await getJson(ORIGINAL, originalRef, `translations/mdb/${table}.json`)) as {
+    const file = (await getFile(ORIGINAL, originalRef, `translations/mdb/${table}.json`)) as {
       text: UmatlRaw['mdb'][string];
     };
     mdb[table] = file.text;
@@ -70,12 +66,12 @@ async function fetchUmatl(): Promise<UmatlRaw> {
   return { text_data, mdb };
 }
 
-export function writeTranslations(umatl: UmatlRaw): void {
+function writeTranslations(umatl: UmatlRaw): void {
   const { file, report } = buildTranslations({
     umatl,
     cards: readJson<CardsFile>(CARDS_JSON),
     jpBanners: readJpBanners(),
-    globalBanners: readJson<BannerFile>(BANNERS_FILE),
+    globalBanners: readJson<BannerFile>(dataFile('gl', 'banners')),
     jpEvents: readEvents('jp'),
     globalEvents: readEvents('gl'),
     pairs: readJson<EventPairsFile | null>(`${GENERATED_DIR}event_pairs.json`, null)?.pairs ?? [],
@@ -91,7 +87,7 @@ export function writeTranslations(umatl: UmatlRaw): void {
   );
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isMain(import.meta.url)) {
   try {
     const { build } = parseArgs({ options: { build: { type: 'boolean' } } }).values;
     // Our own raw files (written above, checked by test/schemas.test.ts).

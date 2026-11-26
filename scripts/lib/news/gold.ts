@@ -8,8 +8,9 @@ import { postEvents } from '../events/fragments.ts';
 import { lexicon } from './lang/index.ts';
 import type { Block } from './lang/index.ts';
 import { loadPosts } from './api.ts';
-import type { Server } from './text.ts';
-import { readJson } from '../json.ts';
+import { type Server, newsUrl } from './text.ts';
+import { NOTICE_IDS } from './lang/en.ts';
+import { jsonLines, readJson } from '../json.ts';
 import { newsDir } from '../paths.ts';
 import { categorize, plain } from './categorize.ts';
 
@@ -78,7 +79,7 @@ export function twins(server: Server): Map<number, Twin> {
   const titles = new Map([...loadPosts('gl').values()].map((p) => [p.announce_id, plain(p.title)]));
   return new Map(
     readGold('gl')
-      .filter((l) => l.id < 100000)
+      .filter((l) => l.id < NOTICE_IDS)
       .map((l) => [l.id, { title: titles.get(l.id) ?? '', category: l.category, kind: l.kind, labelled: true }])
   );
 }
@@ -90,7 +91,7 @@ export const readGold = (server: Server = 'gl'): GoldLabel[] =>
 // One post per line, newest (highest id) first, so commits diff per post.
 export function writeGold(labels: GoldLabel[], server: Server = 'gl'): void {
   const sorted = [...labels].sort((a, b) => b.id - a.id);
-  writeFileSync(goldFile(server), `[\n${sorted.map((l) => JSON.stringify(l)).join(',\n')}\n]\n`);
+  writeFileSync(goldFile(server), `${jsonLines(sorted)}\n`);
 }
 
 // A label of an earlier version of its post (edited since: a note added).
@@ -115,3 +116,17 @@ export function withRuleLabels(posts: Iterable<NewsPost>, gold: GoldLabel[], ser
     return stale(label, p) ? { ...label, reviewed: false } : label;
   });
 }
+
+// A post as the gold:review page shows it (scripts/gold-review/main.tsx): cut into units, with the rules' label and
+// its twin's (`others`: twins()).
+export const postView = (post: NewsPost, server: Server, others: Map<number, Twin>) => ({
+  id: post.announce_id,
+  title: plain(post.title),
+  posted: post.post_at,
+  url: newsUrl(post.announce_id, server),
+  image: post.image_big || null,
+  units: units(post, server),
+  rules: ruleLabel(post, server),
+  twin: others.get(post.announce_id) ?? null,
+});
+export type PostView = ReturnType<typeof postView>;

@@ -1,6 +1,5 @@
 import type { NewsPost } from '../../../shared/schemas/news.ts';
-import { apiDate, decodeEntities, parsePeriod, toLines } from './text.ts';
-import { norm } from '../events/rewards.ts';
+import { apiDate, decodeEntities, norm, parsePeriod, toLines } from './text.ts';
 
 export type ScenarioMention = { full: string; start: string | null };
 

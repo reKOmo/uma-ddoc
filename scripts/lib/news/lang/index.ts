@@ -1,6 +1,7 @@
 import { en } from './en.ts';
 import { jp } from './jp.ts';
 import type { Race } from '../../../../shared/schemas/event.ts';
+import type { Server } from '../text.ts';
 
 export type PostLike = { announce_id: number; announce_label: number; message?: string };
 // A post cut at its header art (events/blocks.ts' eventBlocks()): intro lines + headed sections.
@@ -69,7 +70,7 @@ export type RaceLexicon = {
 // cards/jp) read a post with. Required keys are what Global's English lexicon (en.ts) has; the optional ones are
 // behaviour only JP's sets (JapaneseLexicon makes the ones cards/jp.ts needs required).
 export type Lexicon = {
-  server: 'gl' | 'jp';
+  server: Server;
   // The field of generated/cards.json' names and titles the posts use.
   cardLang: 'en' | 'jp';
   // Dates: parsePeriod(text, dateRef(posted)).
@@ -251,9 +252,5 @@ export type JapaneseLexicon = Lexicon &
   Required<Pick<Lexicon, 'eventCard' | 'giftCard' | 'newCardGiven' | 'sameEventDays'>>;
 
 export const LEXICONS: { gl: Lexicon; jp: JapaneseLexicon } = { gl: en, jp };
-export const lexicon = (server: 'gl' | 'jp' = 'gl'): Lexicon => {
-  const lang = LEXICONS[server];
-  if (!lang) throw new Error(`no news lexicon for ${server}`);
-  return lang;
-};
+export const lexicon = (server: Server = 'gl'): Lexicon => LEXICONS[server];
 export { en, jp };

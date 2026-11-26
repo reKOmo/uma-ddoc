@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 
 // Upstream is data only: the calculation is ours (tierlist/).
 export const REPO: string = 'Euophrys/umamusume-tierlist';
+import { getText } from './http.ts';
 import { GENERATED_DIR, ROOT } from './paths.ts';
 
 export const UPSTREAM_DIR: string = `${ROOT}upstream/`;
@@ -27,9 +28,7 @@ export async function download(ref: string, files: DataFile[]): Promise<Record<s
   const texts = await Promise.all(
     files.map(async (file) => {
       const url = `https://raw.githubusercontent.com/${REPO}/${ref}/${file.upstream}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`${file.upstream} at ${ref.slice(0, 10)}: ${res.status} ${res.statusText}`);
-      return res.text();
+      return getText(url, { what: `${file.upstream} at ${ref.slice(0, 10)}` });
     })
   );
   return Object.fromEntries(files.map((file, i) => [file.upstream, texts[i]]));

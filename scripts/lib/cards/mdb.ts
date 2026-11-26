@@ -1,13 +1,14 @@
 // A server's tier-list stats from the game's master.mdb: a port of upstream's db-convert.py (upstream/db-convert.py,
 // Euophrys/umamusume-tierlist), which is how upstream builds its gl.js / jp.js. We store the result as the server's
-// card list (data/<server>_card_stats.json, read by scripts/build-cards.ts instead of upstream's list). Kept line for
-// line with the Python, quirks included: a change there is ported here, and the data test compares the two outputs.
+// card list (data/<server>_card_stats.json, read by scripts/lib/cards/files.ts instead of upstream's list). Kept line
+// for line with the Python, quirks included: a change there is ported here, and the data test compares the two outputs.
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import type { DatabaseSync } from 'node:sqlite';
 import { type StoredCard, type StoredCardStatsFile, StoredCardStatsFileSchema } from '../../../shared/schemas/card.ts';
 import { type UpstreamCard, statsOf } from './build.ts';
 import type { Server } from '../news/text.ts';
+import { jsonEntries, jsonEnvelope, jsonLines } from '../json.ts';
 import { DATA_DIR } from '../paths.ts';
 
 export const cardStatsFile = (server: Server): string => `${DATA_DIR}${server}_card_stats.json`;
@@ -22,14 +23,15 @@ export const readCardStats = (server: Server): StoredCardStatsFile | null =>
 // comes out as NaN, which would only fail the next build.
 export function writeCardStats(server: Server, file: StoredCardStatsFile): void {
   StoredCardStatsFileSchema.parse(file);
-  const skipped = file.skipped.map((s) => `    ${JSON.stringify(s)}`).join(',\n');
-  const cards = Object.entries(file.cards)
-    .map(([id, card]) => `    ${JSON.stringify(id)}: ${JSON.stringify(card)}`)
-    .join(',\n');
-  writeFileSync(
-    cardStatsFile(server),
-    `{\n  "source": ${JSON.stringify(file.source)},\n  "skipped": [${skipped ? `\n${skipped}\n  ` : ''}],\n  "cards": {\n${cards}\n  }\n}\n`
+  const text = jsonEnvelope(
+    {
+      source: JSON.stringify(file.source),
+      skipped: file.skipped.length ? jsonLines(file.skipped, '    ') : '[]',
+      cards: jsonEntries(file.cards, '    '),
+    },
+    '  '
   );
+  writeFileSync(cardStatsFile(server), `${text}\n`);
 }
 
 // Upstream's rows (one per card and limit break) → ours, by id.

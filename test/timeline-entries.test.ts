@@ -1,5 +1,5 @@
+import { readJson } from '../scripts/lib/json.ts';
 import { describe, it, expect } from 'vitest';
-import { existsSync, readFileSync } from 'node:fs';
 import { bannerEntries, bannerStatus, eventEntries } from '../src/timeline/entries.ts';
 import { withArt } from '../src/lib/gametora.ts';
 import { withPredicted } from '../src/timeline/events.ts';
@@ -26,7 +26,7 @@ const predictedEvents = fixture<PredictedEventsFile>(predictedEventsJson);
 const now = Date.parse('2026-10-13T00:00:00Z');
 const optional = (file: string): BannerFile | null => {
   const url = new URL(`../generated/${file}`, import.meta.url);
-  return existsSync(url) ? JSON.parse(readFileSync(url, 'utf8')) : null;
+  return readJson<BannerFile | null>(url, null);
 };
 const predictedBanners = optional('predicted_global_banners.json');
 

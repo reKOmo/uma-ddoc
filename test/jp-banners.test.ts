@@ -1,18 +1,12 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readJson } from '../scripts/lib/json.ts';
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { bannerPost } from '../scripts/lib/banners/posts.ts';
-import {
-  applyJpNews,
-  GAMETORA_TRAINEES_FILE,
-  isRegular,
-  JP_BANNERS_FILE,
-  regularBanners,
-} from '../scripts/lib/banners/jp.ts';
-import { BANNERS_FILE as GLOBAL_BANNERS_FILE } from '../scripts/lib/banners/global.ts';
+import { applyJpNews, GAMETORA_TRAINEES_FILE, isRegular, regularBanners } from '../scripts/lib/banners/jp.ts';
 import { readPending } from '../scripts/lib/cards/jp.ts';
 import { postsFile } from '../scripts/lib/news/api.ts';
 import { jp as jpLexicon } from '../scripts/lib/news/lang/jp.ts';
-import { GENERATED_DIR } from '../scripts/lib/paths.ts';
+import { GENERATED_DIR, dataFile } from '../scripts/lib/paths.ts';
 import type { Banner as ScoutBanner, BannerPost } from '../scripts/lib/banners/posts.ts';
 import type { ApplyJpNewsResult } from '../scripts/lib/banners/jp.ts';
 import type { Banner, BannerFile, BannerId, BannerItem } from '../shared/schemas/banner.ts';
@@ -21,7 +15,9 @@ import type { GametoraTrainee } from '../shared/schemas/gametora.ts';
 import type { NewsPost } from '../shared/schemas/news.ts';
 import { at, fixture, present } from './helpers.ts';
 
-const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8'));
+const JP_BANNERS_FILE = dataFile('jp', 'banners');
+const GLOBAL_BANNERS_FILE = dataFile('gl', 'banners');
+
 const posts = existsSync(postsFile('jp')) ? readJson<NewsPost[]>(postsFile('jp')) : [];
 const byId = new Map(posts.map((p) => [String(p.announce_id), p]));
 const scout = (id: number) =>

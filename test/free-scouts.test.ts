@@ -1,4 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
+import type { NewsPost } from '../shared/schemas/news.ts';
+import { readJson } from '../scripts/lib/json.ts';
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { readCategories } from '../scripts/lib/news/categories.ts';
 import { eventFragments } from '../scripts/lib/events/fragments.ts';
@@ -284,7 +286,7 @@ describe("a model's free scout answer", () => {
 });
 
 describe.skipIf(!existsSync(postsFile('gl')))('the stored news: free scouts', { tags: ['data'] }, () => {
-  const posts = JSON.parse(readFileSync(postsFile('gl'), 'utf8'));
+  const posts = readJson<NewsPost[]>(postsFile('gl'));
   // (Cut as the records are: by the classified posts.)
   const free = eventFragments(posts, {}, en, readCategories('gl')).filter((f) => f.scouts);
 
@@ -295,7 +297,7 @@ describe.skipIf(!existsSync(postsFile('gl')))('the stored news: free scouts', { 
 });
 
 describe.skipIf(!existsSync(postsFile('jp')))('the stored JP news: free scouts', { tags: ['data'] }, () => {
-  const posts = JSON.parse(readFileSync(postsFile('jp'), 'utf8'));
+  const posts = readJson<NewsPost[]>(postsFile('jp'));
   const free = eventFragments(posts, {}, jpLexicon, readCategories('jp')).filter((f) => f.scouts);
 
   it('reads every free scout campaign, the stated totals and days matching', () => {
@@ -308,8 +310,8 @@ describe.skipIf(!existsSync(postsFile('jp')))('the stored JP news: free scouts',
 // slips are listed, not failed on (30073: 5, the post gives 6); most banners disagreeing means our counting broke.
 const GUIDE = 'generated/pull_guide.json';
 describe.skipIf(!existsSync(GUIDE))("the stored banners' free pulls against Luh's", { tags: ['data'] }, () => {
-  const guide: PullGuide = JSON.parse(readFileSync(GUIDE, 'utf8'));
-  const banners: BannerFile = JSON.parse(readFileSync('data/global_banners.json', 'utf8'));
+  const guide: PullGuide = readJson(GUIDE);
+  const banners: BannerFile = readJson('data/global_banners.json');
   const ours = new Map([...banners.cards, ...banners.characters].map((b) => [String(b.id), b.free_pulls ?? null]));
   const both = Object.entries(guide.banners).flatMap(([id, advice]) => {
     const theirs = Object.values(advice).find((a) => a.freePulls != null)?.freePulls;

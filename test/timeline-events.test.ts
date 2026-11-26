@@ -1,5 +1,6 @@
+import { readJson } from '../scripts/lib/json.ts';
 import { describe, it, expect } from 'vitest';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { EVENT_GROUPS, itemList, withPredicted } from '../src/timeline/events.ts';
 import { eventEntries } from '../src/timeline/entries.ts';
 import { DAY } from '../src/lib/dates.ts';
@@ -196,7 +197,7 @@ describe('withPredicted', () => {
 const PREDICTED_FILE = new URL('../generated/predicted_global_events.json', import.meta.url);
 const predictedFiles: [string, PredictedEventsFile][] = [['the fixture', predicted]];
 if (existsSync(PREDICTED_FILE))
-  predictedFiles.push(['generated/predicted_global_events.json', JSON.parse(readFileSync(PREDICTED_FILE, 'utf8'))]);
+  predictedFiles.push(['generated/predicted_global_events.json', readJson(PREDICTED_FILE)]);
 
 describe.each(predictedFiles)('predicted events (%s)', { tags: ['data'] }, (name, file) => {
   // (Not the fixture: it was predicted from older data, which Global's news has since caught up with.)
@@ -244,9 +245,7 @@ describe.each(predictedFiles)('predicted events (%s)', { tags: ['data'] }, (name
 // `pnpm predict-gl` writes this file too; it is optional.
 const PAIRS_FILE = new URL('../generated/event_pairs.json', import.meta.url);
 describe.skipIf(!existsSync(PAIRS_FILE))('event pairs (generated/event_pairs.json)', { tags: ['data'] }, () => {
-  const { pairs } = existsSync(PAIRS_FILE)
-    ? fixture<EventPairsFile>(JSON.parse(readFileSync(PAIRS_FILE, 'utf8')))
-    : { pairs: [] };
+  const { pairs } = existsSync(PAIRS_FILE) ? fixture<EventPairsFile>(readJson(PAIRS_FILE)) : { pairs: [] };
 
   it("pair events that exist, a Global event with a JP celebration's part too", () => {
     const [gl, jp] = [new Set(globalEvents.map((e) => e.id)), new Set(jpEvents.map((e) => e.id))];

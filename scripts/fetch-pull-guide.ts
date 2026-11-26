@@ -2,18 +2,15 @@
 // Writes generated/pull_guide.json (its shape: schemas/pull_guide.schema.json) and the sheet's date in sources.json.
 
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
-import { paced } from './lib/http.ts';
+import { SCRAPER_HEADERS, getText, paced } from './lib/http.ts';
 import { readJson } from './lib/json.ts';
-import { BANNERS_FILE } from './lib/banners/global.ts';
-import { GENERATED_DIR } from './lib/paths.ts';
+import { GENERATED_DIR, dataFile, isMain } from './lib/paths.ts';
 import { writeSources } from './lib/sources.ts';
 import { SHEET_URL, byBanner, parseSheetList, parseTab, parseUpdated, tabUrl } from './lib/cards/pull-guide.ts';
 import type { BannerFile } from '../shared/schemas/banner.ts';
 import type { PullGuide } from '../shared/schemas/pullGuide.ts';
 
-const HEADERS = { 'User-Agent': 'uma-ddoc scraper (Umaddoc, static tier list site)' };
-export const PULL_GUIDE_FILE = `${GENERATED_DIR}pull_guide.json`;
+const PULL_GUIDE_FILE = `${GENERATED_DIR}pull_guide.json`;
 // The file's shape (relative to it, so editors pick it up).
 const SCHEMA = '../schemas/pull_guide.schema.json';
 
@@ -22,24 +19,21 @@ const PREDICTED_BANNERS_FILE = `${GENERATED_DIR}predicted_global_banners.json`;
 function readBanners(): BannerFile['cards'] {
   const read = (file: string): BannerFile['cards'] => readJson<BannerFile>(file).cards;
   if (!existsSync(PREDICTED_BANNERS_FILE)) console.warn('pull guide: no predicted banners, run pnpm predict-gl first');
-  return [...read(BANNERS_FILE), ...(existsSync(PREDICTED_BANNERS_FILE) ? read(PREDICTED_BANNERS_FILE) : [])];
+  return [
+    ...read(dataFile('gl', 'banners')),
+    ...(existsSync(PREDICTED_BANNERS_FILE) ? read(PREDICTED_BANNERS_FILE) : []),
+  ];
 }
 
 const pace = paced({ pause: [1000, 2000], first: true });
 
-async function getText(url: string): Promise<string> {
-  const res = await fetch(url, { headers: HEADERS });
-  if (!res.ok) throw new Error(`${url}: ${res.status} ${res.statusText}`);
-  return res.text();
-}
-
-export async function fetchPullGuide() {
-  const sheets = parseSheetList(await getText(`${SHEET_URL}/htmlview`));
+async function fetchPullGuide() {
+  const sheets = parseSheetList(await getText(`${SHEET_URL}/htmlview`, { headers: SCRAPER_HEADERS }));
   if (sheets.length === 0) throw new Error('pull guide: no tabs found in the sheet (format changed?)');
   let updated: string | null = null;
   const pages: { name: string; gid: string; html: string }[] = [];
   for (const { name, gid } of sheets) {
-    const html = await pace(() => getText(tabUrl(gid)));
+    const html = await pace(() => getText(tabUrl(gid), { headers: SCRAPER_HEADERS }));
     updated ??= parseUpdated(html);
     pages.push({ name, gid, html });
   }
@@ -70,7 +64,7 @@ export async function fetchPullGuide() {
   );
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isMain(import.meta.url)) {
   fetchPullGuide().catch((err) => {
     console.error(err);
     process.exit(1);

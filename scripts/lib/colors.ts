@@ -5,6 +5,7 @@
 // with them every cover came out brown. They count only when nothing else is coloured.
 
 import { PNG } from 'pngjs';
+import { getOk } from './http.ts';
 
 export type Image = { width: number; height: number; rgba: Uint8Array };
 
@@ -55,11 +56,11 @@ function dominantHue({ rgba }: Image, keep: (hue: number) => boolean): string | 
 // An image URL → its main colour (null if it can't be fetched or decoded; logged).
 export async function imageColor(url: string, headers: Record<string, string> = {}): Promise<string | null> {
   try {
-    const res = await fetch(url, { headers });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    const res = await getOk(url, { headers });
     return mainColor(decodePng(Buffer.from(await res.arrayBuffer())));
   } catch (err) {
-    console.warn(`no colour for ${url}: ${err instanceof Error ? err.message : String(err)}`);
+    // (getOk's errors name the URL)
+    console.warn(`no colour: ${err instanceof Error ? err.message : String(err)}`);
     return null;
   }
 }

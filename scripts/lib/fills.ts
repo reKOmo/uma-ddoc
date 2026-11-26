@@ -20,10 +20,12 @@ export function keepDate(next: DatedMoment | null, stored: DatedMoment | null | 
 function keepPhases(next: Phase[] | undefined, stored: Phase[] | undefined): Phase[] | undefined {
   if (!stored?.length) return next;
   const own = new Map((next ?? []).map((p) => [p.key, p]));
+  // (reversed: a key's first phase wins, as a find() would)
+  const kept = new Map(stored.toReversed().map((p) => [p.key, p]));
   const keys = [...new Set([...(next ?? []).map((p) => p.key), ...stored.map((p) => p.key)])];
   const phases = keys.flatMap((key): Phase[] => {
     const n = own.get(key);
-    const s = stored.find((p) => p.key === key);
+    const s = kept.get(key);
     const start = n ? keepDate(n.start, s?.start) : s && isFill(s.start) ? s.start : null;
     return start ? [{ key, start, end: keepDate(n?.end ?? null, s?.end) }] : [];
   });
