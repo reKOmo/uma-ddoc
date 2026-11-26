@@ -1,0 +1,73 @@
+/* A phase's name, its dates under it: side by side, both wrapped. */
+.schedule li {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.schedule .predicted {
+  opacity: 0.6;
+}
+
+.phaseName {
+  display: flex;
+  gap: 6px;
+}
+
+.endsIn {
+  margin-left: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+
+/* A countdown to a predicted end: greyed, as a predicted row is. */
+.endsInPredicted {
+  color: var(--muted);
+}
+
+.schedule .ended {
+  color: var(--muted);
+}
+
+/* A schedule row's room for the live dot, one line tall: the dot sits by a wrapped name's first line. (Not .dot,
+   the parts' and free scouts' circle: sharing the name stretched theirs to an oval.) */
+.phaseDot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 8px;
+  height: 1lh;
+}
+
+/* The phase running now: a dot with a ring pinging out of it. */
+.ping {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.ping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ping::after {
+    animation: none;
+  }
+}

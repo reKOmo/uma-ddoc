@@ -1,0 +1,68 @@
+.featured {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A card or trainee (CardRow) on an inset tile; a card's whole tile is its link. */
+.tile {
+  height: 100%;
+  padding: 12px;
+  background: var(--inset);
+  border: 2px solid transparent;
+  border-radius: 20px;
+}
+
+.tileLink:hover {
+  border-color: var(--accent);
+}
+
+.chevron {
+  flex: none;
+  color: var(--muted);
+}
+
+.itemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* Over Pill's verdict look (doubled: one more class): a small tinted chip, its text the verdict's colour darkened
+   (lightened in dark) into --text so it reads at 4.5:1. */
+.pull.pull {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--verdict) 55%, light-dark(var(--text), var(--verdict)));
+  background: color-mix(in srgb, var(--verdict) 14%, transparent);
+  border: 0;
+}
+
+.rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.rank.missing {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* The desktop dialog is wide enough for the tiles two by two. */
+@media (min-width: 768px) {
+  .featured {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

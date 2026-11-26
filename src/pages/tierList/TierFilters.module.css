@@ -1,0 +1,9 @@
+.sizePicker {
+  display: flex;
+}
+
+.sizePicker button {
+  flex: 1;
+  min-height: 34px;
+  font-weight: 600;
+}

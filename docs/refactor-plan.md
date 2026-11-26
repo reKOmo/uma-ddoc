@@ -160,19 +160,25 @@ URLs, signatures), so they stay.
 
 ## 5. Big files to split (plan)
 
-- [ ] **`src/pages/card/RankChart.tsx`** (one 333-line component): pure `rankChartLayout()` (points, segments, label
+Done: pieces in a folder per component (rankChart/, passedBy/, sheet/, toolbar/, tierList/, scenario/), entry files
+unchanged; all 56 screens pixel-identical to HEAD, Timeline scroll/zoom/search/sheet/server switch compared with a HEAD
+build; JP parser output identical after jp-names.ts. Left: processCards (decided), gold-review (not picked), the base
+weight tables (not picked). Found and fixed after: RankChart drew the last point twice when it was both predicted and a tier
+change (rankChartLayout's dots are a Set now; tested).
+
+- [x] **`src/pages/card/RankChart.tsx`** (one 333-line component): pure `rankChartLayout()` (points, segments, label
   placement, bands, chips, months, scenarios) + `useWidth` → `hooks/` + `useZoomCenter` + `RankAxis` / `DateAxis` /
   `ScenarioRule` / `TodayMarker`. Unit-test the layout.
-- [ ] **`src/pages/TimelinePage.tsx`:** `useTimelineData`, `useSheetSelection` (+ hash sync), `useSearchCursor`,
+- [x] **`src/pages/TimelinePage.tsx`:** `useTimelineData`, `useSheetSelection` (+ hash sync), `useSearchCursor`,
   `TimelineToolbar`, `SearchStatus`. Check: e2e (routing, sheet back, search).
-- [ ] **`src/timeline/TimelineSheet.tsx`** (15 components): `timeline/sheet/` (Header, Featured, Races, Schedule +
+- [x] **`src/timeline/TimelineSheet.tsx`** (15 components): `timeline/sheet/` (Header, Featured, Races, Schedule +
   pure `currentPhase()`, Navigation with one shared props type, Links).
-- [ ] **`src/pages/TierListPage.tsx`:** `lib/cardSearch.ts`, store actions, `useRanking` (3.1), `TierFilters`,
+- [x] **`src/pages/TierListPage.tsx`:** `lib/cardSearch.ts`, store actions, `useRanking` (3.1), `TierFilters`,
   `TierSection` / `CardTile`.
-- [ ] **`tierlist/tierlist-calc.ts` `processCards`** (~250 lines): `deckSetup`, `eventGains`, `trainingSchedule`,
+- [ ] (decided: leave it) **`tierlist/tierlist-calc.ts` `processCards`** (~250 lines): `deckSetup`, `eventGains`, `trainingSchedule`,
   `rampedFsBonus`, `raceGains`; shared training-bonus preamble in `trainingGain` / `crossTrainingGain`. Keep the
   summation order exactly: `pnpm test:upstream` parity.
-- [ ] **Smaller:** `ScenarioPage` (`LaunchSide`, `ScenarioNav`, the formatters → 3.7), `PassedBy`
+- [x] **Smaller:** `ScenarioPage` (`LaunchSide`, `ScenarioNav`, the formatters → 3.7), `PassedBy`
   (`useScrollToPicked`, `ReleaseRow`, `PassRow`), `ai/answers.ts` `applyAnswer` (`mergeItems` / `mergeCards`),
   `gold-review/main.tsx` (`useGoldData`, `PostList`, `PostUnits`, `LabelForm`; local tool, low priority).
 - Fine as is: `tierlist/scenarios.ts` (optional `BASE_STAT_WEIGHTS` + overrides, ~300 lines shorter, upstream test

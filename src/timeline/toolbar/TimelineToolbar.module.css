@@ -1,0 +1,64 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* The search: a full-width row under the buttons on phones; on desktop first in the row, taking its free width. */
+.searchSlot {
+  display: flex;
+  flex: 1 0 100%;
+  order: 1;
+  min-width: 0;
+}
+
+.zoom {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.zoom button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.zoom button + button {
+  border-left: 0;
+}
+
+.zoom button:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+.zoom button:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+.zoom button:disabled {
+  opacity: 0.4;
+}
+
+@media (min-width: 768px) {
+  .toolbar {
+    flex-wrap: nowrap;
+  }
+
+  .searchSlot {
+    flex: 1 1 auto;
+    order: -1;
+  }
+}

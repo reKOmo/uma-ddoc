@@ -1,0 +1,40 @@
+.searchNote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 12px;
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.matchNav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text);
+}
+
+.navButton {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 32px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.goButton {
+  display: inline-flex;
+  gap: 6px;
+  width: auto;
+  padding: 0 12px;
+}
+
+.navButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

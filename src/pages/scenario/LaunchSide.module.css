@@ -1,0 +1,37 @@
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px;
+}
+
+.gl {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.serverName {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.relative {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* The page's launch card is a grid: each side its own column, the gap between them. */
+.side.jp {
+  grid-area: 1 / 1;
+}
+
+.side.gl {
+  grid-area: 1 / 3;
+}
+
+.range {
+  font-size: 0.8rem;
+  color: var(--muted);
+}

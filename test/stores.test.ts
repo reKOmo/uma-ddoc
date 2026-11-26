@@ -153,6 +153,25 @@ describe('tier list filters', () => {
     expect(() => saveFilters({ ...DEFAULTS, size: 1 })).not.toThrow();
     expect(getFilters().size).toBe(1);
   });
+
+  it('toggles a limit break, shows or hides a rarity, and counts what differs from the defaults', async () => {
+    const { toggleLimitBreak, showRarity, changedCount, getFilters } = await load();
+    toggleLimitBreak('SSR', 4);
+    toggleLimitBreak('R', 0);
+    expect(getFilters().shown).toEqual({ SSR: [0, 3], SR: [0, 3, 4], R: [4, 0] });
+    expect(changedCount(getFilters().shown)).toBe(2);
+    showRarity('SR', true);
+    showRarity('R', false);
+    expect(getFilters().shown).toEqual({ SSR: [0, 3], SR: [0, 1, 2, 3, 4], R: [] });
+    expect(changedCount(getFilters().shown)).toBe(4);
+  });
+
+  it('resets the filters but keeps the size', async () => {
+    data.set(KEY, JSON.stringify(stored));
+    const { resetFilters, getFilters, DEFAULTS } = await load();
+    resetFilters();
+    expect(getFilters()).toEqual({ ...DEFAULTS, size: stored.size });
+  });
 });
 
 // hidden and collapsed: the same JSON array of strings ↔ Set.

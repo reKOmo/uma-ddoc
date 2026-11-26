@@ -57,7 +57,7 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
                      DAY / JST, minuteText(), jstDay(), isoOfUnix(), norm(), bareTitle(), cardKey(); shared by the news parsers
     features.ts      writeFeatures(): each post's features for ml/categorize.py (news:features, refreshCategories())
     lang/            the news' wording per language, read by every parser (`lang`, English by default):
-                     en.ts (Global), jp.ts + jp-banners.ts + jp-races.ts (JP), index.ts (lexicon(server))
+                     en.ts (Global), jp.ts + jp-names.ts + jp-banners.ts + jp-races.ts (JP), index.ts (lexicon(server))
     categorize.ts    pure: categorize(post) → banner / event (+ kind) / other, phase, name
     categories.ts    data/news/gl/categories.json (ml/categorize.py's labels, which buildEvents() reads over the rules):
                      readCategories(), refreshCategories() (features + the classifiers, when ml/.venv exists)
@@ -126,6 +126,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     useDragScroll.ts mouse drag-to-pan (marks the scroller data-dragging)
     useMediaQuery.ts DESKTOP: the desktop layout's breakpoint
     useRowsHeight.ts an unfolded list's height for its first six rows (Available on, Passed by on phones)
+    useWidth.ts      an element's width, kept up to date (ResizeObserver)
   state/             what the app remembers (zustand stores) and the settings
     rawStorage.ts    the persisted stores' factory: persisted() / persistedValue() / stringSetStore() / booleanStore()
                      on a localStorage adapter; each store keeps its own stored format (never zustand's
@@ -173,6 +174,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      bannerArt(id, 'global' | 'jp'), withArt(file, art, cards) (a banner file's art + item icons, filled
                      by timeline/data.ts when it loads one; `officialArt`: the news' art, over GameTora's; ArtBanner…)
     rankHistory.ts   pure: a card's position at each release date (marks predicted ones)
+    cardSearch.ts    the Cards tab's search: searchWords(), matchesSearch() (each card's text cached)
     cardOrigins.ts   pure: cardOrigins(cardId, entries, server) (a card's banners and events, as Timeline entries,
                      oldest first), originKinds()
     memo.ts          memoAsync(): one promise per key (the Timeline's file loaders)
@@ -187,21 +189,26 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      from upstream's src/icons/utx_ico_obtain_00–05), bundled; the Cards tab's Stat picker shows them
     vividColor.ts    a colour from art (a scenario's cover) made vivid for display
   pages/SettingsPage.tsx               the Settings tab
-  pages/TierListPage.tsx               the Cards tab
+  pages/TierListPage.tsx               the Cards tab; its pieces in pages/tierList/ (TierFilters: the filter sheet's body,
+                                       TierSection: one foldable tier, CardTile)
   pages/TimelinePage.tsx               the Timeline tab: loads a server's timeline, draws its groups and marks, opens
-                                       the sheet; no server-specific code (src/timeline/)
+                                       the sheet; no server-specific code (src/timeline/: useTimelineData,
+                                       useSheetSelection + useSheetHash, useSearchCursor, toolbar/ (TimelineToolbar,
+                                       SearchStatus); hook order is effect order)
   pages/CardPage.tsx                   one card (the entry App imports): art, tags, GameTora link, its parts:
   pages/card/        CardArt (the art in its rarity's in-game frame colours), Summary (the tiles beside the art: rank,
                      tier outlook, release), NextBanner (the next
                      banner on its art + the guide's pull advice), Banners (the card's banners/events), OriginPills (OriginPill, KindPill), ScenarioTierTable (heatmap),
                      RankOverTime (RankHistorySection: RankChart + PassedBy), RankChart (SVG step chart of rank over
                      time: the card's whole life at the panel's width, zoom scrolls; the line in its tier's colour,
-                     scenarios as a rule under the dates); hooks.ts (usePredictions, useOrigins,
+                     scenarios as a rule under the dates; rankChart/: layout.ts (pure rankChartLayout(): everything
+                     the SVG draws), useZoomCenter, the SVG pieces), PassedBy (passedBy/: useScrollToPicked,
+                     ReleaseRow, PassRow); hooks.ts (usePredictions, useOrigins,
                      useScenarioRankings, useUpcomingRanking, useRankHistory), advice.ts (useUpcomingAdvice: the
                      guide + next banner, for NextBanner and Banners' pull pills), shared.ts (nameOf, titleOf…)
   pages/card.css     global on purpose: the Rank over time picker's size (`.history-controls .dropdown-button`)
   pages/ScenariosPage.tsx              the Scenarios tab (list)
-  pages/ScenarioPage.tsx               one scenario
+  pages/ScenarioPage.tsx               one scenario (scenario/: LaunchSide, ScenarioNav)
   timeline/          the Timeline, the same for both servers:
     data.ts          loadTimeline(server) → { entries, others() } (others: marks + counterparts, from the other
                      server's files, loaded after the calendar is drawn), loadEntries(server, language) (entries alone:
@@ -222,8 +229,10 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      centring (linked entry / the end of today, zoom), compact mode's measuring, the time range whose bars and
                      day labels are drawn (0.75 screens each side; the rest of history isn't rendered), which bars' label /
                      fold button are sticky (only those crossing the screen's edge), and its hidden / order / verdict filtering
-    TimelineSheet.tsx  the one sheet for every entry, in sections (Header, Provenance, Relations, Featured,
-                     Rewards, Schedule, Titles, Parts, RankNote, Links)
+    TimelineSheet.tsx  the one sheet for every entry, composed of its sections in sheet/: Header (+ Provenance),
+                     Featured (+ RankNote), Races, Rewards, Schedule (schedule.ts: pure currentPhase()), Navigation
+                     (Relations, FreeScouts, Parts: one NavigationProps), Links (+ Titles); shared.module.css: the
+                     rules several sections use
     TimelineAxis.tsx scenario strip + months + days; CalendarLines (scenario starts, today, marks)
     Lanes.tsx        LaneGroup (foldable label + rows), one Bar for banners and events (chip when short, +N parts;
                      its button data-testid="bar"); an entry's colour: data-tone

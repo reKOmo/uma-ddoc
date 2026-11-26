@@ -1,44 +1,27 @@
 import { useMemo, useState } from 'react';
-import { ChevronRight, ChevronUp, ChevronsUpDown } from 'lucide-react';
+import { ChevronsUpDown } from 'lucide-react';
 import clsx from 'clsx';
 import { COMBINED, STATS, rankByUsefulness } from '../../tierlist/index.ts';
 import type { Ranked, Stat } from '../../tierlist/index.ts';
 import { cards } from '../../tierlist/cards.ts';
 import type { Server } from '../../tierlist/cards.ts';
 import { getCurrentScenario, getServerConfig } from '../../tierlist/scenarios.ts';
-import { normalizeSearch } from '../lib/search.ts';
-import { LIMIT_BREAKS, TIER_NAMES, toTiers } from '../lib/tiers.ts';
-import { cardIcon } from '../lib/gametora.ts';
-import { DEFAULTS, SIZES, getFilters, isDefault, patchFilters, useFiltersStore } from '../state/tierListFilters.ts';
-import type { Rarity, Shown } from '../state/tierListFilters.ts';
+import { matchesSearch, searchWords } from '../lib/cardSearch.ts';
+import { TIER_NAMES, toTiers } from '../lib/tiers.ts';
+import { changedCount, isDefault, patchFilters, resetFilters, useFiltersStore } from '../state/tierListFilters.ts';
 import { useTranslation } from 'react-i18next';
-import { lbName, statName } from '../i18n/index.ts';
+import { statName } from '../i18n/index.ts';
 import Dropdown from '../ui/Dropdown.tsx';
 import ScenarioPicker from '../ui/ScenarioPicker.tsx';
 import BackToTop from '../ui/BackToTop.tsx';
-import { FilterButton, FilterGroup, FilterSection, FilterSheet, ResetButton } from '../ui/FilterSheet.tsx';
+import { FilterButton, ResetButton } from '../ui/FilterSheet.tsx';
 import TypePill from '../ui/TypePill.tsx';
-import { cardUrl } from '../routes.ts';
 import { useRanking } from '../hooks/useRanking.ts';
 import { SearchInput } from '../ui/SearchInput.tsx';
-import { Segmented } from '../ui/Segmented.tsx';
 import Status from '../ui/Status.tsx';
+import TierFilters from './tierList/TierFilters.tsx';
+import TierSection from './tierList/TierSection.tsx';
 import styles from './TierListPage.module.css';
-
-const RARITIES: Rarity[] = ['SSR', 'SR', 'R'];
-
-// Kept across rankings and keystrokes (by id and the ranking's name, which comes from each server's stats).
-const searchTexts = new Map<string, string>();
-const searchText = (card: Ranked): string => {
-  const key = `${card.id}/${card.char_name}`;
-  let text = searchTexts.get(key);
-  if (text === undefined) {
-    const { name, title } = cards[card.id];
-    text = normalizeSearch([card.char_name, name.en, name.jp, title.en, title.jp].join(' '));
-    searchTexts.set(key, text);
-  }
-  return text;
-};
 
 type TierListPageProps = {
   server: Server;
@@ -50,11 +33,6 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
   const { t } = useTranslation();
   const { stat, shown, query, size } = useFiltersStore((state) => state.filters);
   const ranking = useRanking(() => rankByUsefulness(server, scenario, stat), [server, scenario, stat]);
-  // (The store remembers them across pages and reloads; the cards' size is a preference: "Reset filters" keeps it.)
-  const setStat = (stat: Stat) => patchFilters({ stat });
-  const setShown = (update: (shown: Shown) => Shown) => patchFilters({ shown: update(getFilters().shown) });
-  const setQuery = (query: string) => patchFilters({ query });
-  const setSize = (size: number) => patchFilters({ size });
   // Tiers folded away by their label, to compare the others (for this visit only).
   const [collapsed, setCollapsed] = useState<string[]>([]);
   const toggleTier = (name: string) =>
@@ -63,33 +41,18 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
   const defaultScenario = getCurrentScenario(server);
   const atDefaults = scenario === defaultScenario && isDefault({ stat, shown, query });
   const reset = () => {
-    patchFilters({ stat: DEFAULTS.stat, shown: DEFAULTS.shown, query: DEFAULTS.query });
+    resetFilters();
     onScenarioChange(defaultScenario);
   };
 
-  const toggle = (rarity: Rarity, lb: number) =>
-    setShown((s) => ({
-      ...s,
-      [rarity]: s[rarity].includes(lb) ? s[rarity].filter((n) => n !== lb) : [...s[rarity], lb],
-    }));
-  const setRarity = (rarity: Rarity, all: boolean) => setShown((s) => ({ ...s, [rarity]: all ? LIMIT_BREAKS : [] }));
-  const changed = RARITIES.reduce(
-    (n, rarity) =>
-      n + LIMIT_BREAKS.filter((lb) => shown[rarity].includes(lb) !== DEFAULTS.shown[rarity].includes(lb)).length,
-    0
-  );
+  const changed = changedCount(shown);
   const [filterOpen, setFilterOpen] = useState(false);
-  // Every word of the query must appear somewhere in the card's names.
-  const words = useMemo(() => normalizeSearch(query).split(' ').filter(Boolean), [query]);
+  const words = useMemo(() => searchWords(query), [query]);
   // Tiers come from the whole ranking, so a card's tier doesn't change with the filter.
   const allTiers = useMemo(() => ranking && toTiers(ranking), [ranking]);
   const tiers = useMemo(() => {
-    const matches = (card: Ranked): boolean => {
-      if (words.length === 0) return true;
-      const text = searchText(card);
-      return words.every((word) => text.includes(word));
-    };
-    const isShown = (card: Ranked): boolean => shown[cards[card.id].rarity]?.includes(card.lb) && matches(card);
+    const isShown = (card: Ranked): boolean =>
+      shown[cards[card.id].rarity]?.includes(card.lb) && matchesSearch(card, words, cards);
     return allTiers ? allTiers.map((tier) => tier.filter(isShown)) : null;
   }, [allTiers, shown, words]);
 
@@ -102,7 +65,7 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
           <div className={styles.searchGrow}>
             <SearchInput
               value={query}
-              onChange={setQuery}
+              onChange={(query: string) => patchFilters({ query })}
               placeholder={t('tierList.searchPlaceholder')}
               label={t('tierList.search')}
               clearLabel={t('tierList.clearSearch')}
@@ -128,47 +91,11 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
             label={t('common.stat')}
             value={stat}
             options={STATS.map((key) => ({ value: key, label: statName(key), content: <TypePill stat={key} plain /> }))}
-            onChange={(value) => setStat(value as Stat)}
+            onChange={(value) => patchFilters({ stat: value as Stat })}
           />
         </div>
 
-        <FilterSheet
-          open={filterOpen}
-          onClose={() => setFilterOpen(false)}
-          title={t('tierList.filterTitle')}
-          action={
-            <ResetButton onClick={reset} disabled={atDefaults}>
-              {t('tierList.reset')}
-            </ResetButton>
-          }
-          note={t('tierList.filterNote')}
-        >
-          {RARITIES.map((rarity) => (
-            <FilterSection
-              key={rarity}
-              heading={t(`rarity.${rarity}`)}
-              note={undefined}
-              off={false}
-              chips={LIMIT_BREAKS.map((lb) => ({
-                key: lb,
-                label: lbName(lb),
-                shown: shown[rarity].includes(lb),
-                tone: `filter-rarity-${rarity}`,
-              }))}
-              onToggle={(lb: number) => toggle(rarity, lb)}
-              onAll={(all: boolean) => setRarity(rarity, all)}
-            />
-          ))}
-          <FilterGroup heading={t('tierList.size.heading')} headingId="card-size">
-            <Segmented
-              className={styles.sizePicker}
-              labelledBy="card-size"
-              options={SIZES.map((n) => ({ value: n, label: t(`tierList.size.${n}`) }))}
-              value={size}
-              onChange={setSize}
-            />
-          </FilterGroup>
-        </FilterSheet>
+        <TierFilters open={filterOpen} onClose={() => setFilterOpen(false)} atDefaults={atDefaults} onReset={reset} />
       </aside>
 
       <div className={clsx(styles.tierList, styles[`size${size}`])}>
@@ -185,47 +112,13 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
           tiers.map(
             (tier, i) =>
               tier.length > 0 && (
-                <section className={styles.tier} key={TIER_NAMES[i]}>
-                  <button
-                    type="button"
-                    className={clsx(styles.tierLabel, `tier-${i}`)}
-                    onClick={() => toggleTier(TIER_NAMES[i])}
-                    aria-expanded={!collapsed.includes(TIER_NAMES[i])}
-                    aria-label={t('tierList.toggleTier', { tier: TIER_NAMES[i] })}
-                    title={t('tierList.toggleTier', { tier: TIER_NAMES[i] })}
-                  >
-                    {!collapsed.includes(TIER_NAMES[i]) && (
-                      <ChevronUp className={styles.tierFoldCue} size={16} aria-hidden="true" />
-                    )}
-                    {TIER_NAMES[i]}
-                  </button>
-                  {collapsed.includes(TIER_NAMES[i]) ? (
-                    <button type="button" className={styles.tierFolded} onClick={() => toggleTier(TIER_NAMES[i])}>
-                      <ChevronRight size={16} aria-hidden="true" />
-                      {t('tierList.foldedCount', { count: tier.length })}
-                    </button>
-                  ) : (
-                    <div className={styles.tierCards}>
-                      {tier.map((card) => (
-                        <a
-                          className={styles.card}
-                          key={`${card.id}/${card.lb}`}
-                          href={cardUrl(card.id)}
-                          title={card.char_name}
-                        >
-                          <figure>
-                            <img src={cardIcon(card.id, cards)} alt={card.char_name} loading="lazy" />
-                            <span className={styles.lb}>{lbName(card.lb)}</span>
-                            <figcaption>
-                              <span className={styles.name}>{card.char_name}</span>
-                              <span className={styles.score}>{card.score.toFixed(0)}</span>
-                            </figcaption>
-                          </figure>
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </section>
+                <TierSection
+                  key={TIER_NAMES[i]}
+                  index={i}
+                  cards={tier}
+                  collapsed={collapsed.includes(TIER_NAMES[i])}
+                  onToggle={toggleTier}
+                />
               )
           )
         )}

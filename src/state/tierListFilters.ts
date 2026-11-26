@@ -8,10 +8,12 @@
 import * as z from 'zod/mini';
 import { STATS } from '../../tierlist/index.ts';
 import type { Stat } from '../../tierlist/index.ts';
+import { LIMIT_BREAKS } from '../lib/tiers.ts';
 import { persisted } from './rawStorage.ts';
 
 export type Rarity = 'SSR' | 'SR' | 'R';
 export type Shown = Record<Rarity, number[]>;
+export const RARITIES: Rarity[] = ['SSR', 'SR', 'R'];
 type Filters = { stat: Stat; shown: Shown; query: string; size: number };
 
 // MLB for all, plus LB0 and LB3 for SSR and SR.
@@ -64,4 +66,24 @@ export const isDefault = ({ stat, shown, query }: Pick<Filters, 'stat' | 'shown'
     (rarity) =>
       shown[rarity].length === DEFAULTS.shown[rarity].length &&
       DEFAULTS.shown[rarity].every((lb) => shown[rarity].includes(lb))
+  );
+
+// "Reset filters" keeps the cards' size (a preference); the page resets the scenario itself.
+export const resetFilters = () => patchFilters({ stat: DEFAULTS.stat, shown: DEFAULTS.shown, query: DEFAULTS.query });
+
+const patchShown = (update: (shown: Shown) => Shown) => patchFilters({ shown: update(getFilters().shown) });
+export const toggleLimitBreak = (rarity: Rarity, lb: number) =>
+  patchShown((s) => ({
+    ...s,
+    [rarity]: s[rarity].includes(lb) ? s[rarity].filter((n) => n !== lb) : [...s[rarity], lb],
+  }));
+export const showRarity = (rarity: Rarity, all: boolean) =>
+  patchShown((s) => ({ ...s, [rarity]: all ? LIMIT_BREAKS : [] }));
+
+// How many limit breaks are shown or hidden unlike the defaults (the filter button's count).
+export const changedCount = (shown: Shown) =>
+  RARITIES.reduce(
+    (n, rarity) =>
+      n + LIMIT_BREAKS.filter((lb) => shown[rarity].includes(lb) !== DEFAULTS.shown[rarity].includes(lb)).length,
+    0
   );

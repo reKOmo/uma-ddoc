@@ -1,0 +1,55 @@
+/* A free scout window's pulls as a chip, its dates under it. */
+.pulls {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.pulls strong {
+  padding: 3px 10px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: color-mix(
+    in srgb,
+    var(--event-campaign) 50%,
+    light-dark(var(--text), color-mix(in srgb, var(--event-campaign) 30%, var(--text)))
+  );
+  background: color-mix(in srgb, var(--event-campaign) 18%, transparent);
+  border-radius: 999px;
+}
+
+.relation,
+.part {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent-ink);
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* One per line (a banner can be both a re-run and re-held). */
+.relation {
+  display: flex;
+  margin-top: 8px;
+}
+
+.relation:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--tone);
+  border-radius: 50%;
+}

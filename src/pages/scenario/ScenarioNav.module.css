@@ -1,0 +1,42 @@
+/* On top on phones, at the bottom on desktop: the page is a flex column. */
+.nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  order: -1;
+  margin-bottom: 16px;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 8px 10px;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.nav a:hover {
+  border-color: var(--scenario-color);
+}
+
+.nav a.next {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.nav small {
+  display: block;
+  color: var(--muted);
+}
+
+@media (min-width: 768px) {
+  .nav {
+    order: 0;
+    margin: 24px 0 0;
+  }
+}
