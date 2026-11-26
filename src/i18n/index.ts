@@ -7,7 +7,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import en from './en.json' with { type: 'json' };
 import { COMBINED } from '../../tierlist/index.ts';
-import { scenarioByKey } from '../lib/scenarioRelease.ts';
+import { scenarioByKey } from '../../shared/scenarioRelease.ts';
 import { getSetting } from '../state/settingsStore.ts';
 
 const RESOURCES = { en: { translation: en } };

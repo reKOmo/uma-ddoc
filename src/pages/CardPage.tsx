@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { COMBINED } from '../../tierlist/index.ts';
 import { cards, loadCards } from '../../tierlist/cards.ts';
 import type { Server } from '../../tierlist/cards.ts';
-import { getServerConfig } from '../../tierlist/scenarios.ts';
+import { getCurrentScenario, getServerConfig } from '../../tierlist/scenarios.ts';
 import { STAT_OF_TYPE } from '../lib/tiers.ts';
 import { useAsync } from '../hooks/useAsync.ts';
 import { cardArt, cardPage } from '../lib/gametora.ts';
@@ -22,7 +22,7 @@ import RankOverTime from './card/RankOverTime.tsx';
 import ScenarioFilter from './card/ScenarioFilter.tsx';
 import ScenarioTierTable from './card/ScenarioTierTable.tsx';
 import { useOrigins, usePredictions, useScenarioRankings } from './card/hooks.ts';
-import { currentScenario, nameOf, otherNames, titleOf } from './card/shared.ts';
+import { nameOf, otherNames, titleOf } from './card/shared.ts';
 import { useLanguage, useTranslations } from '../lib/translations.ts';
 import { FanTl } from '../ui/FanTl.tsx';
 import './card.css'; // the Rank over time picker's size (a global class of the Dropdown's)
@@ -142,7 +142,7 @@ export default function CardPage({ cardId, server, scenario }: CardPageProps) {
               cardId={cardId}
               scenarios={scenarios}
               combined={combined}
-              scenario={currentScenario(server)}
+              scenario={getCurrentScenario(server)}
               rankings={rankings}
               noStats={!released && !upcoming}
             />

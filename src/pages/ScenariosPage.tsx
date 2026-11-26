@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatDate, serverName } from '../i18n/index.ts';
-import { DATE_FIELD, SCENARIOS, isCurrent, launchTag } from '../lib/scenarioRelease.ts';
+import { DATE_FIELD, SCENARIOS, isCurrent, launchTag } from '../../shared/scenarioRelease.ts';
 import type { StartDate } from '../../shared/schemas/scenario.ts';
 import type { Server } from '../lib/servers.ts';
 import ScenarioPill from '../ui/ScenarioPill.tsx';

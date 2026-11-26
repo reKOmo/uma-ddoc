@@ -149,11 +149,10 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     predictions.ts   optional loader for generated/predicted_gl_releases.json
     translations.ts  optional loader for generated/translations.json; languageOf() / useLanguage() (the Names settings)
     pullGuide.ts     optional loader for generated/pull_guide.json (the card page's NextBanner tile + Banners), upcomingBanner(),
-                     currentAdvice(), latestAdvice(), sheetLink()
+                     currentAdvice(), sheetLink()
     umapyoi.ts       umapyoiUrl(news_url): umapyoi.net's copy of an official post (JP's in Japanese)
     statIcons.ts     STAT_ICONS: the game's stat type icons by stat key (src/icons/stats/<stat>.png, committed: 70×70,
                      from upstream's src/icons/utx_ico_obtain_00–05), bundled; the Cards tab's Stat picker shows them
-    scenarioRelease.ts  SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
     vividColor.ts    a colour from art (a scenario's cover) made vivid for display
   pages/SettingsPage.tsx               the Settings tab
   pages/TierListPage.tsx               the Cards tab
@@ -165,7 +164,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      banner on its art + the guide's pull advice), Banners (the card's banners/events), Origins (OriginPill, KindPill), ScenarioTierTable (heatmap),
                      RankOverTime (RankHistorySection: chart + PassedBy); hooks.ts (usePredictions, useOrigins,
                      useScenarioRankings, useUpcomingRanking, useRankHistory), advice.ts (useUpcomingAdvice: the
-                     guide + next banner, for NextBanner and Banners' pull pills), shared.ts (currentScenario(server)…)
+                     guide + next banner, for NextBanner and Banners' pull pills), shared.ts (nameOf, titleOf…)
   pages/card.css     global on purpose: the Rank over time picker's size (`.history-controls .dropdown-button`)
   pages/ScenariosPage.tsx              the Scenarios tab (list)
   pages/ScenarioPage.tsx               one scenario
@@ -213,6 +212,8 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   i18n/en.json       every UI string (English)
 shared/schemas/      zod schemas + their types for every data file (card, banner, event, scenario, pullGuide, news,
                      predictions, sources, gametora, common); files.ts: each data file's schema, the JSON Schemas
+shared/scenarioRelease.ts  data/scenarios.json's launches: SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
+                     (the app and tierlist/'s getCurrentScenario / scenarioAt both read them)
 schemas/             JSON Schemas generated from shared/schemas/ (`pnpm build-schemas`; pull_guide.json points at its
                      own via `$schema`; cards.json is keyed by card id alone, so no `$schema`)
 test/                Vitest `unit` project (pnpm test); helpers.ts: fixture<T>() (test data with only the fields the

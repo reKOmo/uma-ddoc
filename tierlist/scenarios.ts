@@ -1,7 +1,10 @@
 // Scenario weights, training gains and per-server deck presets for the tier list calculation. Originally from
 // https://github.com/Euophrys/umamusume-tierlist (src/scenarios.js, MIT — see LICENSE); maintained here now.
 // test/upstream/ checks them against upstream's. JP and Global tweak a few constants, so each server has its own bundle.
-// availableScenarios is newest first; defaultScenario is the server's current one.
+// availableScenarios is newest first; which of them is current comes from their launch dates (getCurrentScenario).
+
+import type { Server } from './cards.ts';
+import { DATE_FIELD, isCurrent, isReleased, scenarioByKey } from '../shared/scenarioRelease.ts';
 
 export type StatWeights = {
   type: number;
@@ -41,7 +44,6 @@ export type DeckPreset = { key: string; cards: number[] };
 
 export type ServerConfig = {
   availableScenarios: string[];
-  defaultScenario: string;
   defaultPresetCards: number[];
   deckPresets: DeckPreset[];
 };
@@ -564,7 +566,6 @@ export const SCENARIOS_BY_SERVER: Record<string, ServerScenarios> = { jp, gl };
 export const SERVER_CONFIG: Record<string, ServerConfig> = {
   jp: {
     availableScenarios: ['DYI', 'GM', 'GL', 'MANT', 'Aoharu', 'URA'],
-    defaultScenario: 'DYI',
     defaultPresetCards: [30226, 30256, 30187, 30233, 30257],
     // Typical decks; rankByUsefulness averages over these and defaultPresetCards.
     deckPresets: [
@@ -579,7 +580,6 @@ export const SERVER_CONFIG: Record<string, ServerConfig> = {
   },
   gl: {
     availableScenarios: ['DYI', 'GM', 'GL', 'MANT', 'Aoharu', 'URA'],
-    defaultScenario: 'GL',
     defaultPresetCards: [20031, 20033, 20012, 20015, 30052],
     deckPresets: [
       { key: 'speed-power', cards: [30028, 20031, 20033, 20009, 20003] },
@@ -599,10 +599,29 @@ export function getScenarios(server: string): ServerScenarios {
   return SCENARIOS_BY_SERVER[server] || SCENARIOS_BY_SERVER.jp;
 }
 
-// A copy, so callers can't modify the shared definitions. An unknown key falls
-// back to the server's default scenario (as upstream does).
-export function getScenario(server: string, scenarioKey: string): ScenarioWeights {
+// The ranked scenario running on the server now (by data/scenarios.json's launch dates): the one running, else the
+// newest launched (the newest running isn't ranked yet, as on JP), else the newest.
+export function getCurrentScenario(server: Server, now: number = Date.now()): string {
+  const keys = getServerConfig(server).availableScenarios;
+  return keys.find((k) => isCurrent(k, server, now)) ?? keys.find((k) => isReleased(k, server, now)) ?? keys[0] ?? '';
+}
+
+// The ranked scenario that will be running on the server at `at` (ms; a card's release still to come): the one
+// launching last by then, predicted launches counted (the card's date is a prediction as well); else the current one.
+export function scenarioAt(at: number, server: Server): string {
+  let best: { key: string; start: number } | null = null;
+  for (const key of getServerConfig(server).availableScenarios) {
+    const launch = scenarioByKey(key)?.[DATE_FIELD[server]];
+    const start = launch ? Date.parse(launch.date) : Number.NaN;
+    if (start <= at && (!best || start > best.start)) best = { key, start };
+  }
+  return best?.key ?? getCurrentScenario(server);
+}
+
+// A copy, so callers can't modify the shared definitions. An unknown key (Global's DYI, listed without weights) falls
+// back to the server's current scenario (as upstream does to its default).
+export function getScenario(server: Server, scenarioKey: string): ScenarioWeights {
   const scenarios = getScenarios(server);
-  const scenario = scenarios[scenarioKey] || scenarios[getServerConfig(server).defaultScenario];
+  const scenario = scenarios[scenarioKey] || scenarios[getCurrentScenario(server)];
   return JSON.parse(JSON.stringify(scenario));
 }

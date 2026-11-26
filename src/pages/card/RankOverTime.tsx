@@ -12,7 +12,7 @@ import { Segmented } from '../../ui/Segmented.tsx';
 import Status from '../../ui/Status.tsx';
 import { WIDE, useMediaQuery } from '../../hooks/useMediaQuery.ts';
 import RankChart from '../RankChart.tsx';
-import { SCENARIOS } from '../../lib/scenarioRelease.ts';
+import { SCENARIOS } from '../../../shared/scenarioRelease.ts';
 import { scenarioSegments } from '../../timeline/scenarioStrip.ts';
 
 // The chart's zoom steps: 1 fits the card's whole life, past it the chart scrolls sideways.

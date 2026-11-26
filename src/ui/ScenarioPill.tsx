@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { scenarioName } from '../i18n/index.ts';
-import { scenarioByKey } from '../lib/scenarioRelease.ts';
+import { scenarioByKey } from '../../shared/scenarioRelease.ts';
 import { ink, scenarioStyle } from '../lib/vividColor.ts';
 import styles from './ScenarioPill.module.css';
 

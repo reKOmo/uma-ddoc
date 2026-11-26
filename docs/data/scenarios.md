@@ -7,7 +7,7 @@
   dates the launch); a start date is `{ date, status }` (or null, [pipeline](pipeline.md#dates)):
   status `news` (Global's launch post), `gametora` (JP's launch; Global's seeded ones), `predicted` (+ `lo`/`hi` range,
   from `ml/scenarios.py`). The app shows them as out / confirmed (still ahead) / predicted (`launchTag()`,
-  `src/lib/scenarioRelease.ts`). JS and Python write the same format. `key` is the tier list's where it ranks the
+  `shared/scenarioRelease.ts`). JS and Python write the same format. `key` is the tier list's where it ranks the
   scenario (URA, Aoharu, MANT, GL, GM, DYI), else ours — an id (URLs, lookups), never shown. `short: { jp, en }`: the
   names shown, via `scenarioName()` and the Scenario names setting (JP's from upstream's en-jp locale + GameTora's
   "for short"; Global's from upstream's en-gl locale, null until Global has one). Both from the hand table

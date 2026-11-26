@@ -50,10 +50,10 @@ it('the clone and generated/ card data are the same upstream commit', () => {
 
 for (const server of ['gl', 'jp'] as const) {
   describe(`${server}`, () => {
-    it('offers the same scenarios, default and deck presets', () => {
+    it('offers the same scenarios and deck presets', () => {
       const ours = getServerConfig(server);
       const theirs = upstreamScenarios.getServerConfig(server);
-      for (const key of ['availableScenarios', 'defaultScenario', 'defaultPresetCards', 'deckPresets'] as const) {
+      for (const key of ['availableScenarios', 'defaultPresetCards', 'deckPresets'] as const) {
         expect(ours[key], key).toStrictEqual(theirs[key]);
       }
     });

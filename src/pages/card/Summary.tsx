@@ -12,9 +12,9 @@ import ScenarioPill from '../../ui/ScenarioPill.tsx';
 import TierChip from '../../ui/TierChip.tsx';
 import { useSettings } from '../../state/settings.tsx';
 import { dateFormats } from '../../timeline/format.ts';
+import { getCurrentScenario, scenarioAt } from '../../../tierlist/scenarios.ts';
 import { useUpcomingAdvice } from './advice.ts';
 import { useRankHistory } from './hooks.ts';
-import { currentScenario, scenarioAt } from './shared.ts';
 import styles from './Summary.module.css';
 
 function Tile({ label, className, children }: { label: ReactNode; className?: string; children: ReactNode }) {
@@ -136,7 +136,7 @@ export default function SummaryTiles({
       ? formatDay(release.date)
       : '';
   // A card still to come is ranked in the scenario it arrives into.
-  const scenario = releaseAt ? scenarioAt(server, releaseAt) : currentScenario(server);
+  const scenario = releaseAt ? scenarioAt(releaseAt, server) : getCurrentScenario(server);
   const { ranking, history, now, drop } = useRankHistory({
     cardId,
     server,

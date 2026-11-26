@@ -3,7 +3,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, FoldVertical, Globe, LocateFixed
 import clsx from 'clsx';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { SCENARIOS } from '../lib/scenarioRelease.ts';
+import { SCENARIOS } from '../../shared/scenarioRelease.ts';
 import { useSettings } from '../state/settings.tsx';
 import { useLanguage } from '../lib/translations.ts';
 import { useDragScroll } from '../hooks/useDragScroll.ts';

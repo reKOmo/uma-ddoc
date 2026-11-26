@@ -23,7 +23,7 @@
 - Tiers (S, A, B…) split the score range into 7 equal bands (upstream's banding).
 - **Averaged rankings** (`COMBINED` in `tierlist/index.ts`) are offered next to the real
   scenarios everywhere a scenario is picked: `overall` (every scenario) and `upcoming`
-  ("Current + future": the server's `defaultScenario` plus every scenario listed before
+  ("Current + future": the server's current scenario (`getCurrentScenario`, from the launch dates) plus every scenario listed before
   it, since `availableScenarios` is newest first). Each scenario's ranking is rescaled to
   0–1000 (bottom → top card) and those are averaged. Scenarios the server lists but
   doesn't define are left out of the averages: Global lists `DYI` but has no weights for

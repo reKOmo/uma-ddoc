@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { scenarioName } from '../../i18n/index.ts';
-import { scenarioByKey } from '../../lib/scenarioRelease.ts';
+import { scenarioByKey } from '../../../shared/scenarioRelease.ts';
 import { scenarioCssColor } from '../../lib/vividColor.ts';
 import { useHiddenScenarios } from '../../state/hiddenScenarios.ts';
 import { FilterButton, FilterSection, FilterSheet } from '../../ui/FilterSheet.tsx';

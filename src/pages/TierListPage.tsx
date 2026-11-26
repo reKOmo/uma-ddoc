@@ -5,7 +5,7 @@ import { COMBINED, STATS, rankByUsefulness } from '../../tierlist/index.ts';
 import type { Ranked, Stat } from '../../tierlist/index.ts';
 import { cards } from '../../tierlist/cards.ts';
 import type { Server } from '../../tierlist/cards.ts';
-import { getServerConfig } from '../../tierlist/scenarios.ts';
+import { getCurrentScenario, getServerConfig } from '../../tierlist/scenarios.ts';
 import { TIER_NAMES, toTiers } from '../lib/tiers.ts';
 import { cardIcon } from '../lib/gametora.ts';
 import { DEFAULTS, SIZES, getFilters, isDefault, saveFilters, useFiltersStore } from '../state/tierListFilters.ts';
@@ -62,7 +62,7 @@ export default function TierListPage({ server, scenario, onScenarioChange }: Tie
   const toggleTier = (name: string) =>
     setCollapsed((c) => (c.includes(name) ? c.filter((n) => n !== name) : [...c, name]));
 
-  const defaultScenario = getServerConfig(server).defaultScenario;
+  const defaultScenario = getCurrentScenario(server);
   const atDefaults = scenario === defaultScenario && isDefault({ stat, shown, query });
   const reset = () => {
     saveFilters({ ...getFilters(), stat: DEFAULTS.stat, shown: DEFAULTS.shown, query: DEFAULTS.query });

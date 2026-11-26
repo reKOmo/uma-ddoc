@@ -1,5 +1,5 @@
 import { processCards } from './tierlist-calc.ts';
-import { getScenario, getScenarios, getServerConfig } from './scenarios.ts';
+import { getCurrentScenario, getScenario, getScenarios, getServerConfig } from './scenarios.ts';
 import { type Server, loadCards, loadCardsWithUpcoming } from './cards.ts';
 import type { JoinedCard } from './join-cards.ts';
 import type { CalcWeights } from './tierlist-calc.ts';
@@ -16,7 +16,7 @@ export const COMBINED: Record<string, { scenarios: (server: Server) => string[] 
   upcoming: {
     scenarios: (server) => {
       const all = definedScenarios(server);
-      const current = all.indexOf(getServerConfig(server).defaultScenario);
+      const current = all.indexOf(getCurrentScenario(server));
       return all.slice(0, current + 1);
     },
   },

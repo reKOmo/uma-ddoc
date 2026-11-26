@@ -21,7 +21,7 @@
 - **Card page** (`#/card/<id>`) — one support card. Mobile first: everything stacks under the art; from 768px the
   art (360px, 3:4) is on the left and the name, tags, "See full stats on GameTora" button under the tags (if GameTora has the card) and the tiles on its right, the
   tiles right under them; the art and that column centred against each other; from 1024px the tier table and Banners sit side by side.
-  "The current scenario" below is the one running on the selected server (`currentScenario()`: `isCurrent()`, else the
+  "The current scenario" below is the one running on the selected server (`getCurrentScenario()` in `tierlist/scenarios.ts`: `isCurrent()`, else the
   newest released), not the Cards tab's pick.
   - **Tiles** (`Summary.tsx`, the current scenario at MLB): the rank tile (its TierChip + "#N of M"; for a card not on
     the server yet, its predicted rank on arrival); "Tier outlook" ("Holds S until ~date, then A": the first predicted

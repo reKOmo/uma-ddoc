@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { Redirect, Route, Router, Switch, useLocation, useRoute } from 'wouter';
 import { ArrowLeft, CalendarRange, Route as RouteIcon, Settings, Trophy } from 'lucide-react';
-import { getServerConfig } from '../tierlist/scenarios.ts';
+import { getCurrentScenario } from '../tierlist/scenarios.ts';
 import { scenarioOptions } from '../tierlist/index.ts';
 import { SERVERS, type Server } from './lib/servers.ts';
 import { serverName } from './i18n/index.ts';
@@ -46,11 +46,11 @@ function Shell() {
   // Re-render everything when a setting changes: some readers are plain functions (scenarioName()).
   useSettings();
   const [server, setServer] = useState<Server>('gl');
-  const [scenario, setScenario] = useState(getServerConfig('gl').defaultScenario);
+  const [scenario, setScenario] = useState(() => getCurrentScenario('gl'));
 
   function changeServer(next: Server) {
     setServer(next);
-    if (!scenarioOptions(next).includes(scenario)) setScenario(getServerConfig(next).defaultScenario);
+    if (!scenarioOptions(next).includes(scenario)) setScenario(getCurrentScenario(next));
   }
 
   const [onCard, cardParams] = useRoute(PATTERNS.card);

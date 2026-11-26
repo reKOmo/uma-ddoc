@@ -3,7 +3,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Trophy } from 'luc
 import { useTranslation } from 'react-i18next';
 import { getServerConfig } from '../../tierlist/scenarios.ts';
 import { formatDateRange, formatDateTime, formatDuration, scenarioName, serverName } from '../i18n/index.ts';
-import { DATE_FIELD, SCENARIOS, isCurrent, launchTag, scenarioByKey } from '../lib/scenarioRelease.ts';
+import { DATE_FIELD, SCENARIOS, isCurrent, launchTag, scenarioByKey } from '../../shared/scenarioRelease.ts';
 import type { Scenario, StartDate } from '../../shared/schemas/scenario.ts';
 import type { Server } from '../lib/servers.ts';
 import { Section } from '../ui/Section.tsx';

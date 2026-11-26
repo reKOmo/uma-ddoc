@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import Dropdown, { type DropdownOption } from './Dropdown.tsx';
 import { scenarioName } from '../i18n/index.ts';
-import { SCENARIOS, isCurrent, isReleased, scenarioByKey } from '../lib/scenarioRelease.ts';
+import { SCENARIOS, isCurrent, isReleased, scenarioByKey } from '../../shared/scenarioRelease.ts';
 import type { Server } from '../lib/servers.ts';
 import ScenarioPill from './ScenarioPill.tsx';
 
