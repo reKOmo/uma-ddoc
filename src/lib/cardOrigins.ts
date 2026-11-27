@@ -1,16 +1,17 @@
 // An event giving the card inside an event that lists it too (a celebration's gift) counts once, as the part.
 
 import type { Entry } from '../timeline/entries.ts';
+import type { Server } from './servers.ts';
 
 export const ORIGIN_KINDS = ['banner', 'paid_banner', 'story', 'gift', 'shop', 'other'] as const;
 export type OriginKind = (typeof ORIGIN_KINDS)[number];
 
 // The fields of a Timeline entry this reads; the origins keep whatever entries they're given (an Entry, a test's).
-export type OriginEntry = Pick<Entry, 'key' | 'group' | 'kind' | 'paid' | 'start' | 'parent' | 'featured'>;
+type OriginEntry = Pick<Entry, 'key' | 'group' | 'kind' | 'paid' | 'start' | 'parent' | 'featured'>;
 
-export type Origin<E extends OriginEntry = OriginEntry, S extends string = string> = {
+export type Origin<E extends OriginEntry = OriginEntry> = {
   entry: E;
-  server: S;
+  server: Server;
   kind: OriginKind;
   rerun: boolean;
 };
@@ -27,11 +28,8 @@ const EVENT_KINDS: Partial<Record<string, OriginKind>> = {
 const originKind = (entry: OriginEntry): OriginKind =>
   entry.group === 'event' ? (EVENT_KINDS[entry.kind] ?? 'other') : entry.paid ? 'paid_banner' : 'banner';
 
-function serverOrigins<E extends OriginEntry, S extends string>(
-  cardId: number,
-  entries: E[],
-  server: S
-): Origin<E, S>[] {
+// Oldest first.
+export function cardOrigins<E extends OriginEntry>(cardId: number, entries: E[], server: Server): Origin<E>[] {
   const byKey = new Map(entries.map((entry) => [entry.key, entry]));
   const parentOf = (entry: E): E | undefined => (entry.parent == null ? undefined : byKey.get(entry.parent));
   const giving = new Map<string, { entry: E; item: E['featured'][number] }>();
@@ -51,16 +49,7 @@ function serverOrigins<E extends OriginEntry, S extends string>(
       server,
       kind: originKind(entry),
       rerun: entry.group !== 'event' && !item.isNew,
-    }));
-}
-
-export function cardOrigins<E extends OriginEntry, S extends string>(
-  cardId: number,
-  byServer: Partial<Record<S, E[]>>
-): Origin<E, S>[] {
-  // (Object.entries types its keys as strings: they're the record's S keys)
-  return (Object.entries(byServer) as [S, E[] | undefined][])
-    .flatMap(([server, entries]) => serverOrigins(cardId, entries ?? [], server))
+    }))
     .sort((a, b) => a.entry.start.localeCompare(b.entry.start));
 }
 

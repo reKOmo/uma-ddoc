@@ -1,6 +1,7 @@
 import { en } from './en.ts';
 import { jp } from './jp.ts';
 import type { Race } from '../../../../shared/schemas/event.ts';
+import type { Server } from '../text.ts';
 
 export type PostLike = { announce_id: number; announce_label: number; message?: string };
 // A post cut at its header art (events/blocks.ts' eventBlocks()): intro lines + headed sections.
@@ -27,7 +28,7 @@ export type Rule = [
   (number | ((m: Match) => string | null))?,
 ];
 
-// A daily free scout campaign's wording (free-scouts.ts).
+// A daily free scout campaign's wording (freeScouts.ts).
 export type ScoutLexicon = {
   // A line about the daily free scout, and one of those saying it's a 10x.
   daily: RegExp;
@@ -69,20 +70,20 @@ export type RaceLexicon = {
 // cards/jp) read a post with. Required keys are what Global's English lexicon (en.ts) has; the optional ones are
 // behaviour only JP's sets (JapaneseLexicon makes the ones cards/jp.ts needs required).
 export type Lexicon = {
-  server: 'gl' | 'jp';
+  server: Server;
   // The field of generated/cards.json' names and titles the posts use.
   cardLang: 'en' | 'jp';
   // Dates: parsePeriod(text, dateRef(posted)).
   parsePeriod: (text: string, ref: DateRef) => Period;
   dateRef: (posted: string) => DateRef;
   clean: (html: string) => string;
-  // Posts that are never in-game news (post-categories).
+  // Posts that are never in-game news (tested in categorize.test.ts).
   community: (post: PostLike) => boolean;
-  // [title pattern, phase], the first match wins (post-categories).
+  // [title pattern, phase], the first match wins (tested in categorize.test.ts).
   phases: [RegExp, string][];
   rules: Rule[];
   // Global: template phrases a title can't show (a celebration's "details of included events"), and the title rules'
-  // answer revised by them (post-categories; the phrases are ml/categorize.py's features too, news-features.ts).
+  // answer revised by them (tested in categorize.test.ts; the phrases are ml/categorize.py's features too, news/features.ts).
   signals?: Signal[];
   revise?: (rule: Revised, has: (signal: string) => boolean, title: string) => Revised;
   // An event's name when the title gives none.
@@ -247,12 +248,9 @@ export type Lexicon = {
 };
 
 // The Japanese lexicon: the JP-only hooks cards/jp.ts reads are always there.
-export type JapaneseLexicon = Lexicon & Required<Pick<Lexicon, 'eventCard' | 'giftCard' | 'newCardGiven'>>;
+export type JapaneseLexicon = Lexicon &
+  Required<Pick<Lexicon, 'eventCard' | 'giftCard' | 'newCardGiven' | 'sameEventDays'>>;
 
 export const LEXICONS: { gl: Lexicon; jp: JapaneseLexicon } = { gl: en, jp };
-export const lexicon = (server: 'gl' | 'jp' = 'gl'): Lexicon => {
-  const lang = LEXICONS[server];
-  if (!lang) throw new Error(`no news lexicon for ${server}`);
-  return lang;
-};
+export const lexicon = (server: Server = 'gl'): Lexicon => LEXICONS[server];
 export { en, jp };

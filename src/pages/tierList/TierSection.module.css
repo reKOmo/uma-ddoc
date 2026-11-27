@@ -1,0 +1,81 @@
+.tier {
+  display: flex;
+  margin-bottom: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.tierLabel {
+  position: relative;
+  flex: 0 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0;
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1c1f24;
+  border: 0;
+  cursor: pointer;
+}
+
+.tierFoldCue {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  translate: -50% 0;
+  opacity: 0.6;
+}
+
+.tierLabel:hover {
+  filter: brightness(0.92);
+}
+
+.tierLabel:hover .tierFoldCue {
+  opacity: 1;
+}
+
+.tierFolded {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.tierFolded:hover {
+  color: var(--text);
+}
+
+/* --card-min / --card-width: the page's card size. */
+.tierCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min), 1fr));
+  gap: 6px;
+  flex: 1;
+  padding: 6px;
+}
+
+@media (min-width: 768px) {
+  .tierLabel {
+    flex-basis: 56px;
+    font-size: 1.6rem;
+  }
+
+  .tierCards {
+    grid-template-columns: repeat(auto-fill, var(--card-width));
+    gap: 8px;
+    padding: 8px;
+  }
+}

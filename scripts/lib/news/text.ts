@@ -1,4 +1,6 @@
-export type Server = 'gl' | 'jp';
+import type { Server } from '../../../shared/schemas/common.ts';
+
+export type { Server };
 
 export const NEWS_SITES: Record<Server, { site: string; post: (id: number | string) => string }> = {
   gl: { site: 'https://umamusume.com', post: (id) => `https://umamusume.com/news/${id}/` },
@@ -7,7 +9,24 @@ export const NEWS_SITES: Record<Server, { site: string; post: (id: number | stri
 export const SITE: string = NEWS_SITES.gl.site;
 export const newsUrl = (id: number | string, server: Server = 'gl'): string => NEWS_SITES[server].post(id);
 
-export const DAY: number = 24 * 3600 * 1000;
+export const MINUTE: number = 60_000;
+export const HOUR: number = 60 * MINUTE;
+export const DAY: number = 24 * HOUR;
+// Japan's offset from UTC: JP's posts and GameTora's JP dates are in JST.
+export const JST: number = 9 * HOUR;
+
+// "2026-10-07T22:00:00.000Z" → "2026-10-07 22:00", as the scripts print a time.
+export const minuteText = (iso: string): string => iso.slice(0, 16).replace('T', ' ');
+// GameTora's and umapyoi.net's times are unix seconds.
+export const isoOfUnix = (seconds: number): string => new Date(seconds * 1000).toISOString();
+// The day a UTC time falls on in Japan, "YYYY-MM-DD".
+export const jstDay = (iso: string): string => new Date(Date.parse(iso) + JST).toISOString().slice(0, 10);
+// JP posts rarely give a year: the one (`ref`'s JST year or either side) that puts the date `at(year)` (ms) nearest
+// `ref` (ms).
+export function nearestYear(at: (year: number) => number, ref: number): number {
+  const year = new Date(ref + JST).getUTCFullYear();
+  return [year - 1, year, year + 1].reduce((best, y) => (Math.abs(at(y) - ref) < Math.abs(at(best) - ref) ? y : best));
+}
 
 // Lower-case letters and digits only (of any script: kana and kanji too), accents dropped, full-width folded: names
 // compared however they're written.
@@ -17,6 +36,11 @@ export const norm = (s: string | null | undefined): string =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\p{M}]/gu, '');
+// A card's title without the brackets the data and the posts write around it ("[Title]").
+export const bareTitle = (title: string): string => title.replace(/^\[|\]$/g, '');
+// A card as "title|name", however either is written.
+export const cardKey = (title: string | null | undefined, name: string | null | undefined): string =>
+  `${norm(title)}|${norm(name)}`;
 
 export const MONTHS: string[] = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
@@ -108,13 +132,10 @@ export function parsePeriod(text: string, fallbackYear: number): { start: string
 // without a time is the start of that day, an end without one its last minute; end null when open-ended.
 const JP_DATE =
   /(?:(\d{4})\s*[/年]\s*)?(\d{1,2})\s*[/月]\s*(\d{1,2})日?(?:\s*[（(][^）)]{1,4}[）)])?(?:\s*(\d{1,2}):(\d{2}))?/g;
-const JST = 9 * 3600 * 1000;
 type JpDate = { year: number | null; month: number; day: number; time: [number, number] | null };
 type ResolvedJpDate = Omit<JpDate, 'year'> & { year: number };
 
 export function parsePeriodJp(text: string, posted: string): { start: string | null; end: string | null } {
-  const ref = Date.parse(posted);
-  const refYear = new Date(ref + JST).getUTCFullYear();
   const at = (y: number, d: JpDate, [h, min]: [number, number]): number => Date.UTC(y, d.month, d.day, h, min) - JST;
   const dates: JpDate[] = [...text.matchAll(JP_DATE)]
     .slice(0, 2)
@@ -128,21 +149,15 @@ export function parsePeriodJp(text: string, posted: string): { start: string | n
     )
     .filter((d) => d.month >= 0 && d.month < 12 && d.day >= 1 && d.day <= 31);
   if (!dates.length) return { start: null, end: null };
-  const nearest = (d: JpDate, time: [number, number]): number =>
-    [refYear - 1, refYear, refYear + 1].reduce((best, y) =>
-      Math.abs(at(y, d, time) - ref) < Math.abs(at(best, d, time) - ref) ? y : best
-    );
   // TODO(ts): as in parsePeriod: each year is set below, which TS can't follow through the array's element type.
   const [start, end] = dates as [ResolvedJpDate, ResolvedJpDate?];
   const startTime: [number, number] = start.time ?? [0, 0];
-  start.year ??= nearest(start, startTime);
+  const endTime: [number, number] = end?.time ?? [23, 59];
+  start.year ??= nearestYear((y) => at(y, start, startTime), Date.parse(posted));
   if (end) {
-    const endTime = end.time ?? [23, 59];
     end.year ??= start.year;
     if (at(end.year, end, endTime) < at(start.year, start, startTime)) end.year += 1;
-    end.time = endTime;
   }
   const iso = (d: ResolvedJpDate, time: [number, number]): string => new Date(at(d.year, d, time)).toISOString();
-  // end.time was set to endTime above (its own or the last minute): the same value here, out of that block.
-  return { start: iso(start, startTime), end: end ? iso(end, end.time ?? [23, 59]) : null };
+  return { start: iso(start, startTime), end: end ? iso(end, endTime) : null };
 }

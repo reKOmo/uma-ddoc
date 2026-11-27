@@ -1,0 +1,5 @@
+/* Doubled: wins over ui/Pill's .kind whatever order the modules load in. */
+.pill.pill {
+  font-size: 0.8rem;
+  cursor: default;
+}

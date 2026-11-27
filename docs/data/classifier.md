@@ -17,7 +17,7 @@ the update summary says "Edited since labelled", the review page shows it unrevi
 - **Units:** a post cut at its header art as `eventBlocks()` does, its intro (text before the first art) a unit of its
   own (`scripts/lib/news/gold.ts` `units()`), so a celebration's intro and the part after it ("…the New Year's Countdown
   Login Bonus has begun!") are two. An event post has one unit label per unit, other posts none.
-- **`pnpm gold:review`** (localhost:5190, `scripts/gold-review.ts` + `gold-review/`): a local page with each post's
+- **`pnpm gold:review`** (localhost:5190, `scripts/goldReview.ts` + `goldReview/`): a local page with each post's
   units next to its label, today's rules' and the same-id JP post's (Global's in-game posts reuse JP's ids); posts the
   rules and JP disagree on first. New posts get today's rules' label (unreviewed) when it starts. It saves one label at
   a time into the file as it is then.
@@ -53,7 +53,7 @@ JP community posts where Global reused the id, JP 813 a three-part celebration G
 
 ## The classifiers
 
-`pnpm news:features` (`scripts/news-features.ts` → `generated/news_features.json`: what the TS parsers see in each
+`pnpm news:features` (`scripts/lib/news/features.ts` → `generated/news_features.json`: what the TS parsers see in each
 post and unit, so Python needs no parser) and `pnpm news:categorize` (`ml/categorize.py`, scikit-learn logistic
 regressions → `data/news/gl/categories.json`, `CategoriesFileSchema`). Features: title, opening sentence and text
 words, Global's template phrases (`en.ts` `signals`), art series (`banner_<3 digits>`: 301 story, 302 Legend Race,
@@ -71,7 +71,7 @@ role/kind 2026-11-08: Global 99.0 → 99.4%, newest 97.5 → 98.0%; JP 98.4 → 
   event). The post model checks them: `confidence` (its probability for the rules' answer) and `flag` (its own
   answer where it differs in what the pipeline reads), listed in `summary.md` as "Unsure: post … label it".
 - `categories.json` is the gold label where there is one (its name too), else the rules' + the models'.
-- **Guarded by** `test/news-replay-*.test.ts`: the newest posts replayed one by one must never wipe an older event,
+- **Guarded by** `test/data/newsReplay*.test.ts`: the newest posts replayed one by one must never wipe an older event,
   and each must make its event, both with their gold labels and categorized by the models as if new (`--hold-out`).
 - **Trust the held-out numbers.** The models are 100% on what they trained on; `--evaluate` scores them cross-validated
   by post (optimistic: folds share near-twin posts, a cup's "coming soon" and "is here") and trained on the older

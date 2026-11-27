@@ -1,7 +1,7 @@
 // Pure. No image URLs but upstream's icons: the app builds GameTora's from the id and the slug.
 
 import { isDeepStrictEqual } from 'node:util';
-import { type CardType, type Rarity, dated } from '../../../shared/schemas/common.ts';
+import { type CardType, type Rarity, type Server, dated, fromGametoraType } from '../../../shared/schemas/common.ts';
 import type {
   CardsFile,
   CardStatsFile,
@@ -11,18 +11,7 @@ import type {
   LbStats,
 } from '../../../shared/schemas/card.ts';
 import type { GametoraCard } from '../../../shared/schemas/gametora.ts';
-import { type JoinedCard, joinCards, rarityOf, typeOf, withoutEvents } from '../../../tierlist/join-cards.ts';
-
-// GameTora's type names → ours (the tier list's stat keys, plus group).
-const GAMETORA_TYPES: Record<GametoraCard['type'], CardType> = {
-  speed: 'speed',
-  stamina: 'stamina',
-  power: 'power',
-  guts: 'guts',
-  intelligence: 'wisdom',
-  friend: 'friend',
-  group: 'group',
-};
+import { type JoinedCard, joinCards, rarityOf, typeOf, withoutEvents } from '../../../shared/joinCards.ts';
 
 // A limit break's stats and the card's fields (upstream's lists have no `events`).
 export type UpstreamCard = Omit<JoinedCard, 'events'>;
@@ -35,7 +24,7 @@ export const statsOf = ({ id, limit_break, char_name, type, group, rarity, ...st
 export type HistoryEntry = Omit<JpCard, 'rarity'> & { rarity: Rarity | null };
 export const fromGametora = (g: GametoraCard): HistoryEntry => ({
   charId: g.char_id ?? null,
-  type: GAMETORA_TYPES[g.type],
+  type: fromGametoraType(g.type),
   rarity: rarityOf(g.rarity) ?? null,
   name: { en: g.char_name ?? null, jp: g.name_jp ?? null },
   title: { en: g.title_en ?? null, jp: g.title_ja ?? null },
@@ -64,7 +53,7 @@ export function buildCards({ upstream, history = {}, gametora = [], globalCards 
   for (const c of gametora) if (c.url_name) slugs.set(c.support_id, c.url_name);
   const own: Record<
     number,
-    { type: CardType | undefined; rarity: Rarity | undefined; name: Partial<Record<'gl' | 'jp', string>> }
+    { type: CardType | undefined; rarity: Rarity | undefined; name: Partial<Record<Server, string>> }
   > = {};
   for (const server of ['gl', 'jp'] as const) {
     for (const card of upstream[server]) {

@@ -1,23 +1,20 @@
 import clsx from 'clsx';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { formatDate, serverName } from '../i18n/index.ts';
+import { serverName } from '../i18n/index.ts';
 import { DATE_FIELD, SCENARIOS, isCurrent, launchTag } from '../../shared/scenarioRelease.ts';
 import type { StartDate } from '../../shared/schemas/scenario.ts';
-import type { Server } from '../lib/servers.ts';
+import { SERVER_ORDER, type Server } from '../lib/servers.ts';
+import Pill from '../ui/Pill.tsx';
 import ScenarioPill from '../ui/ScenarioPill.tsx';
-import { timeZoneOptions, useSettings } from '../state/settings.tsx';
+import { useDateFormats } from '../lib/dates.ts';
 import { scenarioUrl } from '../routes.ts';
 import styles from './ScenariosPage.module.css';
 import { scenarioStyle } from '../lib/vividColor.ts';
 
-const SERVER_ORDER: Server[] = ['jp', 'gl'];
-
 export default function ScenariosPage({ server }: { server: Server }) {
   const { t } = useTranslation();
-  const { timeZone } = useSettings().settings;
-  const date = (iso: string) =>
-    formatDate(iso, { ...timeZoneOptions(timeZone), year: 'numeric', month: 'short', day: 'numeric' });
+  const date = useDateFormats().long;
 
   const when = (start: StartDate | null) =>
     start
@@ -43,9 +40,9 @@ export default function ScenariosPage({ server }: { server: Server }) {
                     <ScenarioPill scenario={s.key} /> {s.full_en ?? s.full_jp}
                   </span>
                   {newestOn.map((on) => (
-                    <span key={on} className={styles.newest}>
+                    <Pill key={on} variant="label" size="sm" className={styles.newest}>
                       {t('scenarioPage.current', { server: serverName(on) })}
-                    </span>
+                    </Pill>
                   ))}
                   {SERVER_ORDER.map((on) => {
                     const start = s[DATE_FIELD[on]];

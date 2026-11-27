@@ -3,28 +3,23 @@
 // GameTora once its list has them (`pnpm update-jp`). Cards GameTora doesn't list yet go to jp_cards_pending.json.
 // Upstream's jp.js isn't used for ids: it adds a card only once its stats are known, after GameTora lists it.
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { rarityOf } from '../../../tierlist/join-cards.ts';
+import { writeFileSync } from 'node:fs';
+import { rarityOf } from '../../../shared/joinCards.ts';
 import { type CardSource, type Rarity, dated } from '../../../shared/schemas/common.ts';
 import type { JpCard, JpCardsFile, JpPendingCard } from '../../../shared/schemas/card.ts';
 import type { GametoraCard } from '../../../shared/schemas/gametora.ts';
 import type { NewsPost } from '../../../shared/schemas/news.ts';
-import { bannerPost } from '../banners/posts.ts';
+import { type BannerPost, bannerPost } from '../banners/posts.ts';
 import { fromGametora } from './build.ts';
 import { eventFragments } from '../events/fragments.ts';
 import type { JapaneseLexicon } from '../news/lang/index.ts';
 import { jp as jpLexicon } from '../news/lang/jp.ts';
-import { norm, toLines } from '../news/text.ts';
-import { DATA_DIR } from '../paths.ts';
+import { bareTitle, cardKey, jstDay, norm, toLines } from '../news/text.ts';
+import { jsonEntries, jsonLines, readJson, sameJson } from '../json.ts';
+import { DATA_DIR, dataFile } from '../paths.ts';
 
-export const JP_CARDS_FILE = `${DATA_DIR}jp_cards.json`;
 export const JP_PENDING_FILE = `${DATA_DIR}jp_cards_pending.json`;
 
-const HOUR = 3600 * 1000;
-const jstDate = (iso: string): string => new Date(Date.parse(iso) + 9 * HOUR).toISOString().slice(0, 10);
-const bare = (title: string | null | undefined): string => (title ?? '').replace(/^\[|\]$/g, '');
-const keyOf = (title: string | null | undefined, name: string | null | undefined): string =>
-  `${norm(bare(title))}|${norm(name)}`;
 // Where a card's first appearance came from.
 type Source = 'gacha' | 'story_event' | 'gift';
 // Which first appearance wins a tie on the same day.
@@ -43,14 +38,17 @@ type Seen = { rarity: Rarity; title: string; name: string; start: string; source
 // The news' rarity as the lexicon's patterns capture it.
 // TODO(ts): the patterns capture a rarity as the news writes it (R, SR or SSR); not checked here.
 const asRarity = (rarity: string): Rarity => rarity as Rarity;
-const titleOfNews = (c: NewsCard): string => c.title;
-const nameOfNews = (c: NewsCard): string => c.name;
 
-// Every support card the JP news shows, at its first appearance (see above).
-export function newsCards(posts: NewsPost[], lang: JapaneseLexicon = jpLexicon): NewsCard[] {
+// Every support card the JP news shows, at its first appearance (see above). `scouts`: each post's bannerPost(), when
+// the caller has them already (in the posts' order).
+export function newsCards(
+  posts: NewsPost[],
+  lang: JapaneseLexicon = jpLexicon,
+  scouts: (BannerPost | null)[] = posts.map((post) => bannerPost(post, lang))
+): NewsCard[] {
   const seen: Seen[] = [];
-  for (const post of posts) {
-    const scout = bannerPost(post, lang);
+  for (const [i, post] of posts.entries()) {
+    const scout = scouts[i];
     const supports = (scout?.banners ?? []).filter(
       (b): b is typeof b & { start: string } => b.type === 'support' && !!b.start
     );
@@ -62,12 +60,12 @@ export function newsCards(posts: NewsPost[], lang: JapaneseLexicon = jpLexicon):
     // A card listed after a banner's own list (a select-pickup scout's new R card, under its own heading after the
     // candidates): from the post's first support scout.
     const listed = new Set(
-      supports.flatMap((b) => b.featured.map((f: { title: string; name: string }) => keyOf(f.title, f.name)))
+      supports.flatMap((b) => b.featured.map((f: { title: string; name: string }) => cardKey(f.title, f.name)))
     );
     const first = supports.map((b) => b.start).sort()[0];
     for (const line of toLines(lang.clean(post.message ?? ''))) {
       const m = line.match(lang.bannerCard);
-      if (m && !listed.has(keyOf(m[2], m[3]))) add({ rarity: m[1], title: m[2], name: m[3] }, first);
+      if (m && !listed.has(cardKey(m[2], m[3]))) add({ rarity: m[1], title: m[2], name: m[3] }, first);
     }
   }
   for (const f of eventFragments(posts, {}, lang)) {
@@ -91,14 +89,14 @@ export function newsCards(posts: NewsPost[], lang: JapaneseLexicon = jpLexicon):
   }
   const earliest = new Map<string, NewsCard>();
   for (const s of seen) {
-    const key = keyOf(s.title, s.name);
+    const key = cardKey(s.title, s.name);
     const old = earliest.get(key);
-    const date = jstDate(s.start);
+    const date = jstDay(s.start);
     const better = !old || date < old.release || (date === old.release && RANK[s.source] < RANK[old.source]);
     const card: NewsCard = better
       ? {
           rarity: s.rarity,
-          title: `[${bare(s.title)}]`,
+          title: `[${bareTitle(s.title ?? '')}]`,
           name: s.name,
           release: date,
           source: s.source,
@@ -106,31 +104,37 @@ export function newsCards(posts: NewsPost[], lang: JapaneseLexicon = jpLexicon):
         }
       : old;
     // the longest spelling of the title (posts cut some short)
-    if (old && bare(old.title).length > bare(card.title).length) card.title = old.title;
+    if (old && bareTitle(old.title ?? '').length > bareTitle(card.title ?? '').length) card.title = old.title;
     earliest.set(key, card);
   }
   // A title cut short ("[掲げよ、燃え盛る灯]") joins the card with the full one, keeping the earliest appearance.
   const cards = [...earliest.values()];
+  const titled = cards.map((c) => ({ title: c.title, name: c.name, ref: c }));
   return cards
     .filter((c) => {
-      const full = longerTitle(c, cards, titleOfNews, nameOfNews);
+      const full = longerTitle(c, titled);
       if (!full) return true;
       if (c.release < full.release || (c.release === full.release && RANK[c.source] < RANK[full.source]))
         Object.assign(full, { release: c.release, source: c.source, news_url: c.news_url });
       return false;
     })
-    .sort((a, b) => a.release.localeCompare(b.release) || keyOf(a.title, a.name).localeCompare(keyOf(b.title, b.name)));
+    .sort(
+      (a, b) => a.release.localeCompare(b.release) || cardKey(a.title, a.name).localeCompare(cardKey(b.title, b.name))
+    );
 }
 
+// A card of some list (`ref`) by its title and name.
+type Titled<T> = { title: string; name: string; ref: T };
+
 // The one card among `list` with this card's name and a longer title starting with its title, or null.
-function longerTitle<T>(card: NewsCard, list: T[], titleOf: (c: T) => string, nameOf: (c: T) => string): T | null {
-  const title = norm(bare(card.title));
+function longerTitle<T>(card: NewsCard, list: Titled<T>[]): T | null {
+  const title = norm(bareTitle(card.title ?? ''));
   if (title.length < 4) return null;
   const found = list.filter((c) => {
-    const t = norm(bare(titleOf(c)));
-    return c !== card && t.length > title.length && t.startsWith(title) && norm(nameOf(c)) === norm(card.name);
+    const t = norm(bareTitle(c.title ?? ''));
+    return c.ref !== card && t.length > title.length && t.startsWith(title) && norm(c.name) === norm(card.name);
   });
-  return found.length === 1 ? found[0] : null;
+  return found.length === 1 ? found[0].ref : null;
 }
 
 export type ApplyNewsCardsResult = {
@@ -154,25 +158,22 @@ export function applyNewsCards({
   const madeBefore = new Map(
     Object.entries(history)
       .filter(([, c]) => c.news_url)
-      .map(([id, c]) => [keyOf(c.title.jp, c.name.jp), { id: Number(id), entry: c }] as const)
+      .map(([id, c]) => [cardKey(c.title.jp, c.name.jp), { id: Number(id), entry: c }] as const)
   );
-  const known = new Map(frozen.map(([id, c]) => [keyOf(c.title.jp, c.name.jp), Number(id)] as const));
-  const frozenList = frozen.map(([, c]) => c);
-  const byTitle = (c: JpCard): string => c.title.jp;
-  const byName = (c: JpCard): string => c.name.jp;
-  const gtByKey = new Map(gametora.map((g) => [keyOf(g.title_ja, g.name_jp), g] as const));
-  const gtTitle = (g: GametoraCard): string => g.title_ja;
-  const gtName = (g: GametoraCard): string => g.name_jp;
+  const known = new Map(frozen.map(([id, c]) => [cardKey(c.title.jp, c.name.jp), Number(id)] as const));
+  const frozenTitled = frozen.map(([, c]) => ({ title: c.title.jp, name: c.name.jp, ref: c }));
+  const gtByKey = new Map(gametora.map((g) => [cardKey(g.title_ja, g.name_jp), g] as const));
+  const gtTitled = gametora.map((g) => ({ title: g.title_ja, name: g.name_jp, ref: g }));
 
   const made: Record<string, JpCard> = {};
   const pending: JpPendingCard[] = [];
   const rarityDiffers: { id: number; card: NewsCard }[] = [];
   for (const card of found) {
-    const key = keyOf(card.title, card.name);
+    const key = cardKey(card.title, card.name);
     // in the history already (its title in full, or cut short)
-    if (known.has(key) || longerTitle(card, frozenList, byTitle, byName)) continue;
-    const g = gtByKey.get(key) ?? longerTitle(card, gametora, gtTitle, gtName);
-    if (g && known.has(keyOf(g.title_ja, g.name_jp))) continue;
+    if (known.has(key) || longerTitle(card, frozenTitled)) continue;
+    const g = gtByKey.get(key) ?? longerTitle(card, gtTitled);
+    if (g && known.has(cardKey(g.title_ja, g.name_jp))) continue;
     const before = madeBefore.get(key);
     const news = {
       rarity: card.rarity,
@@ -241,37 +242,33 @@ function entry(
   } as JpCard;
 }
 
-const readJson = <T>(file: string, fallback: T): T =>
-  existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : fallback;
-export const readJpCards = (file = JP_CARDS_FILE): JpCardsFile => readJson(file, {});
-export const readPending = (file = JP_PENDING_FILE): JpPendingCard[] => readJson(file, []);
+export const readJpCards = (file = dataFile('jp', 'cards')): JpCardsFile => readJson<JpCardsFile>(file, {});
+export const readPending = (file = JP_PENDING_FILE): JpPendingCard[] => readJson<JpPendingCard[]>(file, []);
 
-// One card per line (excluded from Biome), as the history has always been written.
-export function writeJpCards(cards: JpCardsFile, file = JP_CARDS_FILE): void {
-  const lines = Object.entries(cards).map(([id, c]) => `${JSON.stringify(id)}: ${JSON.stringify(c)}`);
-  writeFileSync(file, `{\n${lines.join(',\n')}\n}\n`);
-}
-export function writePending(pending: JpPendingCard[], file = JP_PENDING_FILE): void {
-  writeFileSync(file, pending.length ? `[\n${pending.map((c) => JSON.stringify(c)).join(',\n')}\n]\n` : '[]\n');
-}
+export const writeJpCards = (cards: JpCardsFile, file = dataFile('jp', 'cards')): void =>
+  writeFileSync(file, `${jsonEntries(cards)}\n`);
+// (none pending: `[]`)
+export const writePending = (pending: JpPendingCard[], file = JP_PENDING_FILE): void =>
+  writeFileSync(file, `${pending.length ? jsonLines(pending) : '[]'}\n`);
 
 const cardName = (c: JpPendingCard): string => `${c.title.jp ?? c.title}${c.name.jp ?? c.name}`;
 
 // The JP news' cards into data/jp_cards.json (+ data/jp_cards_pending.json); returns { ...result, lines } for
-// summary.md. `gametora`: generated/raw/gametora_cards.json's list, or null without it.
+// summary.md. `gametora`: generated/raw/gametora_cards.json's list, or null without it; `scouts`: as newsCards() takes.
 export function updateJpCards({
   posts,
+  scouts,
   gametora,
 }: {
   posts: NewsPost[];
+  scouts?: (BannerPost | null)[];
   gametora: GametoraCard[] | null;
 }): ApplyNewsCardsResult & { lines: string[] } {
   const history = readJpCards();
-  const result = applyNewsCards({ history, found: newsCards(posts), gametora: gametora ?? [] });
-  const before = JSON.stringify([history, readPending()]);
+  const result = applyNewsCards({ history, found: newsCards(posts, jpLexicon, scouts), gametora: gametora ?? [] });
+  const changed = !sameJson([history, readPending()], [result.history, result.pending]);
   writeJpCards(result.history);
   writePending(result.pending);
-  const changed = JSON.stringify([result.history, result.pending]) !== before;
   const made = Object.values(result.history).filter((c) => c.news_url).length;
   const lines = [
     `JP cards: ${Object.keys(result.history).length} (${made} from the news), ${result.pending.length} pending (not on GameTora yet)${result.added.length ? `, added: ${result.added.join(', ')}` : ''}${changed ? '' : ', nothing changed'}.`,

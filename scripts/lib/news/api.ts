@@ -15,8 +15,10 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { SERVERS } from '../../../shared/schemas/common.ts';
 import type { NewsPost } from '../../../shared/schemas/news.ts';
 import { paced } from '../http.ts';
+import { jsonLines } from '../json.ts';
 import { newsDir } from '../paths.ts';
 import { NEWS_SITES, type Server, SITE } from './text.ts';
 
@@ -59,7 +61,7 @@ const BROWSER: Record<string, string> = {
   'Sec-Fetch-Site': 'same-origin',
 };
 
-const SERVERS: Record<Server, ServerConfig> = {
+const CONFIGS: Record<Server, ServerConfig> = {
   gl: {
     headers: { 'Accept-Language': 'en-US,en;q=0.9', 'Content-Type': 'application/json', 'Origin': NEWS_SITES.gl.site },
     index: (page: number) => ({ body: { announce_label: 0, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE } }),
@@ -100,7 +102,7 @@ async function call(server: Server, endpoint: string, { body, query }: Request, 
   const params = new URLSearchParams(Object.entries({ format: 'json', ...query }).map(([k, v]) => [k, String(v)]));
   const res = await fetch(`${NEWS_SITES[server].site}/api/ajax/${endpoint}?${params}`, {
     method: body ? 'POST' : 'GET',
-    headers: { ...BROWSER, ...SERVERS[server].headers, Referer: referer },
+    headers: { ...BROWSER, ...CONFIGS[server].headers, Referer: referer },
     body: body && JSON.stringify(body),
     // A blocked IP can leave a request hanging instead of refusing it.
     signal: AbortSignal.timeout(60_000),
@@ -113,14 +115,14 @@ async function call(server: Server, endpoint: string, { body, query }: Request, 
 }
 
 export async function indexPage(page: number, server: Server = 'gl'): Promise<{ items: IndexItem[]; more: boolean }> {
-  const config = SERVERS[server];
+  const config = CONFIGS[server];
   const json = await api(server, 'pr_info_index', config.index(page), `${NEWS_SITES[server].site}/news/`);
   if (!Array.isArray(json.information_list)) throw new Error('pr_info_index: no information_list (format changed?)');
   return { items: json.information_list, more: config.more(json, page) };
 }
 
 export async function fetchPost(id: string | number, server: Server = 'gl'): Promise<NewsPost> {
-  const config = SERVERS[server];
+  const config = CONFIGS[server];
   const json = await api(server, 'pr_info_detail', config.detail(id), NEWS_SITES[server].post(id));
   const { detail } = json;
   if (!detail || String(detail.announce_id) !== String(id))
@@ -140,7 +142,7 @@ export async function probePost(id: string | number, server: Server = 'gl'): Pro
 
 // The id of the post before this one (Global: by post date, JP: by id), or null at the start of the archive.
 export const olderId = (post: NewsPost, server: Server = 'gl'): string | null => {
-  const id = SERVERS[server].older(post);
+  const id = CONFIGS[server].older(post);
   return id ? String(id) : null;
 };
 
@@ -159,10 +161,10 @@ export function savePosts(posts: Map<string, NewsPost>, server: Server = 'gl'): 
     (a, b) => b.post_at.localeCompare(a.post_at) || Number(b.announce_id) - Number(a.announce_id)
   );
   mkdirSync(newsDir(server), { recursive: true });
-  writeFileSync(postsFile(server), `[\n${list.map((p) => JSON.stringify(p)).join(',\n')}\n]\n`);
+  writeFileSync(postsFile(server), `${jsonLines(list)}\n`);
 }
 
-const isServer = (s: string): s is Server => s === 'gl' || s === 'jp';
+const isServer = (s: string): s is Server => SERVERS.some((name) => name === s);
 
 export function serverArg(argv: string[] = process.argv): Server {
   // strict: false: scripts get flags they don't read (pnpm passes them through).

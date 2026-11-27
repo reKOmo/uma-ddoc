@@ -43,7 +43,8 @@
   kind the calendar has, in its groups' order; when the pull guide covers any of the calendar's banners (Global's), a
   toggle per pull-advice verdict (Yes / No / Free / If Whale / If Dolphin / No advice: a support card banner stays
   while one of its cards has a verdict shown; `VERDICTS`, `bannerVerdicts()` in `src/lib/pullGuide.ts`; greyed out while
-  support card banners are hidden).
+  support card banners are hidden; the picks are `src/timeline/pulls.ts`, key `uma-ddoc.timelinePulls`: they used to
+  be `pullOnly:<verdict>` keys in the hidden set, moved over once on load).
   Hidden bars leave the lanes (a hidden event's parts of shown kinds stand on their own; the calendar's dates and the
   sheets keep everything). While it loads, `TimelineSkeleton.tsx` stands in its shape (axis, groups, bars; a shimmer
   that stops for reduced motion). **Search** (the toolbar's magnifier, `TimelineSearch.tsx` on downshift's combobox +

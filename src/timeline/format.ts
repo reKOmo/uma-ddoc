@@ -1,80 +1,9 @@
-import i18n, { formatDate, formatDateRange } from '../i18n/index.ts';
-import { clockOptions, timeZoneOptions } from '../state/settings.tsx';
+import i18n from '../i18n/index.ts';
+import { DAY } from '../lib/dates.ts';
 import type { Entry } from './entries.ts';
-import { DAY } from './layout.ts';
-
-// One date, or (`range`) two with what they share written once.
-export type DateFormat = ((iso: string) => string) & { range: (start: string, end: string) => string };
-export type DateFormats = {
-  long: DateFormat;
-  short: DateFormat;
-  time: DateFormat;
-  // The sheet's dates: "Thu, Nov 5, 10:00 PM – Sun, Nov 15, 9:59 PM UTC", the year only when it isn't this one, the
-  // zone once at the end.
-  sheet: (span: DateSpan) => string;
-  // "Oct 2026": always with its year, so scrolling never loses it.
-  month: (date: Date) => string;
-  isJanuary: (date: Date) => boolean;
-};
-type DateSpan = { start: string; end: string | null; openEnded?: boolean };
-
-const dateFormat = (options: Intl.DateTimeFormatOptions): DateFormat =>
-  Object.assign((iso: string) => formatDate(iso, options), {
-    range: (start: string, end: string) => formatDateRange(start, end, options),
-  });
-
-// Settings' timezone: UTC (as the game announces times, the default; named, "10:00 PM UTC") or the viewer's own (not
-// named: it's theirs).
-// (`clock`: Settings' 12- or 24-hour clock, for the times.)
-export function dateFormats(timeZone: 'utc' | 'local', clock: '12h' | '24h' = '12h'): DateFormats {
-  const zone = timeZoneOptions(timeZone);
-  return {
-    long: dateFormat({ ...zone, year: 'numeric', month: 'short', day: 'numeric' }),
-    short: dateFormat({ ...zone, month: 'short', day: 'numeric' }),
-    time: dateFormat({
-      ...zone,
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      ...clockOptions(clock),
-      ...(timeZone === 'utc' && { timeZoneName: 'short' }),
-    }),
-    sheet: (span) => {
-      const thisYear = new Date().getUTCFullYear();
-      const otherYear = [span.start, span.end].some((date) => date && new Date(date).getUTCFullYear() !== thisYear);
-      const text = dateRange(
-        span,
-        dateFormat({
-          ...zone,
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-          ...clockOptions(clock),
-          ...(otherYear && { year: 'numeric' }),
-        })
-      );
-      return timeZone === 'utc' ? i18n.t('timeline.inUtc', { dates: text }) : text;
-    },
-    month: (date) => formatDate(date, { ...zone, month: 'short', year: 'numeric' }),
-    isJanuary: (date) => (timeZone === 'utc' ? date.getUTCMonth() : date.getMonth()) === 0,
-  };
-}
-
-// Without an end: "from start" when openEnded (a scout with no end date, a scenario still running), else one day.
-export function dateRange({ start, end, openEnded = !end }: DateSpan, format: DateFormat): string {
-  if (end) return format.range(start, end);
-  return openEnded ? i18n.t('timeline.since', { date: format(start) }) : format(start);
-}
 
 export const daysOf = (entry: Pick<Entry, 'start' | 'end'>): number | null =>
   entry.end ? Math.round((Date.parse(entry.end) - Date.parse(entry.start)) / DAY) : null;
-
-// Whole days from now until an ISO date-time (negative once past).
-export const daysUntil = (iso: string): number => Math.ceil((Date.parse(iso) - Date.now()) / DAY);
 
 export const kindName = (entry: Pick<Entry, 'group' | 'kind'>): string =>
   i18n.t(entry.group === 'event' ? `events.kind.${entry.kind}` : `timeline.kind.${entry.kind}`);

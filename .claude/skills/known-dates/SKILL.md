@@ -73,7 +73,7 @@ If a row matches nothing, or two things equally, say so in the report; don't gue
 ```sh
 pnpm exec biome format --write data/known_dates.json
 pnpm predict-gl                      # prints each "known date: JP … → Global …"; no warnings
-pnpm exec vitest run test/schemas.test.ts
+pnpm exec vitest run test/data/schemas.test.ts
 ```
 
 Re-run the listing from step 3: every row on the image should now have the image's start and end exactly, with

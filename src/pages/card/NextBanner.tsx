@@ -3,22 +3,21 @@ import clsx from 'clsx';
 import { Trans, useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { Advice, NoBannerAdvice, Release } from '../../../shared/schemas/pullGuide.ts';
-import type { Server } from '../../../tierlist/cards.ts';
-import { formatDate, formatDay } from '../../i18n/index.ts';
-import { useSettings } from '../../state/settings.tsx';
+import { formatDay } from '../../i18n/index.ts';
+import { type DateFormat, dateRange, daysUntil, useDateFormats } from '../../lib/dates.ts';
 import { sheetLink } from '../../lib/pullGuide.ts';
 import { timelineUrl } from '../../routes.ts';
 import type { Art, EntryStatus } from '../../timeline/entries.ts';
-import { type DateFormat, dateFormats, dateRange, daysUntil, entryTitle, labelIsFan } from '../../timeline/format.ts';
+import { entryTitle, labelIsFan } from '../../timeline/format.ts';
 import { FanTl } from '../../ui/FanTl.tsx';
-import StatusBadge from '../../timeline/StatusBadge.tsx';
+import StatusBadge from '../../ui/StatusBadge.tsx';
 import LinkButton from '../../ui/LinkButton.tsx';
 import Pill from '../../ui/Pill.tsx';
 import ShouldPullChip from '../../ui/ShouldPullChip.tsx';
 import Status from '../../ui/Status.tsx';
-import { type UpcomingAdvice, useUpcomingAdvice } from './advice.ts';
-import type { EntryOrigin, Origins } from './hooks.ts';
-import { originLabel } from './Origins.tsx';
+import type { UpcomingAdvice } from './useUpcomingAdvice.ts';
+import type { EntryOrigin, Origins } from './useOrigins.ts';
+import { originLabel } from './OriginPills.tsx';
 import styles from './NextBanner.module.css';
 
 type Upcoming = {
@@ -75,48 +74,71 @@ const hasRelease = (advice: Advice | NoBannerAdvice): advice is NoBannerAdvice =
 function releaseDate(release: Release, t: TFunction): string {
   if ('date' in release) return formatDay(release.date);
   if (!('month' in release)) return release.dateText ?? '';
-  const month = formatDate(`${release.month}-01T00:00:00Z`, { year: 'numeric', month: 'short', timeZone: 'UTC' });
+  const month = formatDay(`${release.month}-01`, { year: 'numeric', month: 'short' });
   return t(`pullGuide.${release.part ?? 'month'}`, { month });
 }
 
-type NextBannerProps = { cardId: number; server: Server; origins: Origins | null | undefined };
+type GuideAdvice = Advice | NoBannerAdvice;
+
+// What the tile shows, with the advice under it (`shown`: the banner or event on the art).
+type Shown =
+  | { kind: 'loading' }
+  | { kind: 'banner'; shown: Upcoming; advice: GuideAdvice | null }
+  // With no banner coming, the event the card comes from (story event, gift…): one running or to come, else its latest.
+  | { kind: 'event'; shown: Upcoming; source: EntryOrigin; advice: GuideAdvice | null }
+  // A card on no banner and no event we know of: the guide's own date and label stand in for the banner's.
+  | { kind: 'guideRelease'; release: Release; advice: NoBannerAdvice }
+  // With none to come, the card's last banner, and the guide's advice on it.
+  | { kind: 'last'; shown: Upcoming; advice: GuideAdvice | null }
+  | { kind: 'none'; advice: GuideAdvice | null };
+
+export function pickShown(
+  cardId: number,
+  origins: Origins | null | undefined,
+  advice: UpcomingAdvice | null | undefined,
+  format: DateFormat
+): Shown {
+  if (origins == null || advice === undefined) return { kind: 'loading' };
+  const advised = withAdvice(advice?.entry);
+  const upcoming = advice ? guideUpcoming(advice, origins, format) : originUpcoming(origins, format);
+  if (upcoming) return { kind: 'banner', shown: upcoming, advice: advised };
+  const events = origins.filter((o) => o.kind !== 'banner' && o.kind !== 'paid_banner');
+  const source = events.find((o) => o.entry.status !== 'ended') ?? events.at(-1);
+  if (source) return { kind: 'event', shown: fromOrigin(source, format), source, advice: advised };
+  if (advised && hasRelease(advised)) return { kind: 'guideRelease', release: advised.release, advice: advised };
+  const last = originLast(origins, format);
+  if (last)
+    return { kind: 'last', shown: last, advice: advised ?? withAdvice(advice?.guide?.banners[last.id]?.[cardId]) };
+  return { kind: 'none', advice: advised };
+}
+
+type NextBannerProps = {
+  cardId: number;
+  origins: Origins | null | undefined;
+  advice: UpcomingAdvice | null | undefined;
+};
 
 // The card's next banner on its art, then the guide's advice on pulling it (Global only: the guide advises on
 // Global's banners).
-export default function NextBanner({ cardId, server, origins }: NextBannerProps) {
+export default function NextBanner({ cardId, origins, advice }: NextBannerProps) {
   const { t } = useTranslation();
-  const { timeZone } = useSettings().settings;
-  const format = dateFormats(timeZone).long;
-  const advice = useUpcomingAdvice(cardId, server);
-  const upcoming: Upcoming | null | undefined =
-    origins == null || advice === undefined
-      ? undefined
-      : advice
-        ? guideUpcoming(advice, origins, format)
-        : originUpcoming(origins, format);
-  const advised = withAdvice(advice?.entry);
-  // With no banner coming, the event the card comes from (story event, gift…): one running or to come, else its latest.
-  const events = origins?.filter((o) => o.kind !== 'banner' && o.kind !== 'paid_banner') ?? [];
-  const source = upcoming === null ? (events.find((o) => o.entry.status !== 'ended') ?? events.at(-1) ?? null) : null;
-  // A card on no banner and no event we know of: the guide's own date and label stand in for the banner's.
-  const release = !upcoming && !source && advised && hasRelease(advised) ? advised.release : undefined;
-  const last = upcoming === null && !source && !release && origins ? originLast(origins, format) : null;
-  const sourceShown = source && fromOrigin(source, format);
-  const shown = upcoming ?? sourceShown ?? last;
-  // On the last banner, the guide's advice was for it.
-  const lastEntry = last ? (advice?.guide?.banners[last.id]?.[cardId] ?? null) : null;
-  const shownAdvice = advised ?? withAdvice(lastEntry);
+  const picked = pickShown(cardId, origins, advice, useDateFormats().long);
+  const shown = 'shown' in picked ? picked.shown : null;
+  const shownAdvice = 'advice' in picked ? picked.advice : null;
   const art = shown?.art?.src ? shown.art : null;
   // A running banner isn't "upcoming": it reads as one still to come.
   const live = shown?.status === 'live';
   // A card from an event (or the guide's own date, on no banner) isn't pulled for: it's got.
-  const fromEvent = !upcoming && !last && (!!source || !!release);
   const question = t(
-    fromEvent ? 'pullGuide.shouldGet' : upcoming && !live ? 'pullGuide.shouldPullNext' : 'pullGuide.shouldPull'
+    picked.kind === 'event' || picked.kind === 'guideRelease'
+      ? 'pullGuide.shouldGet'
+      : picked.kind === 'banner' && !live
+        ? 'pullGuide.shouldPullNext'
+        : 'pullGuide.shouldPull'
   );
-  const ahead = upcoming ?? sourceShown;
-  const days = ahead ? daysUntil(ahead.start) : 0;
-  const guideFree = !upcoming?.freePulls && advised?.freePulls;
+  const days = picked.kind === 'banner' || picked.kind === 'event' ? daysUntil(picked.shown.start) : 0;
+  const upcoming = picked.kind === 'banner' ? picked.shown : null;
+  const guideFree = !upcoming?.freePulls && shownAdvice?.freePulls;
 
   return (
     <section className={styles.tile}>
@@ -126,18 +148,26 @@ export default function NextBanner({ cardId, server, origins }: NextBannerProps)
         style={art ? { backgroundImage: `url(${art.src})` } : undefined}
       >
         <h2 className={styles.heading}>
-          {source
-            ? originLabel(source, t)
-            : t(last ? 'pullGuide.lastBanner' : live ? 'pullGuide.availableNow' : 'pullGuide.upcomingBanner')}
-          {last && <span className={clsx(styles.none, styles.shadow)}>{t('pullGuide.noUpcoming')}</span>}
+          {picked.kind === 'event'
+            ? originLabel(picked.source, t)
+            : t(
+                picked.kind === 'last'
+                  ? 'pullGuide.lastBanner'
+                  : live
+                    ? 'pullGuide.availableNow'
+                    : 'pullGuide.upcomingBanner'
+              )}
+          {picked.kind === 'last' && (
+            <span className={clsx(styles.none, styles.shadow)}>{t('pullGuide.noUpcoming')}</span>
+          )}
         </h2>
-        {upcoming === undefined ? (
+        {picked.kind === 'loading' ? (
           <Status className={styles.status}>{t('common.loading')}</Status>
         ) : shown ? (
           <>
-            {source && (
+            {picked.kind === 'event' && (
               <p className={clsx(styles.eventName, styles.shadow)}>
-                <FanTl fan={labelIsFan(source.entry, { title: true })}>{entryTitle(source.entry)}</FanTl>
+                <FanTl fan={labelIsFan(picked.source.entry, { title: true })}>{entryTitle(picked.source.entry)}</FanTl>
               </p>
             )}
             <p className={styles.when}>
@@ -164,15 +194,15 @@ export default function NextBanner({ cardId, server, origins }: NextBannerProps)
                 </p>
               )}
               <LinkButton className={styles.bannerLink} href={shown.href}>
-                {t(source ? 'pullGuide.seeEvent' : 'pullGuide.seeBanner')}
+                {t(picked.kind === 'event' ? 'pullGuide.seeEvent' : 'pullGuide.seeBanner')}
                 <ChevronRight size={16} aria-hidden="true" />
               </LinkButton>
             </div>
           </>
-        ) : release ? (
+        ) : picked.kind === 'guideRelease' ? (
           <p className={styles.when}>
-            <span>{releaseDate(release, t)}</span>
-            {release.label && <Pill variant="label">{release.label}</Pill>}
+            <span>{releaseDate(picked.release, t)}</span>
+            {picked.release.label && <Pill variant="label">{picked.release.label}</Pill>}
           </p>
         ) : (
           <Status className={styles.status}>{t('pullGuide.noUpcoming')}</Status>
@@ -180,7 +210,7 @@ export default function NextBanner({ cardId, server, origins }: NextBannerProps)
       </div>
 
       {/* The same layout without advice (Japan, a card the guide doesn't cover), so the tile doesn't change shape. */}
-      {upcoming !== undefined && (
+      {picked.kind !== 'loading' && (
         <div className={styles.advice}>
           <h3 className={styles.question}>
             {question}

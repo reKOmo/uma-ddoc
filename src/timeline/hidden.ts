@@ -1,33 +1,17 @@
 // Shared by both servers: a kind one server lacks is ignored there.
-import * as z from 'zod/mini';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { rawStorage } from '../state/rawStorage.ts';
+import { stringSetStore } from '../state/rawStorage.ts';
+import { getPulls, isVerdict, savePulls } from './pulls.ts';
 
-const KEY = 'uma-ddoc.timelineHidden';
+const hidden = stringSetStore('uma-ddoc.timelineHidden');
 
-type State = { hidden: Set<string>; setHidden: (hidden: Set<string>) => void };
+export const useHidden = hidden.use;
+export const getHidden = hidden.get;
+export const saveHidden = hidden.save;
 
-export const useHiddenStore = create<State>()(
-  persist(
-    (set) => ({
-      hidden: new Set<string>(),
-      setHidden: (hidden) => set({ hidden }),
-    }),
-    {
-      name: KEY,
-      storage: rawStorage<Pick<State, 'hidden'>>(
-        (raw) => {
-          const parsed = z.array(z.unknown()).safeParse(JSON.parse(raw));
-          if (!parsed.success) return null;
-          return { hidden: new Set(parsed.data.filter((k): k is string => typeof k === 'string')) };
-        },
-        ({ hidden }) => JSON.stringify([...hidden])
-      ),
-      partialize: ({ hidden }) => ({ hidden }),
-    }
-  )
-);
-
-export const getHidden = (): Set<string> => useHiddenStore.getState().hidden;
-export const saveHidden = (hidden: Set<string>) => useHiddenStore.getState().setHidden(hidden);
+// Older versions kept the pull-advice picks here, as `pullOnly:<verdict>`: they move to their own store.
+const OLD_PICK = 'pullOnly:';
+const oldPicks = [...getHidden()].filter((key) => key.startsWith(OLD_PICK));
+if (oldPicks.length) {
+  savePulls(new Set([...getPulls(), ...oldPicks.map((key) => key.slice(OLD_PICK.length)).filter(isVerdict)]));
+  saveHidden(new Set([...getHidden()].filter((key) => !key.startsWith(OLD_PICK))));
+}

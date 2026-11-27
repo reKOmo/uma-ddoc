@@ -1,4 +1,5 @@
-// Typed with our own types: test/data.test.ts and test/upstream/parity.test.ts check they rebuild upstream's modules exactly.
+// Typed with our own types: test/data/generated.test.ts and test/upstream/parity.test.ts check they rebuild upstream's
+// modules exactly.
 
 declare module '*/raw/upstream/gl.js' {
   const cards: import('../scripts/lib/cards/build.ts').UpstreamCard[];
@@ -22,13 +23,13 @@ declare module '*/upstream/src/cards/jp.js' {
   export default cards;
 }
 declare module '*/upstream/src/components/tierlist-calc.js' {
-  type Card = import('../tierlist/tierlist-calc.ts').CalcCard;
+  type Card = import('../tierlist/tierlistCalc.ts').CalcCard;
   // Upstream also returns a per-card breakdown (`info`) for its UI.
   export function processCards(
     cards: Card[],
-    weights: import('../tierlist/tierlist-calc.ts').CalcWeights,
+    weights: import('../tierlist/tierlistCalc.ts').CalcWeights,
     deck: Card[]
-  ): (import('../tierlist/tierlist-calc.ts').ProcessedCard & { info: unknown })[];
+  ): (import('../tierlist/tierlistCalc.ts').ProcessedCard & { info: unknown })[];
 }
 declare module '*/upstream/src/scenarios.js' {
   export function getScenario(server: string, scenario: string): import('../tierlist/scenarios.ts').ScenarioWeights;

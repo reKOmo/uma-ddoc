@@ -1,8 +1,8 @@
-import { processCards } from './tierlist-calc.ts';
+import { processCards } from './tierlistCalc.ts';
 import { getCurrentScenario, getScenario, getScenarios, getServerConfig } from './scenarios.ts';
 import { type Server, loadCards, loadCardsWithUpcoming } from './cards.ts';
-import type { JoinedCard } from './join-cards.ts';
-import type { CalcWeights } from './tierlist-calc.ts';
+import type { JoinedCard } from '../shared/joinCards.ts';
+import type { CalcWeights } from './tierlistCalc.ts';
 
 // Display names live in src/i18n.
 export const STATS = ['speed', 'stamina', 'power', 'guts', 'wisdom', 'friend'] as const;

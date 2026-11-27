@@ -1,7 +1,7 @@
 // What the app remembers in localStorage: settings and filters survive a reload, and what older versions stored
 // still loads (the keys and formats must never change, or people lose their settings).
 
-import { expect, open, test } from './fixtures.ts';
+import { expect, open, sheet, test } from './fixtures.ts';
 
 const stored = (page: import('@playwright/test').Page, key: string) =>
   page.evaluate((k) => window.localStorage.getItem(k), key);
@@ -106,4 +106,20 @@ test("an older version's Timeline state loads (hidden kinds, folded groups, comp
   await expect(page.getByRole('button', { name: /^Trainees/ })).toHaveAttribute('aria-expanded', 'false');
   // the filter button counts what's hidden
   await expect(page.getByRole('button', { name: /Options/ })).toContainText('1');
+});
+
+test("an older version's pull-advice pick (kept in the hidden set) moves to its own key and stays picked", async ({
+  page,
+}) => {
+  // (The init script stores the old format again before the reload too: the move must hold either way.)
+  await open(page, '#/timeline', { 'uma-ddoc.timelineHidden': JSON.stringify(['story', 'pullOnly:yes']) });
+  await page.reload();
+  await page.getByRole('button', { name: /Options/ }).click();
+  await expect(sheet(page).getByRole('button', { name: 'Yes', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(sheet(page).getByRole('button', { name: 'If Whale', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'false'
+  );
+  expect(JSON.parse((await stored(page, 'uma-ddoc.timelineHidden')) ?? '[]')).toEqual(['story']);
+  expect(JSON.parse((await stored(page, 'uma-ddoc.timelinePulls')) ?? '[]')).toEqual(['yes']);
 });

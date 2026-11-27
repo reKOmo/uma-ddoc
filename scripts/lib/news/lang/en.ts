@@ -49,6 +49,11 @@ function subName(sentence: string): string | null {
   );
 }
 
+// Global's post ids come in series: 1… in-game news, then notices (issues, maintenance, store) above NOTICE_IDS and
+// community posts (X giveaways, letters, guidelines) above COMMUNITY_IDS.
+export const NOTICE_IDS: number = 100_000;
+export const COMMUNITY_IDS: number = 200_000;
+
 export const en: Lexicon = {
   server: 'gl',
   cardLang: 'en',
@@ -59,8 +64,8 @@ export const en: Lexicon = {
   // A post's HTML before any parser reads it (nothing to fix in English posts).
   clean: (html) => html,
 
-  // Posts that are never in-game news: the community id series (200001…: X giveaways, letters, guidelines).
-  community: (post) => Number(post.announce_id) > 200000,
+  // Posts that are never in-game news: the community id series.
+  community: (post) => Number(post.announce_id) > COMMUNITY_IDS,
 
   phases: [
     [/league selection period/i, 'league_selection'],

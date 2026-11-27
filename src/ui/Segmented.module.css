@@ -13,16 +13,36 @@
   cursor: pointer;
 }
 
-.option + .option {
+/* A pill holding pill buttons (the server switch). */
+.pill {
+  gap: 2px;
+  padding: 3px;
+  background: var(--panel);
+  border: 2px solid var(--option-border);
+  border-radius: 999px;
+}
+
+.pill > .option {
+  min-height: 30px;
+  padding: 0 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+}
+
+/* Joined boxes, the ends rounded. */
+.joined > .option + .option {
   border-left: 0;
 }
 
-.group > .option:first-child {
-  border-radius: 12px 0 0 12px;
+.joined > .option:first-child {
+  border-radius: var(--radius-control) 0 0 var(--radius-control);
 }
 
-.group > .option:last-child {
-  border-radius: 0 12px 12px 0;
+.joined > .option:last-child {
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
 }
 
 .option[aria-pressed="true"] {

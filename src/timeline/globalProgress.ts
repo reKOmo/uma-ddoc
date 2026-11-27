@@ -5,7 +5,7 @@ import type { Banner, BannerFile } from '../../shared/schemas/banner.ts';
 
 type Banners = Pick<BannerFile, 'characters' | 'cards'>;
 
-export type GlobalProgress = { estimate: number; from: number; to: number; toKnown: boolean };
+type GlobalProgress = { estimate: number; from: number; to: number; toKnown: boolean };
 
 const all = (banners: Partial<Banners> | null | undefined): Banner[] => [
   ...(banners?.characters ?? []),

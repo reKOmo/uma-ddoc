@@ -5,53 +5,38 @@
 // A scout post names banners by gacha id, which Global shares with JP: a news banner is JP's banner with that id
 // (featured ids, rates) under Global's dates and art, with the English names and titles the post lists.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import type { Banner, BannerFile, BannerId, BannerItem } from '../../../shared/schemas/banner.ts';
 import type { CardsFile, GlobalCardsFile } from '../../../shared/schemas/card.ts';
 import { dated } from '../../../shared/schemas/common.ts';
-import type { BannerPost } from './posts.ts';
+import {
+  BANNER_KINDS,
+  type Kind,
+  type ScoutBanner,
+  type ScoutPost,
+  endOfMinute,
+  newestPerBanner,
+  pickMain,
+  withoutNews,
+  writeBannerFile,
+} from './common.ts';
 import { keepBannerFills } from '../fills.ts';
-import { DATA_DIR } from '../paths.ts';
+import { jsonEntries } from '../json.ts';
+import { newestBannersFirst } from '../order.ts';
+import { dataFile } from '../paths.ts';
 import { norm } from '../news/text.ts';
 
-export const BANNERS_FILE = `${DATA_DIR}global_banners.json`;
-export const CARDS_FILE = `${DATA_DIR}global_cards.json`;
-
 export type CardRecords = GlobalCardsFile;
-// The two lists of a banner file.
-export type Kind = 'characters' | 'cards';
-export const BANNER_KINDS: Kind[] = ['characters', 'cards'];
 // char_id → English name (englishNames()).
 type NameMap = Map<number | null, string>;
 
-type ScoutPost = BannerPost;
-type ScoutBanner = BannerPost['banners'][number];
 // A post's banner as it's applied: its start is known.
-type Announced = { post: ScoutPost; announced: ScoutBanner & { start: string } };
+type Announced = ScoutBanner & { start: string };
 
 export type NewsBanner = { banner: Banner; kind: Kind; post: string; unmatched: string[] };
 export type NewsSkip = { id: number; post: string; reason: string };
 export type NewsResult = { global: BannerFile; cards: CardRecords; banners: NewsBanner[]; skipped: NewsSkip[] };
 
-// The highest rarity, then the highest rate (our heuristic for `main`, as when the banners were seeded).
-export function pickMain<T extends Pick<BannerItem, 'rarity' | 'rate'>>(featured: T[]): T | null {
-  return (
-    featured.reduce<T | null>(
-      (best, item) =>
-        !best || item.rarity > best.rarity || (item.rarity === best.rarity && (item.rate ?? 0) > (best.rate ?? 0))
-          ? item
-          : best,
-      null
-    ) ?? null
-  );
-}
-
-// Posts end banners at "9:59 p.m."; scraped banners end on the last second of that minute.
-export function endOfMinute(iso: string): string;
-export function endOfMinute(iso: string | null | undefined): string | undefined;
-export function endOfMinute(iso: string | null | undefined): string | undefined {
-  return iso?.replace(/:00(\.000)?Z$/, ':59.000Z');
-}
 const isoMs = (iso: string) => new Date(iso).toISOString();
 
 // Pairs a JP banner's items with the post's English list ({ name, title, rarity|stars }): by character name first
@@ -68,25 +53,14 @@ function pairEnglish(items: BannerItem[], entries: { name: string; title: string
   return pairs;
 }
 
-// Seeded banners, without what an earlier run took from the posts (taken again below: idempotent).
-const withoutNews = (list: Banner[]): Banner[] =>
-  list.filter((b) => b.start.status !== 'news').map(({ news_url, news_image, ...b }) => b);
-
-// id → { post, announced } from the newest post naming it. Paid scouts are left out.
-function newestAnnounced(posts: ScoutPost[]): Map<number, Announced> {
-  const announced = new Map<number, Announced>();
-  for (const post of [...posts].sort((a, b) => (a.posted ?? '').localeCompare(b.posted ?? ''))) {
-    if (post.paid) continue;
-    for (const b of post.banners) if (b.start) announced.set(b.gachaId, { post, announced: { ...b, start: b.start } });
-  }
-  return announced;
-}
+// Seeded banners, without what an earlier run took from the posts (taken again below).
+const seeded = (list: Banner[]): Banner[] => list.filter((b) => b.start.status !== 'news').map(withoutNews);
 
 // A news banner made from JP's banner with the same id, or the reason it can't be.
 function makeFromNews(
   id: number,
   post: ScoutPost,
-  a: Announced['announced'],
+  a: Announced,
   jpBanners: Map<BannerId, { kind: Kind; banner: Banner }>,
   names: NameMap
 ): NewsBanner | NewsSkip {
@@ -172,8 +146,8 @@ export function applyNews({
   names: NameMap;
 }): NewsResult {
   const kinds: Record<Kind, Banner[]> = {
-    characters: withoutNews(global.characters),
-    cards: withoutNews(global.cards),
+    characters: seeded(global.characters),
+    cards: seeded(global.cards),
   };
   const seededById = new Map<BannerId, Banner>(
     [...kinds.characters, ...kinds.cards].map((b): [BannerId, Banner] => [b.id, b])
@@ -183,7 +157,12 @@ export function applyNews({
 
   const made: NewsBanner[] = [];
   const skipped: NewsSkip[] = [];
-  for (const [id, { post, announced }] of newestAnnounced(posts)) {
+  // (paid scouts left out)
+  const newest = newestPerBanner(
+    posts.filter((post) => !post.paid),
+    (b): Announced | null => (b.start ? { ...b, start: b.start } : null)
+  );
+  for (const [id, { post, b: announced }] of newest) {
     // A seeded banner the news shows: its post and official art; its dates and items stay.
     const seededBanner = seededById.get(id);
     if (seededBanner) {
@@ -198,12 +177,11 @@ export function applyNews({
 
   const nextCards = withoutNewsCards(cards);
   markNew(made, kinds, nextCards);
-  const newestFirst = (a: Banner, b: Banner) => b.start.date.localeCompare(a.start.date) || Number(b.id) - Number(a.id);
   return {
     global: {
       ...global,
-      characters: keepBannerFills(kinds.characters.sort(newestFirst), global.characters),
-      cards: keepBannerFills(kinds.cards.sort(newestFirst), global.cards),
+      characters: keepBannerFills(kinds.characters.sort(newestBannersFirst), global.characters),
+      cards: keepBannerFills(kinds.cards.sort(newestBannersFirst), global.cards),
     },
     cards: Object.fromEntries(Object.entries(nextCards).sort(([a], [b]) => Number(a) - Number(b))),
     banners: made,
@@ -223,18 +201,7 @@ export function englishNames(global: BannerFile, cards: CardsFile): NameMap {
   return names;
 }
 
-// TODO(ts): JSON.parse gives any; the caller names the file's type (its schema in shared/schemas/).
-export const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8')) as T;
-
-// One banner per line, so commits diff per entry (the files are excluded from Biome).
-export const bannerList = (items: Banner[]): string =>
-  items.length ? `[\n${items.map((b) => JSON.stringify(b)).join(',\n')}\n]` : '[]';
-
-export function writeGlobal({ global, cards }: { global: BannerFile; cards: CardRecords }) {
-  writeFileSync(
-    BANNERS_FILE,
-    `{\n"source": ${JSON.stringify(global.source)},\n"characters": ${bannerList(global.characters)},\n"cards": ${bannerList(global.cards)}\n}\n`
-  );
-  const entries = Object.entries(cards).map(([id, c]) => `${JSON.stringify(id)}: ${JSON.stringify(c)}`);
-  writeFileSync(CARDS_FILE, `{\n${entries.join(',\n')}\n}\n`);
-}
+// The banners and the card releases into data/ (cards first: buildCardFiles() reads them).
+export const writeGlobalBanners = (global: BannerFile): void => writeBannerFile(dataFile('gl', 'banners'), global);
+export const writeGlobalCards = (cards: CardRecords): void =>
+  writeFileSync(dataFile('gl', 'cards'), `${jsonEntries(cards)}\n`);

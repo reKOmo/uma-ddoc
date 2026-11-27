@@ -1,5 +1,6 @@
-import { type RefObject, useEffect } from 'react';
+import { useEffect } from 'react';
 import styles from './Lanes.module.css';
+import type { View, Viewport } from './useViewport.ts';
 
 // How far past the screen's edges a bar still counts as crossing them (in screens): scrolling runs ahead of the main
 // thread, so a label turns sticky a little before its bar reaches the edge.
@@ -7,50 +8,50 @@ const MARGIN = 0.25;
 
 // Marks the bars crossing the screen's left / right edge (`data-stuck-start` / `data-stuck-end`), whose label / fold
 // button alone are sticky (Lanes.module.css). Bars are placed in days (`--x`, `--w`, Lanes.tsx).
-export function useStickyBars(scroller: RefObject<HTMLElement | null>, px: number, enabled: boolean): void {
+export function useStickyBars(viewport: Viewport, px: number, enabled: boolean): void {
   useEffect(() => {
-    const el = scroller.current;
-    if (!el || !enabled) return;
-    const bars = el.getElementsByClassName(styles.bar ?? '');
-    // Read on scroll and resize only: reading them right after React adds bars would force a layout.
-    let scrollLeft = el.scrollLeft;
-    let width = el.clientWidth;
-    const mark = () => {
-      const left = scrollLeft / px;
-      const right = (scrollLeft + width) / px;
-      const margin = (width * MARGIN) / px;
-      const crosses = (edge: number, x: number, w: number) => x < edge + margin && x + w > edge - margin;
-      for (const bar of bars) {
-        if (!(bar instanceof HTMLElement)) continue;
-        const x = Number.parseFloat(bar.style.getPropertyValue('--x'));
-        const w = Number.parseFloat(bar.style.getPropertyValue('--w'));
-        bar.toggleAttribute('data-stuck-start', crosses(left, x, w));
-        bar.toggleAttribute('data-stuck-end', crosses(right, x, w));
+    const el = viewport.scroller.current;
+    const view = viewport.read();
+    if (!el || !view || !enabled) return;
+    // The screen's edges, in days.
+    const edgesOf = ({ left, width }: View) => ({
+      left: left / px,
+      right: (left + width) / px,
+      margin: (width * MARGIN) / px,
+    });
+    let { left, right, margin } = edgesOf(view);
+    const barClass = styles.bar ?? '';
+    const bars = el.getElementsByClassName(barClass);
+    const mark = (bar: Element) => {
+      if (!(bar instanceof HTMLElement)) return;
+      const x = Number.parseFloat(bar.style.getPropertyValue('--x'));
+      const w = Number.parseFloat(bar.style.getPropertyValue('--w'));
+      bar.toggleAttribute('data-stuck-start', x < left + margin && x + w > left - margin);
+      bar.toggleAttribute('data-stuck-end', x < right + margin && x + w > right - margin);
+    };
+    const markAll = () => {
+      for (const bar of bars) mark(bar);
+    };
+    markAll();
+    // New bars (scrolled or zoomed into the drawn range, parts unfolded) are marked before they're painted, with the
+    // last view: reading the scroller right after React adds bars would force a layout.
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (!(node instanceof Element)) continue;
+          if (node.classList.contains(barClass)) mark(node);
+          for (const bar of node.getElementsByClassName(barClass)) mark(bar);
+        }
       }
-    };
-    mark();
-    // New bars (scrolled or zoomed into the drawn range, parts unfolded) are marked before they're painted.
-    const observer = new MutationObserver(mark);
+    });
     observer.observe(el, { childList: true, subtree: true });
-    // Marked in the next frame: writing in the scroll event would make the Timeline's other scroll handlers' reads
-    // force a layout.
-    let frame = 0;
-    const onScroll = () => {
-      scrollLeft = el.scrollLeft;
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(mark);
-    };
-    const onResize = () => {
-      width = el.clientWidth;
-      onScroll();
-    };
-    el.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onResize);
+    const unsubscribe = viewport.subscribe((next) => {
+      ({ left, right, margin } = edgesOf(next));
+      markAll();
+    });
     return () => {
-      cancelAnimationFrame(frame);
       observer.disconnect();
-      el.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onResize);
+      unsubscribe();
     };
-  }, [scroller, px, enabled]);
+  }, [viewport, px, enabled]);
 }

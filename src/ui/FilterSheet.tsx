@@ -1,15 +1,19 @@
-// <FilterButton count countTitle onClick disabled small />, <FilterSheet open onClose title action>…</FilterSheet>
+// <FilterButton count countTitle onClick disabled small />, <FilterSheet open onClose title action note>…</FilterSheet>
 // <FilterSection heading note off chips onToggle onAll />: `chips` [{ key, label, shown, tone }] (`tone`: a `data-tone`
 // of src/styles/global.css; or `color`, any CSS colour, e.g. a scenario's), `onToggle(key)`, `onAll(shown)` (true: All, false: None); `off` greys the section out.
 // With a `catchAll` chip (ticked while nothing else is), All ticks it, there's no None and no `onAll`.
+// <FilterGroup heading headingId action note>…</FilterGroup>: a section of the sheet holding anything else.
+// <ResetButton onClick disabled icon>…</ResetButton>: the sheet's reset (its `action`), or one like it.
 
 import type { CSSProperties, ReactNode } from 'react';
-import { Check, SlidersHorizontal } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Check, RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
+import { pillClass } from './Pill.tsx';
 import Sheet, { SheetTitle } from './Sheet.tsx';
+import { ToolbarButton } from './ToolbarButton.tsx';
 import styles from './FilterSheet.module.css';
-import './FilterSheet.css';
 
 export type FilterButtonProps = {
   count: number;
@@ -22,24 +26,33 @@ export type FilterButtonProps = {
   small?: boolean;
 };
 
-export function FilterButton({ count, countTitle, onClick, disabled, phoneIconOnly, small }: FilterButtonProps) {
+export function FilterButton({ count, countTitle, ...props }: FilterButtonProps) {
   const { t } = useTranslation();
   return (
-    <button
-      type="button"
-      className={clsx(styles.filterButton, small && styles.small, count > 0 && styles.active)}
-      onClick={onClick}
-      disabled={disabled}
-      aria-haspopup="dialog"
-      title={phoneIconOnly ? t('filter.button') : undefined}
-    >
-      <SlidersHorizontal size={small ? 15 : 18} aria-hidden="true" />
-      <span className={phoneIconOnly ? styles.phoneHidden : undefined}>{t('filter.button')}</span>
-      {count > 0 && (
-        <span className={styles.filterCount} title={countTitle}>
-          {count}
-        </span>
-      )}
+    <ToolbarButton
+      icon={SlidersHorizontal}
+      label={t('filter.button')}
+      badge={count}
+      badgeTitle={countTitle}
+      opensDialog
+      {...props}
+    />
+  );
+}
+
+export type ResetButtonProps = {
+  onClick: () => void;
+  disabled?: boolean;
+  icon?: LucideIcon;
+  className?: string;
+  children: ReactNode;
+};
+
+export function ResetButton({ onClick, disabled, icon: Icon = RotateCcw, className, children }: ResetButtonProps) {
+  return (
+    <button type="button" className={clsx(styles.reset, className)} onClick={onClick} disabled={disabled}>
+      <Icon size={14} aria-hidden="true" />
+      {children}
     </button>
   );
 }
@@ -49,18 +62,48 @@ export type FilterSheetProps = {
   onClose: () => void;
   title: ReactNode;
   action?: ReactNode;
+  /** A line under the title. */
+  note?: ReactNode;
   children?: ReactNode;
 };
 
-export function FilterSheet({ open, onClose, title, action, children }: FilterSheetProps) {
+export function FilterSheet({ open, onClose, title, action, note, children }: FilterSheetProps) {
   return (
     <Sheet open={open} onClose={onClose} className={styles.filterSheet}>
       <div className={styles.filterHead}>
         <SheetTitle className={styles.filterTitle}>{title}</SheetTitle>
         {action}
       </div>
+      {note && <p className={clsx(styles.note, styles.sheetNote)}>{note}</p>}
       {children}
     </Sheet>
+  );
+}
+
+export type FilterGroupProps = {
+  heading?: ReactNode;
+  /** For a control labelled by the heading (`aria-labelledby`). */
+  headingId?: string;
+  /** Beside the heading. */
+  action?: ReactNode;
+  note?: ReactNode;
+  children?: ReactNode;
+};
+
+export function FilterGroup({ heading, headingId, action, note, children }: FilterGroupProps) {
+  return (
+    <section className={styles.group}>
+      {heading && (
+        <div className={styles.groupHead}>
+          <h3 id={headingId} className="section-label">
+            {heading}
+          </h3>
+          {action}
+        </div>
+      )}
+      {note && <p className={styles.note}>{note}</p>}
+      {children}
+    </section>
   );
 }
 
@@ -96,9 +139,10 @@ export function FilterSection<K extends string | number>({
   if (!chips.length) return null;
   const catchAll = chips.find((chip) => chip.catchAll);
   return (
-    <section className={clsx('filter-section', off && 'off')}>
-      <div className="filter-section-head">
-        <h3>{heading}</h3>
+    <FilterGroup
+      heading={heading}
+      note={note}
+      action={
         <div className={styles.filterAll}>
           <button
             type="button"
@@ -113,15 +157,16 @@ export function FilterSection<K extends string | number>({
             </button>
           )}
         </div>
-      </div>
-      {note && <p className="filter-note">{note}</p>}
+      }
+    >
       <div className={styles.filterChips}>
         {chips.map((chip) => (
           <button
             type="button"
             key={chip.key}
-            className={styles.filterChip}
-            data-tone={chip.tone}
+            className={clsx(pillClass({ variant: 'tinted' }), styles.filterChip)}
+            // ('': the default grey tone, under a scenario's own --tone)
+            data-tone={chip.tone ?? ''}
             style={chip.color ? ({ '--tone': chip.color } as CSSProperties) : undefined}
             aria-pressed={chip.shown}
             disabled={off}
@@ -134,6 +179,6 @@ export function FilterSection<K extends string | number>({
           </button>
         ))}
       </div>
-    </section>
+    </FilterGroup>
   );
 }

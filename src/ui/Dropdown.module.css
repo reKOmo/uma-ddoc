@@ -19,7 +19,7 @@
   text-align: left;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   transition:
     border-color 0.15s,
@@ -153,12 +153,6 @@
 
 .badge {
   margin-left: auto;
-  padding: 0 8px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--accent-text);
-  background: var(--accent);
-  border-radius: 999px;
 }
 
 .option[data-disabled] {

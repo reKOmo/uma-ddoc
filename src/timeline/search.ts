@@ -2,6 +2,7 @@
 // items, races) or typed as text. Chips of one type are alternatives; chips of different types must all match.
 import i18n from '../i18n/index.ts';
 import type { Verdict } from '../lib/pullGuide.ts';
+import { normalizeSearch } from '../lib/search.ts';
 import { STAT_OF_TYPE } from '../lib/tiers.ts';
 import type { CardsFile } from '../../shared/schemas/card.ts';
 import { type Language, cardEnglish } from '../lib/translations.ts';
@@ -15,16 +16,10 @@ export type TermType = (typeof TERM_TYPES)[number];
 // calendar's (a `data-tone` of global.css: a kind's, a card type's, a name its entry's).
 export type Term = { type: TermType; value: string; label: string; aliases: string[]; tone: string | null };
 type Indexed = { keys: Set<string>; text: string };
-export type SearchIndex = { terms: Term[]; entries: Map<string, Indexed> };
+type SearchIndex = { terms: Term[]; entries: Map<string, Indexed> };
 
 export const textTerm = (text: string): Term => ({ type: 'text', value: text, label: text, aliases: [], tone: null });
 export const termKey = (term: Pick<Term, 'type' | 'value'>): string => `${term.type}:${term.value}`;
-
-const normalize = (text: string): string =>
-  text
-    .toLowerCase()
-    .replace(/[^\p{L}\p{M}\p{N}]+/gu, ' ')
-    .trim();
 
 // A character by id, with one of their cards (the card data has both their names; JP's banners and events name them
 // in Japanese).
@@ -91,7 +86,7 @@ export function searchIndex(
     indexed.set(entry.key, {
       keys: new Set(own.map(termKey)),
       // (The Japanese names translateEntries() replaced too.)
-      text: normalize(
+      text: normalizeSearch(
         [...own.flatMap((term) => [term.label, ...term.aliases]), ...titles, ...entry.originals].join(' ')
       ),
     });
@@ -99,11 +94,11 @@ export function searchIndex(
   return { terms: [...terms.values()], entries: indexed };
 }
 
-export function matches(indexed: Indexed | undefined, chips: Term[]): boolean {
+function matches(indexed: Indexed | undefined, chips: Term[]): boolean {
   if (!indexed) return false;
   return [...Map.groupBy(chips, (chip) => chip.type).values()].every((group) =>
     group.some((chip) =>
-      chip.type === 'text' ? indexed.text.includes(normalize(chip.value)) : indexed.keys.has(termKey(chip))
+      chip.type === 'text' ? indexed.text.includes(normalizeSearch(chip.value)) : indexed.keys.has(termKey(chip))
     )
   );
 }

@@ -51,20 +51,16 @@
   color: var(--muted);
 }
 
+/* Over Pill's tinted look (pillClass): room for the icon, a button's reset. */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   max-width: 100%;
   min-height: 28px;
-  padding: 0 10px 0 6px;
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text);
-  background: color-mix(in srgb, var(--tone) 18%, var(--panel));
-  border: 1px solid var(--tone);
-  border-radius: 999px;
+  padding: 0 12px 0 6px;
+  font-family: inherit;
+  border: 0;
   cursor: pointer;
 }
 
@@ -80,7 +76,7 @@
   place-items: center;
   width: 18px;
   height: 18px;
-  color: #fff;
+  color: var(--ink-light);
   background: var(--tone);
   border-radius: 50%;
 }
@@ -135,14 +131,10 @@
 .group {
   flex-basis: 100%;
   padding: 10px 0 2px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  text-transform: uppercase;
 }
 
 .option {
+  white-space: normal;
   overflow-wrap: anywhere;
 }
 
@@ -154,6 +146,5 @@
 @media (min-width: 768px) {
   .chip {
     min-height: 32px;
-    font-size: 0.85rem;
   }
 }

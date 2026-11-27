@@ -8,7 +8,7 @@ One `tsconfig.json`: `strict`, `nodenext`, `erasableSyntaxOnly`,
 - Never `any`: `unknown` + narrowing, or a cast with a `// TODO(ts):` comment saying why (mostly JSON from outside:
   GameTora, umapyoi.net, a model's reply).
 - **Data shapes are zod schemas** in `shared/schemas/` (types via `z.infer`; `files.ts` maps each data file to its
-  schema). `schemas/*.json` are generated from them by `pnpm build-schemas` (`test/schemas.test.ts` fails when stale).
+  schema). `schemas/*.json` are generated from them by `pnpm build-schemas` (`test/data/schemas.test.ts` fails when stale).
 - `src/` imports schema types only (`import type`), so zod stays out of the bundle, except where stored state is
   parsed (`zod/mini`).
 - Tests type partial data with `fixture<T>()` and must-exist lookups with `present()` (`test/helpers.ts`).

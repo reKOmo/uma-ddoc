@@ -6,7 +6,8 @@ import { blockLines, eventBlocks, joinBlocks } from './blocks.ts';
 import { type Dates, datesDoubt, headingPeriod, openingPeriod, span } from './dates.ts';
 import { aiKey, type Fragment, rewards, withDoubts } from './doubts.ts';
 import { matchedKind, sentenceName, subEventKind, subEventName } from './names.ts';
-import { type cardIndex, norm } from './rewards.ts';
+import type { cardIndex } from './rewards.ts';
+import { norm } from '../news/text.ts';
 
 // What every event of a post is built from (postEvents()).
 export type PostContext = {

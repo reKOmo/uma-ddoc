@@ -34,6 +34,8 @@
   --event-celebration: light-dark(#e07b1a, #f39a45);
   --event-gift: light-dark(#d6458f, #f06fae);
   --event-other: light-dark(#69707a, #9aa1aa);
+  /* A confirmed date's status pill (filled, --ink-light text): the same green in both themes. */
+  --confirmed: light-dark(#2f9e6e, #2f9e6e);
   /* Text on data-driven colours (scenario covers): pick by the colour's luminance, not the theme. */
   --ink-dark: #1c1f24;
   --ink-light: #ffffff;
@@ -56,6 +58,8 @@
   --badge-sr: linear-gradient(135deg, #fffbe0, #f0c33a 65%);
   --badge-ssr: linear-gradient(135deg, #f775cf, #7dc2ff);
   --tabbar-height: 56px;
+  /* A button's or control's corners (toolbar buttons, dropdowns, Segmented's ends). */
+  --radius-control: 12px;
   font-family: system-ui, sans-serif;
   color: var(--text);
   background: var(--bg);
@@ -91,6 +95,36 @@ button:not(:disabled) {
 h1 {
   margin: 0 0 12px;
   font-size: 1.25rem;
+}
+
+/* Read by screen readers only; `phone-visually-hidden` only on phones (an icon button's label, shown on desktop). */
+.visually-hidden,
+.phone-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .phone-visually-hidden {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+}
+
+/* A small heading over a group of controls or facts (a filter's sections, Settings' credits). */
+.section-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .tier-0 {

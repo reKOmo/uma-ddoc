@@ -1,9 +1,10 @@
 // Days are UTC, like the game's announcements, or the viewer's own with `utc: false`.
 
+import { DAY } from '../lib/dates.ts';
 import { EVENT_GROUPS } from './events.ts';
 
 // Rows keep whatever entries they're given (the tests lay out bare ones).
-export type LaneEntry = {
+type LaneEntry = {
   key: string;
   kind: string;
   start: string | null;
@@ -12,8 +13,6 @@ export type LaneEntry = {
 };
 type Dated<E extends LaneEntry> = E & { start: string };
 
-export const DAY = 24 * 60 * 60 * 1000;
-
 // The Timeline's zoom levels, in pixels per day.
 export const ZOOMS = [4, 8, 16, 32];
 
@@ -21,7 +20,7 @@ const UTC = { hours: 'UTCHours', date: 'UTCDate', month: 'UTCMonth' } as const;
 const LOCAL = { hours: 'Hours', date: 'Date', month: 'Month' } as const;
 
 // Greedy interval packing: each item goes in the first row free by its start, keeping the row count minimal.
-export function packRows<T extends { start: number; end: number }>(items: T[]): T[][] {
+function packRows<T extends { start: number; end: number }>(items: T[]): T[][] {
   const rows: { items: T[]; end: number }[] = [];
   for (const item of [...items].sort((a, b) => a.start - b.start)) {
     const row = rows.find((r) => r.end <= item.start);

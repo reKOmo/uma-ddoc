@@ -9,7 +9,15 @@
   padding: 0 12px;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
+}
+
+.small {
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .button:disabled {
@@ -28,27 +36,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 20px;
-  color: var(--accent-ink);
-  background: var(--accent-text);
+  color: var(--accent-text);
+  background: var(--accent);
   border-radius: 999px;
-}
-
-/* The label as a screen reader's name only, on phones (`phoneIconOnly`); shown from the desktop width up. */
-.phoneHidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-@media (min-width: 768px) {
-  .phoneHidden {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    clip-path: none;
-  }
 }

@@ -10,7 +10,7 @@ import TierListPage from './pages/TierListPage.tsx';
 import TimelinePage from './pages/TimelinePage.tsx';
 import CardPage from './pages/CardPage.tsx';
 import SettingsPage from './pages/SettingsPage.tsx';
-import { useSettings } from './state/settings.tsx';
+import { useSettings } from './state/settings.ts';
 import ScenarioPage from './pages/ScenarioPage.tsx';
 import ScenariosPage from './pages/ScenariosPage.tsx';
 import { useTranslation } from 'react-i18next';
@@ -101,6 +101,7 @@ function Shell() {
           options={SERVER_KEYS.map((key) => ({ value: key, label: serverName(key) }))}
           value={server}
           onChange={changeServer}
+          variant="pill"
           className={styles.serverSwitch}
         />
       </header>

@@ -1,4 +1,4 @@
-import { type Ref, useRef, useState } from 'react';
+import { type Ref, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { Info, ZoomIn, ZoomOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -11,15 +11,15 @@ import { Section } from '../../ui/Section.tsx';
 import { Segmented } from '../../ui/Segmented.tsx';
 import Status from '../../ui/Status.tsx';
 import { WIDE, useMediaQuery } from '../../hooks/useMediaQuery.ts';
-import RankChart from '../RankChart.tsx';
+import RankChart from './RankChart.tsx';
 import { SCENARIOS } from '../../../shared/scenarioRelease.ts';
-import { scenarioSegments } from '../../timeline/scenarioStrip.ts';
+import { scenarioSegments } from '../../lib/scenarioStrip.ts';
 
 // The chart's zoom steps: 1 fits the card's whole life, past it the chart scrolls sideways.
 const ZOOMS = [1, 2, 4, 8];
-import { useRankHistory } from './hooks.ts';
+import { useRankHistory } from './useRankHistory.ts';
 import PassedBy from './PassedBy.tsx';
-import { LIMIT_BREAKS } from './shared.ts';
+import { LIMIT_BREAKS } from '../../lib/tiers.ts';
 import Pill from '../../ui/Pill.tsx';
 import styles from './RankOverTime.module.css';
 
@@ -50,6 +50,7 @@ type RankOverTimeProps = {
 export function RankOverTime({ server, rankHistory, height, zoom, onSelect, chartRef }: RankOverTimeProps) {
   const { t } = useTranslation();
   const { ranking, history, first, end } = rankHistory;
+  const scenarios = useMemo(() => scenarioSegments(SCENARIOS, server), [server]);
   if (!ranking) return <Status>{t('common.ranking')}</Status>;
   if (!history || !first || !end) return <Status>{t('card.noReleaseDate', { server: serverName(server) })}</Status>;
   return (
@@ -60,7 +61,7 @@ export function RankOverTime({ server, rankHistory, height, zoom, onSelect, char
       height={height}
       zoom={zoom}
       onSelect={onSelect}
-      scenarios={scenarioSegments(SCENARIOS, server)}
+      scenarios={scenarios}
     />
   );
 }
@@ -102,6 +103,7 @@ export default function RankHistorySection({
               combined={combined}
               server={server}
               onChange={setScenario}
+              hideLabel
             />
             <Segmented
               label={t('card.limitBreak')}

@@ -37,7 +37,7 @@
   Collection 30xxx, paid 50xxx) are made from the post (`from_news: true`, featured resolved: supports by cards.json
   title.jp + name.jp, trainees by title + name on the items of data/jp_banners.json and data/global_banners.json, and
   a trainee no banner has shown yet (a debut) by GameTora's trainee list (`generated/raw/gametora_trainees.json`, from
-  `scrape-gametora`; until GameTora lists it, by name only, id null, and listed in update-jp's summary; while one is (or a card is pending) the news run rescrapes GameTora and rebuilds the records daily, new posts or not, `scripts/news-pending.ts`; once stored it
+  `scrape-gametora`; until GameTora lists it, by name only, id null, and listed in update-jp's summary; while one is (or a card is pending) the news run rescrapes GameTora and rebuilds the records daily, new posts or not, `scripts/newsPending.ts`; once stored it
   resolves from our banners without the list); a card still pending, see above, stays id null). `paid: true` per banner (gacha id ≥ 50000; a post
   can mix both). Re-runs (decision 6): the original keeps its dates and gets `rerun: { id, start, end }`; the re-run is
   GameTora's banner with the same featured starting then (`rerunOf`; it gets its original's post and
@@ -58,7 +58,7 @@
   JST; gifts run to their 対象のトレーナー deadline; Champions Meetings have Global's phases (the headings never changed
   since 2022), League of Heroes its own (team formation, main stage, extra stage registration / matching / votes /
   race). Races from 対象レース (with 昼/夕/夜; a Legend Race's 天候・バ場 list splits it by opponent, named as Global's
-  cards name them; race names Global's from the hand table in `news/lang/jp-races.ts`: the race test lists a missing
+  cards name them; race names Global's from the hand table in `news/lang/jpRaces.ts`: the race test lists a missing
   one). Items: Global's canonical name where Global has the item (Carats, Monies, Support Points, shards, tickets, Toughness 30,
   Alarm Clock, hint books, "N Anniversary SSR Voucher": `aliases` + `showItem` in `news/lang/jp.ts`) with
   the Japanese one in `local`, else the Japanese name; paid packs, costs and exchanges excluded. Cards by title.jp +
@@ -72,7 +72,7 @@
   SSR; the miss is a 2021 announcement naming none), Champions Meeting (36/36: round 1 = GameTora's start, same end)
   and Legend Race (48/48) matches; before mid-2022 the archive is thin (2021: 96 posts).
 - **The model on JP events** (`news:ai --server jp`): the questions are per language (`QUESTIONS` in
-  ai/questions.ts, from ai/questions-en.ts / ai/questions-jp.ts: Japanese SYSTEM / FIELDS / made-up EXAMPLES; English's unchanged, so Global's stored answers
+  ai/questions.ts, from ai/questionsEn.ts / ai/questionsJp.ts: Japanese SYSTEM / FIELDS / made-up EXAMPLES; English's unchanged, so Global's stored answers
   still match). JP times are JST: the model gets the post date and answers dates in JST as the post writes them; the
   code converts them to UTC with the year nearest the post. Sub-event kinds also allow `special` (an event embedded in
   a celebration post). Answer names go through the JP lexicon (`itemName(raw, jp)`, `local`). Run locally with
@@ -82,7 +82,7 @@
   (1,120 → 1,110 events). Known weak spot: the cosmetic 特別ホーム画面 parts became `special`.
 - **JP on the Timeline and in the workflows**: JP's calendar has the event lanes Global has (groups, parts, sheets).
   A banner without an end (an open-ended scout, 終了日時未定) counts as one day in `src/timeline/layout.ts` and reads "from
-  <start>". `fetch-news-latest --server jp` categorizes with the JP lexicon (summary + `update`). `news:run`: Global's
+  <start>". `fetchNewsLatest.ts --server jp` categorizes with the JP lexicon (summary + `update`). `news:run`: Global's
   news, then JP's; cards + GameTora if either updated; the model for each server that updated;
   `update-jp`, then `update-global` (Global's news pairs with JP's banners by id); one commit whose subject sums both
   servers. `deploy.yml` runs `update-jp` before `update-global` (not committed).

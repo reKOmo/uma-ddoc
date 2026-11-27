@@ -8,6 +8,7 @@ import * as Select from '@radix-ui/react-select';
 import clsx from 'clsx';
 import { Check, ChevronDown } from 'lucide-react';
 import { type ReactNode, useId, useRef } from 'react';
+import Pill from './Pill.tsx';
 import styles from './Dropdown.module.css';
 
 export type DropdownOption = {
@@ -27,9 +28,11 @@ type DropdownProps = {
   options: DropdownOption[];
   onChange: (value: string) => void;
   roomy?: boolean;
+  // The label for screen readers only, when the picked option already says what it is.
+  hideLabel?: boolean;
 };
 
-export default function Dropdown({ label, value, options, onChange, roomy = false }: DropdownProps) {
+export default function Dropdown({ label, value, options, onChange, roomy = false, hideLabel = false }: DropdownProps) {
   const id = useId();
   const viewport = useRef<HTMLDivElement>(null);
 
@@ -48,7 +51,9 @@ export default function Dropdown({ label, value, options, onChange, roomy = fals
 
   return (
     <div className={clsx(styles.dropdown, roomy && styles.roomy)}>
-      <span id={`${id}-label`}>{label}</span>
+      <span id={`${id}-label`} className={hideLabel ? 'visually-hidden' : undefined}>
+        {label}
+      </span>
       <Select.Root value={selected?.value} onValueChange={onChange}>
         <Select.Trigger
           id={`${id}-button`}
@@ -117,7 +122,11 @@ function Option({ option }: { option: DropdownOption }) {
       <Select.ItemText>
         <Label option={option} />
       </Select.ItemText>
-      {option.badge && <span className={styles.badge}>{option.badge}</span>}
+      {option.badge && (
+        <Pill variant="label" size="sm" className={styles.badge}>
+          {option.badge}
+        </Pill>
+      )}
       {option.note && <span className={styles.note}>{option.note}</span>}
     </Select.Item>
   );

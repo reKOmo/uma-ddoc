@@ -18,3 +18,6 @@ export const at = (
   status,
   ...more,
 });
+
+// A news post's section heading, as the official site writes it.
+export const h2 = (text: string): string => `<h2 class="heading"> ${text}</h2>\n`;

@@ -1,7 +1,7 @@
 // umapyoi.net mirrors both servers' news under the same post ids: a JP post in Japanese (?lang=jp, the original) or its
 // English translation (?lang=en), by the JP news setting; a Global post on its English mirror.
 
-export type UmapyoiLanguage = 'jp' | 'en';
+type UmapyoiLanguage = 'jp' | 'en';
 
 export const umapyoiJp = (id: number | string, language: UmapyoiLanguage = 'jp'): string =>
   `https://umapyoi.net/news/${id}?lang=${language}`;

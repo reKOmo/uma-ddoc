@@ -1,0 +1,194 @@
+.rankChart {
+  position: relative;
+  display: flex;
+}
+
+.rankAxis,
+.chips {
+  flex: none;
+}
+
+.chips {
+  position: relative;
+}
+
+.scroller {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+/* Zoomed in, a mouse drags it sideways (src/hooks/useDragScroll.ts); touch screens ignore cursors. */
+.scroller.zoomed {
+  cursor: grab;
+}
+
+.scroller[data-dragging] {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.rankChart svg {
+  display: block;
+  overflow: visible;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Lines and marks take the tier's own colour (--band, set per element), as everywhere else. */
+.tierRule,
+.segment,
+.dot {
+  --tier-ink: var(--band);
+}
+
+/* On the light theme a soft dark edge behind them, so the pale tiers (C's yellow) still stand off the white panel. */
+.segment,
+.dot {
+  filter: drop-shadow(0 0 1px light-dark(rgba(0, 0, 0, 0.55), transparent));
+}
+
+.grid {
+  stroke: var(--gridline);
+}
+
+.baseline {
+  stroke: var(--border);
+}
+
+.axisLabel {
+  font-size: 11px;
+  fill: var(--muted);
+  user-select: none;
+}
+
+.yearLabel {
+  font-weight: 700;
+  fill: var(--text);
+}
+
+.yearTick {
+  stroke: var(--muted);
+}
+
+/* Where one tier ends and the next begins, in the lower tier's colour. */
+/* Faint on the dark theme; on the light, full colour with a soft edge, or the pale tiers vanish on white. */
+.tierRule {
+  stroke: light-dark(var(--tier-ink), color-mix(in srgb, var(--tier-ink) 45%, transparent));
+  stroke-dasharray: 2 4;
+  filter: drop-shadow(0 0 0.5px light-dark(rgba(0, 0, 0, 0.45), transparent));
+}
+
+/* Each tier's chip (the TierChip used everywhere), smaller, beside its band. */
+.chip {
+  position: absolute;
+  left: 8px;
+  display: flex;
+  pointer-events: none;
+}
+
+.chip > span {
+  min-width: 20px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 20px;
+  border-radius: 5px;
+}
+
+.segment {
+  fill: none;
+  stroke: var(--tier-ink);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.segment.predicted {
+  stroke-linecap: butt;
+  stroke-dasharray: 5 4;
+}
+
+.dot {
+  fill: var(--tier-ink);
+  stroke: var(--tier-ink);
+  stroke-width: 2;
+}
+
+.dot.predicted {
+  fill: var(--panel);
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--text);
+  paint-order: stroke;
+  stroke: var(--panel);
+  stroke-width: 3px;
+  user-select: none;
+}
+
+.label.predicted {
+  fill: var(--muted);
+}
+
+.today line {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-opacity: 0.7;
+}
+
+.today text {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  fill: var(--accent-ink);
+  user-select: none;
+}
+
+.today .future {
+  font-weight: 400;
+  fill: var(--muted);
+}
+
+/* The server's scenarios under the dates, each a rule in its colour from its launch to the next one's: solid once it's
+   out, faint while it's still to come. */
+.scenario {
+  --scenario-color: var(--muted);
+}
+
+.scenarioHit {
+  fill: transparent;
+}
+
+.scenarioRule {
+  fill: var(--scenario-color);
+}
+
+.scenario.upcoming .scenarioRule {
+  opacity: 0.45;
+}
+
+.scenarioName {
+  font-size: 10px;
+  fill: var(--muted);
+}
+
+.scenario:hover .scenarioName {
+  fill: var(--text);
+}
+
+.scenario:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.hit:hover {
+  fill: color-mix(in srgb, var(--accent) 18%, transparent);
+}

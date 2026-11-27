@@ -9,7 +9,7 @@ export const CardSchema = z
       .nullable()
       .describe("GameTora's character id (for group cards, one member's; from data/jp_cards.json); null without it."),
     type: CardType.describe(
-      "The tier list's stat key, or group (ranked with friend cards). Codes: tierlist/join-cards TYPE_CODES."
+      "The tier list's stat key, or group (ranked with friend cards). Codes: shared/joinCards TYPE_CODES."
     ),
     rarity: Rarity,
     name: Texts.describe(
@@ -99,7 +99,7 @@ export const CardStatsFileSchema = z.record(IdKey, CardStatsSchema);
 export type CardStatsFile = z.infer<typeof CardStatsFileSchema>;
 
 // data/<gl|jp>_card_stats.json: a server's card list, ours instead of upstream's <server>.js, converted from the
-// game's master.mdb (scripts/convert-mdb.ts), by id: upstream's codes (type, group, rarity), its per-server name and
+// game's master.mdb (scripts/convertMdb.ts), by id: upstream's codes (type, group, rarity), its per-server name and
 // LB0…LB4. `source`: the mdb's sha256; `skipped`: cards with an effect the converter doesn't know
 // (upstream's rows when it has the card, else left out).
 export const StoredCardSchema = z.strictObject({

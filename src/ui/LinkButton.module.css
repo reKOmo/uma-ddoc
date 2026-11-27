@@ -1,4 +1,4 @@
-/* A link as a tinted chip in the accent's colour (the Timeline sheet's links match). */
+/* A link as a tinted chip in the accent's colour. */
 .linkButton {
   display: inline-flex;
   align-items: center;
@@ -20,6 +20,11 @@
 }
 
 .linkButton:active {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+.filled {
   color: var(--accent-text);
   background: var(--accent);
 }

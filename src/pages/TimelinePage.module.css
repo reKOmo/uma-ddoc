@@ -10,105 +10,6 @@
   border-bottom: 1px solid var(--border);
 }
 
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-/* The search: a full-width row under the buttons on phones; on desktop first in the row, taking its free width. */
-.searchSlot {
-  display: flex;
-  flex: 1 0 100%;
-  order: 1;
-  min-width: 0;
-}
-
-.searchNote {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 4px 12px;
-  margin: 8px 0 0;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.matchNav {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text);
-}
-
-.navButton {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 32px;
-  color: var(--text);
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-.goButton {
-  display: inline-flex;
-  gap: 6px;
-  width: auto;
-  padding: 0 12px;
-}
-
-.navButton:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.toolbar :global(.filter-button) {
-  min-width: 44px;
-}
-
-.zoom {
-  display: flex;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.zoom button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 44px;
-  min-height: 36px;
-  padding: 0 12px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 0;
-  cursor: pointer;
-}
-
-.zoom button + button {
-  border-left: 0;
-}
-
-.zoom button:first-child {
-  border-radius: 12px 0 0 12px;
-}
-
-.zoom button:last-child {
-  border-radius: 0 12px 12px 0;
-}
-
-.zoom button:disabled {
-  opacity: 0.4;
-}
-
 .timeline {
   --lane-height: 52px;
   /* Label width is capped at the visible calendar (100cqw). */
@@ -138,15 +39,6 @@
 @media (min-width: 768px) {
   .header {
     padding: 16px 16px 12px;
-  }
-
-  .toolbar {
-    flex-wrap: nowrap;
-  }
-
-  .searchSlot {
-    flex: 1 1 auto;
-    order: -1;
   }
 
   .timeline {

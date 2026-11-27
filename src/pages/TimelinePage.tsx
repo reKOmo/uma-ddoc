@@ -1,49 +1,38 @@
-import { type CSSProperties, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, ChevronLeft, ChevronRight, FoldVertical, Globe, LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
-import clsx from 'clsx';
-import type { LucideIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { type CSSProperties, useCallback, useDeferredValue, useMemo, useRef, useState } from 'react';
 import { SCENARIOS } from '../../shared/scenarioRelease.ts';
-import { useSettings } from '../state/settings.tsx';
-import { useLanguage } from '../lib/translations.ts';
+import { useSettings } from '../state/settings.ts';
+import { useLanguage } from '../hooks/useLanguage.ts';
 import { useDragScroll } from '../hooks/useDragScroll.ts';
-import { type Mark, loadTimeline } from '../timeline/data.ts';
-import { useAsync } from '../hooks/useAsync.ts';
-import { ZOOMS, buildTimeline } from '../timeline/layout.ts';
-import { scenarioSegments } from '../timeline/scenarioStrip.ts';
-import { getCollapsed, saveCollapsed, useCollapsedStore } from '../timeline/collapsed.ts';
-import TimelineFilter from '../timeline/TimelineFilter.tsx';
-import TimelineSearch from '../timeline/TimelineSearch.tsx';
+import { ZOOMS } from '../timeline/layout.ts';
+import { scenarioSegments } from '../lib/scenarioStrip.ts';
+import { getCollapsed, saveCollapsed, useCollapsed } from '../timeline/collapsed.ts';
 import TimelineSkeleton from '../timeline/TimelineSkeleton.tsx';
 import type { Term } from '../timeline/search.ts';
-import { VERDICTS } from '../lib/pullGuide.ts';
-import { dateFormats } from '../timeline/format.ts';
+import { useDateFormats } from '../lib/dates.ts';
 import { CalendarLines, TimelineAxis } from '../timeline/TimelineAxis.tsx';
 import { LaneGroup } from '../timeline/Lanes.tsx';
 import TimelineSheet from '../timeline/TimelineSheet.tsx';
 import type { Entry } from '../timeline/entries.ts';
-import { endOfToday, middleOf, useCenterOn } from '../timeline/useCenterOn.ts';
+import { middleOf } from '../timeline/useCenterOn.ts';
 import { useCompactRows } from '../timeline/useCompactRows.ts';
 import { useRenderWindow } from '../timeline/useRenderWindow.ts';
 import { useStickyBars } from '../timeline/useStickyBars.ts';
+import { useViewport } from '../timeline/useViewport.ts';
+import { toggled } from '../timeline/sets.ts';
 import { useTimelineFilters } from '../timeline/useTimelineFilters.ts';
-import { ToolbarButton } from '../ui/ToolbarButton.tsx';
-import { timelineUrl } from '../routes.ts';
+import { useTimelineData } from '../timeline/useTimelineData.ts';
+import { useSheetHash, useSheetSelection } from '../timeline/useSheetSelection.ts';
+import { useSearchCursor } from '../timeline/useSearchCursor.ts';
+import TimelineToolbar from '../timeline/toolbar/TimelineToolbar.tsx';
+import SearchStatus from '../timeline/toolbar/SearchStatus.tsx';
 import type { Server } from '../lib/servers.ts';
 import styles from './TimelinePage.module.css';
-
-const MARK_ICONS: Record<string, LucideIcon> = { global: Globe };
-const NO_MARKS: Mark[] = [];
-
-function toggled<T>(set: Set<T>, key: T): Set<T> {
-  const next = new Set(set);
-  if (!next.delete(key)) next.add(key);
-  return next;
-}
 
 // The Timeline: a server's banners and events on one calendar, the same for every server (only the data differs).
 // Ids are unique per server, banners and events alike. The address follows the open sheet
 // (replaced, not pushed), so going back from a card reopens it.
+// The hooks' order is their effects' order: the link opens its sheet before the calendar centres, the address
+// follows the sheet last.
 export default function TimelinePage({
   server,
   scenario,
@@ -53,46 +42,13 @@ export default function TimelinePage({
   scenario: string;
   linkId?: string | null;
 }) {
-  const { t } = useTranslation();
   const [zoom, setZoom] = useState(2);
-  // The sheet's entry (its key) and whether it's open: it stays after closing until it has slid away.
-  const [selected, setSelected] = useState<string | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  // (Stable, like every callback the calendar gets: it's memoised, see LaneGroup.)
-  const show = useCallback((entry: Entry) => {
-    setSelected(entry.key);
-    setSheetOpen(true);
-  }, []);
-  const { timeZone, clock } = useSettings().settings;
-  const format = useMemo(() => dateFormats(timeZone, clock), [timeZone, clock]);
+  const { timeZone } = useSettings().settings;
+  const format = useDateFormats();
   const scroller = useRef<HTMLDivElement>(null);
 
   const language = useLanguage(server);
-  const loaded = useAsync(
-    () => loadTimeline(server, { language }).then((l) => ({ server, ...l })),
-    [server, language]
-  ).data;
-  // (Right after a server change, until the hook resets, its data is still the old server's.)
-  const current = loaded?.server === server ? loaded : null;
-  // Loaded after the calendar is drawn; only the sheet's entries get their counterpart (the bars don't show it).
-  const loadedOthers = useAsync(async () => current && { of: current, ...(await current.others()) }, [current]).data;
-  const others = loadedOthers?.of === current ? loadedOthers : null;
-  const marks = others?.marks ?? NO_MARKS;
-
-  const byKey = useMemo(
-    () =>
-      new Map(
-        current?.entries.map((entry) => {
-          const counterpart = others?.counterparts.get(String(entry.id));
-          return [entry.key, counterpart ? { ...entry, counterpart } : entry];
-        })
-      ),
-    [current, others]
-  );
-  const timeline = useMemo(
-    () => current && buildTimeline(current.entries, { utc: timeZone === 'utc' }),
-    [current, timeZone]
-  );
+  const { current, marks, byKey, timeline } = useTimelineData(server, language, timeZone === 'utc');
   // The search's chips: kept for this visit only (also across a server switch: characters and kinds are the same).
   const [chips, setChips] = useState<Term[]>([]);
   // The calendar follows the chips a moment later: the search field shows a removed (or added) chip at once, the
@@ -105,31 +61,12 @@ export default function TimelinePage({
   // The scroller only exists once the timeline has loaded.
   useDragScroll(scroller, !!timeline);
 
-  const linked = useMemo(
-    () => (linkId && current?.entries.find((entry) => String(entry.id) === linkId)) || null,
-    [current, linkId]
-  );
+  const sheet = useSheetSelection(server, current?.entries ?? null, byKey, linkId);
+  const { entry, sheetOpen, show } = sheet;
 
-  // Another server's calendar: the open sheet was the old one's.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: runs on a server change only.
-  useEffect(() => {
-    setSelected(null);
-    setSheetOpen(false);
-  }, [server]);
-
-  // A link opens its entry once: the address isn't routed again when the sheet closes, so the link would otherwise
-  // reopen it after a server switch and back.
-  const openedLink = useRef<string | null>(null);
-  useEffect(() => {
-    if (!linked || openedLink.current === `${server}/${linkId}`) return;
-    openedLink.current = `${server}/${linkId}`;
-    setSelected(linked.key);
-    setSheetOpen(true);
-  }, [linked, server, linkId]);
-
-  const { centerOn, centerOnMiddle, scrollToDay } = useCenterOn(scroller, timeline, px, linked);
-  const range = useRenderWindow(scroller, timeline, px);
-  useStickyBars(scroller, px, !!timeline);
+  const { viewport, centerOn, centerOnMiddle, scrollToDay } = useViewport(scroller, timeline, px, sheet.linked);
+  const range = useRenderWindow(viewport, timeline, px);
+  useStickyBars(viewport, px, !!timeline);
 
   function changeZoom(next: number) {
     centerOnMiddle();
@@ -142,148 +79,31 @@ export default function TimelinePage({
   }
 
   const [unfolded, setUnfolded] = useState<Set<string>>(() => new Set());
-  const collapsed = useCollapsedStore((state) => state.collapsed);
+  const collapsed = useCollapsed();
   const toggleGroup = useCallback((key: string) => saveCollapsed(toggled(getCollapsed(), key)), []);
   const toggleParts = useCallback((key: string) => setUnfolded((old) => toggled(old, key)), []);
 
-  // (After the calendar is centred, above: it reads the new scroll position.)
-  const { compact, toggleCompact, visible } = useCompactRows(scroller, timeline, groups, px);
+  const { compact, toggleCompact, visible } = useCompactRows(viewport, timeline, groups, px);
 
-  // The search's current match (an index into its matches, in date order): the previous / next buttons step through
-  // them, the page scrolling to each (its bar scrolls itself into view, ringed).
-  const [cursor, setCursor] = useState(0);
-  const matched = filters.search?.matched;
-  const focused = matched?.[cursor]?.key ?? null;
-  const goToMatch = (index: number) => {
-    const match = matched?.[index];
-    if (!match || !timeline) return;
-    setCursor(index);
-    scrollToDay(timeline.at(middleOf(match)));
-  };
-  // A new search unfolds the parents of its matches and goes to its first match ahead (search.ts).
-  // biome-ignore lint/correctness/useExhaustiveDependencies: on a new search (or calendar) only, not on filter changes.
-  useEffect(() => {
-    const search = filters.search;
-    if (!search || !timeline) return;
-    setUnfolded((old) => new Set([...old, ...search.unfold]));
-    const index = search.target ? search.matched.indexOf(search.target) : 0;
-    setCursor(index);
-    if (search.target) scrollToDay(timeline.at(middleOf(search.target)));
-  }, [searched, timeline]);
+  const { cursor, focused, goToMatch } = useSearchCursor(filters.search, searched, timeline, scrollToDay, setUnfolded);
 
-  const entry = selected ? byKey.get(selected) : undefined;
-
-  useEffect(() => {
-    const hash = sheetOpen && entry ? timelineUrl(server, entry.id) : timelineUrl();
-    if (window.location.hash !== hash) window.history.replaceState(window.history.state, '', hash);
-  }, [sheetOpen, entry, server]);
+  useSheetHash(server, entry, sheetOpen);
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.toolbar}>
-          {/* Always open: under the buttons on phones, before them on desktop (CSS order). */}
-          <div className={styles.searchSlot}>
-            <TimelineSearch terms={filters.terms} chips={chips} onChange={setChips} />
-          </div>
-          {marks.map((mark) => (
-            <ToolbarButton
-              key={mark.key}
-              icon={MARK_ICONS[mark.key]}
-              label={t(`timeline.mark.${mark.key}.button`)}
-              title={t(`timeline.mark.${mark.key}.title`)}
-              phoneIconOnly
-              onClick={() => timeline && scrollToDay(timeline.at(mark.at))}
-            />
-          ))}
-          <TimelineFilter
-            kinds={filters.kinds}
-            verdicts={filters.verdictsOf ? VERDICTS : []}
-            hidden={filters.hidden}
-            onChange={filters.changeHidden}
-            groups={filters.presentGroups}
-            onReorder={filters.reorder}
-            onResetOrder={filters.resetOrder}
-            defaultOrder={filters.defaultOrder}
-            disabled={!timeline}
-          />
-          <ToolbarButton
-            icon={LocateFixed}
-            label={t('timeline.today')}
-            phoneIconOnly
-            onClick={() => timeline && scrollToDay(endOfToday(timeline))}
-            disabled={!timeline}
-          />
-          <ToolbarButton
-            icon={FoldVertical}
-            label={t('timeline.compact')}
-            title={t('timeline.compactTitle')}
-            onClick={toggleCompact}
-            disabled={!timeline}
-            pressed={compact}
-            iconOnly
-          />
-          {/* Not a Segmented: the buttons aren't a choice (no pressed one) and each disables at its own end. */}
-          <fieldset className={styles.zoom} aria-label={t('timeline.zoom')}>
-            <button
-              type="button"
-              onClick={() => changeZoom(zoom - 1)}
-              disabled={!timeline || zoom === 0}
-              aria-label={t('timeline.zoomOut')}
-            >
-              <ZoomOut size={18} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={() => changeZoom(zoom + 1)}
-              disabled={!timeline || zoom === ZOOMS.length - 1}
-              aria-label={t('timeline.zoomIn')}
-            >
-              <ZoomIn size={18} aria-hidden="true" />
-            </button>
-          </fieldset>
-        </div>
-        {filters.search && (
-          <p className={styles.searchNote} role="status">
-            {filters.search.matched.length === 1 && (
-              <span className={styles.matchNav}>
-                {t('timeline.search.count', { count: 1 })}
-                <button type="button" className={clsx(styles.navButton, styles.goButton)} onClick={() => goToMatch(0)}>
-                  {t('timeline.search.goTo')}
-                  <ArrowRight size={16} aria-hidden="true" />
-                </button>
-              </span>
-            )}
-            {filters.search.matched.length > 1 && (
-              <span className={styles.matchNav}>
-                <button
-                  type="button"
-                  className={styles.navButton}
-                  onClick={() => goToMatch(cursor - 1)}
-                  disabled={cursor <= 0}
-                  aria-label={t('timeline.search.previous')}
-                >
-                  <ChevronLeft size={18} aria-hidden="true" />
-                </button>
-                {t('timeline.search.position', {
-                  position: Math.min(cursor, filters.search.matched.length - 1) + 1,
-                  count: filters.search.matched.length,
-                })}
-                <button
-                  type="button"
-                  className={styles.navButton}
-                  onClick={() => goToMatch(cursor + 1)}
-                  disabled={cursor >= filters.search.matched.length - 1}
-                  aria-label={t('timeline.search.next')}
-                >
-                  <ChevronRight size={18} aria-hidden="true" />
-                </button>
-              </span>
-            )}
-            {!filters.search.matched.length && t('timeline.search.noMatches')}
-            {filters.search.hiddenMatches > 0 &&
-              ` · ${t('timeline.search.hiddenMatches', { count: filters.search.hiddenMatches })}`}
-          </p>
-        )}
+        <TimelineToolbar
+          filters={filters}
+          chips={chips}
+          onChips={setChips}
+          marks={marks}
+          timeline={timeline}
+          scrollToDay={scrollToDay}
+          compact={compact}
+          onToggleCompact={toggleCompact}
+          zoom={zoom}
+          onZoom={changeZoom}
+        />
+        {filters.search && <SearchStatus search={filters.search} cursor={cursor} onGoTo={goToMatch} />}
       </header>
 
       {!timeline || !current ? (
@@ -327,8 +147,8 @@ export default function TimelinePage({
           format={format}
           onSelect={select}
           open={sheetOpen}
-          onClose={() => setSheetOpen(false)}
-          onClosed={() => setSelected(null)}
+          onClose={sheet.close}
+          onClosed={sheet.clear}
         />
       )}
     </div>

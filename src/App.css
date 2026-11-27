@@ -4,65 +4,6 @@
   padding: 16px 12px 24px;
 }
 
-.segmented {
-  display: flex;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.segmented button {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 0;
-  cursor: pointer;
-}
-
-.segmented button + button {
-  border-left: 0;
-}
-
-.segmented button:first-child {
-  border-radius: 12px 0 0 12px;
-}
-
-.segmented button:last-child {
-  border-radius: 0 12px 12px 0;
-}
-
-.segmented button[aria-pressed="true"] {
-  color: var(--accent-text);
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.reset-filters {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 0 10px;
-  font: inherit;
-  font-size: 0.85rem;
-  color: var(--muted);
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.reset-filters:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.reset-filters:not(:disabled):hover {
-  color: var(--text);
-  border-color: var(--muted);
-}
-
 @media (min-width: 768px) {
   .page {
     padding: 24px 16px;

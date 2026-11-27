@@ -7,16 +7,6 @@
   margin-bottom: 12px;
 }
 
-/* The scenario picker's own label: its pill says which scenario, so it's left to screen readers. */
-.controls > :first-child > span:first-child {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 .controls label {
   display: flex;
   flex-direction: column;

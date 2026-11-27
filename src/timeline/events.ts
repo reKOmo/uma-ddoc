@@ -4,7 +4,7 @@ import type { EventItem, EventKind, GameEvent, PredictedEvent } from '../../shar
 const FIRST = [/^carats$/i, /^monies$/i, /crystal shards/i, /scout tickets?$/i, /voucher|引換券/i];
 
 // What gives cards and pulls comes first, then competitive modes.
-export type EventGroupKey =
+type EventGroupKey =
   | 'story'
   | 'celebration'
   | 'gifts'

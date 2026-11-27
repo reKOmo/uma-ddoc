@@ -1,30 +1,28 @@
 // English for JP names (generated/translations.json, `pnpm fetch-umatl`): Global's official names and UmaTL's fan
 // translations. Optional: without the file, names stay as the data has them.
-import { useMemo } from 'react';
 import type { CardsFile } from '../../shared/schemas/card.ts';
 import { type TlText, type TranslationsFile, hasJapanese } from '../../shared/schemas/translations.ts';
-import { useSettings } from '../state/settings.tsx';
 import type { Settings } from '../state/settingsStore.ts';
-import { useAsync } from '../hooks/useAsync.ts';
 import type { Server } from './servers.ts';
+import { memoAsync } from './memo.ts';
+import { optionalJson } from './optional.ts';
 
 export { hasJapanese };
 export type { TlText, TranslationsFile };
 
 const FILES = import.meta.glob<TranslationsFile>('../../generated/translations.json', { import: 'default' });
-let loaded: Promise<TranslationsFile | null> | undefined;
-export function loadTranslations(): Promise<TranslationsFile | null> {
-  const [load] = Object.values(FILES);
-  loaded ??= load ? load().then((file) => (AI_PREVIEW ? masked(file) : file)) : Promise.resolve(null);
-  return loaded;
-}
+const loadFile = optionalJson(FILES);
+export const loadTranslations = memoAsync(async (): Promise<TranslationsFile | null> => {
+  const file = await loadFile();
+  return file && AI_PREVIEW ? masked(file) : file;
+});
 
 // `pnpm dev:ai`: the page an AI agent looks at (screenshots, the DOM) never shows UmaTL's text, whose terms forbid
 // its use with generative models (docs/data/umatl.md). Each fan translation becomes dots of its length, so layouts and
 // marks still show; official names stay.
 const AI_PREVIEW = import.meta.env.VITE_AI_PREVIEW === '1';
-export const mask = (text: string): string => text.replace(/[^\s[\]]/g, '•');
-export function masked(file: TranslationsFile): TranslationsFile {
+const mask = (text: string): string => text.replace(/[^\s[\]]/g, '•');
+function masked(file: TranslationsFile): TranslationsFile {
   const texts = (record: Record<string, TlText>) =>
     Object.fromEntries(Object.entries(record).map(([key, t]) => [key, t.fan ? { ...t, en: mask(t.en) } : t]));
   return {
@@ -73,14 +71,6 @@ export function cardEnglish(cards: CardsFile, id: number, part: 'name' | 'title'
     card.release.gl != null || (part === 'name' && card.charId != null && globalChars(cards).has(card.charId));
   return (official ? language.official : language.gametora) ? en : undefined;
 }
-
-export function useLanguage(server: Server): Language {
-  const { fanTlGlobal, jpNames } = useSettings().settings;
-  return useMemo(() => languageOf(server, { fanTlGlobal, jpNames }), [server, fanTlGlobal, jpNames]);
-}
-
-// null until loaded, and without the file.
-export const useTranslations = (): TranslationsFile | null => useAsync(loadTranslations, []).data ?? null;
 
 // A translation the language shows.
 export const allowed = (text: TlText | undefined, language: Language): TlText | undefined =>

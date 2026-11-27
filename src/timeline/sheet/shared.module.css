@@ -1,0 +1,58 @@
+.heading {
+  margin: 22px 0 10px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.headingRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 22px 0 10px;
+}
+
+.headingRow .heading {
+  margin: 0;
+}
+
+.rankNote {
+  margin: 12px 4px 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  background: var(--inset);
+  border-radius: 16px;
+}
+
+.list small {
+  flex: none;
+  color: var(--muted);
+}
+
+.titles,
+.empty {
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+
+.empty {
+  color: var(--muted);
+}

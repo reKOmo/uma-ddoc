@@ -1,6 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import { ensureCards } from './scripts/update-cards.ts';
+import { ensureCards } from './scripts/lib/cards/files.ts';
 
 // `import('x.json', { with: { type: 'json' } })`, as Node needs it.
 const DYNAMIC_JSON_IMPORT =

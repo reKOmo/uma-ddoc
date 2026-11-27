@@ -6,6 +6,7 @@ import type { CardsFile } from '../../shared/schemas/card.ts';
 import type { EventPairsFile, EventsFile } from '../../shared/schemas/event.ts';
 import type { GametoraEventsFile, GametoraTrainee } from '../../shared/schemas/gametora.ts';
 import { type TlText, type TranslationsFile, type UmatlRaw, hasJapanese } from '../../shared/schemas/translations.ts';
+import { DAY } from './news/text.ts';
 import { GENERATED_DIR } from './paths.ts';
 
 export const UMATL_TEXT_FILE = `${GENERATED_DIR}raw/umatl_text_data.json`;
@@ -33,7 +34,6 @@ export const UMATL_TABLES: string[] = [...new Set(Object.values(TABLES_OF).flat(
 // The key two spellings of one name share: full-width forms folded, spaces and quote brackets dropped.
 export const textKey = (text: string): string => text.normalize('NFKC').replace(/[\s「」『』]/g, '');
 
-const DAY_MS = 86_400_000;
 const PIECE = /^(\[[^\]]+\])(.+)のピース$/;
 
 export type TranslationInputs = {
@@ -100,7 +100,7 @@ export function buildTranslations(input: TranslationInputs): { file: Translation
     if (event.kind !== 'story' || event.parent) continue;
     const gameId =
       event.id.match(/^gt-story-(\d+)$/)?.[1] ??
-      story.find((s) => Math.abs(s.start_ja * 1000 - Date.parse(event.start.date)) < DAY_MS)?.id;
+      story.find((s) => Math.abs(s.start_ja * 1000 - Date.parse(event.start.date)) < DAY)?.id;
     const name = gameId != null && category('storyEvent')[gameId];
     if (name) events[event.id] = fan(name);
   }

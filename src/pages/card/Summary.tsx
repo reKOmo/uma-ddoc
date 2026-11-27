@@ -10,11 +10,10 @@ import type { HistoryPoint } from '../../lib/rankHistory.ts';
 import { cardRanks, type Rank } from '../../lib/tiers.ts';
 import ScenarioPill from '../../ui/ScenarioPill.tsx';
 import TierChip from '../../ui/TierChip.tsx';
-import { useSettings } from '../../state/settings.tsx';
-import { dateFormats } from '../../timeline/format.ts';
+import { useDateFormats } from '../../lib/dates.ts';
 import { getCurrentScenario, scenarioAt } from '../../../tierlist/scenarios.ts';
-import { useUpcomingAdvice } from './advice.ts';
-import { useRankHistory } from './hooks.ts';
+import type { UpcomingAdvice } from './useUpcomingAdvice.ts';
+import { useRankHistory } from './useRankHistory.ts';
 import styles from './Summary.module.css';
 
 function Tile({ label, className, children }: { label: ReactNode; className?: string; children: ReactNode }) {
@@ -34,7 +33,7 @@ type RankTileProps = {
   arrival?: boolean;
 };
 
-export function RankTile({ scenario, rank, arrival = false }: RankTileProps) {
+function RankTile({ scenario, rank, arrival = false }: RankTileProps) {
   const { t } = useTranslation();
   return (
     <Tile
@@ -53,7 +52,7 @@ export function RankTile({ scenario, rank, arrival = false }: RankTileProps) {
 }
 
 // Nothing without a predicted drop.
-export function HoldsTile({ now, drop }: { now: HistoryPoint | undefined; drop: HistoryPoint | undefined }) {
+function HoldsTile({ now, drop }: { now: HistoryPoint | undefined; drop: HistoryPoint | undefined }) {
   const { t } = useTranslation();
   if (!now || !drop) return null;
   return (
@@ -75,15 +74,7 @@ export function HoldsTile({ now, drop }: { now: HistoryPoint | undefined; drop: 
 
 // Nothing without a release date to come.
 // `date`: the release as shown (its banner's start in the Settings timezone, when it has one).
-export function ReleaseTile({
-  server,
-  release,
-  date,
-}: {
-  server: Server;
-  release: DatedDay | undefined;
-  date: string;
-}) {
+function ReleaseTile({ server, release, date }: { server: Server; release: DatedDay | undefined; date: string }) {
   const { t } = useTranslation();
   if (!release) return null;
   const confirmed = release.status === 'confirmed';
@@ -107,6 +98,7 @@ type SummaryTilesProps = {
   rankings: Record<string, Ranked[]>;
   // undefined = still loading them, null = the server has none.
   predictions: PredictionsFile | null | undefined;
+  advice: UpcomingAdvice | null | undefined;
   // Whether the server has the card, null while loading.
   released: boolean | null;
   // Another tile after these (the pull advice).
@@ -120,21 +112,17 @@ export default function SummaryTiles({
   stat,
   rankings,
   predictions,
+  advice,
   released,
   pull,
 }: SummaryTilesProps) {
   const release = released === false ? predictions?.cards[cardId]?.release_gl : undefined;
   // A card still to come arrives on its next banner (the one its predicted date comes from): that banner's start, in the
   // Settings timezone like the banner's own dates, so the two never read as different days.
-  const { timeZone } = useSettings().settings;
-  const advice = useUpcomingAdvice(cardId, server);
+  const { long } = useDateFormats();
   const releaseBanner = release ? advice?.banner : null;
   const releaseAt = releaseBanner ? Date.parse(releaseBanner.start.date) : release && Date.parse(release.date);
-  const releaseText = releaseBanner
-    ? dateFormats(timeZone).long(releaseBanner.start.date)
-    : release
-      ? formatDay(release.date)
-      : '';
+  const releaseText = releaseBanner ? long(releaseBanner.start.date) : release ? formatDay(release.date) : '';
   // A card still to come is ranked in the scenario it arrives into.
   const scenario = releaseAt ? scenarioAt(releaseAt, server) : getCurrentScenario(server);
   const { ranking, history, now, drop } = useRankHistory({

@@ -24,7 +24,7 @@ Usage: ml/.venv/bin/python ml/categorize.py [--server jp]              (pnpm new
        ml/.venv/bin/python ml/categorize.py [--server jp] --evaluate   (against the rules on the same posts)
        ml/.venv/bin/python ml/categorize.py [--server jp] --hold-out 1122,1124
          (those posts as if new: trained without their gold labels → generated/categories_held_out[_jp].json, for
-         test/news-replay.test.ts)
+         test/data/newsReplay*.test.ts)
 """
 
 import argparse

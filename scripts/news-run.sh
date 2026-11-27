@@ -1,24 +1,24 @@
 #!/bin/sh
 # Fetches new posts (banners, events, updates) from the official sites once a day, Global's (umamusume.com/news) into
 # data/news/gl/posts.json and JP's (umamusume.jp/news) into data/news/jp/posts.json, adds announced banners and
-# events to each server's own record (data/: scripts/update-global.ts, scripts/update-jp.ts) and commits it all with a
+# events to each server's own record (data/: scripts/updateGlobal.ts, scripts/updateJp.ts) and commits it all with a
 # summary of what was added. Global's posts usually go up at 22:00 UTC. Incremental: each run only asks for posts
-# newer than the last one (scripts/fetch-news-latest.ts; the archives were fetched once with `pnpm news:all`).
+# newer than the last one (scripts/fetchNewsLatest.ts; the archives were fetched once with `pnpm news:all`).
 #
 # Run by an external automation, since both sites block GitHub's IPs. It commits but doesn't push: the automation
 # pushes the commit to the news branch and opens a PR into main that merges itself once CI passes, which starts the
 # deploy. Nothing changed in data/ → no commit.
 set -eu
 
-# fetch-news-latest.ts reports update= (something for the records) and changed= (posts to commit) in $GITHUB_OUTPUT.
+# fetchNewsLatest.ts reports update= (something for the records) and changed= (posts to commit) in $GITHUB_OUTPUT.
 # Both servers at once: they're different sites, so neither gets requests any faster (progress lines say gl: / jp:).
 gl_out=$(mktemp)
 jp_out=$(mktemp)
 trap 'rm -f "$gl_out" "$jp_out"' EXIT
 echo '== Global and JP news'
-GITHUB_OUTPUT=$gl_out node scripts/fetch-news-latest.ts --summary &
+GITHUB_OUTPUT=$gl_out node scripts/fetchNewsLatest.ts --summary &
 gl=$!
-GITHUB_OUTPUT=$jp_out node scripts/fetch-news-latest.ts --server jp --summary &
+GITHUB_OUTPUT=$jp_out node scripts/fetchNewsLatest.ts --server jp --summary &
 jp=$!
 # Wait for both before failing, so a failed one doesn't leave the other running.
 status=0
@@ -33,14 +33,14 @@ jp_changed=$(sed -n 's/^changed=//p' "$jp_out")
 # With OPENROUTER_API_KEY set this runs every time, new posts or not: events the model couldn't answer last time
 # (its free models are often rate-limited) are asked again, and finding them needs the card data and the classified
 # posts. With every event answered the model gets no requests.
-# It also runs while a card or trainee the JP news announced waits on GameTora's lists (scripts/news-pending.ts): the
+# It also runs while a card or trainee the JP news announced waits on GameTora's lists (scripts/newsPending.ts): the
 # first run after GameTora has it fills it in, new posts or not.
-pending=$(node scripts/news-pending.ts)
+pending=$(node scripts/newsPending.ts)
 if [ "$gl_update" = true ] || [ "$jp_update" = true ] || [ "$pending" = true ] || [ -n "${OPENROUTER_API_KEY:-}" ]; then
   # Both records need card names and titles (generated/cards.json: upstream's lists, data/jp_cards.json, and
   # GameTora's support card list for cards newer than it); JP's banners are our own (data/jp_banners.json).
   echo '== Card data'
-  node scripts/update-cards.ts && node scripts/scrape-gametora.ts
+  node scripts/updateCards.ts && node scripts/scrapeGametora.ts
   # ml/categorize.py classifies each server's posts (update-jp and update-global run it again when ml/.venv
   # exists), before the model is asked: a new post's events are cut by its classified units, and the answers are
   # keyed by those events' ids.
@@ -55,16 +55,16 @@ if [ "$gl_update" = true ] || [ "$jp_update" = true ] || [ "$pending" = true ] |
   if [ -z "${OPENROUTER_API_KEY:-}" ]; then
     echo "OPENROUTER_API_KEY not set, skipping the model"
   else
-    node scripts/ai-events.ts || echo "ai-events (Global) failed, keeping the rules' values"
-    node scripts/ai-events.ts --server jp || echo "ai-events (JP) failed, keeping the rules' values"
+    node scripts/aiEvents.ts || echo "aiEvents (Global) failed, keeping the rules' values"
+    node scripts/aiEvents.ts --server jp || echo "aiEvents (JP) failed, keeping the rules' values"
   fi
   # JP's banners (data/jp_banners.json) and events (data/jp_events.json), rebuilt from every JP post with the
   # model's answers. Before Global's: Global's news pairs with JP's banners by id. Run on either server's news
   # (it's idempotent), so Global's always pairs with JP's latest banners.
   echo '== Records'
-  node scripts/update-jp.ts --summary
+  node scripts/updateJp.ts --summary
   # Global's events (data/global_events.json) are rebuilt by the same script, with the model's answers.
-  node scripts/update-global.ts --summary
+  node scripts/updateGlobal.ts --summary
 fi
 
 # Each run rewrites both summaries (their time line); a server's is committed only with new or edited posts.

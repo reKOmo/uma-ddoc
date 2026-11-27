@@ -1,6 +1,6 @@
 # Pull guide
 
-- **Pull guide** (`scripts/lib/cards/pull-guide.ts`): Luh's Umamusume Support Card Encyclopedia, a public Google Sheet
+- **Pull guide** (`scripts/lib/cards/pullGuide.ts`): Luh's Umamusume Support Card Encyclopedia, a public Google Sheet
   (one tab per Global scenario era, one row per card banner; reruns get their own row). Read from each tab's HTML
   view (`htmlview/sheet?gid=…`): the CSV export has no hyperlinks, and a row's card id is only in its GameTora link
   (`…/supports/<id>-…`, ids are ours); the xlsx export has them but is ~110 MB of art. Cell comments are in neither,

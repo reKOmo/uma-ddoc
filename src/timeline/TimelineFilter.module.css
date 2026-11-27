@@ -1,7 +1,4 @@
-/* filter-section, filter-note and reset-filters are global: FilterSheet.tsx shares them. */
-
 .tabs {
-  display: flex;
   margin: 12px 0 4px;
 }
 

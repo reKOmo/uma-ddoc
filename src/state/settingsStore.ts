@@ -1,4 +1,4 @@
-// Read outside React too (getSetting(); React uses src/state/settings.tsx). Remembered in this browser as the stored JSON
+// Read outside React too (getSetting(); React uses src/state/settings.ts). Remembered in this browser as the stored JSON
 // `{ timeZone, scenarioNames, jpNewsLanguage, clock, fanTlGlobal, jpNames, theme }` (keys are only ever added, never changed). Storage can be missing or
 // throw: the defaults apply then.
 //   timeZone       'utc' (the game's own times, default) | 'local' (the viewer's timezone)
@@ -10,10 +10,8 @@
 //   jpNames        JP's names, the same options; default 'jp'
 //   theme          'system' (the device's light or dark, default) | 'light' | 'dark' (src/state/theme.ts applies it)
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import * as z from 'zod/mini';
-import { rawStorage } from './rawStorage.ts';
+import { persisted } from './rawStorage.ts';
 
 export type Settings = {
   timeZone: 'utc' | 'local';
@@ -53,7 +51,7 @@ export const OPTIONS = {
 const KEY = 'uma-ddoc.settings';
 
 // Each field on its own: an unknown or missing value falls back to its default.
-const schema = z.looseObject({
+const schema = z.object({
   timeZone: z.catch(z.enum(OPTIONS.timeZone), DEFAULTS.timeZone),
   scenarioNames: z.catch(z.enum(OPTIONS.scenarioNames), DEFAULTS.scenarioNames),
   jpNewsLanguage: z.catch(z.enum(OPTIONS.jpNewsLanguage), DEFAULTS.jpNewsLanguage),
@@ -64,41 +62,22 @@ const schema = z.looseObject({
   theme: z.catch(z.enum(OPTIONS.theme), DEFAULTS.theme),
 });
 
-type State = {
-  settings: Settings;
-  setSetting: <K extends SettingName>(name: K, value: Settings[K]) => void;
-};
-type Persisted = Pick<State, 'settings'>;
-
-export const useSettingsStore = create<State>()(
-  persist(
-    (set) => ({
-      settings: { ...DEFAULTS },
-      setSetting: (name, value) => {
-        if (!(OPTIONS[name] as readonly string[]).includes(value)) return;
-        set((state) => ({ settings: { ...state.settings, [name]: value } }));
-      },
-    }),
-    {
-      name: KEY,
-      storage: rawStorage<Persisted>(
-        (raw) => {
-          const parsed = schema.safeParse(JSON.parse(raw));
-          if (!parsed.success) return null;
-          const { timeZone, scenarioNames, jpNewsLanguage, clock, fanTlGlobal, jpNames, theme } = parsed.data;
-          return { settings: { timeZone, scenarioNames, jpNewsLanguage, clock, fanTlGlobal, jpNames, theme } };
-        },
-        ({ settings }) => JSON.stringify(settings)
-      ),
-      partialize: ({ settings }) => ({ settings }),
-    }
-  )
+export const useSettingsStore = persisted<{ settings: Settings }>(
+  KEY,
+  { settings: { ...DEFAULTS } },
+  (raw) => {
+    const settings = schema.safeParse(JSON.parse(raw)).data;
+    return settings ? { settings } : null;
+  },
+  ({ settings }) => JSON.stringify(settings)
 );
 
 export const getSettings = (): Settings => useSettingsStore.getState().settings;
 export const getSetting = <K extends SettingName>(name: K): Settings[K] => getSettings()[name];
-export const setSetting = <K extends SettingName>(name: K, value: Settings[K]) =>
-  useSettingsStore.getState().setSetting(name, value);
+export function setSetting<K extends SettingName>(name: K, value: Settings[K]): void {
+  if (!(OPTIONS[name] as readonly string[]).includes(value)) return;
+  useSettingsStore.setState(({ settings }) => ({ settings: { ...settings, [name]: value } }));
+}
 
 export function subscribe(listener: () => void) {
   return useSettingsStore.subscribe(listener);

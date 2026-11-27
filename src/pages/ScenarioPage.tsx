@@ -1,23 +1,26 @@
 import clsx from 'clsx';
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Trophy } from 'lucide-react';
+import { ArrowRight, ExternalLink, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getServerConfig } from '../../tierlist/scenarios.ts';
-import { formatDateRange, formatDateTime, formatDuration, scenarioName, serverName } from '../i18n/index.ts';
+import { formatDuration, scenarioName, serverName } from '../i18n/index.ts';
 import { DATE_FIELD, SCENARIOS, isCurrent, launchTag, scenarioByKey } from '../../shared/scenarioRelease.ts';
-import type { Scenario, StartDate } from '../../shared/schemas/scenario.ts';
-import type { Server } from '../lib/servers.ts';
+import type { Scenario } from '../../shared/schemas/scenario.ts';
+import { SERVER_ORDER, type Server } from '../lib/servers.ts';
 import { Section } from '../ui/Section.tsx';
 import Status from '../ui/Status.tsx';
 import ScenarioPill from '../ui/ScenarioPill.tsx';
-import { clockOptions, timeZoneOptions, useSettings } from '../state/settings.tsx';
+import Pill from '../ui/Pill.tsx';
+import LinkButton from '../ui/LinkButton.tsx';
+import { useSettings } from '../state/settings.ts';
+import { dayOf } from '../lib/dates.ts';
 import { umapyoiGl, umapyoiJp } from '../lib/umapyoi.ts';
-import { TAB_URLS, scenarioUrl } from '../routes.ts';
+import { TAB_URLS } from '../routes.ts';
+import LaunchSide from './scenario/LaunchSide.tsx';
+import ScenarioNav from './scenario/ScenarioNav.tsx';
 import styles from './ScenarioPage.module.css';
 import { scenarioStyle } from '../lib/vividColor.ts';
 
 type Settings = ReturnType<typeof useSettings>['settings'];
-
-const day = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
 
 // scenario.links minus the image (cover): the pages to visit, in this order.
 // Labels: scenarioPage.link.<key>.
@@ -30,10 +33,7 @@ function linkList(scenario: Scenario, settings: Settings): [string, string][] {
   return out;
 }
 
-// Server-agnostic: both servers' launches side by side, "Newest on …" for each server it's the latest on.
-const SERVER_ORDER: Server[] = ['jp', 'gl'];
-
-export type ScenarioPageProps = {
+type ScenarioPageProps = {
   scenarioKey: string | undefined;
   onScenarioChange: (key: string) => void;
 };
@@ -41,7 +41,6 @@ export type ScenarioPageProps = {
 export default function ScenarioPage({ scenarioKey, onScenarioChange }: ScenarioPageProps) {
   const { t } = useTranslation();
   const { settings } = useSettings();
-  const { timeZone, clock } = settings;
   const scenario = scenarioKey === undefined ? null : scenarioByKey(scenarioKey);
 
   if (!scenario) {
@@ -52,36 +51,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
     );
   }
 
-  const zone = timeZoneOptions(timeZone);
-  const longTime = (iso: string) =>
-    formatDateTime(iso, {
-      ...zone,
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      ...clockOptions(clock),
-      // Only UTC is named: local time is the viewer's own.
-      ...(timeZone === 'utc' && { timeZoneName: 'short' }),
-    });
-  const dayRange = (from: string, to: string) =>
-    formatDateRange(`${from}T00:00:00Z`, `${to}T00:00:00Z`, {
-      timeZone: 'UTC',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
   const now = Date.now();
-  const relative = (iso: string) => {
-    const at = Date.parse(iso);
-    if (day(at) === day(now)) return t('scenarioPage.today');
-    return at < now
-      ? t('scenarioPage.ago', { duration: formatDuration(day(at), day(now)) })
-      : t('scenarioPage.in', { duration: formatDuration(day(now), day(at)) });
-  };
-
   const name = scenario.full_en ?? scenario.full_jp ?? scenario.key;
   const { jp: shortJp, en: shortEn } = scenario.short ?? { jp: scenarioName(scenario.key), en: null };
   const shortNames: { server: Server; name: string }[] = [
@@ -99,30 +69,6 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
     onScenarioChange(scenario.key);
     window.location.hash = TAB_URLS.cards;
   };
-
-  const side = (server: Server, start: StartDate | null) => (
-    <div key={server} className={clsx(styles.side, styles[server])}>
-      <span className={styles.serverName}>{serverName(server)}</span>
-      {start ? (
-        <>
-          <span className={clsx(styles.launchStatus, styles[launchTag(start)])}>
-            {t(`scenarioPage.status.${launchTag(start)}`)}
-          </span>
-          <strong>{longTime(start.date)}</strong>
-          <span className={styles.relative}>{relative(start.date)}</span>
-          {start.status === 'predicted' && start.lo && (
-            <span className={styles.range}>
-              {t('scenarioPage.range', {
-                dates: dayRange(start.lo, start.hi ?? start.lo),
-              })}
-            </span>
-          )}
-        </>
-      ) : (
-        <span className={styles.relative}>{t('scenarioPage.noDate', { server: serverName(server) })}</span>
-      )}
-    </div>
-  );
 
   return (
     <div className={clsx('page', styles.scenarioPage)} style={style}>
@@ -144,17 +90,16 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
                 </ScenarioPill>
               ))}
               {SERVER_ORDER.filter((s) => isCurrent(scenario.key, s, now)).map((s) => (
-                <span key={s} className={clsx(styles.tag, styles.current)}>
+                <Pill key={s} variant="label">
                   {t('scenarioPage.current', { server: serverName(s) })}
-                </span>
+                </Pill>
               ))}
             </p>
             {rankable && (
               <div className={styles.actions}>
-                <button type="button" className={styles.linkButton} onClick={openTierList}>
-                  <Trophy size={16} aria-hidden="true" />
+                <LinkButton onClick={openTierList} icon={Trophy}>
                   {t('scenarioPage.openTierList')}
-                </button>
+                </LinkButton>
               </div>
             )}
           </div>
@@ -163,19 +108,19 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
             <div className={styles.launch}>
               {SERVER_ORDER.map((server, i) => {
                 const launch = scenario[DATE_FIELD[server]];
-                if (i === 0) return side(server, launch);
+                if (i === 0) return <LaunchSide key={server} server={server} start={launch} now={now} />;
                 return [
                   <div key="gap" className={styles.gap}>
                     <ArrowRight size={20} aria-hidden="true" />
                     {jp && en && (
                       <small>
                         {t(launchTag(en) === 'out' ? 'scenarioPage.lag' : 'scenarioPage.lagExpected', {
-                          duration: formatDuration(day(Date.parse(jp.date)), day(Date.parse(en.date))),
+                          duration: formatDuration(dayOf(Date.parse(jp.date)), dayOf(Date.parse(en.date))),
                         })}
                       </small>
                     )}
                   </div>,
-                  side(server, launch),
+                  <LaunchSide key={server} server={server} start={launch} now={now} />,
                 ];
               })}
             </div>
@@ -201,28 +146,7 @@ export default function ScenarioPage({ scenarioKey, onScenarioChange }: Scenario
         </div>
       </div>
 
-      <nav className={styles.nav} aria-label={t('scenarioPage.others')}>
-        {previous ? (
-          <a href={scenarioUrl(previous.key)}>
-            <ChevronLeft size={18} aria-hidden="true" />
-            <span>
-              <small>{t('scenarioPage.previous')}</small>
-              {previous.full_en ?? previous.full_jp}
-            </span>
-          </a>
-        ) : (
-          <span />
-        )}
-        {next && (
-          <a href={scenarioUrl(next.key)} className={styles.next}>
-            <span>
-              <small>{t('scenarioPage.next')}</small>
-              {next.full_en ?? next.full_jp}
-            </span>
-            <ChevronRight size={18} aria-hidden="true" />
-          </a>
-        )}
-      </nav>
+      <ScenarioNav previous={previous} next={next} />
     </div>
   );
 }

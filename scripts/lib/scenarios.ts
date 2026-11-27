@@ -10,10 +10,11 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dated } from '../../shared/schemas/common.ts';
 import type { Scenario, ScenariosFile, StartDate } from '../../shared/schemas/scenario.ts';
-import type { ScenarioMention } from './news/scenario-posts.ts';
+import type { ScenarioMention } from './news/scenarioPosts.ts';
 import { imageColor } from './colors.ts';
 import { jp as jpLexicon } from './news/lang/jp.ts';
-import { norm as normAny } from './news/text.ts'; // keeps kana and kanji, unlike norm() below
+import { isoOfUnix, norm } from './news/text.ts';
+import { jsonEnvelope, jsonLines } from './json.ts';
 import { DATA_DIR } from './paths.ts';
 import { categorize } from './news/categorize.ts';
 import type { NewsPost } from '../../shared/schemas/news.ts';
@@ -41,7 +42,7 @@ export type GametoraScenario = {
   start_ja?: number | null;
 };
 
-// A scenario post (news/scenario-posts.ts' scenarioPost()): the Global launches read here.
+// A scenario post (news/scenarioPosts.ts' scenarioPost()): the Global launches read here.
 type ScenarioPost = { id: number; posted: string | null; scenarios: ScenarioMention[] };
 
 // The shape of a file on disk: older ones have one `full` name.
@@ -86,9 +87,9 @@ export function shortNames(slug: string): Scenario['short'] {
   return { jp, en };
 }
 
-const iso = (unixSeconds: number | null | undefined): string | null =>
-  unixSeconds ? new Date(unixSeconds * 1000).toISOString() : null;
-export const norm = (s: string | null | undefined): string =>
+const iso = (unixSeconds: number | null | undefined): string | null => (unixSeconds ? isoOfUnix(unixSeconds) : null);
+// ASCII letters and digits only (an English name or slug as a key).
+const asciiKey = (s: string | null | undefined): string =>
   (s ?? '')
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
@@ -141,9 +142,9 @@ export function mergeGametora(scenarios: ScenarioDraft[], raws: GametoraScenario
 // The scenario a news post's name means: by name (full name, key or GameTora slug), else the next
 // one Global hasn't launched (Global releases them in JP's order).
 function matchScenario(name: string, scenarios: ScenarioDraft[]) {
-  const n = norm(name);
+  const n = asciiKey(name);
   const byName = (s: ScenarioDraft) =>
-    n === norm(s.full_en) || (s.key.length > 3 && n.includes(norm(s.key))) || n.includes(norm(slugOf(s)));
+    n === asciiKey(s.full_en) || (s.key.length > 3 && n.includes(asciiKey(s.key))) || n.includes(asciiKey(slugOf(s)));
   return scenarios.find(byName) ?? scenarios.find(unknownOnGlobal) ?? null;
 }
 
@@ -193,7 +194,7 @@ export function applyJpScenarioNews({ posts, scenarios }: { posts: NewsPost[]; s
   for (const post of [...posts].sort((a, b) => a.post_at.localeCompare(b.post_at))) {
     const c = categorize(post, jpLexicon);
     if (c.kind !== 'scenario' || !c.name) continue;
-    const entry = result.find((s) => s.full_jp && normAny(s.full_jp) === normAny(c.name));
+    const entry = result.find((s) => s.full_jp && norm(s.full_jp) === norm(c.name));
     if (entry) entry.links.umapyoi_jp = c.id;
     else unmatched.push(c.name);
   }
@@ -248,6 +249,8 @@ export function readScenarios(): ScenariosRead {
 // One scenario per line, so commits diff per scenario (the file is excluded from Biome). ml/scenarios.py writes the
 // same format.
 export function writeScenarios(source: ScenariosRead['source'], scenarios: ScenarioDraft[]) {
-  const lines = scenarios.map((s) => JSON.stringify(s)).join(',\n');
-  writeFileSync(SCENARIOS_FILE, `{\n"source": ${JSON.stringify(source)},\n"scenarios": [\n${lines}\n]\n}\n`);
+  writeFileSync(
+    SCENARIOS_FILE,
+    `${jsonEnvelope({ source: JSON.stringify(source), scenarios: jsonLines(scenarios) })}\n`
+  );
 }

@@ -623,5 +623,5 @@ export function scenarioAt(at: number, server: Server): string {
 export function getScenario(server: Server, scenarioKey: string): ScenarioWeights {
   const scenarios = getScenarios(server);
   const scenario = scenarios[scenarioKey] || scenarios[getCurrentScenario(server)];
-  return JSON.parse(JSON.stringify(scenario));
+  return structuredClone(scenario);
 }

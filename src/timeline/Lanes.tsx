@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import type { Entry } from './entries.ts';
 import { type LaneGroupRows, type LaneItem, ZOOMS, partCount } from './layout.ts';
-import type { DateFormats } from './format.ts';
+import { type DateFormats, dateRange } from '../lib/dates.ts';
 import type { RenderWindow } from './useRenderWindow.ts';
 import styles from './Lanes.module.css';
-import { barLabel, dateRange, kindName, labelIsFan, raceLabel } from './format.ts';
+import { barLabel, kindName, labelIsFan, raceLabel } from './format.ts';
 import { FanTl } from '../ui/FanTl.tsx';
 import i18n from '../i18n/index.ts';
 
