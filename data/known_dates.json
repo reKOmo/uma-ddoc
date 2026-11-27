@@ -38,6 +38,10 @@
     {
       "release_jp": "2023-02-24",
       "release_gl": "2026-12-01",
+      "only": {
+        "events": ["1194"],
+        "scenarios": ["GM"]
+      },
       "source": "Official socials (Nov 2026): Grandmasters scenario, 2nd Anniv. Celebration Part 2"
     }
   ],

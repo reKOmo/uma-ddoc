@@ -60,7 +60,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
-from adjust import hand_known_days, snap_weekday
+from adjust import confirmed_only, hand_known_days, snap_weekday
 from banners import GLOBAL_START_HOUR, epoch_days, iso_at
 from data import DATA, FILLS, GENERATED, dated, day_range, read, to_date
 
@@ -495,7 +495,7 @@ def predict_events(predict, anchor_jp, known, pairs, fitted_at):
     """predict: JP days (sorted) → (Global days, ± days); anchor_jp: the last JP day Global has released cards of;
     known: the known dates [(JP day, Global day)]; pairs: pair_events()'s."""
     known = dict(known)
-    confirmed_days = hand_known_days()
+    confirmed_days, confirmed_ids = hand_known_days(), confirmed_only('events')
     events, jp_top, parts = load('jp')
     paired = pairs['done_jp']
     todo = sorted((e for e in jp_top if e['id'] not in paired and jst_day(e['start']) >= anchor_jp - LOOKBACK),
@@ -539,8 +539,10 @@ def predict_events(predict, anchor_jp, known, pairs, fitted_at):
         days = np.where([d in known for d in jp_days], [known.get(d, 0) for d in jp_days], snap_weekday(days))
         margin = np.broadcast_to(margin, days.shape)
 
-        # confirmed: only a JP day known_dates.json's `dates` give (hand_known_days()), not one known otherwise
-        placed = {e['id']: (ms(iso_at(day, GLOBAL_START_HOUR)) - ms(e['start']), m, jst_day(e['start']) in confirmed_days)
+        # confirmed: only a JP day known_dates.json's `dates` give (hand_known_days()) or an event its `only` names,
+        # not one known otherwise
+        placed = {e['id']: (ms(iso_at(day, GLOBAL_START_HOUR)) - ms(e['start']), m,
+                            jst_day(e['start']) in confirmed_days or e['id'] in confirmed_ids)
                   for e, day, m in zip(todo, days, margin)}
         # One window of a celebration's part (JP's 1143, a race's Star Pieces, is one of 1142-3's) goes where that part
         # puts it, not where the model puts its own JP day (Global ran that G1 celebration 11 days later than the model

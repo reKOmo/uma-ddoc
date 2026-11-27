@@ -5,14 +5,14 @@ Global releases JP's scenarios in JP's order, each with a celebration banner tha
 banner, so a scenario's Global launch is predicted like a card release: its JP launch day through the
 same model and known dates (predict.py's `predict`), at 22:00 UTC, never on a Japanese weekend, and
 after Global's latest known launch. Only scenarios without a Global date from the news are written (`confirmed`
-when known_dates.json's `dates` give their JP day, like cards; else `predicted`); news dates are never touched.
+when known_dates.json's `dates` give their JP day, like cards, or an entry's `only` names their key; else `predicted`); news dates are never touched.
 """
 
 import json
 
 import numpy as np
 
-from adjust import hand_known_days, snap_weekday
+from adjust import confirmed_only, hand_known_days, snap_weekday
 from banners import GLOBAL_START_HOUR, epoch_days, iso_at
 from data import DATA, dated, to_date
 
@@ -47,10 +47,10 @@ def predict_scenarios(predict):
         jp_days = np.array([jst_day(s['jp_start_date']['date']) for s in todo])
         days, width = predict(jp_days)
         days = np.maximum(snap_weekday(np.maximum(days, floor)), floor)
-        confirmed = hand_known_days()
+        days_known, keys = hand_known_days(), confirmed_only('scenarios')
         for s, jp, day, w in zip(todo, jp_days, days, np.broadcast_to(width, days.shape)):
             start = iso_at(day, GLOBAL_START_HOUR)
-            s['en_start_date'] = (dated(start, 'confirmed') if float(jp) in confirmed
+            s['en_start_date'] = (dated(start, 'confirmed') if float(jp) in days_known or s['key'] in keys
                                   else dated(start, 'predicted', lo=to_date(day - w), hi=to_date(day + w)))
     write(file)
     return todo
