@@ -2,45 +2,45 @@
 
 ```
 tierlist/          ranking code (runs in Node and the browser)
-  tierlist-calc.ts   processCards(): scores candidates against a fixed deck (from upstream, ours now)
+  tierlistCalc.ts    processCards(): scores candidates against a fixed deck (from upstream, ours now)
   scenarios.ts       weights, training gains, per-server scenarios + deck presets (likewise)
   index.ts           rankCards() (one deck), rankByUsefulness() (avg over preset decks, cached),
                      STATS (stat keys), presetDecks(), COMBINED (averaged rankings), scenarioOptions()
   cards.ts           `cards` (generated/cards.json), loadCards(server): joins it with the server's stats;
                      loadCardsWithUpcoming()
-  join-cards.ts      joinCards() (+ `events` per card), withoutEvents(), TYPE_CODES / RARITY_CODES (cards.json's
-                     strings ↔ upstream's codes)
   cli.ts             `pnpm rank`
 scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/ (a command imports libs, never another
                      command; each runs its main behind isMain(import.meta.url))
-  clone-upstream.ts  shallow clone (or fetch + reset) of upstream main into upstream/
-  update-cards.ts    download upstream's card data into generated/raw/upstream/ (lib/cards/files.ts)
-  build-cards.ts     raw inputs → generated/cards.json + card_stats/<gl|jp>_card_stats.json (lib/cards/files.ts)
-  build-schemas.ts   schemas/*.json from shared/schemas/ (z.toJSONSchema)
-  convert-mdb.ts     a server's master.mdb → data/<gl|jp>_card_stats.json (its card list, instead of upstream's)
-  scrape-gametora.ts  GameTora: support card list + JP event history (generated/raw/), JP scenarios (data/)
-  update-global.ts   data/news/ → Global's banners + card releases in data/, appends to data/news/gl/summary.md
-  update-jp.ts       data/news/jp/ → new cards in data/jp_cards.json (+ build-cards), data/jp_banners.json +
+  cloneUpstream.ts   shallow clone (or fetch + reset) of upstream main into upstream/
+  updateCards.ts     download upstream's card data into generated/raw/upstream/ (lib/cards/files.ts)
+  buildCards.ts      raw inputs → generated/cards.json + card_stats/<gl|jp>_card_stats.json (lib/cards/files.ts)
+  buildSchemas.ts    schemas/*.json from shared/schemas/ (z.toJSONSchema)
+  convertMdb.ts      a server's master.mdb → data/<gl|jp>_card_stats.json (its card list, instead of upstream's)
+  scrapeGametora.ts  GameTora: support card list + JP event history (generated/raw/), JP scenarios (data/)
+  updateGlobal.ts    data/news/ → Global's banners + card releases in data/, appends to data/news/gl/summary.md
+  updateJp.ts        data/news/jp/ → new cards in data/jp_cards.json (+ build-cards), data/jp_banners.json +
                      data/jp_events.json, appends to data/news/jp/summary.md
-  ai-events.ts       `pnpm news:ai` (ask about doubted fields, store answers; --compare to test a model)
-  list-events.ts     `pnpm news:events` (the events the news makes, printed, nothing written)
-  list-merges.ts     `pnpm news:merges` (which posts joined which event, and how; nothing written)
-  fetch-pull-guide.ts  Luh's Support Card Encyclopedia (Google Sheet) → generated/pull_guide.json
-  fetch-umatl.ts     UmaTL's tables → generated/raw/umatl_*.json → generated/translations.json
-  fetch-news-latest.ts  new/edited posts → data/news/<server>/posts.json + summary.md (incremental, news:run)
-  fetch-news-all.ts  the whole archive → data/news/<server>/posts.json (one-off, resumable)
-  fetch-news-umapyoi.ts  older posts from umapyoi.net's mirror → data/news/<server>/posts.json (one-off, resumable)
-  categorize-news.ts `pnpm news:categories`
-  gold-review.ts     `pnpm gold:review`: a local Vite page (gold-review/) to label every Global post by hand → gold.json
-  news-features.ts   `pnpm news:features`: each Global post's features for ml/categorize.py → generated/news_features.json
+  aiEvents.ts        `pnpm news:ai` (ask about doubted fields, store answers; --compare to test a model)
+  listEvents.ts      `pnpm news:events` (the events the news makes, printed, nothing written)
+  listMerges.ts      `pnpm news:merges` (which posts joined which event, and how; nothing written)
+  fetchPullGuide.ts  Luh's Support Card Encyclopedia (Google Sheet) → generated/pull_guide.json
+  fetchUmatl.ts      UmaTL's tables → generated/raw/umatl_*.json → generated/translations.json
+  fetchNewsLatest.ts  new/edited posts → data/news/<server>/posts.json + summary.md (incremental, news:run)
+  fetchNewsAll.ts    the whole archive → data/news/<server>/posts.json (one-off, resumable)
+  fetchNewsUmapyoi.ts  older posts from umapyoi.net's mirror → data/news/<server>/posts.json (one-off, resumable)
+  categorizeNews.ts  `pnpm news:categories`
+  goldReview.ts      `pnpm gold:review`: a local Vite page (goldReview/) to label every Global post by hand → gold.json
+  newsFeatures.ts    `pnpm news:features`: each Global post's features for ml/categorize.py → generated/news_features.json
                      (lib/news/features.ts)
+  newsPending.ts     whether the JP records wait on GameTora (a pending card, a featured item without an id): prints
+                     true / false for the news run, writes nothing
   lib/paths.ts       ROOT, GENERATED_DIR, DATA_DIR, CARDS_JSON, newsDir(server), dataFile(server, kind),
                      serverSuffix(), summaryFile() / appendSummary(), isMain() (every script's paths)
   lib/json.ts        readJson(path, fallback?) (every script's JSON reads; a fallback for a file not there yet);
                      jsonLines() / jsonEntries() / jsonEnvelope(): the data files' one-record-per-line writers;
                      sameJson(), changedSince()
   lib/order.ts       newestEventsFirst / newestBannersFirst: the data files' order
-  lib/schemas.ts     jsonSchema(), schemaText() (build-schemas, test/schemas.test.ts)
+  lib/schemas.ts     jsonSchema(), schemaText() (build-schemas, test/data/schemas.test.ts)
   lib/http.ts        sleep(), paced(): one request at a time with a pause between (every fetching script's pacing);
                      getOk() / getJson() / getText(), SCRAPER_HEADERS
   lib/sources.ts     generated/sources.json (file → where its data came from): readSources(), writeSources()
@@ -57,13 +57,13 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
                      DAY / JST, minuteText(), jstDay(), isoOfUnix(), norm(), bareTitle(), cardKey(); shared by the news parsers
     features.ts      writeFeatures(): each post's features for ml/categorize.py (news:features, refreshCategories())
     lang/            the news' wording per language, read by every parser (`lang`, English by default):
-                     en.ts (Global), jp.ts + jp-names.ts + jp-banners.ts + jp-races.ts (JP), index.ts (lexicon(server))
+                     en.ts (Global), jp.ts + jpNames.ts + jpBanners.ts + jpRaces.ts (JP), index.ts (lexicon(server))
     categorize.ts    pure: categorize(post) → banner / event (+ kind) / other, phase, name
     categories.ts    data/news/gl/categories.json (ml/categorize.py's labels, which buildEvents() reads over the rules):
                      readCategories(), refreshCategories() (features + the classifiers, when ml/.venv exists)
     gold.ts          the gold set (data/news/gl/gold.json): units() (a post cut for labelling), ruleLabel() (today's rules'
                      label, the pre-fill), jpCategories() (the same-id JP post's), reader/writer
-    scenario-posts.ts  pure: scenarioPost() (a post's scenario mentions, for scenarios.ts)
+    scenarioPosts.ts  pure: scenarioPost() (a post's scenario mentions, for scenarios.ts)
   lib/banners/       scout banners from the news
     posts.ts         pure: bannerPost(post) → a scout post's banners (gacha id, type, period, art, featured list)
     common.ts        what both servers' banners share: BANNER_KINDS, ScoutPost types, pickMain(), endOfMinute(),
@@ -78,7 +78,7 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
     jp.ts            pure: newsCards() (every support card the JP news shows, at its first appearance),
                      applyNewsCards() (→ the history + pending, GameTora augmenting; GameTora-only cards listed),
                      data/jp_cards.json + jp_cards_pending.json readers/writers, updateJpCards()
-    pull-guide.ts    pure: the sheet's HTML view → entries (dates, Pull?, notes) → advice per banner (findBanner())
+    pullGuide.ts     pure: the sheet's HTML view → entries (dates, Pull?, notes) → advice per banner (findBanner())
   lib/events/        in-game events from the news (docs/data/events.md)
     build.ts         pure: buildEvents() (fragments → answers applied → merged → output), cmItems() (Champions
                      Meeting range from the hand table)
@@ -91,7 +91,7 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
     names.ts         pure: a sub-event's name and kind (subEventName(), subEventKind())
     rewards.ts       pure: cardsIn() (cards by lookup), itemsIn(), titlesIn(), missionsIn()
     races.ts         pure: blockRaces() (an event's races from its race conditions), raceConditions() (one line)
-    free-scouts.ts   pure: a free scout campaign's windows (scoutWindows(), counted()), its banners (bannerOf()),
+    freeScouts.ts    pure: a free scout campaign's windows (scoutWindows(), counted()), its banners (bannerOf()),
                      each banner's free pulls (withFreePulls())
     doubts.ts        pure: the Fragment type, withDoubts(), rewards(), aiKey()
     merge.ts         pure: posts about the same event merged (mergePosts(), joinUndated(), resolveParents(),
@@ -104,8 +104,8 @@ scripts/             commands (`pnpm …`, docs/commands.md); their code in lib/
     client.ts        the model client: Ollama (native /api/chat) or OpenRouter (OpenAI-style), aiConfig(), ask()
     questions.ts     pure: what a model is asked about an event (askedFields(), question(): prompt + examples
                      + JSON schema), staleFields() / mergeAnswer() (per-field versions)
-    questions-en.ts / questions-jp.ts  each language's question set (system prompt, fields, made-up examples);
-                     shared parts in questions-spec.ts
+    questionsEn.ts / questionsJp.ts  each language's question set (system prompt, fields, made-up examples);
+                     shared parts in questionsSpec.ts
     answers.ts       pure: applyAnswer() (a model's answer checked, then applied rules first)
 src/                 (components' styles: `X.module.css` beside each, `camelCaseOnly` names; global ones below)
   main.tsx           mounts App (StrictMode); imports styles/global.css first, then App.css
@@ -127,6 +127,8 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     useMediaQuery.ts DESKTOP: the desktop layout's breakpoint
     useRowsHeight.ts an unfolded list's height for its first six rows (Available on, Passed by on phones)
     useWidth.ts      an element's width, kept up to date (ResizeObserver)
+    useLanguage.ts   useLanguage(server): the server's Language from the Names settings (lib/translations.ts' languageOf())
+    useTranslations.ts  useTranslations(): generated/translations.json once loaded, else null
   state/             what the app remembers (zustand stores) and the settings
     rawStorage.ts    the persisted stores' factory: persisted() / persistedValue() / stringSetStore() / booleanStore()
                      on a localStorage adapter; each store keeps its own stored format (never zustand's
@@ -160,6 +162,11 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
                      (`handleOnly`); focus, Escape, click outside, scroll lock; its heading is a <SheetTitle>
     ScenarioPicker.tsx  scenario dropdown on top of it (italic + note when unreleased)
     ScenarioPill.tsx  a scenario's name as a pill in its cover's colour (the card page's tile + tier table)
+    TypePill.tsx     a card type everywhere one is shown: its icon + name, tinted in the type's colour or `plain`
+    StatIcon.tsx     a card type's game icon alone, sized to the text around it
+    ShouldPullChip.tsx  the pull guide's "Should pull?" pill ("whale++" → "If Whale++")
+    OptionCards.tsx  a setting's choices as cards side by side (aria-pressed buttons, like Segmented, with a detail line)
+    InfoTip.tsx      an (i) icon whose text opens on hover / tap / Enter (not portalled: it works inside a sheet)
     TabHighlight.tsx the open tab's pill, sliding from tab to tab
   lib/               the app's data: loaders and pure helpers
     servers.ts       SERVERS: gl/jp ↔ banner file names; SERVER_ORDER (JP first, the Scenarios pages)
@@ -180,7 +187,7 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     memo.ts          memoAsync(): one promise per key (the Timeline's file loaders)
     optional.ts      optionalJson(glob): a memoised loader for a generated/ file that may be missing (null)
     predictions.ts   optional loader for generated/predicted_gl_releases.json
-    translations.ts  optional loader for generated/translations.json; languageOf() / useLanguage() (the Names settings)
+    translations.ts  optional loader for generated/translations.json; languageOf() (the Names settings), cardEnglish()
     pullGuide.ts     optional loader for generated/pull_guide.json (the card page's NextBanner tile + Banners), upcomingBanner(),
                      currentAdvice(), sheetLink()
     search.ts        normalizeSearch(): text as the Cards tab and Timeline searches compare it (no case, accents, punctuation)
@@ -198,14 +205,14 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   pages/CardPage.tsx                   one card (the entry App imports): art, tags, GameTora link, its parts:
   pages/card/        CardArt (the art in its rarity's in-game frame colours), Summary (the tiles beside the art: rank,
                      tier outlook, release), NextBanner (the next
-                     banner on its art + the guide's pull advice), Banners (the card's banners/events), OriginPills (OriginPill, KindPill), ScenarioTierTable (heatmap),
+                     banner on its art + the guide's pull advice), Banners (the card's banners/events), OriginPills (OriginPill, KindPill), ScenarioTierTable (heatmap; ScenarioFilter: its Options sheet, rows to hide),
                      RankOverTime (RankHistorySection: RankChart + PassedBy), RankChart (SVG step chart of rank over
                      time: the card's whole life at the panel's width, zoom scrolls; the line in its tier's colour,
                      scenarios as a rule under the dates; rankChart/: layout.ts (pure rankChartLayout(): everything
                      the SVG draws), useZoomCenter, the SVG pieces), PassedBy (passedBy/: useScrollToPicked,
-                     ReleaseRow, PassRow); hooks.ts (usePredictions, useOrigins,
-                     useScenarioRankings, useUpcomingRanking, useRankHistory), advice.ts (useUpcomingAdvice: the
-                     guide + next banner, for NextBanner and Banners' pull pills), shared.ts (nameOf, titleOf…)
+                     ReleaseRow, PassRow); one file per hook: usePredictions, useOrigins,
+                     useScenarioRankings, useUpcomingRanking, useRankHistory, useUpcomingAdvice (the guide + next
+                     banner, for NextBanner and Banners' pull pills); shared.ts (nameOf, titleOf…)
   pages/card.css     global on purpose: the Rank over time picker's size (`.history-controls .dropdown-button`)
   pages/ScenariosPage.tsx              the Scenarios tab (list)
   pages/ScenarioPage.tsx               one scenario (scenario/: LaunchSide, ScenarioNav)
@@ -248,6 +255,10 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
     search.ts        pure: the search's suggestions (searchIndex), chip matching, its results (matches + parents + parts),
                      jumpTarget()
     TimelineSearch.tsx  the toolbar's search button + field (downshift combobox, chips, match-sorter suggestions)
+    gridStep.ts      pure: stepRow(): ↑↓ through pills wrapping into rows (the search's suggestions)
+    RaceTrack.tsx, RaceIcons.tsx  the sheet's race pictures: the track from the start line (not the real course),
+                     distance bars, ground-wetness drops
+    TimelineSkeleton.tsx  the calendar's shape while it loads (strip, months, lanes with placeholder bars)
     searchOverride.ts  whether a search shows matches the filter hides (zustand store, default on)
     compact.ts       compact mode on/off (default on; zustand store): getCompact() / saveCompact()
     globalProgress.ts pure: where Global is in JP's history (window between banners + linear estimate)
@@ -257,13 +268,18 @@ src/                 (components' styles: `X.module.css` beside each, `camelCase
   i18n/en.json       every UI string (English)
 shared/schemas/      zod schemas + their types for every data file (card, banner, event, scenario, pullGuide, news,
                      predictions, sources, gametora, common); files.ts: each data file's schema, the JSON Schemas
+shared/joinCards.ts  joinCards() (+ `events` per card), withoutEvents(), TYPE_CODES / RARITY_CODES (cards.json's
+                     strings ↔ upstream's codes)
 shared/scenarioRelease.ts  data/scenarios.json's launches: SCENARIOS, scenarioByKey, isReleased / isCurrent(key, server)
                      (the app and tierlist/'s getCurrentScenario / scenarioAt both read them)
 schemas/             JSON Schemas generated from shared/schemas/ (`pnpm build-schemas`; pull_guide.json points at its
                      own via `$schema`; cards.json is keyed by card id alone, so no `$schema`)
-test/                Vitest `unit` project (pnpm test); helpers.ts: fixture<T>() (test data with only the fields the
-                     code under test reads) and present() (a value fixed data must have); upstream-modules.d.ts types
-                     upstream's plain-JS modules
+test/                Vitest `unit` project (pnpm test), mirroring the source tree: a module's test at its path
+                     (test/src/ui/Pill.test.tsx, test/scripts/lib/banners/global.test.ts, test/tierlist/…);
+                     test/data/: checks of the stored data as a whole and across modules (schemas, generated data,
+                     i18n catalogs, the news replay); helpers.ts: fixture<T>() (test data with only the fields the
+                     code under test reads), present() (a value fixed data must have), at(), h2();
+                     global-setup.ts (card data); fixtures/; upstream-modules.d.ts types upstream's plain-JS modules
 test/upstream/       Vitest `upstream` project (pnpm test:upstream), needs upstream/
 e2e/                 Playwright (pnpm test:e2e; visual.spec.ts only in pnpm test:visual); fixtures.ts
 ml/                  Python (own venv, ml/.venv): predicts Global release dates of JP cards from

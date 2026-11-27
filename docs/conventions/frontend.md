@@ -74,6 +74,6 @@ Radix Select (dropdown), `vaul` (sheets), `@dnd-kit` (drag to reorder), `lucide-
   (no page writes `#/…` by hand). `vite.config.ts` uses `base: "./"`.
 - Data loading in components: `useAsync()` (`src/hooks/useAsync.ts`).
 - Remembered state: a zustand store persisted through `src/state/rawStorage.ts`. **Keys and stored formats never change**
-  (people would lose their settings); `test/stores.test.ts` checks older formats still load.
+  (people would lose their settings); `test/src/stores.test.ts` checks older formats still load.
 - Heavy work (rankings ~100–300 ms each) yields before computing so loading text can paint, and is cached per
   server/scenario/stat.

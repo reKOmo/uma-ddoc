@@ -11,7 +11,7 @@ import type {
   LbStats,
 } from '../../../shared/schemas/card.ts';
 import type { GametoraCard } from '../../../shared/schemas/gametora.ts';
-import { type JoinedCard, joinCards, rarityOf, typeOf, withoutEvents } from '../../../tierlist/join-cards.ts';
+import { type JoinedCard, joinCards, rarityOf, typeOf, withoutEvents } from '../../../shared/joinCards.ts';
 
 // A limit break's stats and the card's fields (upstream's lists have no `events`).
 export type UpstreamCard = Omit<JoinedCard, 'events'>;

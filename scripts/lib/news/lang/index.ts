@@ -28,7 +28,7 @@ export type Rule = [
   (number | ((m: Match) => string | null))?,
 ];
 
-// A daily free scout campaign's wording (free-scouts.ts).
+// A daily free scout campaign's wording (freeScouts.ts).
 export type ScoutLexicon = {
   // A line about the daily free scout, and one of those saying it's a 10x.
   daily: RegExp;
@@ -77,13 +77,13 @@ export type Lexicon = {
   parsePeriod: (text: string, ref: DateRef) => Period;
   dateRef: (posted: string) => DateRef;
   clean: (html: string) => string;
-  // Posts that are never in-game news (post-categories).
+  // Posts that are never in-game news (tested in categorize.test.ts).
   community: (post: PostLike) => boolean;
-  // [title pattern, phase], the first match wins (post-categories).
+  // [title pattern, phase], the first match wins (tested in categorize.test.ts).
   phases: [RegExp, string][];
   rules: Rule[];
   // Global: template phrases a title can't show (a celebration's "details of included events"), and the title rules'
-  // answer revised by them (post-categories; the phrases are ml/categorize.py's features too, news-features.ts).
+  // answer revised by them (tested in categorize.test.ts; the phrases are ml/categorize.py's features too, news/features.ts).
   signals?: Signal[];
   revise?: (rule: Revised, has: (signal: string) => boolean, title: string) => Revised;
   // An event's name when the title gives none.

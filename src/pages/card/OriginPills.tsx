@@ -4,7 +4,7 @@ import { originKinds } from '../../lib/cardOrigins.ts';
 import type { OriginKind } from '../../lib/cardOrigins.ts';
 import { kindName } from '../../timeline/format.ts';
 import Pill from '../../ui/Pill.tsx';
-import type { EntryOrigin } from './hooks.ts';
+import type { EntryOrigin } from './useOrigins.ts';
 import styles from './OriginPills.module.css';
 
 // One colour per origin kind, by the Timeline's event tones (not its banner one: a banner there takes its main card's

@@ -5,7 +5,7 @@
   - `generated/cards.json`: every card upstream or `data/jp_cards.json` has (a card only GameTora lists isn't one:
     `update-jp` warns), what the site shows: `{ id, charId, type, rarity, name: { en, jp }, title: { en, jp }, release: { gl, jp
     }, source, links: { gametora }, images: { icon } }`. Readable strings (type `speed`…`wisdom`, `friend`, `group`;
-    rarity `R`/`SR`/`SSR`), mapped to upstream's codes in `tierlist/join-cards.ts`. "GameTora's" below means
+    rarity `R`/`SR`/`SSR`), mapped to upstream's codes in `shared/joinCards.ts`. "GameTora's" below means
     `data/jp_cards.json`'s (our frozen copy of GameTora's fields, 2026-10-12, then the JP news' cards with
     GameTora's id/type/charId/slug/English; a card in it never takes GameTora's list's values but its slug).
     Type/rarity: upstream's where it has the card. `name.en`: Global's (upstream's gl list) where it has the
@@ -22,7 +22,7 @@
     `scenarioLink` relies on; a group card's is a member's, as upstream has it); `events` the card's event rewards
     (the same on both servers) or null.
     `joinCards()` rebuilds upstream's exact arrays plus `events` per card (verified by `buildCards()` and
-    `test/data.test.ts`).
+    `test/data/generated.test.ts`).
 
 - **Our card stats from master.mdb** (`scripts/lib/cards/mdb.ts`, `pnpm convert-mdb` → `data/<gl|jp>_card_stats.json`):
   upstream builds its gl.js / jp.js by hand with `db-convert.py` from its own master.mdb, which lags behind the game.
@@ -33,7 +33,7 @@
   Upstream's lists are still downloaded, for the comparisons and icons. A card with an effect, unique bonus or
   command_id the port doesn't know isn't converted (`skipped`, named in the PR) rather than ranked with wrong numbers:
   `convert-mdb` keeps upstream's rows for it when upstream has the card, else it's left out; add the effect to both the
-  port and, ideally, upstream. Where both have a card, ours is used: `test/data.test.ts`'s data test and the PR's
+  port and, ideally, upstream. Where both have a card, ours is used: `test/data/generated.test.ts`'s data test and the PR's
   `mismatch` list name the cards that differ from upstream's (the port drifted, upstream's script changed, or a game
   update upstream hasn't caught up with). `pnpm test:upstream` ranks with our list on both sides, so it compares the
   calculation alone. The mdb also holds cards not yet released on the server, as upstream's lists do (e.g.

@@ -18,7 +18,7 @@ const categorize = (server: Server, ...args: string[]) =>
 export function readCategories(server: Server = 'gl', file = categoriesFile(server)): Map<number, PostCategory> {
   if (!existsSync(file)) return new Map();
   // TODO(ts): JSON.parse's any: categories.json is written by ml/categorize.py (its schema: CategoriesFileSchema,
-  // test/schemas.test.ts)
+  // test/data/schemas.test.ts)
   const list = JSON.parse(readFileSync(file, 'utf8')) as PostCategory[];
   return new Map(list.map((c) => [c.id, c]));
 }
@@ -36,7 +36,7 @@ export function refreshCategories(server: Server = 'gl'): void {
 }
 
 // Every post's categories with these posts categorized by the models as if new, trained without their gold labels
-// (test/news-replay.ts; ml/categorize.py --hold-out writes them to generated/).
+// (test/data/newsReplay.ts; ml/categorize.py --hold-out writes them to generated/).
 export function heldOutCategories(server: Server, ids: number[]): Map<number, PostCategory> {
   writeFeatures(server);
   categorize(server, '--hold-out', ids.join(','));

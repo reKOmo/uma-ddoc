@@ -21,10 +21,13 @@ import SummaryTiles from './card/Summary.tsx';
 import RankOverTime from './card/RankOverTime.tsx';
 import ScenarioFilter from './card/ScenarioFilter.tsx';
 import ScenarioTierTable from './card/ScenarioTierTable.tsx';
-import { useOrigins, usePredictions, useScenarioRankings } from './card/hooks.ts';
-import { useUpcomingAdvice } from './card/advice.ts';
+import { useOrigins } from './card/useOrigins.ts';
+import { usePredictions } from './card/usePredictions.ts';
+import { useScenarioRankings } from './card/useScenarioRankings.ts';
+import { useUpcomingAdvice } from './card/useUpcomingAdvice.ts';
 import { nameOf, otherNames, titleOf } from './card/shared.ts';
-import { useLanguage, useTranslations } from '../lib/translations.ts';
+import { useLanguage } from '../hooks/useLanguage.ts';
+import { useTranslations } from '../hooks/useTranslations.ts';
 import { FanTl } from '../ui/FanTl.tsx';
 import './card.css'; // the Rank over time picker's size (a global class of the Dropdown's)
 import styles from './CardPage.module.css';

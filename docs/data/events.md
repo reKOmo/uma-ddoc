@@ -74,7 +74,7 @@
   dates, cards), Legend Race, mission set and special-event run matches it, and every Champions Meeting's end (its
   start is earlier on purpose: league selection); ours only has less (the Trainer Aptitude Test's / Racing Carnival's
   reward-collection days after their event period, mission sets the news hasn't announced).
-- **Free scouts** (`scripts/lib/events/free-scouts.ts`, wording in `lang.scouts`, both servers): a daily free scout campaign
+- **Free scouts** (`scripts/lib/events/freeScouts.ts`, wording in `lang.scouts`, both servers): a daily free scout campaign
   (Global's "Daily Free 10x Scout" / a celebration's "Daily Free Scout"; JP's 「1日1回10連ガチャ無料キャンペーン」 /
   「毎日ガチャ1回無料キャンペーン」) gets `scouts` `[{ scout, type, banner, start, end, size, scouts }]`: each eligible scout
   as the post names it ("• Spotlight Support Card Scout" + its window on the next line; JP: 「・… ガチャ」, or a list under
@@ -95,9 +95,9 @@
   matches one. Each banner then gets `free_pulls` (`withFreePulls()`): its windows' pulls, a window two posts list
   (364's part and 373's) once. Banner posts that mention a free scout (366, 376) aren't read: the celebrations list
   the same windows. Global's counts equal Luh's on every banner both give but 30073 (the post gives 6, Luh 5;
-  `test/free-scouts.test.ts` lists the differences); JP's 30153 count (11) is the trainee banner's, Luh put it on the
+  `test/scripts/lib/events/freeScouts.test.ts` lists the differences); JP's 30153 count (11) is the trainee banner's, Luh put it on the
   card banner.
-- **A model for what the rules doubt** (`scripts/lib/ai/client.ts`, `ai/questions.ts` + its `-en` / `-jp` / `-spec` files, `ai/answers.ts`, `ai-events.ts`, `pnpm news:ai`): the
+- **A model for what the rules doubt** (`scripts/lib/ai/client.ts`, `ai/questions.ts` + its `-en` / `-jp` / `-spec` files, `ai/answers.ts`, `aiEvents.ts`, `pnpm news:ai`): the
   rules stay the extractor; each event records its `doubts` ({ field: why }: an amount in a sentence they didn't read or
   given per day (`itemDoubt()`), copies given in several places or talked about but not read (`copiesDoubt()`), a
   sub-event name from a heading instead of a sentence, a name that's a kind's generic word or (English) starts

@@ -23,7 +23,7 @@ pnpm convert-mdb <master.mdb> [--server gl|jp] [--message <file>]
                        # a server's master.mdb → data/<server>_card_stats.json (its card list, instead of upstream's;
                        # run update-cards first: prints new= / skipped= / mismatch= against upstream's list)
                        # (the three scripts that change an input run it themselves)
-pnpm build-schemas     # schemas/*.json from the zod schemas in shared/schemas/ (test/schemas.test.ts fails when stale)
+pnpm build-schemas     # schemas/*.json from the zod schemas in shared/schemas/ (test/data/schemas.test.ts fails when stale)
 pnpm scrape-gametora    # support card list (augments new cards, slugs) + JP scenarios + JP event history (story events, Champions
                        # Meetings, Legend Races) from GameTora → generated/, then build-cards (--events: only the events)
 pnpm update-jp         # JP news → new cards in data/jp_cards.json (augmented from GameTora's list; else pending in

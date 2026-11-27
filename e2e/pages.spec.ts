@@ -46,7 +46,7 @@ for (const name of ['Global', 'Japan']) {
 }
 
 // Picked from the data: a hard-coded card stops being "not on Global yet" the day it comes out.
-// TODO(ts): JSON.parse is any; both files are checked against their schemas in test/schemas.test.ts.
+// TODO(ts): JSON.parse is any; both files are checked against their schemas in test/data/schemas.test.ts.
 const predictions = JSON.parse(readFileSync('generated/predicted_gl_releases.json', 'utf8')) as PredictionsFile;
 const releasedGl = JSON.parse(readFileSync('data/global_cards.json', 'utf8')) as GlobalCardsFile;
 const notOnGlobal = Object.keys(predictions.cards).find((id) => !releasedGl[id]?.release_gl);

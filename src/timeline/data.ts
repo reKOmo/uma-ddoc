@@ -37,7 +37,7 @@ const PREDICTED: Partial<Record<BannerName, () => Promise<BannerFile | null>>> =
 // The files store no GameTora URLs: withArt() adds the art.
 const loadRealBanners = memoAsync(
   (name: BannerName): Promise<ArtBannerFile> =>
-    // TODO(ts): a JSON import's type is wider than the schema (strings for enums); test/schemas.test.ts checks the file
+    // TODO(ts): a JSON import's type is wider than the schema (strings for enums); test/data/schemas.test.ts checks it
     BANNERS[name]().then((m) => withArt(m.default as BannerFile, name, cards))
 );
 
@@ -69,7 +69,7 @@ const PREDICTED_EVENTS: Partial<Record<BannerName, () => Promise<PredictedEvents
 };
 const loadEvents = memoAsync(async (name: BannerName): Promise<EventsFile> => {
   const [real, predicted] = await Promise.all([
-    // TODO(ts): a JSON import's type is wider than the schema (strings for enums); test/schemas.test.ts checks the file
+    // TODO(ts): a JSON import's type is wider than the schema (strings for enums); test/data/schemas.test.ts checks it
     EVENTS[name]().then((m) => m.default as EventsFile),
     PREDICTED_EVENTS[name]?.(),
   ]);

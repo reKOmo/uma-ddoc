@@ -25,7 +25,7 @@ import { type Fragment, eventFragments } from './fragments.ts';
 import { type Merge, joinUndated, mergeItems, mergePosts, resolveParents, spanParts } from './merge.ts';
 import type { cardIndex } from './rewards.ts';
 import { applyAnswer } from '../ai/answers.ts';
-import { bannerOf } from './free-scouts.ts';
+import { bannerOf } from './freeScouts.ts';
 import { newestEventsFirst } from '../order.ts';
 
 export type BuildOptions = {

@@ -33,7 +33,7 @@
       "type": {
         "type": "string",
         "enum": ["speed", "stamina", "power", "guts", "wisdom", "friend", "group"],
-        "description": "The tier list's stat key, or group (ranked with friend cards). Codes: tierlist/join-cards TYPE_CODES."
+        "description": "The tier list's stat key, or group (ranked with friend cards). Codes: shared/joinCards TYPE_CODES."
       },
       "rarity": {
         "type": "string",

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { IdKey } from './common.ts';
 
-// The parts of UmaTL's translations read here (scripts/fetch-umatl.ts). raw/umatl_text_data.json: hachimi-tl-en's
+// The parts of UmaTL's translations read here (scripts/fetchUmatl.ts). raw/umatl_text_data.json: hachimi-tl-en's
 // text table, category → game id → English (only UMATL_CATEGORIES); raw/umatl_mdb.json: the original
 // umamusu-translate repo's tables, table → Japanese text → English (only UMATL_TABLES).
 export const UmatlTextDataSchema = z.record(z.string(), z.record(IdKey, z.string()));

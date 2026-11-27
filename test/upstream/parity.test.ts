@@ -11,7 +11,7 @@ import { STATS, presetDecks, rankCards } from '../../tierlist/index.ts';
 import { getServerConfig } from '../../tierlist/scenarios.ts';
 import type { Server } from '../../tierlist/cards.ts';
 import type { Stat } from '../../tierlist/index.ts';
-import type { CalcCard } from '../../tierlist/tierlist-calc.ts';
+import type { CalcCard } from '../../tierlist/tierlistCalc.ts';
 import type { SourcesFile } from '../../shared/schemas/sources.ts';
 
 if (!existsSync(`${UPSTREAM_DIR}src/components/tierlist-calc.js`)) {
@@ -20,7 +20,7 @@ if (!existsSync(`${UPSTREAM_DIR}src/components/tierlist-calc.js`)) {
 
 const { processCards } = await import('../../upstream/src/components/tierlist-calc.js');
 const upstreamScenarios = await import('../../upstream/src/scenarios.js');
-// A server's cards are ours where we store them (from master.mdb, scripts/build-cards.ts): the same list on both
+// A server's cards are ours where we store them (from master.mdb, scripts/buildCards.ts): the same list on both
 // sides, so this compares the calculation alone.
 const UPSTREAM_CARDS = {
   gl: cardRows('gl', (await import('../../upstream/src/cards/gl.js')).default),

@@ -4,7 +4,7 @@
 // Upstream's jp.js isn't used for ids: it adds a card only once its stats are known, after GameTora lists it.
 
 import { writeFileSync } from 'node:fs';
-import { rarityOf } from '../../../tierlist/join-cards.ts';
+import { rarityOf } from '../../../shared/joinCards.ts';
 import { type CardSource, type Rarity, dated } from '../../../shared/schemas/common.ts';
 import type { JpCard, JpCardsFile, JpPendingCard } from '../../../shared/schemas/card.ts';
 import type { GametoraCard } from '../../../shared/schemas/gametora.ts';

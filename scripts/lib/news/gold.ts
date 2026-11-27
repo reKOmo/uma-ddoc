@@ -85,7 +85,7 @@ export function twins(server: Server): Map<number, Twin> {
 }
 
 export const readGold = (server: Server = 'gl'): GoldLabel[] =>
-  // Written by writeGold() (its schema: GoldFileSchema, test/schemas.test.ts).
+  // Written by writeGold() (its schema: GoldFileSchema, test/data/schemas.test.ts).
   readJson<GoldLabel[]>(goldFile(server), []);
 
 // One post per line, newest (highest id) first, so commits diff per post.
@@ -117,7 +117,7 @@ export function withRuleLabels(posts: Iterable<NewsPost>, gold: GoldLabel[], ser
   });
 }
 
-// A post as the gold:review page shows it (scripts/gold-review/main.tsx): cut into units, with the rules' label and
+// A post as the gold:review page shows it (scripts/goldReview/main.tsx): cut into units, with the rules' label and
 // its twin's (`others`: twins()).
 export const postView = (post: NewsPost, server: Server, others: Map<number, Twin>) => ({
   id: post.announce_id,

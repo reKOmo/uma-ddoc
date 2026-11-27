@@ -15,8 +15,8 @@ import LinkButton from '../../ui/LinkButton.tsx';
 import Pill from '../../ui/Pill.tsx';
 import ShouldPullChip from '../../ui/ShouldPullChip.tsx';
 import Status from '../../ui/Status.tsx';
-import type { UpcomingAdvice } from './advice.ts';
-import type { EntryOrigin, Origins } from './hooks.ts';
+import type { UpcomingAdvice } from './useUpcomingAdvice.ts';
+import type { EntryOrigin, Origins } from './useOrigins.ts';
 import { originLabel } from './OriginPills.tsx';
 import styles from './NextBanner.module.css';
 

@@ -1,11 +1,8 @@
 // English for JP names (generated/translations.json, `pnpm fetch-umatl`): Global's official names and UmaTL's fan
 // translations. Optional: without the file, names stay as the data has them.
-import { useMemo } from 'react';
 import type { CardsFile } from '../../shared/schemas/card.ts';
 import { type TlText, type TranslationsFile, hasJapanese } from '../../shared/schemas/translations.ts';
-import { useSettings } from '../state/settings.ts';
 import type { Settings } from '../state/settingsStore.ts';
-import { useAsync } from '../hooks/useAsync.ts';
 import type { Server } from './servers.ts';
 import { memoAsync } from './memo.ts';
 import { optionalJson } from './optional.ts';
@@ -74,14 +71,6 @@ export function cardEnglish(cards: CardsFile, id: number, part: 'name' | 'title'
     card.release.gl != null || (part === 'name' && card.charId != null && globalChars(cards).has(card.charId));
   return (official ? language.official : language.gametora) ? en : undefined;
 }
-
-export function useLanguage(server: Server): Language {
-  const { fanTlGlobal, jpNames } = useSettings().settings;
-  return useMemo(() => languageOf(server, { fanTlGlobal, jpNames }), [server, fanTlGlobal, jpNames]);
-}
-
-// null until loaded, and without the file.
-export const useTranslations = (): TranslationsFile | null => useAsync(loadTranslations, []).data ?? null;
 
 // A translation the language shows.
 export const allowed = (text: TlText | undefined, language: Language): TlText | undefined =>

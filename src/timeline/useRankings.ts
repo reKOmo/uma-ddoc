@@ -13,7 +13,8 @@ import { useRanking } from '../hooks/useRanking.ts';
 export type CardRank = { tier: number; position: number; stat: Stat };
 export type RankResult = { ranks: Map<number, CardRank | null>; upcoming: boolean };
 
-// TODO(ts): cards.json's type (a JSON import) is wider than the schema (strings for enums); test/schemas.test.ts checks it
+// TODO(ts): cards.json's type (a JSON import) is wider than the schema (strings for enums); test/data/schemas.test.ts
+// checks it
 const CARDS = cards as CardsFile;
 
 // A card's stat (from its type), known before any ranking is; undefined for a card the data lacks.

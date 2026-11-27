@@ -17,7 +17,7 @@ import { scenarioSegments } from '../../lib/scenarioStrip.ts';
 
 // The chart's zoom steps: 1 fits the card's whole life, past it the chart scrolls sideways.
 const ZOOMS = [1, 2, 4, 8];
-import { useRankHistory } from './hooks.ts';
+import { useRankHistory } from './useRankHistory.ts';
 import PassedBy from './PassedBy.tsx';
 import { LIMIT_BREAKS } from '../../lib/tiers.ts';
 import Pill from '../../ui/Pill.tsx';

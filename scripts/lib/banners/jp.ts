@@ -11,7 +11,7 @@ import { type Rarity, dated, toGametoraType } from '../../../shared/schemas/comm
 import type { Banner, BannerFile, BannerId, BannerItem } from '../../../shared/schemas/banner.ts';
 import type { Card, CardsFile } from '../../../shared/schemas/card.ts';
 import type { GametoraTrainee } from '../../../shared/schemas/gametora.ts';
-import { RARITY_CODES } from '../../../tierlist/join-cards.ts';
+import { RARITY_CODES } from '../../../shared/joinCards.ts';
 import type { Featured, FeaturedCard, FeaturedTrainee } from './posts.ts';
 import {
   BANNER_KINDS,

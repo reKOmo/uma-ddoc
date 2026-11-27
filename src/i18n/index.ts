@@ -1,4 +1,4 @@
-// Catalogs: src/i18n/<lang>.json, registered in RESOURCES (same keys as en.json: test/i18n.test.tsx checks).
+// Catalogs: src/i18n/<lang>.json, registered in RESOURCES (same keys as en.json: test/data/i18n.test.tsx checks).
 // Components get `t` from useTranslation() and re-render on a language change; the helpers below read the shared
 // instance and are meant to be called during such a render.
 

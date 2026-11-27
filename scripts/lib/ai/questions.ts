@@ -1,6 +1,6 @@
 // Questions for a language model about the fields of an event the rules aren't sure of (its `doubts`, from events/doubts.ts),
-// or left empty: which fields are asked, and the prompt in the question set of the post's language (ai/questions-en.ts,
-// ai/questions-jp.ts; shared parts in ai/questions-spec.ts). Pure: `pnpm news:ai` asks; ai/answers.ts checks and
+// or left empty: which fields are asked, and the prompt in the question set of the post's language (ai/questionsEn.ts,
+// ai/questionsJp.ts; shared parts in ai/questionsSpec.ts). Pure: `pnpm news:ai` asks; ai/answers.ts checks and
 // applies the stored answers (buildEvents()).
 
 import type { AiAnswer } from '../../../shared/schemas/news.ts';
@@ -8,9 +8,9 @@ import type { Question } from './client.ts';
 import { en } from '../news/lang/en.ts';
 import type { Lexicon } from '../news/lang/index.ts';
 import type { Server } from '../news/text.ts';
-import { EXAMPLES, FIELDS, questionsEn } from './questions-en.ts';
-import { questionsJp } from './questions-jp.ts';
-import { DATE, type AskedEvent, type Examples, type Field, type Questions } from './questions-spec.ts';
+import { EXAMPLES, FIELDS, questionsEn } from './questionsEn.ts';
+import { questionsJp } from './questionsJp.ts';
+import { DATE, type AskedEvent, type Examples, type Field, type Questions } from './questionsSpec.ts';
 
 // Each question's version: bump one when its wording or examples change, so only stored answers to it are asked
 // again (an answer stored with one `version` for every field, before these, counts as version 1 of each).

@@ -1,9 +1,9 @@
 import cardsJson from '../generated/cards.json' with { type: 'json' };
 import type { CardsFile, CardStats, CardStatsFile } from '../shared/schemas/card.ts';
 import type { Server } from '../shared/schemas/common.ts';
-import { type JoinedCard, joinCards } from './join-cards.ts';
+import { type JoinedCard, joinCards } from '../shared/joinCards.ts';
 
-// test/schemas.test.ts parses generated/cards.json against CardsFileSchema.
+// test/data/schemas.test.ts parses generated/cards.json against CardsFileSchema.
 const cards = cardsJson as CardsFile;
 export { cards };
 
@@ -33,7 +33,8 @@ export function loadCardsWithUpcoming(server: Server): Promise<JoinedCard[]> {
       .filter((id) => !(id in own))
       .map((id): [string, CardStats] => [
         id,
-        // TODO(ts): every card has an English name (test/data.test.ts checks names are present); the schema allows null.
+        // TODO(ts): every card has an English name (test/data/generated.test.ts checks names are present); the schema
+        // allows null.
         { ...jp[id], charName: known.get(jp[id].charName) ?? (cards[id].name.en as string) },
       ]);
     return joinCards(cards, { ...own, ...Object.fromEntries(upcoming) });

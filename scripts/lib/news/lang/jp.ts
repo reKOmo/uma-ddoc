@@ -2,7 +2,7 @@
 // What the posts look like: docs/jp-news-findings.md.
 
 import { parsePeriodJp } from '../text.ts';
-import { jpBannerLexicon } from './jp-banners.ts';
+import { jpBannerLexicon } from './jpBanners.ts';
 import {
   ITEM_QUOTES,
   PART_ART,
@@ -13,8 +13,8 @@ import {
   named,
   partCopies,
   partName,
-} from './jp-names.ts';
-import { jpRaceLexicon } from './jp-races.ts';
+} from './jpNames.ts';
+import { jpRaceLexicon } from './jpRaces.ts';
 import type { JapaneseLexicon } from './index.ts';
 
 const TILDE = '[～〜~]';

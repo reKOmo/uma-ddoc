@@ -1,7 +1,7 @@
 import { type CSSProperties, useCallback, useDeferredValue, useMemo, useRef, useState } from 'react';
 import { SCENARIOS } from '../../shared/scenarioRelease.ts';
 import { useSettings } from '../state/settings.ts';
-import { useLanguage } from '../lib/translations.ts';
+import { useLanguage } from '../hooks/useLanguage.ts';
 import { useDragScroll } from '../hooks/useDragScroll.ts';
 import { ZOOMS } from '../timeline/layout.ts';
 import { scenarioSegments } from '../lib/scenarioStrip.ts';

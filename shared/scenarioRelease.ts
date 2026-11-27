@@ -4,8 +4,8 @@ import scenarioData from '../data/scenarios.json' with { type: 'json' };
 import type { Scenario, StartDate } from './schemas/scenario.ts';
 
 // In JP launch order.
-// TODO(ts): the JSON import types the tags and servers' fields wider than the schema; test/schemas.test.ts checks the
-// file against ScenariosFileSchema.
+// TODO(ts): the JSON import types the tags and servers' fields wider than the schema; test/data/schemas.test.ts checks
+// the file against ScenariosFileSchema.
 export const SCENARIOS = scenarioData.scenarios as Scenario[];
 
 // How a launch is shown: out (passed), confirmed (known, still ahead) or predicted.

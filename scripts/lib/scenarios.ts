@@ -10,7 +10,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dated } from '../../shared/schemas/common.ts';
 import type { Scenario, ScenariosFile, StartDate } from '../../shared/schemas/scenario.ts';
-import type { ScenarioMention } from './news/scenario-posts.ts';
+import type { ScenarioMention } from './news/scenarioPosts.ts';
 import { imageColor } from './colors.ts';
 import { jp as jpLexicon } from './news/lang/jp.ts';
 import { isoOfUnix, norm } from './news/text.ts';
@@ -42,7 +42,7 @@ export type GametoraScenario = {
   start_ja?: number | null;
 };
 
-// A scenario post (news/scenario-posts.ts' scenarioPost()): the Global launches read here.
+// A scenario post (news/scenarioPosts.ts' scenarioPost()): the Global launches read here.
 type ScenarioPost = { id: number; posted: string | null; scenarios: ScenarioMention[] };
 
 // The shape of a file on disk: older ones have one `full` name.

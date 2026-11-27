@@ -12,8 +12,8 @@ import ScenarioPill from '../../ui/ScenarioPill.tsx';
 import TierChip from '../../ui/TierChip.tsx';
 import { useDateFormats } from '../../lib/dates.ts';
 import { getCurrentScenario, scenarioAt } from '../../../tierlist/scenarios.ts';
-import type { UpcomingAdvice } from './advice.ts';
-import { useRankHistory } from './hooks.ts';
+import type { UpcomingAdvice } from './useUpcomingAdvice.ts';
+import { useRankHistory } from './useRankHistory.ts';
 import styles from './Summary.module.css';
 
 function Tile({ label, className, children }: { label: ReactNode; className?: string; children: ReactNode }) {

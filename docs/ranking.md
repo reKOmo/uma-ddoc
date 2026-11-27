@@ -1,6 +1,6 @@
 # Ranking semantics and upstream parity
 
-- **The calculation is ours** (`tierlist/tierlist-calc.ts`, `scenarios.ts`): nothing
+- **The calculation is ours** (`tierlist/tierlistCalc.ts`, `scenarios.ts`): nothing
   syncs it automatically. Upstream's UI-only parts were dropped (the per-card `info`
   breakdown, scenario `version`/`currentState`/`show`, server `referenceDocUrl`,
   `defaultLocale`, `defaultFilters`, `defaultTierListDropdown`, `useLegacyFsBonusDisplay`).
@@ -14,7 +14,8 @@
 - `vite.config.ts` keeps Vite's dependency scan and watcher out of `upstream/` (it's a
   whole other app with its own `index.html`).
 
-- `processCards` (upstream) scores each candidate card as its **marginal** value when
+- `processCards` (upstream; one long function on purpose: split into steps it would have to keep every addition's
+  order for the parity test, not worth it) scores each candidate card as its **marginal** value when
   added to a fixed 5-card deck. Scores are only comparable within one
   server + scenario + stat.
 - `rankByUsefulness` averages that score over the site's default deck and all deck

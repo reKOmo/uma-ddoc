@@ -1,13 +1,13 @@
 // Checks a model's answer to an event's questions and applies the parts that check out (pure, like ai/questions.ts).
 
 import { z } from 'zod';
-import { type FoundWindow, type ScoutWindow, counted, dailyLines } from '../events/free-scouts.ts';
+import { type FoundWindow, type ScoutWindow, counted, dailyLines } from '../events/freeScouts.ts';
 import { norm } from '../news/text.ts';
 import { en } from '../news/lang/en.ts';
 import type { Lexicon } from '../news/lang/index.ts';
 import type { EventCard, EventItem, GameEvent } from '../../../shared/schemas/event.ts';
 import { questionsOf } from './questions.ts';
-import { type AskedEvent, type Field, type Questions, inText, isMissionSet } from './questions-spec.ts';
+import { type AskedEvent, type Field, type Questions, inText, isMissionSet } from './questionsSpec.ts';
 
 const count = (n: unknown, max: number): n is number =>
   typeof n === 'number' && Number.isInteger(n) && n > 0 && n <= max;

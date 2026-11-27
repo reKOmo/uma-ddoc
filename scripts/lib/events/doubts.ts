@@ -5,7 +5,7 @@ import type { EventCard, EventItem, Race } from '../../../shared/schemas/event.t
 import type { PostPhase } from './dates.ts';
 import { type cardIndex, cardsIn, copiesDoubt, itemDoubt, itemsIn, missionsIn, titlesIn } from './rewards.ts';
 import { nameDoubt } from '../ai/questions.ts';
-import { type ScoutWindow, scoutWindows } from './free-scouts.ts';
+import { type ScoutWindow, scoutWindows } from './freeScouts.ts';
 
 // One event as one post describes it, before posts about the same event are merged (`GameEvent` plus what merging and
 // the model's questions need; `output()` keeps only the schema's fields).
@@ -36,7 +36,7 @@ export type Fragment = {
   context?: string[];
   // Mission sets it lists (taken out into bars of their own by missionBars()).
   missions?: { name: string; start: string; end: string | null }[];
-  // A daily free scout campaign's windows (free-scouts.ts).
+  // A daily free scout campaign's windows (freeScouts.ts).
   scouts?: ScoutWindow[];
 };
 

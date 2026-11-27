@@ -16,8 +16,8 @@ import RailList, { type RailDot } from '../../ui/RailList.tsx';
 import { Section } from '../../ui/Section.tsx';
 import ShouldPullChip from '../../ui/ShouldPullChip.tsx';
 import Status from '../../ui/Status.tsx';
-import type { UpcomingAdvice } from './advice.ts';
-import type { EntryOrigin, Origins } from './hooks.ts';
+import type { UpcomingAdvice } from './useUpcomingAdvice.ts';
+import type { EntryOrigin, Origins } from './useOrigins.ts';
 import { KindPill } from './OriginPills.tsx';
 import styles from './Banners.module.css';
 
