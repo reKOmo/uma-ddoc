@@ -116,7 +116,7 @@ def main():
     for date in result['known_dates']:
         print(f'known date: JP {date["release_jp"]} → Global {date["release_gl"]}')
     print(f'skipped by Global (left out): {", ".join(skipped["id"])}\n')
-    print(f'{"id":<7}{"name":<26}{"title":<34}{"JP":<12}{"Global (predicted)":<20}range')
+    print(f'{"id":<7}{"name":<26}{"title":<34}{"JP":<12}{"Global":<20}range')
     for row in upcoming.itertuples():
         card = result['cards'][row.id]
         print(f'{row.id:<7}{row.name[:25]:<26}{(row.title or "")[:33]:<34}{row.release_jp:<12}'
@@ -124,10 +124,10 @@ def main():
     print(f'\n{len(upcoming)} cards → {OUTPUT.relative_to(GENERATED.parent)}')
     print(f'{len(banners["characters"])} character + {len(banners["cards"])} card banners → '
           f'{BANNERS_OUTPUT.relative_to(GENERATED.parent)}')
-    print(f'\n{"scenario":<11}{"JP launch":<12}{"Global (predicted)":<20}range')
+    print(f'\n{"scenario":<11}{"JP launch":<12}{"Global":<20}range')
     for s in scenarios:
         en = s['en_start_date']
-        print(f'{s["key"]:<11}{s["jp_start_date"]["date"][:10]:<12}{en["date"][:10]:<20}{en["lo"]} – {en["hi"]}')
+        print(f'{s["key"]:<11}{s["jp_start_date"]["date"][:10]:<12}{en["date"][:10]:<20}{f"{en['lo']} – {en['hi']}" if "lo" in en else en["status"]}')
     print(f'{len(scenarios)} scenario launches → {SCENARIOS.relative_to(GENERATED.parent)}')
     print(f'\n{events_summary(pairs, events)}')
     print(f'→ {PAIRS_OUTPUT.relative_to(GENERATED.parent)}, {EVENTS_OUTPUT.relative_to(GENERATED.parent)}')
