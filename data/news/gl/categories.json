@@ -1,4 +1,5 @@
 [
+{"id": 200016, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.99, "flag": null, "units": []},
 {"id": 200015, "category": "other", "kind": "community", "phase": null, "name": null, "source": "model", "confidence": 0.961, "flag": null, "units": []},
 {"id": 200014, "category": "other", "kind": "community", "phase": null, "name": null, "source": "gold", "confidence": null, "flag": null, "units": []},
 {"id": 200013, "category": "other", "kind": "community", "phase": null, "name": null, "source": "gold", "confidence": null, "flag": null, "units": []},
@@ -127,6 +128,7 @@
 {"id": 1179, "category": "event", "kind": "champions_meeting", "phase": "started", "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
 {"id": 1178, "category": "event", "kind": "champions_meeting", "phase": "league_selection", "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "event", "kind": null}, {"role": "event", "kind": null}]},
 {"id": 1177, "category": "event", "kind": "celebration", "phase": "started", "name": null, "source": "model", "confidence": 0.969, "flag": null, "units": [{"role": "part", "kind": "gift"}, {"role": "part", "kind": "campaign"}]},
+{"id": 1176, "category": "event", "kind": "story", "phase": "announced", "name": null, "source": "model", "confidence": 0.998, "flag": null, "units": [{"role": "event", "kind": null}]},
 {"id": 1174, "category": "banner", "kind": null, "phase": "started", "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
 {"id": 1173, "category": "banner", "kind": null, "phase": "announced", "name": null, "source": "model", "confidence": 0.999, "flag": null, "units": []},
 {"id": 1172, "category": "event", "kind": "celebration", "phase": "announced", "name": null, "source": "model", "confidence": 0.967, "flag": null, "units": [{"role": "event", "kind": null}, {"role": "part", "kind": "gift"}, {"role": "none", "kind": null}]},

@@ -1,20 +1,15 @@
-# Umamusume news — 2026-11-24 23:43 UTC
+# Umamusume news — 2026-11-27 23:43 UTC
 
-1 new, 1 edited.
+2 new, 0 edited.
 
 ## New
 
-- [Valentine's Day celebration now available!](https://umamusume.com/news/1177/) — event / celebration, started
-
-## Edited
-
-- [List of Known Issues](https://umamusume.com/news/155/) — other / issue
+- [Umamusume: Pretty Derby Grandmasters: Legacies Immortal Release Support Event](https://umamusume.com/news/200016/) — other / community
+- [The story event Leap into a New World! is coming soon!](https://umamusume.com/news/1176/) — event / story, announced
 
 
 ## Global repository (data/)
 
-- Added campaign event "Increased Bond Points" (2026-11-24)
-- Updated gift event "Special Valentine's gift" (2026-11-24)
-- Updated celebration event "Valentine's Day celebration" (2026-11-24)
+- Added story event "Leap into a New World!" (2026-12-01)
 - Edited since labelled: post 155 "List of Known Issues": label it again (pnpm gold:review)
 - Unsure: post 1168 "New title missions are here!" is event/missions by the rules, other/update by the model: label it (pnpm gold:review)

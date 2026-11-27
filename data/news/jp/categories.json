@@ -1,5 +1,7 @@
 [
+{"id": 3579, "category": "other", "kind": "update", "phase": null, "name": null, "source": "model", "confidence": 1.0, "flag": null, "units": []},
 {"id": 3571, "category": "other", "kind": "issue", "phase": null, "name": null, "source": "model", "confidence": 0.997, "flag": null, "units": []},
+{"id": 3560, "category": "banner", "kind": null, "phase": "announced", "name": null, "source": "model", "confidence": 0.995, "flag": null, "units": []},
 {"id": 3558, "category": "other", "kind": "update", "phase": null, "name": null, "source": "model", "confidence": 1.0, "flag": null, "units": []},
 {"id": 3557, "category": "other", "kind": "update", "phase": null, "name": null, "source": "model", "confidence": 1.0, "flag": null, "units": []},
 {"id": 3556, "category": "other", "kind": "maintenance", "phase": null, "name": null, "source": "model", "confidence": 0.964, "flag": null, "units": []},
