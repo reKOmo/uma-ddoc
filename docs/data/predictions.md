@@ -37,9 +37,10 @@ gave, shown as JP's. Announced Global dates go in
   top-level + 616 parts on 2026-10-12. Paired Global events get the dates their news lacks filled in from their JP pair
   (`write_fills()`: a "coming soon" cup's end and later phases; not a gift's end, JP's being a delivery deadline):
   [pipeline](pipeline.md#dates). Banners and cards likewise: start / end, `release_gl` as `{ date, status, lo?, hi? }`.
-  **Status `confirmed` comes only from `data/known_dates.json`** (`ml/adjust.py`: `hand_known_days()`, `confirmed_cards()`):
-  a banner on its `banners`; a card on one of those banners or on a JP day its `dates` give; an event only on a JP day
-  its `dates` give. A JP day known otherwise (Global's banners, paired events, a confirmed banner's day) still gives
+  **Status `confirmed` comes only from `data/known_dates.json`** (`ml/adjust.py`: `hand_known_days()`, `confirmed_cards()`,
+  `confirmed_only()`): a banner on its `banners`; a card on one of those banners or on a JP day its `dates` give; an
+  event or scenario on a JP day its `dates` give, or one a `dates` entry's `only` names (`{ "events": [JP ids],
+  "scenarios": [keys] }`: only those are confirmed, the rest of that JP day still moves to its Global day, `predicted`). A JP day known otherwise (Global's banners, paired events, a confirmed banner's day) still gives
   the exact Global day, but nothing on it is `confirmed` (its status stays `predicted`): sharing a day with an announced banner or cup confirms
   nothing about a gift on that day.
   `update-global` drops a `banners` entry once the news has that banner (live or announced): it's Global's own then

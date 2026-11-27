@@ -43,11 +43,18 @@ def confirmed_banners():
 
 
 def hand_known_days():
-    """The JP days whose Global day someone announced for everything on it: known_dates.json's `dates`. With
-    confirmed_cards(), the only things that make a prediction `confirmed` (a date known from Global's banners or paired
-    events, or a confirmed banner's day, says nothing about another card or event of that JP day)."""
-    entries = known_file().get('dates', [])
+    """The JP days whose Global day someone announced for everything on it: known_dates.json's `dates` without `only`.
+    With confirmed_cards() and confirmed_only(), the only things that make a prediction `confirmed` (a date known from
+    Global's banners or paired events, or a confirmed banner's day, says nothing about another card or event of that
+    JP day)."""
+    entries = [e for e in known_file().get('dates', []) if 'only' not in e]
     return {float(d) for d in to_days([e['release_jp'] for e in entries])} if entries else set()
+
+
+def confirmed_only(what):
+    """The JP event ids (what='events') or scenario keys ('scenarios') a `dates` entry's `only` names: confirmed on its
+    Global day while the rest of its JP day only moves there."""
+    return {x for e in known_file().get('dates', []) for x in e.get('only', {}).get(what, [])}
 
 
 def confirmed_cards():

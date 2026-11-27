@@ -1,10 +1,20 @@
 import { z } from 'zod';
 import { DatedDay, Day, Moment } from './common.ts';
 
-// `dates`: a JP release day → its announced Global day (everything on it); `banners`: a JP banner's announced Global
-// dates, by gacha id.
+// `dates`: a JP release day → its announced Global day (everything on it, or with `only` just the JP events / scenario
+// keys it names: the rest of the day still moves there, predicted); `banners`: a JP banner's announced Global dates, by
+// gacha id.
 export const KnownDatesFileSchema = z.strictObject({
-  dates: z.array(z.strictObject({ release_jp: Day, release_gl: Day, source: z.string().optional() })),
+  dates: z.array(
+    z.strictObject({
+      release_jp: Day,
+      release_gl: Day,
+      only: z
+        .strictObject({ events: z.array(z.string()).optional(), scenarios: z.array(z.string()).optional() })
+        .optional(),
+      source: z.string().optional(),
+    })
+  ),
   banners: z.array(z.strictObject({ id: z.int(), start: Moment, end: Moment, source: z.string() })),
 });
 export type KnownDatesFile = z.infer<typeof KnownDatesFileSchema>;

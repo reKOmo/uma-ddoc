@@ -64,6 +64,9 @@ If a row matches nothing, or two things equally, say so in the report; don't gue
   a `banners` entry keep their own dates (a trainee banner can start days before the rest of its JP day), but say in
   the report what else the entry moves.
 - `source`: `"<Month YYYY> release schedule (official socials): <the rows' titles>"`.
+- When the source names only some of a JP day's events (a post, not the full schedule), add
+  `"only": { "events": [<JP event ids>], "scenarios": [<scenario keys>] }` to that day's entry: only those are confirmed;
+  the rest of the day still moves to that Global day, as predicted.
 - Keep `dates` sorted by `release_jp`; both lists must stay in order (a later JP day never on an earlier Global day:
   `predict-gl` drops out-of-order entries with a warning). Keep existing entries unless the image contradicts them;
   stale ones (JP days Global has passed) are harmless.
